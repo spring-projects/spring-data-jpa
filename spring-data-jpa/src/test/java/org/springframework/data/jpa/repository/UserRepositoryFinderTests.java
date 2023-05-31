@@ -315,4 +315,15 @@ class UserRepositoryFinderTests {
 	void executesNamedQueryWithConstructorExpression() {
 		userRepository.findByNamedQueryWithConstructorExpression();
 	}
+
+	@Test // DATAJPA-1713, GH-2008
+	public void selectProjectionWithSubselect() {
+
+		List<UserRepository.NameOnly> dtos = userRepository.findProjectionBySubselect();
+
+		assertThat(dtos).flatExtracting(UserRepository.NameOnly::getFirstname) //
+				.containsExactly("Dave", "Carter", "Oliver August");
+		assertThat(dtos).flatExtracting(UserRepository.NameOnly::getLastname) //
+				.containsExactly("Matthews", "Beauford", "Matthews");
+	}
 }
