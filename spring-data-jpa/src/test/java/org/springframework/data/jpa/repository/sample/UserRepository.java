@@ -718,6 +718,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 			nativeQuery = true)
 	int mergeNativeStatement();
 
+	// DATAJPA-1713, GH-2008
+	@Query("select u from User u where u.firstname >= (select Min(u0.firstname) from User u0)")
+	List<NameOnly> findProjectionBySubselect();
+
 	interface RolesAndFirstname {
 
 		String getFirstname();
