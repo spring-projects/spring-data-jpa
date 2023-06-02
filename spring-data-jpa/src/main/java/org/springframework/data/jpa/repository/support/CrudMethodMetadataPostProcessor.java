@@ -56,6 +56,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Yanming Zhou
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
@@ -181,7 +182,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		private final @Nullable LockModeType lockModeType;
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHints;
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHintsForCount;
-		private final String comment;
+		private final @Nullable String comment;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
 

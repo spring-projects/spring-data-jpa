@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public interface CrudMethodMetadata {
 
@@ -66,6 +67,7 @@ public interface CrudMethodMetadata {
 	 * @return
 	 * @since 3.0
 	 */
+	@Nullable
 	String getComment();
 
 	/**
