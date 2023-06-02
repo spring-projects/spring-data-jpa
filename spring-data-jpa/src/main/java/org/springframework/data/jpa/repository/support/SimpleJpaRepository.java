@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -225,9 +226,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 					entityInformation.getIdAttribute().getName());
 
 			Query query = em.createQuery(queryString);
-			/**
+
+			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
 			 */
+
 			if (Collection.class.isInstance(ids)) {
 				query.setParameter("ids", ids);
 			} else {
@@ -299,31 +302,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		LockModeType type = metadata.getLockModeType();
-
-		Map<String, Object> hints = new HashMap<>();
-
-		getQueryHints().withFetchGraphs(em).forEach(hints::put);
-
-		if (metadata != null && metadata.getComment() != null && provider.getCommentHintKey() != null) {
-			hints.put(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
-		}
+		Map<String, Object> hints = getHints();
 
 		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
-	}
-
-	/**
-	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
-	 * {@link EntityGraph} information.
-	 */
-	protected QueryHints getQueryHints() {
-		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
-	}
-
-	/**
-	 * Returns {@link QueryHints} with the query hints on the current {@link CrudMethodMetadata} for count queries.
-	 */
-	protected QueryHints getQueryHintsForCount() {
-		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
 	}
 
 	@Deprecated
@@ -432,7 +413,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public Page<T> findAll(Pageable pageable) {
 
-		if (isUnpaged(pageable)) {
+		if (pageable.isUnpaged()) {
 			return new PageImpl<>(findAll());
 		}
 
@@ -458,7 +439,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
-		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList())
+		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
 				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
@@ -489,9 +470,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public <S extends T> boolean exists(Example<S> example) {
 
 		Specification<S> spec = new ExampleSpecification<>(example, this.escapeCharacter);
-		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
-		cq.select(this.em.getCriteriaBuilder().literal(1));
+		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder() //
+				.createQuery(Integer.class) //
+				.select(this.em.getCriteriaBuilder().literal(1));
+
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
+
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
@@ -541,7 +525,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Class<S> probeType = example.getProbeType();
 		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example, escapeCharacter), probeType, pageable);
 
-		return isUnpaged(pageable) ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
+		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
 	}
 
 	@Override
@@ -778,6 +762,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	/**
+	 * Returns {@link QueryHints} with the query hints based on the current {@link CrudMethodMetadata} and potential
+	 * {@link EntityGraph} information.
+	 */
+	protected QueryHints getQueryHints() {
+		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata);
+	}
+
+	/**
+	 * Returns {@link QueryHints} with the query hints on the current {@link CrudMethodMetadata} for count queries.
+	 */
+	protected QueryHints getQueryHintsForCount() {
+		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
+	}
+
+	/**
 	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
 	 *
 	 * @param spec can be {@literal null}.
@@ -827,10 +826,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
-
-		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
-			query.setHint(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
-		}
+		applyComment(metadata, query::setHint);
 	}
 
 	private <S> TypedQuery<S> applyRepositoryMethodMetadataForCount(TypedQuery<S> query) {
@@ -851,9 +847,26 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		getQueryHintsForCount().forEach(query::setHint);
+		applyComment(metadata, query::setHint);
+	}
+
+	private Map<String, Object> getHints() {
+
+		Map<String, Object> hints = new HashMap<>();
+
+		getQueryHints().withFetchGraphs(em).forEach(hints::put);
+
+		if (metadata != null) {
+			applyComment(metadata, hints::put);
+		}
+
+		return hints;
+	}
+
+	private void applyComment(CrudMethodMetadata metadata, BiConsumer<String, Object> consumer) {
 
 		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
-			query.setHint(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
+			consumer.accept(provider.getCommentHintKey(), provider.getCommentHintValue(this.metadata.getComment()));
 		}
 	}
 
@@ -874,10 +887,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		return total;
-	}
-
-	private static boolean isUnpaged(Pageable pageable) {
-		return pageable.isUnpaged();
 	}
 
 	/**
