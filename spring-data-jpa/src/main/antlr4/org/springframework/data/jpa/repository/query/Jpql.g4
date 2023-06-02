@@ -602,7 +602,8 @@ identification_variable
     | LEFT
     | ORDER
     | OUTER
-    | FLOOR)
+    | FLOOR
+    | SIGN)
     ;
 
 constructor_name

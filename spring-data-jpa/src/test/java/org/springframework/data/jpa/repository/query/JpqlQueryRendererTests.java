@@ -931,4 +931,9 @@ class JpqlQueryRendererTests {
 				WHERE f.name = :name
 				""");
 	}
+
+	@Test // GH-2994
+	void queryWithSignShouldWork() {
+		assertQuery("select t.sign from TestEntity t");
+	}
 }

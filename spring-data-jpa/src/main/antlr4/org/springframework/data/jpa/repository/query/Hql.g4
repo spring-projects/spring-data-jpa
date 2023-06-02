@@ -1013,7 +1013,6 @@ SEARCH                      : S E A R C H;
 SECOND                      : S E C O N D;
 SELECT                      : S E L E C T;
 SET                         : S E T;
-SIGN                        : S I G N;
 SIZE                        : S I Z E;
 SOME                        : S O M E;
 SUBSTRING                   : S U B S T R I N G;
