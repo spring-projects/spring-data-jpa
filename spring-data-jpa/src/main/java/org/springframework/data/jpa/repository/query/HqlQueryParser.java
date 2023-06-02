@@ -20,12 +20,14 @@ import java.util.List;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.hibernate.grammars.hql.HqlLexer;
+import org.hibernate.grammars.hql.HqlParser;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the {@code HQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
- * {@link HqlParser} and {@link HqlQueryTransformer}.
+ * Implements the {@code HQL} parsing operations of a {@link JpaQueryParserSupport} using Hibernate's ANTLR-generated
+ * {@link HqlParser} and a custom {@link HqlQueryTransformer}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
@@ -50,7 +52,7 @@ class HqlQueryParser extends JpaQueryParserSupport {
 
 		configureParser(query, lexer, parser);
 
-		return parser.start();
+		return parser.statement();
 	}
 
 	/**

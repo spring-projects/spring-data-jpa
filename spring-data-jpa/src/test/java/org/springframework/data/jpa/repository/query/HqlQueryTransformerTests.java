@@ -851,7 +851,7 @@ class HqlQueryTransformerTests {
 
 	@ParameterizedTest
 	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
-	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
+	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName) {
 
 		HqlQueryParser.parseQuery(String.format("""
 				select u
@@ -864,23 +864,23 @@ class HqlQueryTransformerTests {
 					join iu.roles u2r
 					join u2r.role r
 					join r.rights r2r
-					join r2r.%s %s
+					join r2r.%s rt
 					where
-						%s.code = :rightCode
+						rt.code = :rightCode
 						and iu = u
 				)
 				and ct.id = :teamId
-					""", relationshipName, joinAlias, joinAlias));
+					""", relationshipName));
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
 
 		return Stream.of( //
-				Arguments.of("right", "rt"), //
-				Arguments.of("left", "lt"), //
-				Arguments.of("outer", "ou"), //
-				Arguments.of("full", "full"), //
-				Arguments.of("inner", "inr"));
+				Arguments.of("right"), //
+				Arguments.of("left"), //
+				Arguments.of("outer"), //
+				Arguments.of("full"), //
+				Arguments.of("inner"));
 	}
 
 	@Test // GH-2508

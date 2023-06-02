@@ -20,6 +20,8 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.hibernate.grammars.hql.HqlLexer;
+import org.hibernate.grammars.hql.HqlParser;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +51,7 @@ class HqlQueryRendererTests {
 
 		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
-		HqlParser.StartContext parsedQuery = parser.start();
+		HqlParser.StatementContext parsedQuery = parser.statement();
 
 		return render(new HqlQueryRenderer().visit(parsedQuery));
 	}
