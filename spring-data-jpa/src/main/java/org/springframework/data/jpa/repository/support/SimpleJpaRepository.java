@@ -365,14 +365,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
 
-		Map<String, Object> hints = new HashMap<>();
-		getQueryHints().withFetchGraphs(em).forEach(hints::put);
-
-		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
-			hints.put(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
-		}
-
-		hints.forEach(query::setHint);
+		applyQueryHints(query);
 
 		if (!entityInformation.hasCompositeId()) {
 			query.setParameter(idAttributeNames.iterator().next(), id);
