@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * Delegate to run {@link ScrollPosition scroll queries} and create result {@link Window}.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @since 3.1
  */
 public class ScrollDelegate<T> {
@@ -80,17 +81,17 @@ public class ScrollDelegate<T> {
 			JpaEntityInformation<T, ?> entity, List<T> result) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(direction);
-		List<T> resultsToUse = delegate.postProcessResults(result);
+		List<T> resultsToUse = delegate.getResultWindow(delegate.postProcessResults(result), limit);
 
 		IntFunction<ScrollPosition> positionFunction = value -> {
 
-			T object = result.get(value);
+			T object = resultsToUse.get(value);
 			Map<String, Object> keys = entity.getKeyset(sort.stream().map(Order::getProperty).toList(), object);
 
-			return ScrollPosition.forward(keys);
+			return ScrollPosition.of(keys, direction);
 		};
 
-		return Window.from(delegate.getResultWindow(resultsToUse, limit), positionFunction, hasMoreElements(result, limit));
+		return Window.from(resultsToUse, positionFunction, hasMoreElements(result, limit));
 	}
 
 	private static <T> Window<T> createWindow(List<T> result, int limit,
