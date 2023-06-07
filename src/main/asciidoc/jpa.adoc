@@ -685,6 +685,22 @@ The escape character used can be configured by setting the `escapeCharacter` of 
 Note that the method `escape(String)` available in the SpEL context will only escape the SQL and JPQL standard wildcards `_` and `%`.
 If the underlying database or the JPA implementation supports additional wildcards these will not get escaped.
 
+[[jpa.query.other-methods]]
+=== Other Methods
+
+Spring Data JPA offers many ways to build queries.
+But sometimes, your query may simply be too complicated for the techniques offered.
+In that situation, consider:
+
+* If you haven't already, simply write the query yourself using <<jpa.query-methods.at-query,`@Query`>>.
+* If that doesn't fit your needs, consider implementing a <<repositories.custom-implementations,custom implementation>>. This lets you register a method in your repository while leaving the implementation completely up to you. This gives you the ability to:
+** Talk directly to the `EntityManager` (writing pure HQL/JPQL/EQL/native SQL or using the *Criteria API*)
+** Leverage Spring Framework's `JdbcTemplate` (native SQL)
+** Use another 3rd-party database toolkit.
+* Another option is putting your query inside the database and then using either Spring Data JPA's <<jpa.stored-procedures,`@StoredProcedure` annotation>> or if it's a database function using the <<jpa.query-methods.at-query,`@Query` annotation>> and invoking it with a `CALL`.
+
+These tactics may be most effective when you need maximum control of your query, while still letting Spring Data JPA provide resource management.
+
 [[jpa.modifying-queries]]
 === Modifying Queries
 
