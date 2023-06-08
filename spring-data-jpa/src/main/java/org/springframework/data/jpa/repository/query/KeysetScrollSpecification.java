@@ -22,6 +22,8 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -61,11 +63,21 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
 
+		Collection<String> sortById;
 		Sort sortToUse;
 		if (entity.hasCompositeId()) {
-			sortToUse = sort.and(Sort.by(entity.getIdAttributeNames().toArray(new String[0])));
+			sortById = new ArrayList<>(entity.getIdAttributeNames());
 		} else {
-			sortToUse = sort.and(Sort.by(entity.getRequiredIdAttribute().getName()));
+			sortById = new ArrayList<>(1);
+			sortById.add(entity.getRequiredIdAttribute().getName());
+		}
+
+		sort.forEach(it -> sortById.remove(it.getProperty()));
+
+		if (sortById.isEmpty()) {
+			sortToUse = sort;
+		} else {
+			sortToUse = sort.and(Sort.by(sortById.toArray(new String[0])));
 		}
 
 		return delegate.getSortOrders(sortToUse);
