@@ -20,20 +20,22 @@ import java.util.List;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.hibernate.grammars.hql.HqlLexer;
+import org.hibernate.grammars.hql.HqlParser;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * Implements the {@code HQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
- * {@link HqlParser} and {@link HqlQueryTransformer}.
+ * Implements the {@code HQL} parsing operations of a {@link JpaQueryParserSupport} using Hibernate's ANTLR-generated
+ * {@link HqlParser} and a custom {@link Hibernate62HqlQueryTransformer}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
  * @since 3.1
  */
-class HqlQueryParser extends JpaQueryParserSupport {
+class Hibernate62HqlQueryParser extends JpaQueryParserSupport {
 
-	HqlQueryParser(String query) {
+	Hibernate62HqlQueryParser(String query) {
 		super(query);
 	}
 
@@ -50,7 +52,7 @@ class HqlQueryParser extends JpaQueryParserSupport {
 
 		configureParser(query, lexer, parser);
 
-		return parser.start();
+		return parser.statement();
 	}
 
 	/**
@@ -64,7 +66,8 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	}
 
 	/**
-	 * Use the {@link HqlQueryTransformer} to transform the original query into a query with the {@link Sort} applied.
+	 * Use the {@link Hibernate62HqlQueryTransformer} to transform the original query into a query with the {@link Sort}
+	 * applied.
 	 *
 	 * @param parsedQuery
 	 * @param sort can be {@literal null}
@@ -72,11 +75,11 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	 */
 	@Override
 	protected List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort) {
-		return new HqlQueryTransformer(sort).visit(parsedQuery);
+		return new Hibernate62HqlQueryTransformer(sort).visit(parsedQuery);
 	}
 
 	/**
-	 * Use the {@link HqlQueryTransformer} to transform the original query into a count query.
+	 * Use the {@link Hibernate62HqlQueryTransformer} to transform the original query into a count query.
 	 *
 	 * @param parsedQuery
 	 * @param countProjection
@@ -85,11 +88,11 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	@Override
 	protected List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
 			@Nullable String countProjection) {
-		return new HqlQueryTransformer(true, countProjection).visit(parsedQuery);
+		return new Hibernate62HqlQueryTransformer(true, countProjection).visit(parsedQuery);
 	}
 
 	/**
-	 * Run the parsed query through {@link HqlQueryTransformer} to find the primary FROM clause's alias.
+	 * Run the parsed query through {@link Hibernate62HqlQueryTransformer} to find the primary FROM clause's alias.
 	 *
 	 * @param parsedQuery
 	 * @return can be {@literal null}
@@ -97,13 +100,13 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	@Override
 	protected String doFindAlias(ParserRuleContext parsedQuery) {
 
-		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
+		Hibernate62HqlQueryTransformer transformVisitor = new Hibernate62HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.getAlias();
 	}
 
 	/**
-	 * Use {@link HqlQueryTransformer} to find the projection of the query.
+	 * Use {@link Hibernate62HqlQueryTransformer} to find the projection of the query.
 	 *
 	 * @param parsedQuery
 	 * @return
@@ -111,14 +114,14 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	@Override
 	protected List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
 
-		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
+		Hibernate62HqlQueryTransformer transformVisitor = new Hibernate62HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.getProjection();
 	}
 
 	/**
-	 * Use {@link HqlQueryTransformer} to detect if the query uses a {@code new com.example.Dto()} DTO constructor in the
-	 * primary select clause.
+	 * Use {@link Hibernate62HqlQueryTransformer} to detect if the query uses a {@code new com.example.Dto()} DTO
+	 * constructor in the primary select clause.
 	 *
 	 * @param parsedQuery
 	 * @return Guaranteed to be {@literal true} or {@literal false}.
@@ -126,7 +129,7 @@ class HqlQueryParser extends JpaQueryParserSupport {
 	@Override
 	protected boolean doCheckForConstructor(ParserRuleContext parsedQuery) {
 
-		HqlQueryTransformer transformVisitor = new HqlQueryTransformer();
+		Hibernate62HqlQueryTransformer transformVisitor = new Hibernate62HqlQueryTransformer();
 		transformVisitor.visit(parsedQuery);
 		return transformVisitor.hasConstructorExpression();
 	}

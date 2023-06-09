@@ -15,11 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
-
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -33,39 +28,9 @@ import org.junit.jupiter.api.Test;
  * @author Greg Turnquist
  * @since 3.1
  */
-class HqlQueryRendererTests {
+class Hibernate62HqlSpecificationTests {
 
 	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
-
-	/**
-	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
-	 *
-	 * @param query
-	 */
-	private static String parseWithoutChanges(String query) {
-
-		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
-		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
-
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		HqlParser.StartContext parsedQuery = parser.start();
-
-		return render(new HqlQueryRenderer().visit(parsedQuery));
-	}
-
-	private void assertQuery(String query) {
-
-		String slimmedDownQuery = reduceWhitespace(query);
-		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
-	}
-
-	private String reduceWhitespace(String original) {
-
-		return original //
-				.replaceAll("[ \\t\\n]{1,}", " ") //
-				.trim();
-	}
 
 	/**
 	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
@@ -73,7 +38,7 @@ class HqlQueryRendererTests {
 	@Test
 	void joinExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order AS o JOIN o.lineItems AS l
 				WHERE l.shipped = FALSE
@@ -87,7 +52,7 @@ class HqlQueryRendererTests {
 	@Test
 	void joinExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l JOIN l.product p
 				WHERE p.productType = 'office_supplies'
@@ -100,12 +65,12 @@ class HqlQueryRendererTests {
 	@Test
 	void rangeVariableDeclarations() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o1
 				FROM Order o1, Order o2
 				WHERE o1.quantity > o2.quantity AND
-				o2.customer.lastname = 'Smith' AND
-				o2.customer.firstname = 'John'
+				 o2.customer.lastname = 'Smith' AND
+				 o2.customer.firstname= 'John'
 				""");
 	}
 
@@ -115,7 +80,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT i.name, VALUE(p)
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -128,7 +93,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT i.name, p
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -141,7 +106,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample3() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo.phones p
 				""");
@@ -153,7 +118,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample4() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE e.contactInfo.address.zipcode = '95054'
@@ -163,7 +128,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionSyntaxExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT l.product
 				FROM Order AS o JOIN o.lineItems l
 				""");
@@ -172,7 +137,7 @@ class HqlQueryRendererTests {
 	@Test
 	void joinsExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
 				""");
 	}
@@ -180,7 +145,7 @@ class HqlQueryRendererTests {
 	@Test
 	void joinsExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -188,16 +153,15 @@ class HqlQueryRendererTests {
 	@Test
 	void joinsInnerExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
 				""");
 	}
 
-	@Disabled("Deprecated syntax dating back to EJB-QL prior to EJB 3, required by JPA, never documented in Hibernate")
 	@Test
 	void joinsInExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
 				""");
 	}
@@ -205,7 +169,7 @@ class HqlQueryRendererTests {
 	@Test
 	void doubleJoinExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE c.address.zipcode = '95054'
@@ -215,7 +179,7 @@ class HqlQueryRendererTests {
 	@Test
 	void leftJoinExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				GROUP BY s.name
@@ -225,7 +189,7 @@ class HqlQueryRendererTests {
 	@Test
 	void leftJoinOnExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				    ON p.status = 'inStock'
@@ -236,7 +200,7 @@ class HqlQueryRendererTests {
 	@Test
 	void leftJoinWhereExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				WHERE p.status = 'inStock'
@@ -247,7 +211,7 @@ class HqlQueryRendererTests {
 	@Test
 	void leftJoinFetchExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT d
 				FROM Department d LEFT JOIN FETCH d.employees
 				WHERE d.deptno = 1
@@ -257,7 +221,7 @@ class HqlQueryRendererTests {
 	@Test
 	void collectionMemberExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.productType = 'office_supplies'
@@ -267,9 +231,9 @@ class HqlQueryRendererTests {
 	@Test
 	void collectionMemberInExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
-				FROM Order o , IN(o.lineItems) l
+				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
 				""");
 	}
@@ -277,7 +241,7 @@ class HqlQueryRendererTests {
 	@Test
 	void fromClauseExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order AS o JOIN o.lineItems l JOIN l.product p
 				""");
@@ -286,7 +250,7 @@ class HqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
 				    """);
@@ -295,7 +259,7 @@ class HqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
 				    """);
@@ -308,7 +272,7 @@ class HqlQueryRendererTests {
 	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
 	void fromClauseDowncastingExample3_SPEC_BUG() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -319,7 +283,7 @@ class HqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample3fixed() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -330,7 +294,7 @@ class HqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample4() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
@@ -340,7 +304,7 @@ class HqlQueryRendererTests {
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.status = :stat
@@ -350,7 +314,7 @@ class HqlQueryRendererTests {
 	@Test
 	void betweenExpressionsExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT t
 				FROM CreditCard c JOIN c.transactionHistory t
 				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
@@ -360,7 +324,7 @@ class HqlQueryRendererTests {
 	@Test
 	void isEmptyExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -370,7 +334,7 @@ class HqlQueryRendererTests {
 	@Test
 	void memberOfExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p
 				FROM Person p
 				WHERE 'Joe' MEMBER OF p.nicknames
@@ -380,10 +344,11 @@ class HqlQueryRendererTests {
 	@Test
 	void existsSubSelectExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
+				WHERE EXISTS (
+				    SELECT spouseEmp
 				    FROM Employee spouseEmp
 				        WHERE spouseEmp = emp.spouse)
 				""");
@@ -392,10 +357,11 @@ class HqlQueryRendererTests {
 	@Test
 	void allExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT emp
 				FROM Employee emp
-				WHERE emp.salary > ALL(SELECT m.salary
+				WHERE emp.salary > ALL (
+				    SELECT m.salary
 				    FROM Manager m
 				    WHERE m.department = emp.department)
 				    """);
@@ -404,10 +370,11 @@ class HqlQueryRendererTests {
 	@Test
 	void existsSubSelectExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
+				WHERE EXISTS (
+				    SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
 				    """);
@@ -416,7 +383,7 @@ class HqlQueryRendererTests {
 	@Test
 	void subselectNumericComparisonExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
@@ -426,17 +393,18 @@ class HqlQueryRendererTests {
 	@Test
 	void subselectNumericComparisonExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
+				WHERE goodCustomer.balanceOwed < (
+				    SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
 				""");
 	}
 
 	@Test
 	void indexExample() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT w.name
 				FROM Course c JOIN c.studentWaitlist w
 				WHERE c.name = 'Calculus'
@@ -451,7 +419,7 @@ class HqlQueryRendererTests {
 	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
 	void functionInvocationExample_SPEC_BUG() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
@@ -461,7 +429,7 @@ class HqlQueryRendererTests {
 	@Test
 	void functionInvocationExampleWithCorrection() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
@@ -471,12 +439,12 @@ class HqlQueryRendererTests {
 	@Test
 	void updateCaseExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
-					CASE WHEN e.rating = 1 THEN e.salary*1.1
-				         WHEN e.rating = 2 THEN e.salary*1.05
-				         ELSE e.salary*1.01
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				         ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -484,12 +452,12 @@ class HqlQueryRendererTests {
 	@Test
 	void updateCaseExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE e.rating WHEN 1 THEN e.salary*1.1
-				                  WHEN 2 THEN e.salary*1.05
-				                  ELSE e.salary*1.01
+				    CASE e.rating WHEN 1 THEN e.salary * 1.1
+				                  WHEN 2 THEN e.salary * 1.05
+				                  ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -497,7 +465,7 @@ class HqlQueryRendererTests {
 	@Test
 	void selectCaseExample1() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e.name,
 				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
 				                 WHEN Contractor THEN 'Contractor'
@@ -512,7 +480,7 @@ class HqlQueryRendererTests {
 	@Test
 	void selectCaseExample2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e.name,
 				       f.name,
 				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
@@ -527,27 +495,27 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (Exempt, Contractor)
+				 FROM Employee e
+				 WHERE TYPE(e) IN (Exempt, Contractor)
 				 """);
 	}
 
 	@Test
 	void theRest2() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (:empType1, :empType2)
+				    FROM Employee e
+				    WHERE TYPE(e) IN (:empType1, :empType2)
 				""");
 	}
 
 	@Test
 	void theRest3() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN :empTypes
@@ -557,33 +525,17 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest4() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT TYPE(e)
 				FROM Employee e
 				WHERE TYPE(e) <> Exempt
 				""");
 	}
 
-	@Test // GH-2970
-	void alternateNotEqualsShouldAlsoWork() {
-
-		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) != Exempt
-				""");
-
-		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) ^= Exempt
-				""");
-	}
-
 	@Test
 	void theRest5() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
 				FROM Customer c
 				GROUP BY c.status
@@ -594,7 +546,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest6() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c.country, COUNT(c)
 				FROM Customer c
 				GROUP BY c.country
@@ -605,7 +557,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest7() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c, COUNT(o)
 				FROM Customer c JOIN c.orders o
 				GROUP BY c
@@ -616,7 +568,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest8() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c.id, c.status
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -626,7 +578,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest9() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
 				FROM VideoStore v JOIN v.videoInventory i
 				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
@@ -636,7 +588,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest10() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o.lineItems FROM Order AS o
 				""");
 	}
@@ -644,7 +596,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest11() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT c, COUNT(l) AS itemCount
 				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
 				WHERE c.address.state = 'CA'
@@ -656,7 +608,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest12() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -666,7 +618,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest13() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT e.address AS addr
 				FROM Employee e
 				""");
@@ -675,7 +627,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest14() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) FROM Order o
 				""");
 	}
@@ -683,7 +635,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest15() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT SUM(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -693,7 +645,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest16() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT COUNT(o) FROM Order o
 				""");
 	}
@@ -701,7 +653,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest17() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT COUNT(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -711,7 +663,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest18() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT COUNT(l)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
@@ -721,7 +673,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest19() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -732,7 +684,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest20() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o.quantity, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -743,7 +695,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest21() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
@@ -754,7 +706,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest22() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) as q, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -766,7 +718,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest23() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p.product_name
 				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -780,9 +732,9 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest24() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT p.product_name
-				FROM Order o , IN(o.lineItems) l JOIN o.customer c
+				FROM Order o, IN(o.lineItems) l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
 				ORDER BY o.quantity
 				""");
@@ -791,7 +743,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest25() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -801,7 +753,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest26() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -812,7 +764,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest27() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				UPDATE Customer c
 				SET c.status = 'outstanding'
 				WHERE c.balance < 10000
@@ -822,7 +774,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest28() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.address.building = 22
 				WHERE e.address.building = 14
@@ -834,7 +786,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest29() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				""");
@@ -843,7 +795,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest30() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress.state = 'CA'
@@ -853,7 +805,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest31() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o.shippingAddress.state
 				FROM Order o
 				""");
@@ -862,7 +814,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest32() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				""");
@@ -871,7 +823,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest33() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS NOT EMPTY
@@ -881,7 +833,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest34() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -891,7 +843,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest35() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.shipped = FALSE
@@ -901,7 +853,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest36() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE
@@ -914,7 +866,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest37() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress <> o.billingAddress
@@ -924,7 +876,7 @@ class HqlQueryRendererTests {
 	@Test
 	void theRest38() {
 
-		assertQuery("""
+		Hibernate62HqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.name = ?1
@@ -934,78 +886,78 @@ class HqlQueryRendererTests {
 	@Test
 	void hqlQueries() {
 
-		parseWithoutChanges("from Person");
-		parseWithoutChanges("select local datetime");
-		parseWithoutChanges("from Person p select p.name");
-		parseWithoutChanges("update Person set nickName = 'Nacho' " + //
+		Hibernate62HqlQueryParser.parseQuery("from Person");
+		Hibernate62HqlQueryParser.parseQuery("select local datetime");
+		Hibernate62HqlQueryParser.parseQuery("from Person p select p.name");
+		Hibernate62HqlQueryParser.parseQuery("update Person set nickName = 'Nacho' " + //
 				"where name = 'Ignacio'");
-		parseWithoutChanges("update Person p " + //
+		Hibernate62HqlQueryParser.parseQuery("update Person p " + //
 				"set p.name = :newName " + //
 				"where p.name = :oldName");
-		parseWithoutChanges("update Person " + //
+		Hibernate62HqlQueryParser.parseQuery("update Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parseWithoutChanges("update versioned Person " + //
+		Hibernate62HqlQueryParser.parseQuery("update versioned Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parseWithoutChanges("insert Person (id, name) " + //
+		Hibernate62HqlQueryParser.parseQuery("insert Person (id, name) " + //
 				"values (100L, 'Jane Doe')");
-		parseWithoutChanges("insert Person (id, name) " + //
+		Hibernate62HqlQueryParser.parseQuery("insert Person (id, name) " + //
 				"values (101L, 'J A Doe III'), " + //
 				"(102L, 'J X Doe'), " + //
 				"(103L, 'John Doe, Jr')");
-		parseWithoutChanges("insert into Partner (id, name) " + //
+		Hibernate62HqlQueryParser.parseQuery("insert into Partner (id, name) " + //
 				"select p.id, p.name " + //
 				"from Person p ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe''s'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5F");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2F");
-		parseWithoutChanges("from Phone ph " + //
+		Hibernate62HqlQueryParser.parseQuery("from Phone ph " + //
 				"where ph.type = LAND_LINE");
-		parseWithoutChanges("select java.lang.Math.PI");
-		parseWithoutChanges("select 'Customer ' || p.name " + //
+		Hibernate62HqlQueryParser.parseQuery("select java.lang.Math.PI");
+		Hibernate62HqlQueryParser.parseQuery("select 'Customer ' || p.name " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parseWithoutChanges("select sum(ch.duration) * :multiplier " + //
+		Hibernate62HqlQueryParser.parseQuery("select sum(ch.duration) * :multiplier " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = 1L ");
-		parseWithoutChanges("select year(local date) - year(p.createdOn) " + //
+		Hibernate62HqlQueryParser.parseQuery("select year(local date) - year(p.createdOn) " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where year(local date) - year(p.createdOn) > 1");
-		parseWithoutChanges("select " + //
+		Hibernate62HqlQueryParser.parseQuery("select " + //
 				"	case p.nickName " + //
 				"	when 'NA' " + //
 				"	then '<no nick name>' " + //
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		Hibernate62HqlQueryParser.parseQuery("select " + //
 				"	case " + //
 				"	when p.nickName is null " + //
 				"	then " + //
@@ -1017,162 +969,162 @@ class HqlQueryRendererTests {
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		Hibernate62HqlQueryParser.parseQuery("select " + //
 				"	case when p.nickName is null " + //
 				"		 then p.id * 1000 " + //
 				"		 else p.id " + //
 				"	end " + //
 				"from Person p " + //
 				"order by p.id");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = CreditCardPayment");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = :type");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where length(treat(p as CreditCardPayment).cardNumber) between 16 and 20");
-		parseWithoutChanges("select nullif(p.nickName, p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select nullif(p.nickName, p.name) " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		Hibernate62HqlQueryParser.parseQuery("select " + //
 				"	case" + //
 				"	when p.nickName = p.name" + //
 				"	then null" + //
 				"	else p.nickName" + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select coalesce(p.nickName, '<no nick name>') " + //
+		Hibernate62HqlQueryParser.parseQuery("select coalesce(p.nickName, '<no nick name>') " + //
 				"from Person p");
-		parseWithoutChanges("select coalesce(p.nickName, p.name, '<no nick name>') " + //
+		Hibernate62HqlQueryParser.parseQuery("select coalesce(p.nickName, p.name, '<no nick name>') " + //
 				"from Person p");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where size(p.phones) >= 2");
-		parseWithoutChanges("select concat(p.number, ' : ' , cast(c.duration as string)) " + //
+		Hibernate62HqlQueryParser.parseQuery("select concat(p.number, ' : ' , cast(c.duration as string)) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parseWithoutChanges("select substring(p.number, 1, 2) " + //
+		Hibernate62HqlQueryParser.parseQuery("select substring(p.number, 1, 2) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parseWithoutChanges("select upper(p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select upper(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select lower(p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select lower(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select trim(p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select trim(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select trim(leading ' ' from p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select trim(leading ' ' from p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select length(p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select length(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select locate('John', p.name) " + //
+		Hibernate62HqlQueryParser.parseQuery("select locate('John', p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select abs(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select abs(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select mod(c.duration, 10) " + //
+		Hibernate62HqlQueryParser.parseQuery("select mod(c.duration, 10) " + //
 				"from Call c ");
-		parseWithoutChanges("select sqrt(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select sqrt(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select cast(c.duration as String) " + //
+		Hibernate62HqlQueryParser.parseQuery("select cast(c.duration as String) " + //
 				"from Call c ");
-		parseWithoutChanges("select str(c.timestamp) " + //
+		Hibernate62HqlQueryParser.parseQuery("select str(c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select str(cast(duration as float) / 60, 4, 2) " + //
+		Hibernate62HqlQueryParser.parseQuery("select str(cast(duration as float) / 60, 4, 2) " + //
 				"from Call c ");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where extract(date from c.timestamp) = local date");
-		parseWithoutChanges("select extract(year from c.timestamp) " + //
+		Hibernate62HqlQueryParser.parseQuery("select extract(year from c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select year(c.timestamp) " + //
+		Hibernate62HqlQueryParser.parseQuery("select year(c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
+		Hibernate62HqlQueryParser.parseQuery("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
 				"from Call c ");
-		parseWithoutChanges("select bit_length(c.phone.number) " + //
+		Hibernate62HqlQueryParser.parseQuery("select bit_length(c.phone.number) " + //
 				"from Call c ");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration < 30 ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'John%' ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.createdOn > '1950-01-01' ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where p.type = 'MOBILE' ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where p.completed = true ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = WireTransferPayment ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p, Phone ph " + //
 				"where p.person = ph.person ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"join p.phones ph " + //
 				"where p.id = 1L and index(ph) between 0 and 3");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.createdOn between '1999-01-01' and '2001-01-02'");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"where c.duration between 5 and 20");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name between 'H' and 'M'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.nickName is not null");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.nickName is null");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Jo%'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name not like 'Jo%'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Dr|_%' escape '|'");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) in (CreditCardPayment, WireTransferPayment)");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where type in ('MOBILE', 'LAND_LINE')");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where type in :types");
-		parseWithoutChanges("select distinct p " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct p " + //
 				"from Phone p " + //
 				"where p.person.id in (" + //
 				"	select py.person.id " + //
 				"	from Payment py" + //
 				"	where py.completed = true and py.amount > 50 " + //
 				")");
-		parseWithoutChanges("select distinct p " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct p " + //
 				"from Phone p " + //
 				"where p.person in (" + //
 				"	select py.person " + //
 				"	from Payment py" + //
 				"	where py.completed = true and py.amount > 50 " + //
 				")");
-		parseWithoutChanges("select distinct p " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct p " + //
 				"from Payment p " + //
 				"where (p.amount, p.completed) in (" + //
 				"	(50, true)," + //
 				"	(100, true)," + //
 				"	(5, false)" + //
 				")");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where 1 in indices(p.phones)");
-		parseWithoutChanges("select distinct p.person " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct p.person " + //
 				"from Phone p " + //
 				"join p.calls c " + //
 				"where 50 > all (" + //
@@ -1180,96 +1132,96 @@ class HqlQueryRendererTests {
 				"	from Call" + //
 				"	where phone = p " + //
 				") ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where local date > all elements(p.repairTimestamps)");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where :phone = some elements(p.phones)");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where :phone member of p.phones");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where exists elements(p.phones)");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is empty");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where 'Home address' member of p.addresses");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where 'Home address' not member of p.addresses");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from org.hibernate.userguide.model.Person p");
-		parseWithoutChanges("select distinct pr, ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr, ph " + //
 				"from Person pr, Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parseWithoutChanges("select distinct pr1 " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr1 " + //
 				"from Person pr1, Person pr2 " + //
 				"where pr1.id <> pr2.id " + //
 				"  and pr1.address = pr2.address " + //
 				"  and pr1.createdOn < pr2.createdOn");
-		parseWithoutChanges("select distinct pr, ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr, ph " + //
 				"from Person pr cross join Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Payment p ");
-		parseWithoutChanges("select d.owner, d.payed " + //
+		Hibernate62HqlQueryParser.parseQuery("select d.owner, d.payed " + //
 				"from (" + //
 				"  select p.person as owner, c.payment is not null as payed " + //
 				"  from Call c " + //
 				"  join c.phone p " + //
 				"  where p.number = :phoneNumber) d");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"join Phone ph on ph.person = pr " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"inner join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left outer join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parseWithoutChanges("select pr.name, ph.number " + //
+		Hibernate62HqlQueryParser.parseQuery("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph with ph.type = :phoneType ");
-		parseWithoutChanges("select pr.name, ph.number " + //
+		Hibernate62HqlQueryParser.parseQuery("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph on ph.type = :phoneType ");
-		parseWithoutChanges("select distinct pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left join fetch pr.phones ");
-		parseWithoutChanges("select a, ccp " + //
+		Hibernate62HqlQueryParser.parseQuery("select a, ccp " + //
 				"from Account a " + //
 				"join treat(a.payments as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parseWithoutChanges("select c, ccp " + //
+		Hibernate62HqlQueryParser.parseQuery("select c, ccp " + //
 				"from Call c " + //
 				"join treat(c.payment as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parseWithoutChanges("select longest.duration " + //
+		Hibernate62HqlQueryParser.parseQuery("select longest.duration " + //
 				"from Phone p " + //
 				"left join lateral (" + //
 				"  select c.duration as duration " + //
@@ -1278,74 +1230,74 @@ class HqlQueryRendererTests {
 				"  limit 1 " + //
 				"  ) longest " + //
 				"where p.number = :phoneNumber");
-		parseWithoutChanges("select ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address ");
-		parseWithoutChanges("select ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select ph " + //
 				"from Phone ph " + //
 				"join ph.person pr " + //
 				"where pr.address = :address ");
-		parseWithoutChanges("select ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address " + //
 				"  and ph.person.createdOn > :timestamp");
-		parseWithoutChanges("select ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select ph " + //
 				"from Phone ph " + //
 				"inner join ph.person pr " + //
 				"where pr.address = :address " + //
 				"  and pr.createdOn > :timestamp");
-		parseWithoutChanges("select ph " + //
+		Hibernate62HqlQueryParser.parseQuery("select ph " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.calls c " + //
 				"where pr.address = :address " + //
 				"  and c.duration > :duration");
-		parseWithoutChanges("select ch " + //
+		Hibernate62HqlQueryParser.parseQuery("select ch " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select value(ch) " + //
+		Hibernate62HqlQueryParser.parseQuery("select value(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ch) " + //
+		Hibernate62HqlQueryParser.parseQuery("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ch) " + //
+		Hibernate62HqlQueryParser.parseQuery("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select entry(ch) " + //
+		Hibernate62HqlQueryParser.parseQuery("select entry(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select sum(ch.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select sum(ch.duration) " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id " + //
 				"  and index(ph) = :phoneIndex");
-		parseWithoutChanges("select value(ph.callHistory) " + //
+		Hibernate62HqlQueryParser.parseQuery("select value(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ph.callHistory) " + //
+		Hibernate62HqlQueryParser.parseQuery("select key(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.phones[0].type = LAND_LINE");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where p.addresses['HOME'] = :address");
-		parseWithoutChanges("select pr " + //
+		Hibernate62HqlQueryParser.parseQuery("select pr " + //
 				"from Person pr " + //
 				"where pr.phones[max(indices(pr.phones))].type = 'LAND_LINE'");
-		parseWithoutChanges("select p.name, p.nickName " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name, p.nickName " + //
 				"from Person p ");
-		parseWithoutChanges("select p.name as name, p.nickName as nickName " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name as name, p.nickName as nickName " + //
 				"from Person p ");
-		parseWithoutChanges("select new org.hibernate.userguide.hql.CallStatistics(" + //
+		Hibernate62HqlQueryParser.parseQuery("select new org.hibernate.userguide.hql.CallStatistics(" + //
 				"	count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
@@ -1353,7 +1305,7 @@ class HqlQueryRendererTests {
 				"	avg(c.duration)" + //
 				")  " + //
 				"from Call c ");
-		parseWithoutChanges("select new map(" + //
+		Hibernate62HqlQueryParser.parseQuery("select new map(" + //
 				"	p.number as phoneNumber , " + //
 				"	sum(c.duration) as totalDuration, " + //
 				"	avg(c.duration) as averageDuration " + //
@@ -1361,164 +1313,89 @@ class HqlQueryRendererTests {
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number ");
-		parseWithoutChanges("select new list(" + //
+		Hibernate62HqlQueryParser.parseQuery("select new list(" + //
 				"	p.number, " + //
 				"	c.duration " + //
 				")  " + //
 				"from Call c " + //
 				"join c.phone p ");
-		parseWithoutChanges("select distinct p.lastName " + //
+		Hibernate62HqlQueryParser.parseQuery("select distinct p.lastName " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		Hibernate62HqlQueryParser.parseQuery("select " + //
 				"	count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
 				"	max(c.duration), " + //
 				"	avg(c.duration)  " + //
 				"from Call c ");
-		parseWithoutChanges("select count(distinct c.phone) " + //
+		Hibernate62HqlQueryParser.parseQuery("select count(distinct c.phone) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.number, count(c) " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.number, count(c) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where max(elements(p.calls)) = :call");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"where min(elements(p.calls)) = :call");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"where max(indices(p.phones)) = 0");
-		parseWithoutChanges("select count(c) filter (where c.duration < 30) " + //
+		Hibernate62HqlQueryParser.parseQuery("select count(c) filter (where c.duration < 30) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.number, count(c) filter (where c.duration < 30) " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.number, count(c) filter (where c.duration < 30) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parseWithoutChanges("select listagg(p.number, ', ') within group (order by p.type,p.number) " + //
+		Hibernate62HqlQueryParser.parseQuery("select listagg(p.number, ', ') within group (order by p.type,p.number) " + //
 				"from Phone p " + //
 				"group by p.person");
-		parseWithoutChanges("select sum(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select sum(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.name, sum(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name");
-		parseWithoutChanges("select p, sum(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select p, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p");
-		parseWithoutChanges("select p.name, sum(c.duration) " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"having sum(c.duration) > 1000");
-		parseWithoutChanges("select p.name from Person p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name from Person p " + //
 				"union " + //
 				"select p.nickName from Person p where p.nickName is not null");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Person p " + //
 				"order by p.name");
-		parseWithoutChanges("select p.name, sum(c.duration) as total " + //
+		Hibernate62HqlQueryParser.parseQuery("select p.name, sum(c.duration) as total " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"order by total");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"limit 50");
-		parseWithoutChanges("select c " + //
+		Hibernate62HqlQueryParser.parseQuery("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"fetch first 50 rows only");
-		parseWithoutChanges("select p " + //
+		Hibernate62HqlQueryParser.parseQuery("select p " + //
 				"from Phone p " + //
 				"join fetch p.calls " + //
 				"order by p " + //
 				"limit 50");
-	}
-
-	@Test // GH-2962
-	void orderByWithNullsFirstOrLastShouldWork() {
-
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-					select a,
-						case
-							when a.geaendertAm is null then a.erstelltAm
-							else a.geaendertAm end as mutationAm
-					from Element a
-					where a.erstelltDurch = :variable
-					order by mutationAm desc nulls first
-					""");
-		});
-
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-						select a,
-							case
-								when a.geaendertAm is null then a.erstelltAm
-								else a.geaendertAm end as mutationAm
-						from Element a
-						where a.erstelltDurch = :variable
-						order by mutationAm desc nulls last
-					""");
-		});
-	}
-
-	@Test // GH-2964
-	void roundFunctionShouldWorkLikeAnyOtherFunction() {
-
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-					select round(count(ri) * 100 / max(ri.receipt.positions), 0) as perc
-					from StockOrderItem oi
-					right join StockReceiptItem ri
-					on ri.article = oi.article
-					""");
-		});
-	}
-
-	@Test // GH-2981
-	void cteWithClauseShouldWork() {
-
-		assertQuery("""
-				WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr
-					where sr.id.selectionId = ?1 and sr.enabled
-					group by sr.userId
-					)
-				select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId
-				""");
-	}
-
-	@Test // GH-2982
-	void floorShouldBeValidEntityName() {
-
-		assertQuery("""
-				SELECT f
-				FROM Floor f
-				WHERE f.name = :name
-				""");
-
-		assertQuery("""
-				SELECT r
-				FROM Room r
-				JOIN r.floor f
-				WHERE f.name = :name
-				""");
-	}
-
-	@Test // GH-2994
-	void queryWithSignShouldWork() {
-		assertQuery("select t.sign from TestEntity t");
 	}
 }

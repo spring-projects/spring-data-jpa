@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-jpa-hibernate62-parser</artifactId>
+    <version>3.2.0-gh-hql-SNAPSHOT</version>
+
+    <name>Spring Data JPA - Hibernate 6.2 - HQL Parser</name>
+    <description>Spring Data module for Hibernate 6.2 HQL parsing.</description>
+    <url>https://projects.spring.io/spring-data-jpa</url>
+
+    <parent>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-jpa-parent</artifactId>
+        <version>3.2.0-gh-hql-SNAPSHOT  </version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <properties>
+        <java-module-name>spring.data.jpa</java-module-name>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa-common-parser</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${hibernate.groupId}.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate-6.2}</version>
+            <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <id>package-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <additionalOptions>-package</additionalOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

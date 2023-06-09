@@ -15,7 +15,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Transformational operations needed to support either {@link HqlQueryTransformer} or {@link JpqlQueryTransformer}.
+ * Transformational operations needed to support any HQL or JPQL parsing.
  * 
  * @author Greg Turnquist
  * @since 3.1

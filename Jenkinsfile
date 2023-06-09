@@ -48,7 +48,7 @@ pipeline {
 			when {
 				beforeAgent(true)
 				allOf {
-					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
+					branch(pattern: "issue/hql|main|(\\d\\.\\d\\.x)", comparator: "REGEXP") // TODO
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}

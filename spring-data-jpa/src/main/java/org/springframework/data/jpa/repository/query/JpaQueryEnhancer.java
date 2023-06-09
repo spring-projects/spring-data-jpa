@@ -20,6 +20,7 @@ import java.util.Set;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link QueryEnhancer} to enhance JPA queries using a {@link JpaQueryParserSupport}.
@@ -60,6 +61,9 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		return new JpaQueryEnhancer(query, new JpqlQueryParser(query.getQueryString()));
 	}
 
+	private static boolean HIBERNATE_62_IS_PRESENT = ClassUtils
+			.isPresent("org.hibernate.grammars.hql.HqlParser.WithClauseContext", null);
+
 	/**
 	 * Factory method to create a {@link JpaQueryParserSupport} for {@link DeclaredQuery} using HQL grammar.
 	 *
@@ -70,7 +74,11 @@ class JpaQueryEnhancer implements QueryEnhancer {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
-		return new JpaQueryEnhancer(query, new HqlQueryParser(query.getQueryString()));
+		if (HIBERNATE_62_IS_PRESENT) {
+			return new JpaQueryEnhancer(query, new Hibernate62HqlQueryParser(query.getQueryString()));
+		} else {
+			return new JpaQueryEnhancer(query, new Hibernate61HqlQueryParser(query.getQueryString()));
+		}
 	}
 
 	protected JpaQueryParserSupport getQueryParsingStrategy() {

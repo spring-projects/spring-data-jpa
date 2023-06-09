@@ -31,11 +31,12 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
+ * Verify that HQL queries are properly transformed through the {@code JpaQueryEnhancer} and the
+ * {@link Hibernate62HqlQueryParser}.
  *
  * @author Greg Turnquist
  */
-class HqlQueryTransformerTests {
+class Hibernate62HqlQueryTransformerTests {
 
 	private static final String QUERY = "select u from User u";
 	private static final String SIMPLE_QUERY = "from User u";
@@ -223,7 +224,7 @@ class HqlQueryTransformerTests {
 				where exists (select u2
 				from user u2
 				)
-				""").applySorting(sort)).isEqualToIgnoringWhitespace("""
+				""").renderSortedQuery(sort)).isEqualToIgnoringWhitespace("""
 				select u
 				from user u
 				where exists (select u2
@@ -851,9 +852,9 @@ class HqlQueryTransformerTests {
 
 	@ParameterizedTest
 	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
-	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
+	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName) {
 
-		HqlQueryParser.parseQuery(String.format("""
+		Hibernate62HqlQueryParser.parseQuery(String.format("""
 				select u
 				from UserAccountEntity u
 				join fetch u.lossInspectorLimitConfiguration lil
@@ -864,23 +865,23 @@ class HqlQueryTransformerTests {
 					join iu.roles u2r
 					join u2r.role r
 					join r.rights r2r
-					join r2r.%s %s
+					join r2r.%s rt
 					where
-						%s.code = :rightCode
+						rt.code = :rightCode
 						and iu = u
 				)
 				and ct.id = :teamId
-					""", relationshipName, joinAlias, joinAlias));
+					""", relationshipName));
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
 
 		return Stream.of( //
-				Arguments.of("right", "rt"), //
-				Arguments.of("left", "lt"), //
-				Arguments.of("outer", "ou"), //
-				Arguments.of("full", "full"), //
-				Arguments.of("inner", "inr"));
+				Arguments.of("right"), //
+				Arguments.of("left"), //
+				Arguments.of("outer"), //
+				Arguments.of("full"), //
+				Arguments.of("inner"));
 	}
 
 	@Test // GH-2508
@@ -991,7 +992,7 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return newParser(query).applySorting(sort);
+		return newParser(query).renderSortedQuery(sort);
 	}
 
 	private String createCountQueryFor(String query) {
@@ -999,12 +1000,12 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createCountQueryFor(String query, @Nullable String countProjection) {
-		return newParser(query).createCountQueryFor(countProjection);
+		return newParser(query).createCountQuery(countProjection);
 	}
 
 	@Nullable
 	private String alias(String query) {
-		return newParser(query).detectAlias();
+		return newParser(query).findAlias();
 	}
 
 	private boolean hasConstructorExpression(String query) {
@@ -1012,10 +1013,10 @@ class HqlQueryTransformerTests {
 	}
 
 	private String projection(String query) {
-		return newParser(query).getProjection();
+		return newParser(query).projection();
 	}
 
-	private QueryEnhancer newParser(String query) {
-		return JpaQueryEnhancer.forHql(DeclaredQuery.of(query, false));
+	private JpaQueryParserSupport newParser(String query) {
+		return new Hibernate62HqlQueryParser(query);
 	}
 }
