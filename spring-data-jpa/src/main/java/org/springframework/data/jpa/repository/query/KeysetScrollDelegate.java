@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
  * Delegate for keyset scrolling.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @since 3.1
  */
 public class KeysetScrollDelegate {
@@ -142,19 +143,24 @@ public class KeysetScrollDelegate {
 
 		Collection<String> sortById;
 		Sort sortToUse;
-		if (entity.hasCompositeId()) {
-			sortById = new ArrayList<>(entity.getIdAttributeNames());
-		} else {
-			sortById = new ArrayList<>(1);
-			sortById.add(entity.getRequiredIdAttribute().getName());
-		}
-
-		sort.forEach(it -> sortById.remove(it.getProperty()));
-
-		if (sortById.isEmpty()) {
+		if (entity.isKeysetQualified(sort.stream().map(Order::getProperty).toList())) {
 			sortToUse = sort;
-		} else {
-			sortToUse = sort.and(Sort.by(sortById.toArray(new String[0])));
+		}
+		else {
+			if (entity.hasCompositeId()) {
+				sortById = new ArrayList<>(entity.getIdAttributeNames());
+			} else {
+				sortById = new ArrayList<>(1);
+				sortById.add(entity.getRequiredIdAttribute().getName());
+			}
+
+			sort.forEach(it -> sortById.remove(it.getProperty()));
+
+			if (sortById.isEmpty()) {
+				sortToUse = sort;
+			} else {
+				sortToUse = sort.and(Sort.by(sortById.toArray(new String[0])));
+			}
 		}
 
 		return getSortOrders(sortToUse);
