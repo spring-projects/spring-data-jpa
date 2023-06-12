@@ -279,9 +279,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAll() {
 
-		for (T element : findAll()) {
-			delete(element);
-		}
+		String queryString = String.format(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName());
+
+		Query query = em.createQuery(queryString);
+
+		applyQueryHints(query);
+
+		query.executeUpdate();
 	}
 
 	@Override
