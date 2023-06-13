@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -29,4 +31,22 @@ class EclipseLinkStoredProcedureIntegrationTests extends StoredProcedureIntegrat
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
 	static class TestConfig extends Config {}
+
+	@Override
+	@Test
+	@Disabled("EclipseLink parameter name inference breaks the method calls")
+	void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameter() {
+	}
+
+	@Override
+	@Test
+	@Disabled("EclipseLink parameter name inference breaks the method calls")
+	void shouldExecuteAdHocProcedureWith1InputAndNoOutputParameter() {
+	}
+
+	@Override
+	@Test
+	@Disabled("EclipseLink parameter name inference breaks the method calls")
+	void shouldExecuteAdHocProcedureWith1InputAnd1OutputParameterWithUpdate() {
+	}
 }

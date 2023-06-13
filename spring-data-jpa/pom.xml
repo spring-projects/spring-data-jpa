@@ -162,7 +162,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-jpamodelgen</artifactId>
@@ -377,22 +377,6 @@
 						public class=class,public interface=interface
 					</variableTokenValueMap>
 				</configuration>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>java-test-compile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<parameters>false</parameters>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>
