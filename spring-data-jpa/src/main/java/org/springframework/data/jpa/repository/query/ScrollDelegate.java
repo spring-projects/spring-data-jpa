@@ -35,6 +35,7 @@ import org.springframework.util.Assert;
  * Delegate to run {@link ScrollPosition scroll queries} and create result {@link Window}.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @since 3.1
  */
 public class ScrollDelegate<T> {
@@ -90,7 +91,7 @@ public class ScrollDelegate<T> {
 			return ScrollPosition.of(keys, direction);
 		};
 
-		return Window.from(delegate.getResultWindow(resultsToUse, limit), positionFunction, hasMoreElements(result, limit));
+		return Window.from(resultsToUse, positionFunction, hasMoreElements(result, limit));
 	}
 
 	private static <T> Window<T> createWindow(List<T> result, int limit,
