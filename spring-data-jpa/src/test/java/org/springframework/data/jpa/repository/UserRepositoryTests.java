@@ -60,6 +60,7 @@ import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
 import org.springframework.data.domain.ExampleMatcher.StringMatcher;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
@@ -1306,6 +1307,31 @@ class UserRepositoryTests {
 
 		assertThat(previousWindow).containsOnly(jane2);
 		assertThat(previousWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2999
+	void scrollInitiallyByExampleKeysetBackward() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Example<User> example = Example.of(new User("J", null, null),
+				matching().withMatcher("firstname", GenericPropertyMatcher::startsWith).withIgnorePaths("age", "createdAt",
+						"dateOfBirth"));
+
+		Window<User> firstWindow = repository.findBy(example,
+				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(ScrollPosition.keyset().backward()));
+
+		assertThat(firstWindow).containsExactly(john1, john2);
+
+		Window<User> previousWindow = repository.findBy(example,
+				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(firstWindow.positionAt(0)));
+
+		assertThat(previousWindow).containsExactly(jane1, jane2);
 	}
 
 	@Test // GH-2878
