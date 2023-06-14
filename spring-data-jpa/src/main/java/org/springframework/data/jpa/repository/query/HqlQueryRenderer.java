@@ -106,7 +106,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		if (ctx.MATERIALIZED() != null) {
 			tokens.add(TOKEN_MATERIALIZED);
 		}
-		
+
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.queryExpression()));
 		tokens.add(TOKEN_CLOSE_PAREN);
@@ -1790,14 +1790,45 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CAST()));
+		tokens.add(new JpaQueryParsingToken(ctx.CAST(), false));
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.expression()));
 		tokens.add(new JpaQueryParsingToken(ctx.AS()));
-		tokens.addAll(visit(ctx.identifier()));
+		tokens.addAll(visit(ctx.castTarget()));
+		NOSPACE(tokens);
 		tokens.add(TOKEN_CLOSE_PAREN);
 
 		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitCastTarget(HqlParser.CastTargetContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.castTargetType()));
+
+		if (ctx.INTEGER_LITERAL() != null && !ctx.INTEGER_LITERAL().isEmpty()) {
+
+			tokens.add(TOKEN_OPEN_PAREN);
+
+			ctx.INTEGER_LITERAL().forEach(terminalNode -> {
+
+				tokens.add(new JpaQueryParsingToken(terminalNode));
+				tokens.add(TOKEN_COMMA);
+			});
+			CLIP(tokens);
+			NOSPACE(tokens);
+
+			tokens.add(TOKEN_CLOSE_PAREN);
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitCastTargetType(HqlParser.CastTargetTypeContext ctx) {
+		return List.of(new JpaQueryParsingToken(ctx.fullTargetName));
 	}
 
 	@Override

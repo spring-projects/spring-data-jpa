@@ -1521,4 +1521,9 @@ class HqlQueryRendererTests {
 	void queryWithSignShouldWork() {
 		assertQuery("select t.sign from TestEntity t");
 	}
+
+	@Test // GH-3024
+	void castFunctionWithFqdnShouldWork() {
+		assertQuery("SELECT o FROM Order o WHERE CAST(:userId AS java.util.UUID) IS NULL OR o.user.id = :userId");
+	}
 }

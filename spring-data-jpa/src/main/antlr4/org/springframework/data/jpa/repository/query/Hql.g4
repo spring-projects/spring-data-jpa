@@ -492,8 +492,17 @@ frameEnd
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-functions
 castFunction
-    : CAST '(' expression AS identifier ')'
+    : CAST '(' expression AS castTarget ')'
     ;
+
+castTarget
+	: castTargetType ('(' INTEGER_LITERAL (',' INTEGER_LITERAL)? ')')?
+	;
+
+castTargetType
+	returns [String fullTargetName]
+	: (i=identifier { $fullTargetName = _localctx.i.getText(); }) ('.' c=identifier { $fullTargetName += ("." + _localctx.c.getText() ); })*
+	;
 
 extractFunction
     : EXTRACT '(' expression FROM expression ')'
