@@ -1526,4 +1526,17 @@ class HqlQueryRendererTests {
 	void castFunctionWithFqdnShouldWork() {
 		assertQuery("SELECT o FROM Order o WHERE CAST(:userId AS java.util.UUID) IS NULL OR o.user.id = :userId");
 	}
+
+	@Test // GH-3025
+	void durationLiteralsShouldWork() {
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE (ce.endDate - ce.startDate) > 5 MINUTE");
+	}
+
+	@Test // GH-3025
+	void binaryLiteralsShouldWork() {
+
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = {0xDE, 0xAD, 0xBE, 0xEF}");
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = X'DEADBEEF'");
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = x'deadbeef'");
+	}
 }

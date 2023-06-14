@@ -1047,6 +1047,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return visit(ctx.numericLiteral());
 		} else if (ctx.dateTimeLiteral() != null) {
 			return visit(ctx.dateTimeLiteral());
+		} else if (ctx.binaryLiteral() != null) {
+			return visit(ctx.binaryLiteral());
 		} else {
 			return List.of();
 		}
@@ -1136,6 +1138,56 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitDatetimeField(HqlParser.DatetimeFieldContext ctx) {
+
+		if (ctx.YEAR() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.YEAR()));
+		} else if (ctx.MONTH() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.MONTH()));
+		} else if (ctx.DAY() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.DAY()));
+		} else if (ctx.WEEK() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.WEEK()));
+		} else if (ctx.QUARTER() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.QUARTER()));
+		} else if (ctx.HOUR() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.HOUR()));
+		} else if (ctx.MINUTE() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.MINUTE()));
+		} else if (ctx.SECOND() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.SECOND()));
+		} else if (ctx.NANOSECOND() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.NANOSECOND()));
+		} else if (ctx.EPOCH() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.EPOCH()));
+		} else {
+			return List.of();
+		}
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitBinaryLiteral(HqlParser.BinaryLiteralContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		if (ctx.BINARY_LITERAL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.BINARY_LITERAL()));
+		} else if (ctx.HEXLITERAL() != null) {
+
+			tokens.add(TOKEN_OPEN_BRACE);
+			ctx.HEXLITERAL().forEach(terminalNode -> {
+				tokens.add(new JpaQueryParsingToken(terminalNode));
+				NOSPACE(tokens);
+				tokens.add(TOKEN_COMMA);
+			});
+			CLIP(tokens);
+			tokens.add(TOKEN_CLOSE_BRACE);
+		}
+
+		return tokens;
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitPlainPrimaryExpression(HqlParser.PlainPrimaryExpressionContext ctx) {
 		return visit(ctx.primaryExpression());
 	}
@@ -1177,6 +1229,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		tokens.add(TOKEN_OPEN_PAREN);
 		tokens.addAll(visit(ctx.expression()));
+		NOSPACE(tokens);
 		tokens.add(TOKEN_CLOSE_PAREN);
 
 		return tokens;
@@ -1238,6 +1291,29 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		tokens.add(new JpaQueryParsingToken(ctx.op));
 		tokens.addAll(visit(ctx.expression()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitToDurationExpression(HqlParser.ToDurationExpressionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.addAll(visit(ctx.datetimeField()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitFromDurationExpression(HqlParser.FromDurationExpressionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new JpaQueryParsingToken(ctx.BY()));
+		tokens.addAll(visit(ctx.datetimeField()));
 
 		return tokens;
 	}
