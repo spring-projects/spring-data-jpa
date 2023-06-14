@@ -299,6 +299,7 @@ literal
     | stringLiteral
     | numericLiteral
     | dateTimeLiteral
+    | binaryLiteral
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-boolean-literals
@@ -337,10 +338,24 @@ dateTimeLiteral
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-duration-literals
-// TBD
+datetimeField
+	: YEAR
+	| MONTH
+	| DAY
+	| WEEK
+	| QUARTER
+	| HOUR
+	| MINUTE
+	| SECOND
+	| NANOSECOND
+	| EPOCH
+	;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-binary-literals
-// TBD
+binaryLiteral
+    : BINARY_LITERAL
+    | '{' HEXLITERAL (',' HEXLITERAL)*  '}'
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-enum-literals
 // TBD
@@ -362,6 +377,8 @@ expression
     | primaryExpression                                             # PlainPrimaryExpression
     | op=('+' | '-') numericLiteral                                 # SignedNumericLiteral
     | op=('+' | '-') expression                                     # SignedExpression
+    | expression datetimeField                                      # ToDurationExpression
+    | expression BY datetimeField                                   # FromDurationExpression
     | expression op=('*' | '/') expression                          # MultiplicationExpression
     | expression op=('+' | '-') expression                          # AdditionExpression
     | expression '||' expression                                    # HqlConcatenationExpression
@@ -607,7 +624,6 @@ inList
 	;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exists-predicate
-// TBD
 existsExpression
     : EXISTS (ELEMENTS | INDICES) '(' simplePath ')'
     | EXISTS expression
@@ -1058,13 +1074,18 @@ YEAR                        : Y E A R;
 
 fragment INTEGER_NUMBER     : ('0' .. '9')+ ;
 fragment FLOAT_NUMBER       : INTEGER_NUMBER+ '.'? INTEGER_NUMBER* (E [+-]? INTEGER_NUMBER)? ;
+fragment HEX_DIGIT          : [0-9a-fA-F];
+
 
 CHARACTER                   : '\'' (~ ('\'' | '\\' )) '\'' ;
 STRINGLITERAL               : '\'' ('\'' '\'' | ~('\'' | '\\'))* '\'' ;
 JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 INTEGER_LITERAL             : INTEGER_NUMBER (L | B I)? ;
 FLOAT_LITERAL               : FLOAT_NUMBER (D | F | B D)?;
-HEXLITERAL                  : '0' X ('0' .. '9' | A | B | C | D | E)+ ;
+HEXLITERAL                  : '0' X HEX_DIGIT+ ;
+BINARY_LITERAL              : [xX] '\'' HEX_DIGIT+ '\''
+                            | [xX] '"'  HEX_DIGIT+ '"'
+                            ;
 
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
 

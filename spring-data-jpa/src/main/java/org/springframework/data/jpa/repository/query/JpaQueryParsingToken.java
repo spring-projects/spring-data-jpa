@@ -48,6 +48,7 @@ class JpaQueryParsingToken {
 	public static final JpaQueryParsingToken TOKEN_CLOSE_SQUARE_BRACKET = new JpaQueryParsingToken("]");
 	public static final JpaQueryParsingToken TOKEN_COLON = new JpaQueryParsingToken(":", false);
 	public static final JpaQueryParsingToken TOKEN_QUESTION_MARK = new JpaQueryParsingToken("?", false);
+	public static final JpaQueryParsingToken TOKEN_OPEN_BRACE = new JpaQueryParsingToken("{", false);
 	public static final JpaQueryParsingToken TOKEN_CLOSE_BRACE = new JpaQueryParsingToken("}");
 	public static final JpaQueryParsingToken TOKEN_CLOSE_SQUARE_BRACKET_BRACE = new JpaQueryParsingToken("]}");
 	public static final JpaQueryParsingToken TOKEN_CLOSE_PAREN_BRACE = new JpaQueryParsingToken(")}");
