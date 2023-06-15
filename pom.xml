@@ -54,7 +54,7 @@
 		<profile>
 			<id>hibernate-62</id>
 			<properties>
-				<hibernate>6.2.1.Final</hibernate>
+				<hibernate>6.2.4.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
