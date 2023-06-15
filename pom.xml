@@ -122,7 +122,7 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-instrument</artifactId>
 			<version>${spring}</version>
-			<scope>test</scope>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
@@ -223,5 +223,12 @@
 			<url>https://repo.spring.io/milestone</url>
 		</repository>
 	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-milestone</id>
+			<url>https://repo.spring.io/milestone</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 </project>
