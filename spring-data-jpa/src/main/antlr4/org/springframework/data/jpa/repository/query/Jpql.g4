@@ -603,7 +603,8 @@ identification_variable
     | ORDER
     | OUTER
     | FLOOR
-    | SIGN)
+    | SIGN
+    | VALUE)
     ;
 
 constructor_name
