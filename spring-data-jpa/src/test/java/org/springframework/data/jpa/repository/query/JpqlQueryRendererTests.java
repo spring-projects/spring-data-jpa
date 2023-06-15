@@ -936,4 +936,9 @@ class JpqlQueryRendererTests {
 	void queryWithSignShouldWork() {
 		assertQuery("select t.sign from TestEntity t");
 	}
+
+	@Test // GH-3028
+	void queryWithValueShouldWork() {
+		assertQuery("select t.value from TestEntity t");
+	}
 }
