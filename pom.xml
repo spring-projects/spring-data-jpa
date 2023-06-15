@@ -30,7 +30,7 @@
 	<properties>
 		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.3</eclipselink>
-		<hibernate>6.2.1.Final</hibernate>
+		<hibernate>6.2.4.Final</hibernate>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.1.214</h2>
 		<jsqlparser>4.5</jsqlparser>
