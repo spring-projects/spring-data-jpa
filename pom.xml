@@ -42,6 +42,16 @@
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
+		<!-- Antora -->
+		<node.version>v18.12.1</node.version>
+		<npm.version>8.19.2</npm.version>
+		<antora.version>3.2.0-alpha.2</antora.version>
+		<antora-atlas.version>1.0.0-alpha.1</antora-atlas.version>
+		<antora-collector.version>1.0.0-alpha.3</antora-collector.version>
+		<asciidoctor-tabs.version>1.0.0-beta.3</asciidoctor-tabs.version>
+		<spring-antora-extensions.version>1.4.0</spring-antora-extensions.version>
+		<spring-asciidoctor-extensions.version>1.0.0-alpha.9</spring-asciidoctor-extensions.version>
+
 	</properties>
 
 	<modules>
@@ -202,8 +212,14 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 
 	<repositories>
