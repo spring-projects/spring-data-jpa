@@ -2,6 +2,7 @@
 [appendix, glossary]
 [[glossary]]
 = Glossary
+:page-section-summary-toc: 1
 
 AOP :: Aspect oriented programming
 

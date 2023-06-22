@@ -1,5 +1,6 @@
 [[preface]]
 = Preface
+:page-section-summary-toc: 1
 
 Spring Data JPA provides repository support for the Jakarta Persistence API (JPA). It eases development of applications that need to access JPA data sources.
 
