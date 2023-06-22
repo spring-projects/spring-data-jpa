@@ -3,8 +3,8 @@
 
 This section describes the basics of configuring Spring Data JPA through either:
 
-* "`<<jpa.namespace>>`" (XML configuration)
-* "`<<jpa.java-config>>`" (Java configuration)
+* "`xref:jpa/introduction.adoc#jpa.namespace[Spring Namespace]`" (XML configuration)
+* "`xref:jpa/introduction.adoc#jpa.java-config[Annotation-based Configuration]`" (Java configuration)
 
 [[jpa.java-config]]
 == Annotation-based Configuration

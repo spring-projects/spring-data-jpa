@@ -189,7 +189,7 @@ class EnversIntegrationTests {
 	}
 }
 ----
-<1> This references the application context configuration presented earlier (in the <<envers.configuration>> section).
+<1> This references the application context configuration presented earlier (in the xref:envers.adoc#envers.configuration[Configuration] section).
 ====
 
 [[envers.resources]]

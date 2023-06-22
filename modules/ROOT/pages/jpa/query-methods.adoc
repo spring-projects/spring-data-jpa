@@ -12,11 +12,11 @@ Derived queries with the predicates `IsStartingWith`, `StartingWith`, `StartsWit
 `IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains` the respective arguments for these queries will get sanitized.
 This means if the arguments actually contain characters recognized by `LIKE` as wildcards these will get escaped so they match only as literals.
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
-Compare with <<jpa.query.spel-expressions>>.
+Compare with xref:jpa/query-methods.adoc#jpa.query.spel-expressions[Using SpEL Expressions].
 
 [[jpa.query-methods.declared-queries]]
 === Declared Queries
-Although getting a query derived from the method name is quite convenient, one might face the situation in which either the method name parser does not support the keyword one wants to use or the method name would get unnecessarily ugly. So you can either use JPA named queries through a naming convention (see <<jpa.query-methods.named-queries>> for more information) or rather annotate your query method with `@Query` (see <<jpa.query-methods.at-query>> for details).
+Although getting a query derived from the method name is quite convenient, one might face the situation in which either the method name parser does not support the keyword one wants to use or the method name would get unnecessarily ugly. So you can either use JPA named queries through a naming convention (see xref:jpa/query-methods.adoc#jpa.query-methods.named-queries[Using JPA Named Queries] for more information) or rather annotate your query method with `@Query` (see xref:jpa/query-methods.adoc#jpa.query-methods.at-query[Using `@Query`] for details).
 
 [[jpa.query-methods.query-creation]]
 == Query Creation
@@ -313,7 +313,7 @@ Sorting can be done by either providing a `PageRequest` or by using `Sort` direc
 
 NOTE: Using any non-referenceable path expression leads to an `Exception`.
 
-However, using `Sort` together with <<jpa.query-methods.at-query, `@Query`>> lets you sneak in non-path-checked `Order` instances containing functions within the `ORDER BY` clause. This is possible because the `Order` is appended to the given query string. By default, Spring Data JPA rejects any `Order` instance containing function calls, but you can use `JpaSort.unsafe` to add potentially unsafe ordering.
+However, using `Sort` together with xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`] lets you sneak in non-path-checked `Order` instances containing functions within the `ORDER BY` clause. This is possible because the `Order` is appended to the given query string. By default, Spring Data JPA rejects any `Order` instance containing function calls, but you can use `JpaSort.unsafe` to add potentially unsafe ordering.
 
 The following example uses `Sort` and `JpaSort`, including an unsafe option on `JpaSort`:
 
@@ -359,7 +359,7 @@ This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of 
 
 Read more on <<repositories.scrolling.guidance,which method to use best>> for your particular arrangement.
 
-You can use the Scroll API with query methods, <<query-by-example.running,Query-by-Example>>, and <<core.extensions.querydsl,Querydsl>>.
+You can use the Scroll API with query methods, xref:query-by-example.adoc[Query-by-Example], and <<core.extensions.querydsl,Querydsl>>.
 
 NOTE: Scrolling with String-based query methods is not yet supported.
 Scrolling is also not supported using stored `@Procedure` query methods.
@@ -506,12 +506,12 @@ Spring Data JPA offers many ways to build queries.
 But sometimes, your query may simply be too complicated for the techniques offered.
 In that situation, consider:
 
-* If you haven't already, simply write the query yourself using <<jpa.query-methods.at-query,`@Query`>>.
+* If you haven't already, simply write the query yourself using xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query`].
 * If that doesn't fit your needs, consider implementing a <<repositories.custom-implementations,custom implementation>>. This lets you register a method in your repository while leaving the implementation completely up to you. This gives you the ability to:
 ** Talk directly to the `EntityManager` (writing pure HQL/JPQL/EQL/native SQL or using the *Criteria API*)
 ** Leverage Spring Framework's `JdbcTemplate` (native SQL)
 ** Use another 3rd-party database toolkit.
-* Another option is putting your query inside the database and then using either Spring Data JPA's <<jpa.stored-procedures,`@StoredProcedure` annotation>> or if it's a database function using the <<jpa.query-methods.at-query,`@Query` annotation>> and invoking it with a `CALL`.
+* Another option is putting your query inside the database and then using either Spring Data JPA's xref:jpa/stored-procedures.adoc[`@StoredProcedure` annotation] or if it's a database function using the xref:jpa/query-methods.adoc#jpa.query-methods.at-query[`@Query` annotation] and invoking it with a `CALL`.
 
 These tactics may be most effective when you need maximum control of your query, while still letting Spring Data JPA provide resource management.
 
