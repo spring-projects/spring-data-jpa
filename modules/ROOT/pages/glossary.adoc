@@ -1,5 +1,6 @@
 [[glossary]]
 [appendix, glossary]
+[[glossary]]
 = Glossary
 
 AOP :: Aspect oriented programming
