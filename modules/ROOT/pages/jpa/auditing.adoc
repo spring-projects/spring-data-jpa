@@ -65,6 +65,7 @@ class Config {
 
 If you expose a bean of type `AuditorAware` to the `ApplicationContext`, the auditing infrastructure automatically picks it up and uses it to determine the current user to be set on domain types. If you have multiple implementations registered in the `ApplicationContext`, you can select the one to be used by explicitly setting the `auditorAwareRef` attribute of `@EnableJpaAuditing`.
 
-[[jpa.misc]]
-= Miscellaneous Considerations
+// FIXME: does this need to exist?
+// [[jpa.misc]]
+// = Miscellaneous Considerations
 

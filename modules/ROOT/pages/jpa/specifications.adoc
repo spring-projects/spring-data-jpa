@@ -96,6 +96,4 @@ Passed on to the `userRepository`, it will use JPA's `CriteriaDelete` feature to
 It then returns the number of entities deleted.
 ====
 
-include:../:{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
-include:../:query-by-example.adoc[leveloffset=+1]
 
