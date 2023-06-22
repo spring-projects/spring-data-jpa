@@ -1,0 +1,41 @@
+[[locking]]
+= Locking
+
+To specify the lock mode to be used, you can use the `@Lock` annotation on query methods, as shown in the following example:
+
+.Defining lock metadata on query methods
+====
+[source, java]
+----
+interface UserRepository extends Repository<User, Long> {
+
+  // Plain query method
+  @Lock(LockModeType.READ)
+  List<User> findByLastname(String lastname);
+}
+----
+====
+
+This method declaration causes the query being triggered to be equipped with a `LockModeType` of `READ`. You can also define locking for CRUD methods by redeclaring them in your repository interface and adding the `@Lock` annotation, as shown in the following example:
+
+.Defining lock metadata on CRUD methods
+====
+[source, java]
+----
+interface UserRepository extends Repository<User, Long> {
+
+  // Redeclaration of a CRUD method
+  @Lock(LockModeType.READ)
+  List<User> findAll();
+}
+----
+====
+
+:leveloffset: +1
+
+include:../:{spring-data-commons-docs}/auditing.adoc[]
+
+:leveloffset: -1
+
+There is also a convenience base class, `AbstractAuditable`, which you can extend to avoid the need to manually implement the interface methods. Doing so increases the coupling of your domain classes to Spring Data, which might be something you want to avoid. Usually, the annotation-based way of defining auditing metadata is preferred as it is less invasive and more flexible.
+
