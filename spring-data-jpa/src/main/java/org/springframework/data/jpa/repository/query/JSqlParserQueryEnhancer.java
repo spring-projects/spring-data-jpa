@@ -96,7 +96,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			} else if (statement instanceof Merge) {
 				return ParsedType.MERGE;
 			} else {
-				return ParsedType.SELECT;
+				return ParsedType.OTHER;
 			}
 		} catch (JSQLParserException e) {
 			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
@@ -314,10 +314,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			Select selectStatement = parseSelectStatement(query);
 
 			/*
-			For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
-			alias since:
-			* ValuesStatement has no alias
-			* SetOperation can have multiple alias for each operation item
+			 * For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
+			 * alias since:
+			 * ValuesStatement has no alias
+			 * SetOperation can have multiple alias for each operation item
 			 */
 			if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
 				return null;
@@ -516,10 +516,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * <li>{@code ParsedType.SELECT}: means the top level statement is {@link Select}</li>
 	 * <li>{@code ParsedType.INSERT}: means the top level statement is {@link Insert}</li>
 	 * <li>{@code ParsedType.MERGE}: means the top level statement is {@link Merge}</li>
+	 * <li>{@code ParsedType.OTHER}: means the top level statement is a different top-level type</li>
 	 * </ul>
 	 */
 	enum ParsedType {
-		DELETE, UPDATE, SELECT, INSERT, MERGE;
+		DELETE, UPDATE, SELECT, INSERT, MERGE, OTHER;
 	}
 
 }
