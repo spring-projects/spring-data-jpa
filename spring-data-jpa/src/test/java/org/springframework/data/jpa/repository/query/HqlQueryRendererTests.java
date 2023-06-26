@@ -1544,4 +1544,9 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = X'DEADBEEF'");
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = x'deadbeef'");
 	}
+
+	@Test // GH-3040
+	void escapeClauseShouldWork() {
+		assertQuery("select t.name from SomeDbo t where t.name LIKE :name escape '\\\\'");
+	}
 }

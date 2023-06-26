@@ -605,7 +605,7 @@ dealingWithNullExpression
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
 stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) expression (ESCAPE (character|parameter))?
+    : expression NOT? (LIKE | ILIKE) expression (ESCAPE (stringLiteral|parameter))?
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
@@ -1078,7 +1078,7 @@ fragment HEX_DIGIT          : [0-9a-fA-F];
 
 
 CHARACTER                   : '\'' (~ ('\'' | '\\' )) '\'' ;
-STRINGLITERAL               : '\'' ('\'' '\'' | ~('\'' | '\\'))* '\'' ;
+STRINGLITERAL               : '\'' ('\'' '\'' | ~('\''))* '\'' ;
 JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 INTEGER_LITERAL             : INTEGER_NUMBER (L | B I)? ;
 FLOAT_LITERAL               : FLOAT_NUMBER (D | F | B D)?;
