@@ -191,6 +191,23 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
+	@Test // GH-3038
+	void truncateStatementShouldWork() {
+
+		StringQuery stringQuery = new StringQuery("TRUNCATE TABLE foo", true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+
+		assertThat(stringQuery.getAlias()).isNull();
+		assertThat(stringQuery.getProjection()).isEmpty();
+		assertThat(stringQuery.hasConstructorExpression()).isFalse();
+
+		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).isEqualTo("TRUNCATE TABLE foo");
+		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
+		assertThat(queryEnhancer.detectAlias()).isNull();
+		assertThat(queryEnhancer.getProjection()).isEmpty();
+		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
+	}
+
 	@ParameterizedTest // GH-2641
 	@MethodSource("mergeStatementWorksSource")
 	void mergeStatementWorksWithJSqlParser(String query, String alias) {
