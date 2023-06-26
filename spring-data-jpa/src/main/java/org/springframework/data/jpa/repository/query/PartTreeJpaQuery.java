@@ -255,11 +255,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		@SuppressWarnings("ConstantConditions")
 		private Query restrictMaxResultsIfNecessary(Query query, @Nullable ScrollPosition scrollPosition) {
 
-			if (tree.isLimiting()) {
+			if (scrollPosition instanceof OffsetScrollPosition offset) {
+				query.setFirstResult(Math.toIntExact(offset.getOffset()));
+			}
 
-				if (scrollPosition instanceof OffsetScrollPosition offset) {
-					query.setFirstResult(Math.toIntExact(offset.getOffset()));
-				}
+			if (tree.isLimiting()) {
 
 				if (query.getMaxResults() != Integer.MAX_VALUE) {
 					/*
