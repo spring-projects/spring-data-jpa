@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -154,6 +155,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	Window<User> findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc(String firstname,
 			ScrollPosition position);
+
+	Window<User> findByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc(String firstname, ScrollPosition position);
 
 	List<User> findByFirstnameNotIn(Collection<String> firstnames);
 
@@ -721,6 +724,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-1713, GH-2008
 	@Query("select u from User u where u.firstname >= (select Min(u0.firstname) from User u0)")
 	List<NameOnly> findProjectionBySubselect();
+
+	Window<User> findBy(OffsetScrollPosition position);
 
 	interface RolesAndFirstname {
 

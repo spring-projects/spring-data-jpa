@@ -57,7 +57,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.domain.ExampleMatcher.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
@@ -1426,6 +1425,22 @@ class UserRepositoryTests {
 
 		// no more items before this window
 		assertThat(previousWindow.hasNext()).isFalse();
+	}
+
+	@Test // GH-3015
+	void shouldApplyOffsetScrollPosition() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Window<User> atOffset3 = repository.findByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
+				ScrollPosition.offset(3));
+
+		assertThat(atOffset3).containsExactly(john2);
 	}
 
 	@Test // DATAJPA-491
