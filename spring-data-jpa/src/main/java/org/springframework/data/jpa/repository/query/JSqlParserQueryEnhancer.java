@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
+	private final Statement statement;
 	private final ParsedType parsedType;
 
 	/**
@@ -72,7 +73,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public JSqlParserQueryEnhancer(DeclaredQuery query) {
 
 		this.query = query;
-		this.parsedType = detectParsedType();
+		try {
+			this.statement = CCJSqlParserUtil.parse(this.query.getQueryString());
+		} catch (JSQLParserException e) {
+			throw new IllegalArgumentException("The query is not a valid SQL Query", e);
+		}
+
+		this.parsedType = detectParsedType(statement);
 	}
 
 	/**
@@ -80,26 +87,20 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 *
 	 * @return the parsed type
 	 */
-	private ParsedType detectParsedType() {
+	private static ParsedType detectParsedType(Statement statement) {
 
-		try {
-			Statement statement = CCJSqlParserUtil.parse(this.query.getQueryString());
-
-			if (statement instanceof Insert) {
-				return ParsedType.INSERT;
-			} else if (statement instanceof Update) {
-				return ParsedType.UPDATE;
-			} else if (statement instanceof Delete) {
-				return ParsedType.DELETE;
-			} else if (statement instanceof Select) {
-				return ParsedType.SELECT;
-			} else if (statement instanceof Merge) {
-				return ParsedType.MERGE;
-			} else {
-				return ParsedType.OTHER;
-			}
-		} catch (JSQLParserException e) {
-			throw new IllegalArgumentException("The query you provided is not a valid SQL Query!", e);
+		if (statement instanceof Insert) {
+			return ParsedType.INSERT;
+		} else if (statement instanceof Update) {
+			return ParsedType.UPDATE;
+		} else if (statement instanceof Delete) {
+			return ParsedType.DELETE;
+		} else if (statement instanceof Select) {
+			return ParsedType.SELECT;
+		} else if (statement instanceof Merge) {
+			return ParsedType.MERGE;
+		} else {
+			return ParsedType.OTHER;
 		}
 	}
 
@@ -127,9 +128,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 
-		final Set<String> joinAliases = getJoinAliases(selectBody);
-
-		final Set<String> selectionAliases = getSelectionAliases(selectBody);
+		Set<String> joinAliases = getJoinAliases(selectBody);
+		Set<String> selectionAliases = getSelectionAliases(selectBody);
 
 		List<OrderByElement> orderByElements = sort.stream() //
 				.map(order -> getOrderClause(joinAliases, selectionAliases, alias, order)) //
@@ -203,7 +203,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return new HashSet<>();
 		}
 
-		Select selectStatement = parseSelectStatement(this.query.getQueryString());
+		Select selectStatement = (Select) statement;
 		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 		return this.getSelectionAliases(selectBody);
 	}
@@ -220,7 +220,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return new HashSet<>();
 		}
 
-		Select selectStatement = parseSelectStatement(query);
+		Select selectStatement = (Select) statement;
 		if (selectStatement.getSelectBody()instanceof PlainSelect selectBody) {
 			return getJoinAliases(selectBody);
 		}
@@ -306,12 +306,12 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		if (ParsedType.MERGE.equals(this.parsedType)) {
 
-			Merge mergeStatement = parseSelectStatement(query, Merge.class);
+			Merge mergeStatement = (Merge) statement;
 			return detectAlias(mergeStatement);
 
 		} else if (ParsedType.SELECT.equals(this.parsedType)) {
 
-			Select selectStatement = parseSelectStatement(query);
+			Select selectStatement = (Select) statement;
 
 			/*
 			 * For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
@@ -319,11 +319,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			 * ValuesStatement has no alias
 			 * SetOperation can have multiple alias for each operation item
 			 */
-			if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+			if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
 				return null;
 			}
 
-			PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 			return detectAlias(selectBody);
 		}
 
@@ -375,11 +374,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
-		if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
+		if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
 			return this.query.getQueryString();
 		}
-
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
 
 		// remove order by
 		selectBody.setOrderByElements(null);
@@ -436,7 +433,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Assert.hasText(query.getQueryString(), "Query must not be null or empty");
 
-		Select selectStatement = parseSelectStatement(query.getQueryString());
+		Select selectStatement = (Select) statement;
 
 		if (selectStatement.getSelectBody() instanceof ValuesStatement) {
 			return "";
