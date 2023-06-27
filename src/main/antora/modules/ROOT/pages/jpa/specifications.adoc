@@ -1,0 +1,99 @@
+[[specifications]]
+= Specifications
+
+JPA 2 introduces a criteria API that you can use to build queries programmatically. By writing a `criteria`, you define the where clause of a query for a domain class. Taking another step back, these criteria can be regarded as a predicate over the entity that is described by the JPA criteria API constraints.
+
+Spring Data JPA takes the concept of a specification from Eric Evans' book, "`Domain Driven Design`", following the same semantics and providing an API to define such specifications with the JPA criteria API. To support specifications, you can extend your repository interface with the `JpaSpecificationExecutor` interface, as follows:
+
+[source, java]
+----
+public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {
+ …
+}
+----
+
+The additional interface has methods that let you run specifications in a variety of ways. For example, the `findAll` method returns all entities that match the specification, as shown in the following example:
+
+[source, java]
+----
+List<T> findAll(Specification<T> spec);
+----
+
+The `Specification` interface is defined as follows:
+
+[source, java]
+----
+public interface Specification<T> {
+  Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
+            CriteriaBuilder builder);
+}
+----
+
+Specifications can easily be used to build an extensible set of predicates on top of an entity that then can be combined and used with `JpaRepository` without the need to declare a query (method) for every needed combination, as shown in the following example:
+
+.Specifications for a Customer
+====
+[source, java]
+----
+public class CustomerSpecs {
+
+
+  public static Specification<Customer> isLongTermCustomer() {
+    return (root, query, builder) -> {
+      LocalDate date = LocalDate.now().minusYears(2);
+      return builder.lessThan(root.get(Customer_.createdAt), date);
+    };
+  }
+
+  public static Specification<Customer> hasSalesOfMoreThan(MonetaryAmount value) {
+    return (root, query, builder) -> {
+      // build query here
+    };
+  }
+}
+----
+====
+
+The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
+So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`.
+Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
+So a client might use a `Specification` as follows:
+
+.Using a simple Specification
+====
+[source, java]
+----
+List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
+----
+====
+
+Why not create a query for this kind of data access? Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the default methods of `Specification` we provide to build expressions similar to the following:
+
+.Combined Specifications
+====
+[source, java]
+----
+MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
+List<Customer> customers = customerRepository.findAll(
+  isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
+----
+
+`Specification` offers some "`glue-code`" default methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
+====
+
+And with JPA 2.1, the `CriteriaBuilder` API introduced `CriteriaDelete`. This is provided through `JpaSpecificationExecutor`'s `delete(Specification)` API.
+
+.Using a `Specification` to delete entries.
+====
+[source, java]
+----
+Specification<User> ageLessThan18 = (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), 18)
+
+userRepository.delete(ageLessThan18);
+----
+The `Specification` builds up a criteria where the `age` field (cast as an integer) is less than `18`.
+Passed on to the `userRepository`, it will use JPA's `CriteriaDelete` feature to generate the right `DELETE` operation.
+It then returns the number of entities deleted.
+====
+
+

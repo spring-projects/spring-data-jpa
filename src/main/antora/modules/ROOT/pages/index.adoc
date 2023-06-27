@@ -1,0 +1,24 @@
+[[spring-data-jpa-reference-documentation]]
+= Spring Data JPA
+Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant; Greg Turnquist
+:revnumber: {version}
+:revdate: {localdate}
+:feature-scroll: true
+
+(C) 2008-2023 The original authors.
+
+NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+
+[[preface]]
+== Preface
+:page-section-summary-toc: 1
+
+Spring Data JPA provides repository support for the Jakarta Persistence API (JPA). It eases development of applications that need to access JPA data sources.
+
+[[project]]
+== Project Metadata
+
+* Version control: https://github.com/spring-projects/spring-data-jpa
+* Bugtracker: https://github.com/spring-projects/spring-data-jpa/issues
+* Milestone repository: https://repo.spring.io/milestone
+* Snapshot repository: https://repo.spring.io/snapshot

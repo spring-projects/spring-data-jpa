@@ -1,0 +1,97 @@
+[[jpa.stored-procedures]]
+= Stored Procedures
+
+The JPA 2.1 specification introduced support for calling stored procedures by using the JPA criteria query API.
+We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
+
+The examples to follow use the following stored procedure:
+
+.The definition of the `plus1inout` procedure in HSQL DB.
+====
+[source, sql]
+----
+/;
+DROP procedure IF EXISTS plus1inout
+/;
+CREATE procedure plus1inout (IN arg int, OUT res int)
+BEGIN ATOMIC
+ set res = arg + 1;
+END
+/;
+----
+====
+
+Metadata for stored procedures can be configured by using the `NamedStoredProcedureQuery` annotation on an entity type.
+
+[[jpa.stored-procedure-entity-metadata]]
+.StoredProcedure metadata definitions on an entity.
+====
+[source, java]
+----
+@Entity
+@NamedStoredProcedureQuery(name = "User.plus1", procedureName = "plus1inout", parameters = {
+  @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+  @StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+public class User {}
+----
+====
+
+Note that `@NamedStoredProcedureQuery` has two different names for the stored procedure.
+`name` is the name JPA uses. `procedureName` is the name the stored procedure has in the database.
+
+You can reference stored procedures from a repository method in multiple ways.
+The stored procedure to be called can either be defined directly by using the `value` or `procedureName` attribute of the `@Procedure` annotation.
+This refers directly to the stored procedure in the database and ignores any configuration via `@NamedStoredProcedureQuery`.
+
+Alternatively you may specify the `@NamedStoredProcedureQuery.name` attribute as the `@Procedure.name` attribute.
+If neither `value`, `procedureName` nor `name` is configured, the name of the repository method is used as the `name` attribute.
+
+The following example shows how to reference an explicitly mapped procedure:
+
+[[jpa.stored-procedure-reference]]
+.Referencing explicitly mapped procedure with name "plus1inout" in database.
+====
+[source, java]
+----
+@Procedure("plus1inout")
+Integer explicitlyNamedPlus1inout(Integer arg);
+----
+====
+
+The following example is equivalent to the previous one but uses the `procedureName` alias:
+
+.Referencing implicitly mapped procedure with name "plus1inout" in database via `procedureName` alias.
+====
+[source, java]
+----
+@Procedure(procedureName = "plus1inout")
+Integer callPlus1InOut(Integer arg);
+----
+====
+
+The following is again equivalent to the previous two but using the method name instead of an explicite annotation attribute.
+
+.Referencing implicitly mapped named stored procedure "User.plus1" in `EntityManager` by using the method name.
+====
+[source, java]
+----
+@Procedure
+Integer plus1inout(@Param("arg") Integer arg);
+----
+====
+
+The following example shows how to reference a stored procedure by referencing the `@NamedStoredProcedureQuery.name` attribute.
+
+.Referencing explicitly mapped named stored procedure "User.plus1IO" in `EntityManager`.
+====
+[source, java]
+----
+@Procedure(name = "User.plus1IO")
+Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
+----
+====
+
+If the stored procedure getting called has a single out parameter that parameter may be returned as the return value of the method.
+If there are multiple out parameters specified in a `@NamedStoredProcedureQuery` annotation those can be returned as a `Map` with the key being the parameter name given in the `@NamedStoredProcedureQuery` annotation.
+
+

@@ -1,0 +1,12 @@
+name: data-jpa
+version: true
+title: Spring Data JPA
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+  - run:
+      command: mvnw -Pdocs resources:resources
+      local: true
+    scan:
+      dir: target/classes/antora-resources

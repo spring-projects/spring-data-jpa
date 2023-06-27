@@ -1,0 +1,12 @@
+version: ${project.version}
+
+asciidoc:
+  attributes:
+    version: ${project.version}
+    springversionshort: 6.1
+    springversion: ${spring}
+    attribute-missing: 'warn'
+    spring-data-commons-docs-url: https://docs.spring.io/spring-data-commons/reference
+    spring-data-commons-javadoc-base: https://docs.spring.io/spring-data/data-commons/docs/current/api/
+    springdocsurl: https://docs.spring.io/spring-framework/reference/{springversionshort}
+    springjavadocurl: https://docs.spring.io/spring-framework/docs/${spring}/javadoc-api

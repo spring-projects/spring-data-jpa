@@ -1,0 +1,62 @@
+[[jpd.misc.cdi-integration]]
+= CDI Integration
+
+Instances of the repository interfaces are usually created by a container, for which Spring is the most natural choice when working with Spring Data. Spring offers sophisticated support for creating bean instances, as documented in {spring-data-commons-docs-url}/repositories/create-instances.html[Creating Repository Instances]. As of version 1.1.0, Spring Data JPA ships with a custom CDI extension that allows using the repository abstraction in CDI environments. The extension is part of the JAR. To activate it, include the Spring Data JPA JAR on your classpath.
+
+You can now set up the infrastructure by implementing a CDI Producer for the `EntityManagerFactory` and `EntityManager`, as shown in the following example:
+
+[source, java]
+----
+class EntityManagerFactoryProducer {
+
+  @Produces
+  @ApplicationScoped
+  public EntityManagerFactory createEntityManagerFactory() {
+    return Persistence.createEntityManagerFactory("my-persistence-unit");
+  }
+
+  public void close(@Disposes EntityManagerFactory entityManagerFactory) {
+    entityManagerFactory.close();
+  }
+
+  @Produces
+  @RequestScoped
+  public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
+    return entityManagerFactory.createEntityManager();
+  }
+
+  public void close(@Disposes EntityManager entityManager) {
+    entityManager.close();
+  }
+}
+----
+
+The necessary setup can vary depending on the JavaEE environment. You may need to do nothing more than redeclare a `EntityManager` as a CDI bean, as follows:
+
+[source, java]
+----
+class CdiConfig {
+
+  @Produces
+  @RequestScoped
+  @PersistenceContext
+  public EntityManager entityManager;
+}
+----
+
+In the preceding example, the container has to be capable of creating JPA `EntityManagers` itself. All the configuration does is re-export the JPA `EntityManager` as a CDI bean.
+
+The Spring Data JPA CDI extension picks up all available `EntityManager` instances as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property, as shown in the following example:
+
+[source, java]
+----
+class RepositoryClient {
+
+  @Inject
+  PersonRepository repository;
+
+  public void businessMethod() {
+    List<Person> people = repository.findAll();
+  }
+}
+----

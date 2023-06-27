@@ -189,7 +189,7 @@ class EnversIntegrationTests {
 	}
 }
 ----
-<1> This references the application context configuration presented earlier (in the <<envers.configuration>> section).
+<1> This references the application context configuration presented earlier (in the xref:envers.adoc#envers.configuration[Configuration] section).
 ====
 
 [[envers.resources]]
@@ -201,4 +201,4 @@ You should also check out the {spring-data-commons-javadoc-base}/org/springframe
 
 You can ask questions at https://stackoverflow.com/questions/tagged/spring-data-envers[Stackoverflow by using the `spring-data-envers` tag].
 
-The https://github.com/spring-projects/spring-data-envers[source code and issue tracker for Spring Data Envers is hosted at GitHub].
+The https://github.com/spring-projects/spring-data-jpa[source code and issue tracker for Spring Data Envers is hosted at GitHub] (as a module of Spring Data JPA).

@@ -42,6 +42,16 @@
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
+		<!-- Antora -->
+		<node.version>v18.12.1</node.version>
+		<npm.version>8.19.2</npm.version>
+		<antora.version>3.2.0-alpha.2</antora.version>
+		<antora-atlas.version>1.0.0-alpha.1</antora-atlas.version>
+		<antora-collector.version>1.0.0-alpha.3</antora-collector.version>
+		<asciidoctor-tabs.version>1.0.0-beta.3</asciidoctor-tabs.version>
+		<spring-antora-extensions.version>1.4.0</spring-antora-extensions.version>
+		<spring-asciidoctor-extensions.version>1.0.0-alpha.9</spring-asciidoctor-extensions.version>
+
 	</properties>
 
 	<modules>
@@ -101,7 +111,93 @@
 				<eclipselink>4.0.0</eclipselink>
 			</properties>
 		</profile>
-
+		<profile>
+			<id>docs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<executions>
+							<execution>
+								<id>install-antora</id>
+								<goals>
+									<goal>install-node-and-npm</goal>
+								</goals>
+								<phase>initialize</phase>
+								<configuration>
+									<nodeVersion>${node.version}</nodeVersion>
+									<npmVersion>${npm.version}</npmVersion>
+								</configuration>
+							</execution>
+							<execution>
+								<id>npm install antora</id>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<phase>initialize</phase>
+								<configuration>
+									<arguments>install @antora/cli@${antora.version} @antora/site-generator-default@${antora.version} @antora/atlas-extension@${antora-atlas.version} @antora/collector-extension@${antora-collector.version} @asciidoctor/tabs@${asciidoctor-tabs.version} @springio/antora-extensions@${spring-antora-extensions.version} @springio/asciidoctor-extensions@${spring-asciidoctor-extensions.version}</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.0.0</version>
+						<executions>
+							<execution>
+								<id>antora</id>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>compile</phase>
+								<configuration>
+									<!-- If we don't want to depend on default node installation path we can use a maven
+                                     property aligned with frontend-maven-plugin's installDirectory configuration -->
+									<executable>node/node</executable>
+									<arguments>
+										<argument>node_modules/.bin/antora</argument>
+										<argument>src/main/antora/antora-playbook.yml</argument>
+										<argument>--to-dir=target/site</argument>
+									</arguments>
+									<workingDirectory>${project.parent.basedir}</workingDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>3.1.0</version>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>node</directory>
+									<followSymlinks>false</followSymlinks>
+								</fileset>
+								<fileset>
+									<directory>node_modules</directory>
+									<followSymlinks>false</followSymlinks>
+								</fileset>
+								<fileset>
+									<directory>build</directory>
+									<followSymlinks>false</followSymlinks>
+								</fileset>
+							</filesets>
+						</configuration>
+					</plugin>
+				</plugins>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
 	</profiles>
 
 	<dependencyManagement>
@@ -202,7 +298,6 @@
 					</execution>
 				</executions>
 			</plugin>
-
 		</plugins>
 	</build>
 
