@@ -78,7 +78,7 @@ class StringQuery implements DeclaredQuery {
 
 		Metadata queryMeta = new Metadata();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings, queryMeta);
+				this.bindings, queryMeta, isNative);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 
@@ -212,7 +212,7 @@ class StringQuery implements DeclaredQuery {
 		 * the cleaned up query.
 		 */
 		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings, Metadata queryMeta) {
+				List<ParameterBinding> bindings, Metadata queryMeta, boolean isNative) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
@@ -299,7 +299,7 @@ class StringQuery implements DeclaredQuery {
 				}
 
 				if (replacement != null) {
-					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
+					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement, isNative);
 				}
 
 			}
@@ -327,14 +327,14 @@ class StringQuery implements DeclaredQuery {
 			return SpelQueryContext.of(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
 		}
 
-		private static String replaceFirst(String text, String substring, String replacement) {
+		private static String replaceFirst(String text, String substring, String replacement, boolean isNative) {
 
 			int index = text.indexOf(substring);
 			if (index < 0) {
 				return text;
 			}
 
-			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring)
+			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring, isNative)
 					+ text.substring(index + substring.length());
 		}
 
@@ -348,7 +348,7 @@ class StringQuery implements DeclaredQuery {
 		 * @return the replacement string properly wrapped in a {@literal CONCAT} function with wildcards applied.
 		 * @since 3.1
 		 */
-		private static String potentiallyWrapWithWildcards(String replacement, String substring) {
+		private static String potentiallyWrapWithWildcards(String replacement, String substring, boolean isNative) {
 
 			boolean wildcards = substring.startsWith("%") || substring.endsWith("%");
 
@@ -362,7 +362,11 @@ class StringQuery implements DeclaredQuery {
 				concatWrapper.append("'%',");
 			}
 
-			concatWrapper.append(replacement);
+			if (isNative) {
+				concatWrapper.append(coalesce(replacement, "''"));
+			} else {
+				concatWrapper.append(coalesce(PersistenceProvider.castAsString(replacement), "''"));
+			}
 
 			if (substring.endsWith("%")) {
 				concatWrapper.append(",'%'");
@@ -371,6 +375,17 @@ class StringQuery implements DeclaredQuery {
 			concatWrapper.append(")");
 
 			return concatWrapper.toString();
+		}
+
+		/**
+		 * Apply the {@literal COALESCE} function with a default value.
+		 *
+		 * @param expression
+		 * @param defaultValue
+		 * @return
+		 */
+		private static String coalesce(String expression, String defaultValue) {
+			return "COALESCE(" + expression + "," + defaultValue + ")";
 		}
 
 		@Nullable

@@ -99,7 +99,8 @@ class QueryWithNullLikeIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParam(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
 	}
 
 	@Test // GH-2939
@@ -133,7 +134,8 @@ class QueryWithNullLikeIntegrationTests {
 
 		List<EmployeeWithName> Employees = repository.customQueryWithNullableParamInNative(null);
 
-		assertThat(Employees).extracting(EmployeeWithName::getName).isEmpty();
+		assertThat(Employees).extracting(EmployeeWithName::getName).containsExactlyInAnyOrder("Frodo Baggins",
+				"Bilbo Baggins");
 	}
 
 	@Test
