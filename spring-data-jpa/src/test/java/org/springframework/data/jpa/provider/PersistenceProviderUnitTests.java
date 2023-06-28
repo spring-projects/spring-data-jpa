@@ -18,11 +18,12 @@ package org.springframework.data.jpa.provider;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
+import static org.springframework.data.jpa.provider.PersistenceProviderUtils.*;
+
+import jakarta.persistence.EntityManager;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.EntityManager;
 
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
@@ -74,7 +75,7 @@ class PersistenceProviderUnitTests {
 	@Test // DATAJPA-1019
 	void detectsHibernatePersistenceProviderForHibernateVersion52() throws Exception {
 
-		Assumptions.assumeThat(Version.getVersionString()).startsWith("5.2");
+		Assumptions.assumeThat(Version.getVersionString()).startsWith("6.2");
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
@@ -96,6 +97,22 @@ class PersistenceProviderUnitTests {
 		assertThat(fromEntityManager(emProxy)).isEqualTo(ECLIPSELINK);
 	}
 
+	@Test // GH-3041
+	void hibernateShouldCastAsText() {
+
+		doWithHibernate(() -> {
+			assertThat(PersistenceProvider.castAsString(":param")).isEqualTo("CAST(:param as text)");
+		});
+	}
+
+	@Test // GH-3041
+	void eclipseLinkShouldCastAsString() {
+
+		doWithEclipseLink(() -> {
+			assertThat(PersistenceProvider.castAsString(":param")).isEqualTo("CAST(:param as string)");
+		});
+	}
+
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
 
 		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
@@ -111,8 +128,8 @@ class PersistenceProviderUnitTests {
 
 	static class InterfaceGenerator implements Opcodes {
 
-		static Class<?> generate(final String interfaceName, ClassLoader parentClassLoader,
-				final Class<?>... interfaces) throws ClassNotFoundException {
+		static Class<?> generate(final String interfaceName, ClassLoader parentClassLoader, final Class<?>... interfaces)
+				throws ClassNotFoundException {
 
 			class CustomClassLoader extends ClassLoader {
 

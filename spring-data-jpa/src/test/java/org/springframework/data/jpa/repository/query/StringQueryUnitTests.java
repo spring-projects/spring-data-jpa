@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jpa.provider.PersistenceProviderUtils.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Nils Borrmann
  * @author Andriy Redko
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 class StringQueryUnitTests {
 
@@ -64,8 +66,8 @@ class StringQueryUnitTests {
 				true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString())
-				.isEqualTo("select u from User u where u.firstname like CONCAT('%',?1,'%') or u.lastname like CONCAT('%',?2)");
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where u.firstname like CONCAT('%',COALESCE(?1,''),'%') or u.lastname like CONCAT('%',COALESCE(?2,''))");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(2);
@@ -87,7 +89,8 @@ class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like CONCAT('%',:firstname)");
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like CONCAT('%',COALESCE(:firstname,''))");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(1);
@@ -200,8 +203,8 @@ class StringQueryUnitTests {
 		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
 
 		assertThat(query.getQueryString())
-				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~'"
-						+ " OR a.content LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
+				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE CONCAT('%',COALESCE(:escapedWord,''),'%') ESCAPE '~'"
+						+ " OR a.content LIKE CONCAT('%',COALESCE(:escapedWord,''),'%') ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
 	}
 
 	@Test // DATAJPA-483
@@ -526,6 +529,47 @@ class StringQueryUnitTests {
 		assertThat(query.getParameterBindings()) //
 				.extracting(ParameterBinding::getName) //
 				.containsExactly("age");
+	}
+
+	@Test // GH-3041
+	void properlyCastsPositionalParametersForNonNativeQueries() {
+
+		doWithHibernate(() -> {
+			StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2",
+					false);
+
+			assertThat(query.getQueryString()).isEqualTo(
+					"select u from User u where u.firstname like CONCAT('%',COALESCE(CAST(?1 as text),''),'%') or u.lastname like CONCAT('%',COALESCE(CAST(?2 as text),''))");
+		});
+
+		doWithEclipseLink(() -> {
+
+			StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2",
+					false);
+
+			assertThat(query.getQueryString()).isEqualTo(
+					"select u from User u where u.firstname like CONCAT('%',COALESCE(CAST(?1 as string),''),'%') or u.lastname like CONCAT('%',COALESCE(CAST(?2 as string),''))");
+		});
+	}
+
+	@Test // GH-3041
+	void properlyCastsNamedParametersForNonNativeQueries() {
+
+		doWithHibernate(() -> {
+
+			StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", false);
+
+			assertThat(query.getQueryString())
+					.isEqualTo("select u from User u where u.firstname like CONCAT('%',COALESCE(CAST(:firstname as text),''))");
+		});
+
+		doWithEclipseLink(() -> {
+
+			StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", false);
+
+			assertThat(query.getQueryString())
+					.isEqualTo("select u from User u where u.firstname like CONCAT('%',COALESCE(CAST(:firstname as string),''))");
+		});
 	}
 
 	void checkNumberOfNamedParameters(String query, int expectedSize, String label, boolean nativeQuery) {

@@ -190,18 +190,20 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 	};
 
-	private static final Class<?> typedParameterValueClass;
+	private static Class<?> typedParameterValueClass;
 
 	static {
 
-		Class<?> type;
 		try {
-			type = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
+			typedParameterValueClass = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
 					PersistenceProvider.class.getClassLoader());
 		} catch (ClassNotFoundException e) {
-			type = null;
+			typedParameterValueClass = null;
 		}
-		typedParameterValueClass = type;
+	}
+
+	private static boolean isHibernate() {
+		return typedParameterValueClass != null;
 	}
 
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
@@ -336,9 +338,22 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	public static Object unwrapTypedParameterValue(Object value) {
 
-		return typedParameterValueClass != null && typedParameterValueClass.isInstance(value) //
+		return isHibernate() && typedParameterValueClass.isInstance(value) //
 				? null //
 				: value;
+	}
+
+	/**
+	 * Apply a {@literal CAST} function to avoid any binary operations on the database.
+	 *
+	 * @param expression
+	 * @return
+	 */
+	public static String castAsString(String expression) {
+
+		return isHibernate() //
+				? "CAST(" + expression + " as text)" //
+				: "CAST(" + expression + " as string)";
 	}
 
 	/**
