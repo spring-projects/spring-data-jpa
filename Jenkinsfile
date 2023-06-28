@@ -48,7 +48,7 @@ pipeline {
 			when {
 				beforeAgent(true)
 				allOf {
-					branch(pattern: "issue/gh-java21|main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
+					branch(pattern: "main|(\\d\\.\\d\\.x)", comparator: "REGEXP")
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
