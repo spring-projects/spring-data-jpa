@@ -1,5 +1,4 @@
-* xref:index.adoc[]
-* xref:preface.adoc[]
+* xref:index.adoc[Overview]
 * xref:jpa.adoc[]
 ** xref:jpa/introduction.adoc[]
 ** xref:jpa/entity-persistence.adoc[]
