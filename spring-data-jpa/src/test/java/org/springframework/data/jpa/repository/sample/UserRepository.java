@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -225,6 +226,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findByLastnameIgnoringCase(String lastname);
 
 	Page<User> findByLastnameIgnoringCase(Pageable pageable, String lastname);
+
+	Window<User> findByLastnameOrderByFirstname(Limit limit, ScrollPosition scrollPosition, String lastname);
 
 	List<User> findByLastnameIgnoringCaseLike(String lastname);
 

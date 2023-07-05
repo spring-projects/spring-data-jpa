@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import jakarta.persistence.TemporalType;
+
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
-
-import jakarta.persistence.TemporalType;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.repository.Temporal;
@@ -58,6 +58,13 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	@Override
 	protected JpaParameters createFrom(List<JpaParameter> parameters) {
 		return new JpaParameters(parameters);
+	}
+
+	/**
+	 * @return {@code true} if the method signature declares Limit or Pageable parameters.
+	 */
+	public boolean hasLimitingParameters() {
+		return hasLimitParameter() || hasPageableParameter();
 	}
 
 	/**

@@ -96,7 +96,7 @@ public class ParameterBinder {
 
 		bind(query, metadata, accessor);
 
-		if (!useJpaForPaging || !parameters.hasPageableParameter() || accessor.getPageable().isUnpaged()) {
+		if (!useJpaForPaging || !parameters.hasLimitingParameters() || accessor.getPageable().isUnpaged()) {
 			return query;
 		}
 

@@ -79,7 +79,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.declaredQuery = DeclaredQuery.of(queryString, false);
 
-		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasPageableParameter();
+		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();
 
 		if (weNeedToCreateCountQuery && cantExtractQuery) {

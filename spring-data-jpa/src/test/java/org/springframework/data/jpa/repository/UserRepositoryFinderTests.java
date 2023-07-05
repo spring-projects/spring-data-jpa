@@ -29,11 +29,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -53,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Krzysztof Krason
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @see QueryLookupStrategy
  */
 @ExtendWith(SpringExtension.class)
@@ -219,6 +223,23 @@ class UserRepositoryFinderTests {
 		assertThat(slice).containsExactlyInAnyOrder(dave, oliver);
 		assertThat(slice.getNumberOfElements()).isEqualTo(2);
 		assertThat(slice.hasNext()).isFalse();
+	}
+
+	@Test // DATAJPA-94
+	void executesQueryWithLimitAndScrollPosition() {
+
+		Window<User> first = userRepository.findByLastnameOrderByFirstname(Limit.of(1), //
+				ScrollPosition.offset(), //
+				"Matthews" //
+		);
+
+		Window<User> next = userRepository.findByLastnameOrderByFirstname(Limit.of(1), //
+				ScrollPosition.offset(1), //
+				"Matthews" //
+		);
+
+		assertThat(first).containsExactly(dave);
+		assertThat(next).containsExactly(oliver);
 	}
 
 	@Test // DATAJPA-830
