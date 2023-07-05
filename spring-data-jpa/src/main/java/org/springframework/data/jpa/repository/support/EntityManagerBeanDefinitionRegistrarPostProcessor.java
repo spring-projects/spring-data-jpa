@@ -58,18 +58,15 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 			return;
 		}
 
-		ConfigurableListableBeanFactory factory = beanFactory;
-
-		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(factory)) {
+		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
 
 			BeanFactory definitionFactory = definition.getBeanFactory();
 
-			if (!(definitionFactory instanceof BeanDefinitionRegistry)) {
+			if (!(definitionFactory instanceof BeanDefinitionRegistry definitionRegistry)) {
 				continue;
 			}
 
 			String entityManagerBeanName = "jpaSharedEM_AWC_" + definition.getBeanName();
-			BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) definitionFactory;
 
 			if (!beanFactory.containsBeanDefinition(entityManagerBeanName)
 					&& !definitionRegistry.containsBeanDefinition(entityManagerBeanName)) {

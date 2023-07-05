@@ -42,14 +42,7 @@ public class SampleEvaluationContextExtension implements EvaluationContextExtens
 	 */
 	public static class SampleSecurityContextHolder {
 
-		private static ThreadLocal<SampleAuthentication> auth = new ThreadLocal<SampleAuthentication>() {
-
-			@Override
-			protected SampleAuthentication initialValue() {
-				return new SampleAuthentication(new SampleUser(-1, "anonymous"));
-			}
-
-		};
+		private static ThreadLocal<SampleAuthentication> auth = ThreadLocal.withInitial(() -> new SampleAuthentication(new SampleUser(-1, "anonymous")));
 
 		public static SampleAuthentication getCurrent() {
 			return auth.get();

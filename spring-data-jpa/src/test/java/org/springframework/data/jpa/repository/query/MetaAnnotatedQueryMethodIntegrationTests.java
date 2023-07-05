@@ -197,7 +197,7 @@ class MetaAnnotatedQueryMethodIntegrationTests {
 
 	private void assertAtLeastOneComment() {
 		assertThat(testAppender.list).extracting(ILoggingEvent::getFormattedMessage)
-				.haveAtLeastOne(new Condition<String>(hasComment, "SQL contains a comment"));
+				.haveAtLeastOne(new Condition<>(hasComment, "SQL contains a comment"));
 	}
 
 	private void assertNoComments() {

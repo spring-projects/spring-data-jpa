@@ -155,14 +155,10 @@ enum StoredProcedureAttributeSource {
 		for (StoredProcedureParameter param : namedStoredProc.parameters()) {
 
 			switch (param.mode()) {
-				case OUT:
-				case INOUT:
-				case REF_CURSOR:
-					outputParameters.add(param);
-					break;
-				case IN:
-				default:
+				case OUT, INOUT, REF_CURSOR -> outputParameters.add(param);
+				default -> {
 					continue;
+				}
 			}
 		}
 

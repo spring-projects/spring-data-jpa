@@ -55,17 +55,17 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	}
 
 	@Override
-	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
+	protected CriteriaQuery<?> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
 
 		return builder.createQuery(Long.class);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
-			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
+	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort,
+                                        CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
 
-		CriteriaQuery<? extends Object> select = query.select(getCountQuery(query, builder, root));
+		CriteriaQuery<?> select = query.select(getCountQuery(query, builder, root));
 		return predicate == null ? select : select.where(predicate);
 	}
 

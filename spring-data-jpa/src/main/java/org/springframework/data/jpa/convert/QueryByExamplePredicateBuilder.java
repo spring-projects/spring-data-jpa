@@ -186,35 +186,24 @@ public class QueryByExamplePredicateBuilder {
 				}
 
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
-
-					case DEFAULT:
-					case EXACT:
-						predicates.add(cb.equal(expression, attributeValue));
-						break;
-					case CONTAINING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter() //
-						));
-						break;
-					case STARTING:
-						predicates.add(cb.like(//
-								expression, //
-								escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter()) //
-						);
-						break;
-					case ENDING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()), //
-								escapeCharacter.getEscapeCharacter()) //
-						);
-						break;
-					default:
-						throw new IllegalArgumentException(
-								"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
+					case DEFAULT, EXACT -> predicates.add(cb.equal(expression, attributeValue));
+					case CONTAINING -> predicates.add(cb.like( //
+							expression, //
+							"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
+							escapeCharacter.getEscapeCharacter() //
+					));
+					case STARTING -> predicates.add(cb.like(//
+							expression, //
+							escapeCharacter.escape(attributeValue.toString()) + "%", //
+							escapeCharacter.getEscapeCharacter()) //
+					);
+					case ENDING -> predicates.add(cb.like( //
+							expression, //
+							"%" + escapeCharacter.escape(attributeValue.toString()), //
+							escapeCharacter.getEscapeCharacter()) //
+					);
+					default -> throw new IllegalArgumentException(
+							"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
 				}
 			} else {
 				predicates.add(cb.equal(from.get(attribute), attributeValue));

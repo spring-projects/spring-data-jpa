@@ -146,9 +146,9 @@ class JpaRepositoryTests {
 		 * Wrap a {@link List} inside an {@link Iterable} to verify that {@link SimpleJpaRepository} can properly convert a
 		 * pure {@link Iterable} to a {@link Collection}.
 		 */
-		Iterable<SampleEntityPK> ids = new Iterable<SampleEntityPK>() {
+		Iterable<SampleEntityPK> ids = new Iterable<>() {
 
-			private List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),
+			private final List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),
 					new SampleEntityPK("three", "drei"));
 
 			@NotNull

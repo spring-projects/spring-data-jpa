@@ -275,20 +275,17 @@ public final class JpaQueryLookupStrategy {
 		Assert.notNull(em, "EntityManager must not be null");
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
 
-		switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
-			case CREATE:
-				return new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape);
-			case USE_DECLARED_QUERY:
-				return new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider,
-						queryRewriterProvider);
-			case CREATE_IF_NOT_FOUND:
-				return new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
-						new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape),
-						new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider, queryRewriterProvider),
-						queryRewriterProvider);
-			default:
-				throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s", key));
-		}
+		return switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
+			case CREATE -> new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape);
+			case USE_DECLARED_QUERY ->
+					new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider,
+							queryRewriterProvider);
+			case CREATE_IF_NOT_FOUND -> new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
+					new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape),
+					new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider, queryRewriterProvider),
+					queryRewriterProvider);
+			default -> throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s", key));
+		};
 	}
 
 	/**

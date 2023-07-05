@@ -88,15 +88,11 @@ class RepositoryWithIdClassKeyTests {
 
 		itemRepository.saveAllAndFlush(Arrays.asList(item1, item2, item3));
 
-		Window<Item> first = itemRepository.findBy((root, query, criteriaBuilder) -> {
-			return criteriaBuilder.isNotNull(root.get("name"));
-		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(ScrollPosition.keyset()));
+		Window<Item> first = itemRepository.findBy((root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(root.get("name")), q -> q.limit(1).sortBy(Sort.by("name")).scroll(ScrollPosition.keyset()));
 
 		assertThat(first).containsOnly(item1);
 
-		Window<Item> next = itemRepository.findBy((root, query, criteriaBuilder) -> {
-			return criteriaBuilder.isNotNull(root.get("name"));
-		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
+		Window<Item> next = itemRepository.findBy((root, query, criteriaBuilder) -> criteriaBuilder.isNotNull(root.get("name")), q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
 
 		assertThat(next).containsOnly(item2);
 	}

@@ -61,11 +61,10 @@ class ProcedureParameter {
 			return true;
 		}
 
-		if (!(o instanceof ProcedureParameter)) {
+		if (!(o instanceof ProcedureParameter that)) {
 			return false;
 		}
 
-		ProcedureParameter that = (ProcedureParameter) o;
 		return Objects.equals(name, that.name) && mode == that.mode && Objects.equals(type, that.type);
 	}
 

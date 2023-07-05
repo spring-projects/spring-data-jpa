@@ -22,7 +22,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,19 +69,8 @@ public class JpaQueryMethod extends QueryMethod {
 	 *      "https://download.oracle.com/otn-pub/jcp/persistence-2.0-fr-eval-oth-JSpec/persistence-2_0-final-spec.pdf">JPA
 	 *      2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.</a>
 	 */
-	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
+	private static final Set<Class<?>> NATIVE_ARRAY_TYPES = Set.of(byte[].class, Byte[].class, char[].class, Character[].class);
 	private static final StoredProcedureAttributeSource storedProcedureAttributeSource = StoredProcedureAttributeSource.INSTANCE;
-
-	static {
-
-		Set<Class<?>> types = new HashSet<>();
-		types.add(byte[].class);
-		types.add(Byte[].class);
-		types.add(char[].class);
-		types.add(Character[].class);
-
-		NATIVE_ARRAY_TYPES = Collections.unmodifiableSet(types);
-	}
 
 	private final QueryExtractor extractor;
 	private final Method method;

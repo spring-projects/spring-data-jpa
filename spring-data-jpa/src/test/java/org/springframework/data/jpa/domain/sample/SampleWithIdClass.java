@@ -29,11 +29,9 @@ public class SampleWithIdClass {
 				return true;
 			}
 
-			if (!(obj instanceof SampleWithIdClassPK)) {
+			if (!(obj instanceof SampleWithIdClassPK that)) {
 				return false;
 			}
-
-			SampleWithIdClassPK that = (SampleWithIdClassPK) obj;
 
 			return this.first.equals(that.first) && this.second.equals(that.second);
 		}

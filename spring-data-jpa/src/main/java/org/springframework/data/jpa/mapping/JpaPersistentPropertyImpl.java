@@ -17,13 +17,6 @@ package org.springframework.data.jpa.mapping;
 
 import jakarta.persistence.*;
 import jakarta.persistence.metamodel.Metamodel;
-
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -36,6 +29,11 @@ import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * {@link JpaPersistentProperty} implementation using a JPA {@link Metamodel}.
@@ -51,33 +49,9 @@ import org.springframework.util.Assert;
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
 		implements JpaPersistentProperty {
 
-	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS;
-	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS;
-	private static final Collection<Class<? extends Annotation>> UPDATEABLE_ANNOTATIONS;
-
-	static {
-
-		Set<Class<? extends Annotation>> annotations = new HashSet<>();
-		annotations.add(OneToMany.class);
-		annotations.add(OneToOne.class);
-		annotations.add(ManyToMany.class);
-		annotations.add(ManyToOne.class);
-
-		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
-
-		annotations = new HashSet<>();
-		annotations.add(Id.class);
-		annotations.add(EmbeddedId.class);
-
-		ID_ANNOTATIONS = Collections.unmodifiableSet(annotations);
-
-		annotations = new HashSet<>();
-		annotations.add(Column.class);
-		annotations.add(OrderColumn.class);
-
-		UPDATEABLE_ANNOTATIONS = Collections.unmodifiableSet(annotations);
-	}
-
+	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class, OneToOne.class, ManyToMany.class, ManyToOne.class);
+	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS = Set.of(Id.class, EmbeddedId.class);
+	private static final Collection<Class<? extends Annotation>> UPDATEABLE_ANNOTATIONS = Set.of(Column.class, OrderColumn.class);
 	private final @Nullable Boolean usePropertyAccess;
 	private final @Nullable TypeInformation<?> associationTargetType;
 	private final boolean updateable;
@@ -107,7 +81,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
 
-		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it)) //
+		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent) //
 				|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
 		this.isEntity = Lazy.of(() -> metamodel.isMappedType(getActualType()));
 	}

@@ -931,12 +931,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> page = repository.findAll(new Specification<User>() {
-			@Override
-			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-				return cb.equal(root.get("lastname"), "Gierke");
-			}
-		}, PageRequest.of(0, 20, Sort.by("manager.lastname")));
+		Page<User> page = repository.findAll((Specification<User>) (root, query, cb) -> cb.equal(root.get("lastname"), "Gierke"), PageRequest.of(0, 20, Sort.by("manager.lastname")));
 
 		assertThat(page.getNumberOfElements()).isOne();
 		assertThat(page).containsOnly(firstUser);
@@ -2777,9 +2772,7 @@ class UserRepositoryTests {
 			}
 		}
 
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-			repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all());
-		});
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
 	}
 
 	@Test // GH-2274

@@ -69,11 +69,10 @@ public final class EscapeCharacter {
 			return true;
 		}
 
-		if (!(o instanceof EscapeCharacter)) {
+		if (!(o instanceof EscapeCharacter that)) {
 			return false;
 		}
 
-		EscapeCharacter that = (EscapeCharacter) o;
 		return escapeCharacter == that.escapeCharacter;
 	}
 

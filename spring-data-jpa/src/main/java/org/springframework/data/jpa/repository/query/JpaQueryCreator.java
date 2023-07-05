@@ -57,11 +57,11 @@ import org.springframework.util.Assert;
  * @author Andrey Kovalev
  * @author Greg Turnquist
  */
-public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
+public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<?>, Predicate> {
 
 	private final CriteriaBuilder builder;
 	private final Root<?> root;
-	private final CriteriaQuery<? extends Object> query;
+	private final CriteriaQuery<?> query;
 	private final ParameterMetadataProvider provider;
 	private final ReturnedType returnedType;
 	private final PartTree tree;
@@ -98,7 +98,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 * @param type will never be {@literal null}.
 	 * @return must not be {@literal null}.
 	 */
-	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
+	protected CriteriaQuery<?> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
 
 		Class<?> typeToRead = tree.isDelete() ? type.getDomainType() : type.getTypeToRead();
 
@@ -137,7 +137,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 * {@link CriteriaQuery} and {@link CriteriaBuilder}.
 	 */
 	@Override
-	protected final CriteriaQuery<? extends Object> complete(Predicate predicate, Sort sort) {
+	protected final CriteriaQuery<?> complete(Predicate predicate, Sort sort) {
 		return complete(predicate, sort, query, builder, root);
 	}
 
@@ -152,8 +152,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
-			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
+	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort,
+                                        CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
 
 		if (returnedType.needsCustomConstruction()) {
 
@@ -191,7 +191,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 			query = query.select((Root) root);
 		}
 
-		CriteriaQuery<? extends Object> select = query.orderBy(QueryUtils.toOrders(sort, root, builder));
+		CriteriaQuery<?> select = query.orderBy(QueryUtils.toOrders(sort, root, builder));
 		return predicate == null ? select : select.where(predicate);
 	}
 

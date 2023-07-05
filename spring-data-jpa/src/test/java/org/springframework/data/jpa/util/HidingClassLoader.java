@@ -80,7 +80,7 @@ public class HidingClassLoader extends ShadowingClassLoader {
 		Assert.notNull(types, "Types must not be null!");
 
 		return new HidingClassLoader(Arrays.stream(types)//
-				.map(it -> it.getName())//
+				.map(Class::getName)//
 				.collect(Collectors.toList()));
 	}
 

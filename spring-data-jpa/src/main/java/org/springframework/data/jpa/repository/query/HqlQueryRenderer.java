@@ -341,9 +341,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.addAll(visit(ctx.fromRoot()));
 		SPACE(tokens);
 
-		ctx.joinSpecifier().forEach(joinSpecifierContext -> {
-			tokens.addAll(visit(joinSpecifierContext));
-		});
+		ctx.joinSpecifier().forEach(joinSpecifierContext -> tokens.addAll(visit(joinSpecifierContext)));
 
 		return tokens;
 	}
@@ -1455,9 +1453,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 		tokens.addAll(visit(ctx.expressionOrPredicate(0)));
 
-		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
-			tokens.addAll(visit(caseWhenExpressionClauseContext));
-		});
+		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> tokens.addAll(visit(caseWhenExpressionClauseContext)));
 
 		if (ctx.ELSE() != null) {
 
@@ -1477,9 +1473,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 
-		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
-			tokens.addAll(visit(caseWhenPredicateClauseContext));
-		});
+		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> tokens.addAll(visit(caseWhenPredicateClauseContext)));
 
 		if (ctx.ELSE() != null) {
 

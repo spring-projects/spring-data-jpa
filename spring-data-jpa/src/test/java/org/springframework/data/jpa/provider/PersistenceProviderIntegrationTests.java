@@ -67,19 +67,15 @@ public abstract class PersistenceProviderIntegrationTests {
 	@Test // DATAJPA-630
 	public void testname() {
 
-		new TransactionTemplate(transactionManager).execute(new TransactionCallback<Void>() {
+		new TransactionTemplate(transactionManager).execute((TransactionCallback<Void>) status -> {
 
-			@Override
-			public Void doInTransaction(TransactionStatus status) {
+			Product product = categories.findById(category.getId()).get().getProduct();
+			ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
 
-				Product product = categories.findById(category.getId()).get().getProduct();
-				ProxyIdAccessor accessor = PersistenceProvider.fromEntityManager(em);
+			assertThat(accessor.shouldUseAccessorFor(product)).isTrue();
+			assertThat(accessor.getIdentifierFrom(product)).hasToString(product.getId().toString());
 
-				assertThat(accessor.shouldUseAccessorFor(product)).isTrue();
-				assertThat(accessor.getIdentifierFrom(product)).hasToString(product.getId().toString());
-
-				return null;
-			}
+			return null;
 		});
 	}
 

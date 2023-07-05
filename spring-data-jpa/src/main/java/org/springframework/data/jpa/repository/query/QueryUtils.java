@@ -846,11 +846,9 @@ public abstract class QueryUtils {
 			return true;
 		}
 
-		if (!(propertyPathModel instanceof Attribute)) {
+		if (!(propertyPathModel instanceof Attribute<?, ?> attribute)) {
 			return false;
 		}
-
-		Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
 
 		// not a persistent attribute type association (@OneToOne, @ManyToOne)
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {

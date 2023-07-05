@@ -20,6 +20,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.persistence.Embeddable;
@@ -65,12 +66,12 @@ public class JpaMetamodel {
 
 		this.managedTypes = Lazy.of(() -> metamodel.getManagedTypes().stream() //
 				.map(ManagedType::getJavaType) //
-				.filter(it -> it != null) //
+				.filter(Objects::nonNull) //
 				.collect(StreamUtils.toUnmodifiableSet()));
 
 		this.jpaEmbeddables = Lazy.of(() -> metamodel.getEmbeddables().stream() //
 				.map(ManagedType::getJavaType)
-				.filter(it -> it != null)
+				.filter(Objects::nonNull)
 				.filter(it -> AnnotatedElementUtils.isAnnotated(it, Embeddable.class))
 				.collect(StreamUtils.toUnmodifiableSet()));
 	}
@@ -105,7 +106,7 @@ public class JpaMetamodel {
 		return metamodel.getEntities().stream() //
 				.filter(it -> entity.equals(it.getJavaType())) //
 				.findFirst() //
-				.flatMap(it -> getSingularIdAttribute(it)) //
+				.flatMap(JpaMetamodel::getSingularIdAttribute) //
 				.filter(it -> it.getJavaType().equals(attributeType)) //
 				.map(it -> it.getName().equals(name)) //
 				.orElse(false);

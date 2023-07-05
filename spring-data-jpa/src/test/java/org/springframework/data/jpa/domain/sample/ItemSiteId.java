@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.domain.sample;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Mark Paluch
@@ -40,14 +41,12 @@ public class ItemSiteId implements Serializable {
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof ItemSiteId))
+		if (!(o instanceof ItemSiteId that))
 			return false;
 
-		ItemSiteId that = (ItemSiteId) o;
-
-		if (item != null ? !item.equals(that.item) : that.item != null)
+		if (!Objects.equals(item, that.item))
 			return false;
-		return site != null ? site.equals(that.site) : that.site == null;
+		return Objects.equals(site, that.site);
 	}
 
 	@Override

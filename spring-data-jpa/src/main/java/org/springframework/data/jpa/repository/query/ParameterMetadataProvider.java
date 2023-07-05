@@ -241,17 +241,12 @@ class ParameterMetadataProvider {
 
 			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
 
-				switch (type) {
-					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(unwrapped.toString()));
-					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(unwrapped.toString()));
-					case CONTAINING:
-					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(unwrapped.toString()));
-					default:
-						return unwrapped;
-				}
+				return switch (type) {
+					case STARTING_WITH -> String.format("%s%%", escape.escape(unwrapped.toString()));
+					case ENDING_WITH -> String.format("%%%s", escape.escape(unwrapped.toString()));
+					case CONTAINING, NOT_CONTAINING -> String.format("%%%s%%", escape.escape(unwrapped.toString()));
+					default -> unwrapped;
+				};
 			}
 
 			return Collection.class.isAssignableFrom(expression.getJavaType()) //

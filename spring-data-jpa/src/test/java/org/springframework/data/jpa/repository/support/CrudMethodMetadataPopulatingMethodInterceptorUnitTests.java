@@ -57,13 +57,9 @@ class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		ProxyFactory factory = new ProxyFactory(new Object());
 		factory.addInterface(Sample.class);
 		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(information));
-		factory.addAdvice(new MethodInterceptor() {
-
-			@Override
-			public Object invoke(MethodInvocation invocation) {
-				assertThat(metadata.getLockModeType()).isEqualTo(type);
-				return null;
-			}
+		factory.addAdvice((MethodInterceptor) invocation -> {
+			assertThat(metadata.getLockModeType()).isEqualTo(type);
+			return null;
 		});
 
 		return (Sample) factory.getProxy();

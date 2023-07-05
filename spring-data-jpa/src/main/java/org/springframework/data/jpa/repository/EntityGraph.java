@@ -71,7 +71,7 @@ public @interface EntityGraph {
 	 * @author Thomas Darimont
 	 * @since 1.6
 	 */
-	public enum EntityGraphType {
+    enum EntityGraphType {
 
 		/**
 		 * When the jakarta.persistence.loadgraph property is used to specify an entity graph, attributes that are specified
@@ -95,7 +95,7 @@ public @interface EntityGraph {
 
 		private final String key;
 
-		private EntityGraphType(String value) {
+		EntityGraphType(String value) {
 			this.key = value;
 		}
 
