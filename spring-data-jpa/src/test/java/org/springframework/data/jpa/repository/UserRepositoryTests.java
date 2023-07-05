@@ -24,14 +24,6 @@ import static org.springframework.data.jpa.domain.Specification.*;
 import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -70,6 +62,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+
 /**
  * Base integration test class for {@code UserRepository}. Loads a basic (non-namespace) Spring configuration file as
  * well as Hibernate configuration to execute tests.
@@ -92,6 +88,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
+ * @author Christian Wörz
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -931,7 +928,9 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Page<User> page = repository.findAll((Specification<User>) (root, query, cb) -> cb.equal(root.get("lastname"), "Gierke"), PageRequest.of(0, 20, Sort.by("manager.lastname")));
+		Page<User> page = repository.findAll(
+				(Specification<User>) (root, query, cb) -> cb.equal(root.get("lastname"), "Gierke"),
+				PageRequest.of(0, 20, Sort.by("manager.lastname")));
 
 		assertThat(page.getNumberOfElements()).isOne();
 		assertThat(page).containsOnly(firstUser);
@@ -2772,7 +2771,8 @@ class UserRepositoryTests {
 			}
 		}
 
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> repository
+				.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
 	}
 
 	@Test // GH-2274

@@ -20,8 +20,6 @@ import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Method;
 
-import jakarta.persistence.LockModeType;
-
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.api.Test;
@@ -30,12 +28,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import jakarta.persistence.LockModeType;
 
 /**
  * Unit tests for {@link CrudMethodMetadataPopulatingMethodInterceptor}.
@@ -43,6 +42,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Christian Wörz
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

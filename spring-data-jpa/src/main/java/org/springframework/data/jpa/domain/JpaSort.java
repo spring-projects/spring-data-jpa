@@ -15,18 +15,18 @@
  */
 package org.springframework.data.jpa.domain;
 
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.PluralAttribute;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.PluralAttribute;
 
 /**
  * Sort option for queries that wraps JPA meta-model {@link Attribute}s for sorting.
@@ -36,13 +36,14 @@ import java.util.List;
  * @author Christoph Strobl
  * @author David Madden
  * @author Jens Schauder
+ * @author Christian Wörz
  */
 public class JpaSort extends Sort {
 
 	private static final long serialVersionUID = 1L;
 
 	private JpaSort(Direction direction, List<Path<?, ?>> paths) {
-		this(Collections.<Order>emptyList(), direction, paths);
+		this(Collections.<Order> emptyList(), direction, paths);
 	}
 
 	private JpaSort(List<Order> orders, @Nullable Direction direction, List<Path<?, ?>> paths) {
@@ -74,7 +75,7 @@ public class JpaSort extends Sort {
 	/**
 	 * Creates a new {@link JpaSort} for the given direction and attributes.
 	 *
-	 * @param direction  the sorting direction.
+	 * @param direction the sorting direction.
 	 * @param attributes must not be {@literal null} or empty.
 	 */
 	public static JpaSort of(Direction direction, Attribute<?, ?>... attributes) {
@@ -85,7 +86,7 @@ public class JpaSort extends Sort {
 	 * Creates a new {@link JpaSort} for the given direction and {@link Path}s.
 	 *
 	 * @param direction the sorting direction.
-	 * @param paths     must not be {@literal null} or empty.
+	 * @param paths must not be {@literal null} or empty.
 	 */
 	public static JpaSort of(Direction direction, Path<?, ?>... paths) {
 		return new JpaSort(direction, Arrays.asList(paths));
@@ -94,7 +95,7 @@ public class JpaSort extends Sort {
 	/**
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
 	 *
-	 * @param direction  can be {@literal null}.
+	 * @param direction can be {@literal null}.
 	 * @param attributes must not be {@literal null}.
 	 * @return
 	 */
@@ -109,7 +110,7 @@ public class JpaSort extends Sort {
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
 	 *
 	 * @param direction can be {@literal null}.
-	 * @param paths     must not be {@literal null}.
+	 * @param paths must not be {@literal null}.
 	 * @return
 	 */
 	public JpaSort and(@Nullable Direction direction, Path<?, ?>... paths) {
@@ -128,7 +129,7 @@ public class JpaSort extends Sort {
 	/**
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
 	 *
-	 * @param direction  can be {@literal null}.
+	 * @param direction can be {@literal null}.
 	 * @param properties must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -146,7 +147,7 @@ public class JpaSort extends Sort {
 			orders.add(new JpaOrder(direction, property));
 		}
 
-		return new JpaSort(orders, direction, Collections.<Path<?, ?>>emptyList());
+		return new JpaSort(orders, direction, Collections.<Path<?, ?>> emptyList());
 	}
 
 	/**
@@ -217,7 +218,7 @@ public class JpaSort extends Sort {
 	/**
 	 * Creates new unsafe {@link JpaSort} based on given {@link Direction} and properties.
 	 *
-	 * @param direction  must not be {@literal null}.
+	 * @param direction must not be {@literal null}.
 	 * @param properties must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -233,7 +234,7 @@ public class JpaSort extends Sort {
 	/**
 	 * Creates new unsafe {@link JpaSort} based on given {@link Direction} and properties.
 	 *
-	 * @param direction  must not be {@literal null}.
+	 * @param direction must not be {@literal null}.
 	 * @param properties must not be {@literal null} or empty.
 	 * @return
 	 */
@@ -325,7 +326,7 @@ public class JpaSort extends Sort {
 		 * {@link Sort#DEFAULT_DIRECTION}
 		 *
 		 * @param direction can be {@literal null}, will default to {@link Sort#DEFAULT_DIRECTION}.
-		 * @param property  must not be {@literal null}.
+		 * @param property must not be {@literal null}.
 		 */
 		private JpaOrder(@Nullable Direction direction, String property) {
 			this(direction, property, NullHandling.NATIVE);
@@ -335,8 +336,8 @@ public class JpaSort extends Sort {
 		 * Creates a new {@link Order} instance. if order is {@literal null} then order defaults to
 		 * {@link Sort#DEFAULT_DIRECTION}.
 		 *
-		 * @param direction        can be {@literal null}, will default to {@link Sort#DEFAULT_DIRECTION}.
-		 * @param property         must not be {@literal null}.
+		 * @param direction can be {@literal null}, will default to {@link Sort#DEFAULT_DIRECTION}.
+		 * @param property must not be {@literal null}.
 		 * @param nullHandlingHint can be {@literal null}, will default to {@link NullHandling#NATIVE}.
 		 */
 		private JpaOrder(@Nullable Direction direction, String property, NullHandling nullHandlingHint) {
@@ -344,7 +345,7 @@ public class JpaSort extends Sort {
 		}
 
 		private JpaOrder(@Nullable Direction direction, String property, boolean ignoreCase, NullHandling nullHandling,
-						 boolean unsafe) {
+				boolean unsafe) {
 
 			super(direction, property, ignoreCase, nullHandling);
 			this.unsafe = unsafe;

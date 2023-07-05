@@ -15,17 +15,6 @@
  */
 package org.springframework.data.jpa.convert;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
-import jakarta.persistence.metamodel.ManagedType;
-import jakarta.persistence.metamodel.SingularAttribute;
-
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,6 +34,17 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.SingularAttribute;
+
 /**
  * {@link QueryByExamplePredicateBuilder} creates a single {@link CriteriaBuilder#and(Predicate...)} combined
  * {@link Predicate} for a given {@link Example}. <br />
@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Christian Wörz
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -191,17 +192,17 @@ public class QueryByExamplePredicateBuilder {
 							expression, //
 							"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
 							escapeCharacter.getEscapeCharacter() //
-					));
+						));
 					case STARTING -> predicates.add(cb.like(//
 							expression, //
 							escapeCharacter.escape(attributeValue.toString()) + "%", //
 							escapeCharacter.getEscapeCharacter()) //
-					);
+						);
 					case ENDING -> predicates.add(cb.like( //
 							expression, //
 							"%" + escapeCharacter.escape(attributeValue.toString()), //
 							escapeCharacter.getEscapeCharacter()) //
-					);
+						);
 					default -> throw new IllegalArgumentException(
 							"Unsupported StringMatcher " + exampleAccessor.getStringMatcherForPath(currentPath));
 				}

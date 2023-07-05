@@ -18,6 +18,20 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
@@ -39,26 +53,13 @@ import net.sf.jsqlparser.statement.select.WithItem;
 import net.sf.jsqlparser.statement.update.Update;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
 /**
  * The implementation of {@link QueryEnhancer} using JSqlParser.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Geoffrey Deremetz
+ * @author Christian Wörz
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -120,7 +121,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Select selectStatement = parseSelectStatement(queryString);
 
-		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+		if (selectStatement.getSelectBody() instanceof SetOperationList setOperationList) {
 			return applySortingToSetOperationList(setOperationList, sort);
 		} else if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
 			return queryString;
@@ -221,7 +222,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		Select selectStatement = (Select) statement;
-		if (selectStatement.getSelectBody()instanceof PlainSelect selectBody) {
+		if (selectStatement.getSelectBody() instanceof PlainSelect selectBody) {
 			return getJoinAliases(selectBody);
 		}
 
@@ -319,7 +320,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			 * ValuesStatement has no alias
 			 * SetOperation can have multiple alias for each operation item
 			 */
-			if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
+			if (!(selectStatement.getSelectBody() instanceof PlainSelect selectBody)) {
 				return null;
 			}
 
@@ -374,7 +375,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
-		if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
+		if (!(selectStatement.getSelectBody() instanceof PlainSelect selectBody)) {
 			return this.query.getQueryString();
 		}
 
@@ -441,7 +442,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		SelectBody selectBody = selectStatement.getSelectBody();
 
-		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+		if (selectStatement.getSelectBody() instanceof SetOperationList setOperationList) {
 
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);
@@ -518,6 +519,6 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	enum ParsedType {
 		DELETE, UPDATE, SELECT, INSERT, MERGE, OTHER
-    }
+	}
 
 }

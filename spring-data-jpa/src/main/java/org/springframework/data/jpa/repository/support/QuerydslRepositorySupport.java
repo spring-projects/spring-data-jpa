@@ -15,9 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
@@ -32,11 +29,15 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPADeleteClause;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+
 /**
  * Base class for implementing repositories using Querydsl library.
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christian Wörz
  */
 @Repository
 public abstract class QuerydslRepositorySupport {

@@ -24,6 +24,7 @@ import org.springframework.data.spel.spi.EvaluationContextExtension;
  * A sample implementation of a custom {@link EvaluationContextExtension}.
  *
  * @author Thomas Darimont
+ * @author Christian Wörz
  */
 public class SampleEvaluationContextExtension implements EvaluationContextExtension {
 
@@ -42,7 +43,8 @@ public class SampleEvaluationContextExtension implements EvaluationContextExtens
 	 */
 	public static class SampleSecurityContextHolder {
 
-		private static ThreadLocal<SampleAuthentication> auth = ThreadLocal.withInitial(() -> new SampleAuthentication(new SampleUser(-1, "anonymous")));
+		private static ThreadLocal<SampleAuthentication> auth = ThreadLocal
+				.withInitial(() -> new SampleAuthentication(new SampleUser(-1, "anonymous")));
 
 		public static SampleAuthentication getCurrent() {
 			return auth.get();

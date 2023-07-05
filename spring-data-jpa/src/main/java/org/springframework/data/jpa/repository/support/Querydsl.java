@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import jakarta.persistence.EntityManager;
-
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -40,6 +38,8 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * Helper instance to ease access to Querydsl JPA query API.
  *
@@ -48,6 +48,7 @@ import com.querydsl.jpa.impl.JPAQuery;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Marcus Voltolim
+ * @author Christian Wörz
  */
 public class Querydsl {
 

@@ -15,14 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @author Christian Wörz
  */
 final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -47,8 +48,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider,
+				parser);
 	}
 
 	/**
@@ -62,8 +65,9 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
 		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 
@@ -87,15 +91,15 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-        try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
-            validatingEm.createQuery(query);
+		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
+			validatingEm.createQuery(query);
 
-        } catch (RuntimeException e) {
+		} catch (RuntimeException e) {
 
-            // Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
-            // https://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
-            throw new IllegalArgumentException(String.format(errorMessage, arguments), e);
+			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
+			// https://java.net/projects/jpa-spec/lists/jsr338-experts/archive/2012-07/message/17
+			throw new IllegalArgumentException(String.format(errorMessage, arguments), e);
 
-        }
+		}
 	}
 }

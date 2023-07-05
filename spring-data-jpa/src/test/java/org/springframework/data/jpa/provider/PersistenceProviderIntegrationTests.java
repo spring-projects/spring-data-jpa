@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import jakarta.persistence.EntityManager;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,9 +33,10 @@ import org.springframework.data.jpa.repository.sample.ProductRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import jakarta.persistence.EntityManager;
 
 /**
  * Integration tests for {@link PersistenceProvider}.
@@ -45,6 +44,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Christian Wörz
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration

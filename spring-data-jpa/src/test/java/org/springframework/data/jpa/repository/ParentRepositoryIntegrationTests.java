@@ -15,13 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 import java.util.Set;
@@ -41,9 +35,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.criteria.Path;
+
 /**
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Christian Wörz
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -87,7 +84,7 @@ class ParentRepositoryIntegrationTests {
 			root.join("children");
 			// we are interesting in distinct items, especially when join presents in query
 			query.distinct(true);
-			return cb.isNotEmpty(root.<Set<Child>>get("children"));
+			return cb.isNotEmpty(root.<Set<Child>> get("children"));
 		}, PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "id")));
 
 		List<Parent> content = page.getContent();

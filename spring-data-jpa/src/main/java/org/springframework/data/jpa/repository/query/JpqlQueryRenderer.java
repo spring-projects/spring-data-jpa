@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christian Wörz
  * @since 3.1
  */
 class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {

@@ -24,16 +24,15 @@ import java.lang.annotation.Target;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 
 /**
- * Annotation to configure the JPA 2.1 {@link jakarta.persistence.EntityGraph}s that should be used on repository methods.
- * Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph via
- * {@link #attributePaths()} ad-hoc fetch-graph configuration.
- * 
- * If {@link #attributePaths()} are specified then we ignore the entity-graph name {@link #value()} and treat this 
- * {@link EntityGraph} as dynamic.
+ * Annotation to configure the JPA 2.1 {@link jakarta.persistence.EntityGraph}s that should be used on repository
+ * methods. Since 1.9 we support the definition of dynamic {@link EntityGraph}s by allowing to customize the fetch-graph
+ * via {@link #attributePaths()} ad-hoc fetch-graph configuration. If {@link #attributePaths()} are specified then we
+ * ignore the entity-graph name {@link #value()} and treat this {@link EntityGraph} as dynamic.
  *
  * @author Christoph Strobl
  * @author Thomas Darimont
  * @author Oerd Cukalla
+ * @author Christian Wörz
  * @since 1.6
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -71,7 +70,7 @@ public @interface EntityGraph {
 	 * @author Thomas Darimont
 	 * @since 1.6
 	 */
-    enum EntityGraphType {
+	enum EntityGraphType {
 
 		/**
 		 * When the jakarta.persistence.loadgraph property is used to specify an entity graph, attributes that are specified
@@ -84,9 +83,9 @@ public @interface EntityGraph {
 		LOAD("jakarta.persistence.loadgraph"),
 
 		/**
-		 * When the jakarta.persistence.fetchgraph property is used to specify an entity graph, attributes that are specified
-		 * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are
-		 * treated as FetchType.LAZY
+		 * When the jakarta.persistence.fetchgraph property is used to specify an entity graph, attributes that are
+		 * specified by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not
+		 * specified are treated as FetchType.LAZY
 		 *
 		 * @see <a href="https://download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
 		 *      Specification: 3.7.4.1 Fetch Graph Semantics</a>

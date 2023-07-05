@@ -50,6 +50,7 @@ import org.springframework.util.StringUtils;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
+ * @author Christian Wörz
  */
 class StringQuery implements DeclaredQuery {
 

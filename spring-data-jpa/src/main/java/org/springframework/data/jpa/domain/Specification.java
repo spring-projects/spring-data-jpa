@@ -15,16 +15,16 @@
  */
 package org.springframework.data.jpa.domain;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
 import org.springframework.lang.Nullable;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 /**
  * Specification in the sense of Domain Driven Design.
@@ -36,6 +36,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Daniel Shuy
+ * @author Christian Wörz
  */
 public interface Specification<T> extends Serializable {
 

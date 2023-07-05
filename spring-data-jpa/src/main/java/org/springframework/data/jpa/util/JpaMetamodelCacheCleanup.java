@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContext;
  *
  * @author Oliver Gierke
  * @author Sylvère Richard
+ * @author Christian Wörz
  * @see org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension#registerBeansForRoot(org.springframework.beans.factory.support.BeanDefinitionRegistry,
  *      org.springframework.data.repository.config.RepositoryConfigurationSource)
  */

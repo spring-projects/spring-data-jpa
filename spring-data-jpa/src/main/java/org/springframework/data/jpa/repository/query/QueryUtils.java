@@ -18,24 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.*;
 import static java.util.regex.Pattern.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Parameter;
-import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Fetch;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.metamodel.Attribute;
-import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
-import jakarta.persistence.metamodel.Bindable;
-import jakarta.persistence.metamodel.ManagedType;
-import jakarta.persistence.metamodel.PluralAttribute;
-import jakarta.persistence.metamodel.SingularAttribute;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
@@ -54,6 +36,24 @@ import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Parameter;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Fetch;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
+import jakarta.persistence.metamodel.Bindable;
+import jakarta.persistence.metamodel.ManagedType;
+import jakarta.persistence.metamodel.PluralAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 /**
  * Simple utility class to create JPA queries using the default implementation of a custom parser.
@@ -80,6 +80,7 @@ import org.springframework.util.StringUtils;
  * @author Simon Paradies
  * @author Vladislav Yukharin
  * @author Chris Fraser
+ * @author Christian Wörz
  */
 public abstract class QueryUtils {
 

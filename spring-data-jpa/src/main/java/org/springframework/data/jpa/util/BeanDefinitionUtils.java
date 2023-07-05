@@ -25,8 +25,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.persistence.EntityManagerFactory;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -38,11 +36,14 @@ import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * Utility methods to work with {@link BeanDefinition} instances from {@link BeanFactoryPostProcessor}s.
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Christian Wörz
  */
 public final class BeanDefinitionUtils {
 

@@ -15,8 +15,11 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import jakarta.persistence.*;
-import jakarta.persistence.metamodel.Metamodel;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -30,10 +33,8 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import jakarta.persistence.*;
+import jakarta.persistence.metamodel.Metamodel;
 
 /**
  * {@link JpaPersistentProperty} implementation using a JPA {@link Metamodel}.
@@ -44,14 +45,17 @@ import java.util.Set;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Erik Pellizzon
+ * @author Christian Wörz
  * @since 1.3
  */
 class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPersistentProperty>
 		implements JpaPersistentProperty {
 
-	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class, OneToOne.class, ManyToMany.class, ManyToOne.class);
+	private static final Collection<Class<? extends Annotation>> ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class,
+			OneToOne.class, ManyToMany.class, ManyToOne.class);
 	private static final Collection<Class<? extends Annotation>> ID_ANNOTATIONS = Set.of(Id.class, EmbeddedId.class);
-	private static final Collection<Class<? extends Annotation>> UPDATEABLE_ANNOTATIONS = Set.of(Column.class, OrderColumn.class);
+	private static final Collection<Class<? extends Annotation>> UPDATEABLE_ANNOTATIONS = Set.of(Column.class,
+			OrderColumn.class);
 	private final @Nullable Boolean usePropertyAccess;
 	private final @Nullable TypeInformation<?> associationTargetType;
 	private final boolean updateable;

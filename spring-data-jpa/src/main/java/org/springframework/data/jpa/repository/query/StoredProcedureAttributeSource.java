@@ -22,16 +22,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.persistence.NamedStoredProcedureQueries;
-import jakarta.persistence.NamedStoredProcedureQuery;
-import jakarta.persistence.ParameterMode;
-import jakarta.persistence.StoredProcedureParameter;
-
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import jakarta.persistence.NamedStoredProcedureQueries;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureParameter;
 
 /**
  * A factory class for {@link StoredProcedureAttributes}.
@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * @author Jeff Sheets
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Christian Wörz
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {

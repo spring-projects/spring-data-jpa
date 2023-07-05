@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jakarta.persistence.EntityManager;
-
 import java.lang.reflect.Method;
 
 import org.apache.commons.logging.Log;
@@ -35,6 +33,8 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * Query lookup strategy to execute finders.
  *
@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Christian Wörz
  */
 public final class JpaQueryLookupStrategy {
 
@@ -278,8 +279,7 @@ public final class JpaQueryLookupStrategy {
 		return switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
 			case CREATE -> new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape);
 			case USE_DECLARED_QUERY ->
-					new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider,
-							queryRewriterProvider);
+				new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider, queryRewriterProvider);
 			case CREATE_IF_NOT_FOUND -> new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
 					new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape),
 					new DeclaredQueryLookupStrategy(em, queryMethodFactory, evaluationContextProvider, queryRewriterProvider),

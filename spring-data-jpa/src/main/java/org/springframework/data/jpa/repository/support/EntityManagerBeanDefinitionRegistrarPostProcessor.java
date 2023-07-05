@@ -17,9 +17,6 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,6 +30,9 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.core.Ordered;
 import org.springframework.orm.jpa.SharedEntityManagerCreator;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+
 /**
  * {@link BeanFactoryPostProcessor} to register a {@link SharedEntityManagerCreator} for every
  * {@link EntityManagerFactory} bean definition found in the application context to enable autowiring
@@ -43,6 +43,7 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  * @author Oliver Gierke
  * @author Réda Housni Alaoui
  * @author Mark Paluch
+ * @author Christian Wörz
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 

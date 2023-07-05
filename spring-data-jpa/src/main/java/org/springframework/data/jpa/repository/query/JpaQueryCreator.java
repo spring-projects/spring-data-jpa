@@ -18,16 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 import static org.springframework.data.repository.query.parser.Part.Type.*;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.ParameterExpression;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Selection;
-import jakarta.persistence.metamodel.SingularAttribute;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -45,6 +35,16 @@ import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.ParameterExpression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.metamodel.SingularAttribute;
+
 /**
  * Query creator to create a {@link CriteriaQuery} from a {@link PartTree}.
  *
@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Andrey Kovalev
  * @author Greg Turnquist
+ * @author Christian Wörz
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<?>, Predicate> {
 
@@ -152,8 +153,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<?>, Pred
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort,
-                                        CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
+	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort, CriteriaQuery<?> query,
+			CriteriaBuilder builder, Root<?> root) {
 
 		if (returnedType.needsCustomConstruction()) {
 

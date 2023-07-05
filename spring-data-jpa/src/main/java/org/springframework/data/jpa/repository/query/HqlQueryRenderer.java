@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christian Wörz
  * @since 3.1
  */
 class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
@@ -1453,7 +1454,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 		tokens.addAll(visit(ctx.expressionOrPredicate(0)));
 
-		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> tokens.addAll(visit(caseWhenExpressionClauseContext)));
+		ctx.caseWhenExpressionClause()
+				.forEach(caseWhenExpressionClauseContext -> tokens.addAll(visit(caseWhenExpressionClauseContext)));
 
 		if (ctx.ELSE() != null) {
 
@@ -1473,7 +1475,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
 
-		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> tokens.addAll(visit(caseWhenPredicateClauseContext)));
+		ctx.caseWhenPredicateClause()
+				.forEach(caseWhenPredicateClauseContext -> tokens.addAll(visit(caseWhenPredicateClauseContext)));
 
 		if (ctx.ELSE() != null) {
 

@@ -20,6 +20,7 @@ import java.util.Objects;
 
 /**
  * @author Mark Paluch
+ * @author Christian Wörz
  * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
  *      Specification 2.4.1.3 Derived Identities Example 2</a>
  */

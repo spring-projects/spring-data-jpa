@@ -15,11 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TypedQuery;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -30,12 +25,18 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
+
 /**
  * Implementation of {@link RepositoryQuery} based on {@link jakarta.persistence.NamedQuery}s.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christian Wörz
  */
 final class NamedQuery extends AbstractJpaQuery {
 
@@ -98,7 +99,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Returns whether the named query with the given name exists.
 	 *
-	 * @param em        must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 * @param queryName must not be {@literal null}.
 	 */
 	static boolean hasNamedQuery(EntityManager em, String queryName) {
@@ -108,23 +109,23 @@ final class NamedQuery extends AbstractJpaQuery {
 		 * potential rollback of the running tx.
 		 */
 
-        try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager()) {
-            lookupEm.createNamedQuery(queryName);
-            return true;
-        } catch (IllegalArgumentException e) {
+		try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager()) {
+			lookupEm.createNamedQuery(queryName);
+			return true;
+		} catch (IllegalArgumentException e) {
 
-            if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("Did not find named query %s", queryName));
-            }
-            return false;
-        }
+			if (LOG.isDebugEnabled()) {
+				LOG.debug(String.format("Did not find named query %s", queryName));
+			}
+			return false;
+		}
 	}
 
 	/**
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em     must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 */
 	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {

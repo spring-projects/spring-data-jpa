@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Christian Wörz
  * @since 3.1
  */
 class JpqlSpecificationTests {
@@ -734,11 +735,11 @@ class JpqlSpecificationTests {
 	void theRest24() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> JpqlQueryParser.parseQuery("""
-                SELECT p.product_name
-                FROM Order o, IN(o.lineItems) l JOIN o.customer c
-                WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-                ORDER BY o.quantity
-                """));
+				SELECT p.product_name
+				FROM Order o, IN(o.lineItems) l JOIN o.customer c
+				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
+				ORDER BY o.quantity
+				"""));
 	}
 
 	@Test

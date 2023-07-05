@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Jens Schauder
  * @author Oliver Drotbohm
+ * @author Christian Wörz
  */
 public final class EscapeCharacter {
 

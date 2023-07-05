@@ -18,14 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.metamodel.Metamodel;
-
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -51,6 +46,10 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.Metamodel;
+
 /**
  * Unit tests for {@link JpaQueryLookupStrategy}.
  *
@@ -59,6 +58,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @author Jens Schauder
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Christian Wörz
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

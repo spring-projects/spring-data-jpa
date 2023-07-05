@@ -18,9 +18,9 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Objects;
 
-import jakarta.persistence.ParameterMode;
-
 import org.springframework.lang.Nullable;
+
+import jakarta.persistence.ParameterMode;
 
 /**
  * This class represents a Stored Procedure Parameter and an instance of the annotation
@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Christian Wörz
  */
 class ProcedureParameter {
 

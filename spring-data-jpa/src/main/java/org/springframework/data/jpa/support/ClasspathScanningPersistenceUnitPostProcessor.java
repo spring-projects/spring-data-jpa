@@ -21,9 +21,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.MappedSuperclass;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -45,6 +42,9 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceUnitPostProcessor;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.MappedSuperclass;
+
 /**
  * {@link PersistenceUnitPostProcessor} that will scan for classes annotated with {@link Entity} or
  * {@link MappedSuperclass} and add them to the {@link jakarta.persistence.PersistenceUnit} post processed. Beyond that
@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author David Madden
+ * @author Christian Wörz
  */
 public class ClasspathScanningPersistenceUnitPostProcessor
 		implements PersistenceUnitPostProcessor, ResourceLoaderAware, EnvironmentAware {
@@ -121,7 +122,8 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (BeanDefinition definition : provider.findCandidateComponents(basePackage)) {
 
-			LOG.debug(String.format("Registering classpath-scanned entity %s in persistence unit info", definition.getBeanClassName()));
+			LOG.debug(String.format("Registering classpath-scanned entity %s in persistence unit info",
+					definition.getBeanClassName()));
 
 			if (definition.getBeanClassName() != null) {
 				pui.addManagedClassName(definition.getBeanClassName());
@@ -130,7 +132,8 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		for (String location : scanForMappingFileLocations()) {
 
-			LOG.debug(String.format("Registering classpath-scanned entity mapping file %s in persistence unit info", location));
+			LOG.debug(
+					String.format("Registering classpath-scanned entity mapping file %s in persistence unit info", location));
 
 			pui.addMappingFileName(location);
 		}
