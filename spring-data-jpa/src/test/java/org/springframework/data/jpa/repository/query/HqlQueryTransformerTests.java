@@ -1006,6 +1006,31 @@ class HqlQueryTransformerTests {
 				""");
 	}
 
+	@Test // GH-3054
+	void aliasesShouldNotOverlapWithSortProperties() {
+
+		assertThat(
+				createQueryFor("select e from Employee e where e.name = :name", Sort.by(Sort.Order.desc("evaluationDate"))))
+						.isEqualToIgnoringWhitespace(
+								"select e from Employee e where e.name = :name order by e.evaluationDate desc");
+
+		assertThat(createQueryFor("select e from Employee e join training t where e.name = :name",
+				Sort.by(Sort.Order.desc("trainingDueDate")))).isEqualToIgnoringWhitespace(
+						"select e from Employee e join training t where e.name = :name order by e.trainingDueDate desc");
+
+		assertThat(createQueryFor("select e from Employee e join training t where e.name = :name",
+				Sort.by(Sort.Order.desc("t.trainingDueDate")))).isEqualToIgnoringWhitespace(
+						"select e from Employee e join training t where e.name = :name order by t.trainingDueDate desc");
+
+		assertThat(createQueryFor("SELECT t3 FROM Test3 t3 JOIN t3.test2 t2 JOIN t2.test1 test WHERE test.id = :test1Id",
+				Sort.by(Sort.Order.desc("testDuplicateColumnName")))).isEqualToIgnoringWhitespace(
+						"SELECT t3 FROM Test3 t3 JOIN t3.test2 t2 JOIN t2.test1 test WHERE test.id = :test1Id order by t3.testDuplicateColumnName desc");
+
+		assertThat(createQueryFor("SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id",
+				Sort.by(Sort.Order.desc("t3.testDuplicateColumnName")))).isEqualToIgnoringWhitespace(
+						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
 		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
 	}

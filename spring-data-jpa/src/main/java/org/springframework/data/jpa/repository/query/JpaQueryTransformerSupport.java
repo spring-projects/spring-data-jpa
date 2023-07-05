@@ -131,13 +131,18 @@ class JpaQueryTransformerSupport {
 			return false;
 		}
 
+		// If the Sort starts with the primary alias
+		if (order.getProperty().startsWith(primaryFromAlias + ".")) {
+			return false;
+		}
+
 		// If the Sort references an alias directly
 		if (projectionAliases.contains(order.getProperty())) {
 			return false;
 		}
 
 		// If the Sort property starts with an alias
-		if (projectionAliases.stream().anyMatch(alias -> order.getProperty().startsWith(alias))) {
+		if (projectionAliases.stream().anyMatch(alias -> order.getProperty().startsWith(alias + "."))) {
 			return false;
 		}
 
