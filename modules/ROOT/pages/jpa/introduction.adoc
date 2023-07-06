@@ -79,7 +79,7 @@ The JPA module of Spring Data contains a custom namespace that allows defining r
 
 TIP: Which is better, JavaConfig or XML? XML is how Spring was configured long ago. In today's era of fast-growing Java, record types, annotations, and more, new projects typically use as much pure Java as possible. While there is no immediate plan to remove XML support, some of the newest features MAY not be available through XML.
 
-Using the `repositories` element looks up Spring Data repositories as described in "`<<repositories.create-instances>>`". Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
+Using the `repositories` element looks up Spring Data repositories as described in {spring-data-commons-docs-url}/repositories/create-instances.html[Creating Repository Instances]. Beyond that, it activates persistence exception translation for all beans annotated with `@Repository`, to let exceptions being thrown by the JPA persistence providers be converted into Spring's `DataAccessException` hierarchy.
 
 [[jpa.namespace.custom-namespace-attributes]]
 === Custom Namespace Attributes

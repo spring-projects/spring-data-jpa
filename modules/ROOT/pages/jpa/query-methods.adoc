@@ -21,7 +21,7 @@ Although getting a query derived from the method name is quite convenient, one m
 [[jpa.query-methods.query-creation]]
 == Query Creation
 
-Generally, the query creation mechanism for JPA works as described in "`<<repositories.query-methods>>`". The following example shows what a JPA query method translates into:
+Generally, the query creation mechanism for JPA works as described in {spring-data-commons-docs-url}/repositories/query-methods.html[Query Methods]. The following example shows what a JPA query method translates into:
 
 .Query creation from method names
 ====
@@ -31,7 +31,7 @@ public interface UserRepository extends Repository<User, Long> {
   List<User> findByEmailAddressAndLastname(String emailAddress, String lastname);
 }
 ----
-We create a query using the JPA criteria API from this, but, essentially, this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in "`<<repositories.query-methods.query-property-expressions>>`".
+We create a query using the JPA criteria API from this, but, essentially, this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in {spring-data-commons-docs-url}/repositories/query-methods-details.html#repositories.query-methods.query-property-expressions[Property Expressions].
 ====
 
 The following table describes the keywords supported for JPA and what a method containing that keyword translates to:
@@ -67,7 +67,7 @@ The following table describes the keywords supported for JPA and what a method c
 |`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstname) = UPPER(?1)`
 |===============
 
-NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check "`<<repository-query-keywords>>`".
+NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check {spring-data-commons-docs-url}/repository-query-keywords-reference.html[Repository query keywords].
 
 [WARNING]
 ====
@@ -519,7 +519,7 @@ These tactics may be most effective when you need maximum control of your query,
 == Modifying Queries
 
 All the previous sections describe how to declare queries to access a given entity or collection of entities.
-You can add custom modifying behavior by using the custom method facilities described in "`<<repositories.custom-implementations>>`".
+You can add custom modifying behavior by using the custom method facilities described in {spring-data-commons-docs-url}/repositories/custom-implementations.html[Custom Implementations for Spring Data Repositories].
 As this approach is feasible for comprehensive custom functionality, you can modify queries that only need parameter binding by annotating the query method with `@Modifying`, as shown in the following example:
 
 .Declaring manipulating queries
