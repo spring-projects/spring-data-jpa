@@ -32,10 +32,10 @@
 		<eclipselink>3.0.3</eclipselink>
 		<hibernate>6.2.4.Final</hibernate>
 		<hsqldb>2.7.1</hsqldb>
-		<h2>2.1.214</h2>
+		<h2>2.2.220</h2>
 		<jsqlparser>4.5</jsqlparser>
-		<mysql-connector-java>8.0.31</mysql-connector-java>
-		<postgresql>42.5.0</postgresql>
+		<mysql-connector-java>8.0.33</mysql-connector-java>
+		<postgresql>42.6.0</postgresql>
 		<springdata.commons>3.2.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
