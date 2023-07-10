@@ -1549,4 +1549,11 @@ class HqlQueryRendererTests {
 	void escapeClauseShouldWork() {
 		assertQuery("select t.name from SomeDbo t where t.name LIKE :name escape '\\\\'");
 	}
+
+	@Test // GH-3062, GH-3056
+	void typeShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.type = :_type");
+		assertQuery("select te from TestEntity te where te.type = :type");
+	}
 }

@@ -604,6 +604,7 @@ identification_variable
     | OUTER
     | FLOOR
     | SIGN
+    | TYPE
     | VALUE)
     ;
 
