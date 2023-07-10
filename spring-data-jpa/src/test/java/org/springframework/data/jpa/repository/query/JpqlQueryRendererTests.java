@@ -941,4 +941,11 @@ class JpqlQueryRendererTests {
 	void queryWithValueShouldWork() {
 		assertQuery("select t.value from TestEntity t");
 	}
+
+	@Test // GH-3062, GH-3056
+	void typeShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.type = :_type");
+		assertQuery("select te from TestEntity te where te.type = :type");
+	}
 }
