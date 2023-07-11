@@ -164,7 +164,7 @@ update_clause
     ;
 
 update_item
-    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* (state_field | single_valued_object_field) '=' new_value
+    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* (state_field | single_valued_object_field) EQUAL new_value
     ;
 
 new_value
@@ -377,21 +377,21 @@ all_or_any_expression
 
 comparison_expression
     : string_expression comparison_operator (string_expression | all_or_any_expression)
-    | boolean_expression op=('=' | '<>') (boolean_expression | all_or_any_expression)
-    | enum_expression op=('=' | '<>') (enum_expression | all_or_any_expression)
+    | boolean_expression op=(EQUAL | NOT_EQUAL) (boolean_expression | all_or_any_expression)
+    | enum_expression op=(EQUAL | NOT_EQUAL) (enum_expression | all_or_any_expression)
     | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)
-    | entity_expression op=('=' | '<>') (entity_expression | all_or_any_expression)
+    | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)
     | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression)
-    | entity_type_expression op=('=' | '<>') entity_type_expression
+    | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression
     ;
 
 comparison_operator
-    : op='='
+    : op=EQUAL
     | op='>'
     | op='>='
     | op='<'
     | op='<='
-    | op='<>'
+    | op=NOT_EQUAL
     ;
 
 arithmetic_expression
@@ -840,6 +840,9 @@ UPPER                       : U P P E R;
 VALUE                       : V A L U E;
 WHEN                        : W H E N;
 WHERE                       : W H E R E;
+
+EQUAL                       : '=' ;
+NOT_EQUAL                   : '<>' | '!=' ;
 
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
