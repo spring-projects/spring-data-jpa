@@ -1,5 +1,5 @@
 [[spring-data-jpa-reference-documentation]]
-= Spring Data JPA - Reference Documentation
+= Spring Data JPA
 Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant; Greg Turnquist
 :revnumber: {version}
 :revdate: {localdate}
