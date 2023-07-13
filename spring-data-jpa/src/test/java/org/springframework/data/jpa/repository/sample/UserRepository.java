@@ -165,8 +165,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname like ?1%")
 	List<User> findByFirstnameLike(String firstname);
 
-	// DATAJPA-292
-	@Query("select u from User u where u.firstname like :firstname%")
+	// DATAJPA-292, GH-3041
+	@Query("select u from User u where u.firstname like :firstname% or u.firstname like %:firstname")
 	List<User> findByFirstnameLikeNamed(@Param("firstname") String firstname);
 
 	/**

@@ -28,11 +28,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -233,6 +236,8 @@ class StringQuery implements DeclaredQuery {
 
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
 
+			LikeParameterBindings likeParameterBindings = new LikeParameterBindings();
+
 			boolean usesJpaStyleParameters = false;
 			while (matcher.find()) {
 
@@ -273,9 +278,11 @@ class StringQuery implements DeclaredQuery {
 						if (parameterIndex != null) {
 							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
 						} else {
-							checkAndRegister(new LikeParameterBinding(parameterName, likeType, expression), bindings);
 
-							replacement = ":" + parameterName;
+							LikeParameterBinding binding = likeParameterBindings.getOrCreate(parameterName, likeType, expression);
+							checkAndRegister(binding, bindings);
+
+							replacement = ":" + binding.getRequiredName();
 						}
 
 						break;
@@ -334,43 +341,7 @@ class StringQuery implements DeclaredQuery {
 				return text;
 			}
 
-			return text.substring(0, index) + potentiallyWrapWithWildcards(replacement, substring)
-					+ text.substring(index + substring.length());
-		}
-
-		/**
-		 * If there are any pre- or post-wildcards ({@literal %}), replace them with a {@literal CONCAT} function and proper
-		 * wildcards as string literals. NOTE: {@literal CONCAT} appears to be a standard function across relational
-		 * databases as well as JPA providers.
-		 * 
-		 * @param replacement
-		 * @param substring
-		 * @return the replacement string properly wrapped in a {@literal CONCAT} function with wildcards applied.
-		 * @since 3.1
-		 */
-		private static String potentiallyWrapWithWildcards(String replacement, String substring) {
-
-			boolean wildcards = substring.startsWith("%") || substring.endsWith("%");
-
-			if (!wildcards) {
-				return replacement;
-			}
-
-			StringBuilder concatWrapper = new StringBuilder("CONCAT(");
-
-			if (substring.startsWith("%")) {
-				concatWrapper.append("'%',");
-			}
-
-			concatWrapper.append(replacement);
-
-			if (substring.endsWith("%")) {
-				concatWrapper.append(",'%'");
-			}
-
-			concatWrapper.append(")");
-
-			return concatWrapper.toString();
+			return text.substring(0, index) + replacement + text.substring(index + substring.length());
 		}
 
 		@Nullable
@@ -461,6 +432,60 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	/**
+	 * Utility to create unique parameter bindings for LIKE that can be evaluated by
+	 * {@code LikeRewritingQueryParameterSetterFactory}.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.1.2
+	 */
+	static class LikeParameterBindings {
+
+		private final MultiValueMap<String, LikeParameterBinding> likeBindings = new LinkedMultiValueMap<>();
+
+		/**
+		 * Get an existing or create a new {@link LikeParameterBinding} if a previously bound {@code LIKE} expression cannot
+		 * be reused.
+		 *
+		 * @param parameterName the parameter name as declared in the actual JPQL query.
+		 * @param likeType type of the LIKE expression.
+		 * @param expression expression content if the LIKE comparison value is provided by a SpEL expression.
+		 * @return the Like binding. Can return an already existing binding.
+		 */
+		LikeParameterBinding getOrCreate(String parameterName, Type likeType, @Nullable String expression) {
+
+			List<LikeParameterBinding> likeParameterBindings = likeBindings.computeIfAbsent(parameterName,
+					s -> new ArrayList<>());
+			LikeParameterBinding reuse = null;
+
+			// unique parameters only required for literals as expressions create unique parameter names
+			if (expression == null) {
+				for (LikeParameterBinding likeParameterBinding : likeParameterBindings) {
+
+					if (likeParameterBinding.type == likeType) {
+						reuse = likeParameterBinding;
+						break;
+					}
+				}
+			}
+
+			String declaredParameterName = parameterName;
+			if (reuse != null) {
+				return reuse;
+			}
+
+			if (!likeParameterBindings.isEmpty()) {
+				parameterName = parameterName + "_" + likeParameterBindings.size();
+			}
+
+			LikeParameterBinding binding = new LikeParameterBinding(parameterName, declaredParameterName, likeType,
+					expression);
+			likeParameterBindings.add(binding);
+
+			return binding;
+		}
+	}
+
+	/**
 	 * A generic parameter binding with name or position information.
 	 *
 	 * @author Thomas Darimont
@@ -511,12 +536,20 @@ class StringQuery implements DeclaredQuery {
 			return this.position == null && this.name != null && this.name.equals(name);
 		}
 
+		boolean hasName() {
+			return this.position == null && !ObjectUtils.isEmpty(this.name);
+		}
+
 		/**
 		 * Returns whether the binding has the given position. Will always be {@literal false} in case the
 		 * {@link ParameterBinding} has been set up from a name.
 		 */
 		boolean hasPosition(@Nullable Integer position) {
 			return position != null && this.name == null && position.equals(this.position);
+		}
+
+		boolean hasPosition() {
+			return position != null && this.name == null;
 		}
 
 		/**
@@ -665,6 +698,7 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
+	 * @author Mark Paluch
 	 */
 	static class LikeParameterBinding extends ParameterBinding {
 
@@ -673,35 +707,45 @@ class StringQuery implements DeclaredQuery {
 
 		private final Type type;
 
+		private final @Nullable String declaredName;
+
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type}.
 		 *
-		 * @param name must not be {@literal null} or empty.
+		 * @param name parameter name in the final query, must not be {@literal null} or empty.
+		 * @param declaredName name of the declared parameter from the original query, referring to a
+		 *          {@link JpaParameter#getName()}, must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 */
-		LikeParameterBinding(String name, Type type) {
-			this(name, type, null);
+		LikeParameterBinding(String name, String declaredName, Type type) {
+			this(name, declaredName, type, null);
 		}
 
 		/**
 		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
 		 * binding input.
 		 *
-		 * @param name must not be {@literal null} or empty.
+		 * @param name parameter name in the final query, must not be {@literal null} or empty.
+		 * @param declaredName name of the declared parameter from the original query, referring to a
+		 *          {@link JpaParameter#getName()}, must not be {@literal null} or empty.
 		 * @param type must not be {@literal null}.
 		 * @param expression may be {@literal null}.
 		 */
-		LikeParameterBinding(String name, Type type, @Nullable String expression) {
+		LikeParameterBinding(String name, String declaredName, Type type, @Nullable String expression) {
 
 			super(name, null, expression);
 
 			Assert.hasText(name, "Name must not be null or empty");
+			if (expression == null && !StringUtils.hasText(declaredName)) {
+				throw new IllegalArgumentException("Declared name must not be null or empty");
+			}
 			Assert.notNull(type, "Type must not be null");
 
 			Assert.isTrue(SUPPORTED_TYPES.contains(type),
 					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
 
 			this.type = type;
+			this.declaredName = declaredName;
 		}
 
 		/**
@@ -732,6 +776,7 @@ class StringQuery implements DeclaredQuery {
 					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
 
 			this.type = type;
+			this.declaredName = null;
 		}
 
 		/**
@@ -743,13 +788,29 @@ class StringQuery implements DeclaredQuery {
 			return type;
 		}
 
+		@Nullable
+		public String getDeclaredName() {
+			return declaredName;
+		}
+
 		/**
-		 * Extracts the raw value properly.
+		 * Prepares the given raw keyword according to the like type.
 		 */
 		@Nullable
 		@Override
 		public Object prepare(@Nullable Object value) {
-			return PersistenceProvider.unwrapTypedParameterValue(value);
+
+			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
+			if (unwrapped == null) {
+				return null;
+			}
+
+			return switch (type) {
+				case STARTING_WITH -> String.format("%s%%", unwrapped);
+				case ENDING_WITH -> String.format("%%%s", unwrapped);
+				case CONTAINING -> String.format("%%%s%%", unwrapped);
+				default -> unwrapped;
+			};
 		}
 
 		@Override
@@ -802,6 +863,7 @@ class StringQuery implements DeclaredQuery {
 
 			return Type.LIKE;
 		}
+
 	}
 
 	static class Metadata {
