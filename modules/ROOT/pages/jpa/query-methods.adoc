@@ -359,7 +359,7 @@ This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of 
 
 Read more on <<repositories.scrolling.guidance,which method to use best>> for your particular arrangement.
 
-You can use the Scroll API with query methods, xref:query-by-example.adoc[Query-by-Example], and <<core.extensions.querydsl,Querydsl>>.
+You can use the Scroll API with query methods, xref:jpa/query-by-example.adoc[Query-by-Example], and <<core.extensions.querydsl,Querydsl>>.
 
 NOTE: Scrolling with String-based query methods is not yet supported.
 Scrolling is also not supported using stored `@Procedure` query methods.
@@ -773,7 +773,9 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 ----
 ====
 
-:repository-projections-trailing-dto-fragment: ../../../../spring-data-jpa/src/main/asciidoc/repository-projections-dto-limitations.adoc
+[[projections]]
+== Projections
 
-include:../:{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
+Spring Data JPA supports {spring-data-commons-docs-url}/repository-projects.html[Spring Data Commons Projections].
 
+NOTE: It is important to note that {spring-data-commons-docs-url}/repository-projects.html#projections.dtos[Class-based projections] with JPQL is limited to *constructor expressions* in your JPQL expression, e.g. `SELECT new com.example.NamesOnly(u.firstname, u.lastname) from User u`. (Note the usage of a FQDN for the DTO type!) This JPQL expression can be used in `@Query` annotations as well where you define any named queries. And it's important to point out that class-based projections do not work with native queries AT ALL. As a workaround you may use named queries with `ResultSetMapping` or the Hibernate specific https://docs.jboss.org/hibernate/orm/6.0/javadocs/org/hibernate/transform/ResultTransformer.html[`ResultTransformer`]
