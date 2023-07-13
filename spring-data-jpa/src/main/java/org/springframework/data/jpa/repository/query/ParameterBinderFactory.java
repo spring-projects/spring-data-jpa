@@ -46,10 +46,11 @@ class ParameterBinderFactory {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
 
+		QueryParameterSetterFactory likeFactory = QueryParameterSetterFactory.forLikeRewrite(parameters);
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
 		List<ParameterBinding> bindings = getBindings(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, likeFactory, setterFactory));
 	}
 
 	/**
@@ -95,9 +96,12 @@ class ParameterBinderFactory {
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
 				evaluationContextProvider, parameters);
+
+		QueryParameterSetterFactory like = QueryParameterSetterFactory.forLikeRewrite(parameters);
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory),
+		return new ParameterBinder(parameters,
+				createSetters(bindings, query, expressionSetterFactory, like, basicSetterFactory),
 				!query.usesPaging());
 	}
 

@@ -327,14 +327,15 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	}
 
 	/**
-	 * Because Hibernate's {@literal TypedParameterValue} is only used to wrap a {@literal null}, swap it out with an
-	 * empty string for query creation.
+	 * Because Hibernate's {@literal TypedParameterValue} is only used to wrap a {@literal null}, swap it out with
+	 * {@code null} for query creation.
 	 *
 	 * @param value
 	 * @return the original value or null.
 	 * @since 3.0
 	 */
-	public static Object unwrapTypedParameterValue(Object value) {
+	@Nullable
+	public static Object unwrapTypedParameterValue(@Nullable Object value) {
 
 		return typedParameterValueClass != null && typedParameterValueClass.isInstance(value) //
 				? null //

@@ -24,6 +24,7 @@ import java.util.function.Function;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
+import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -60,6 +61,20 @@ abstract class QueryParameterSetterFactory {
 		Assert.notNull(parameters, "JpaParameters must not be null");
 
 		return new BasicQueryParameterSetterFactory(parameters);
+	}
+
+	/**
+	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters} applying LIKE rewrite for
+	 * renamed {@code  :foo%} or {@code %:bar} bindings.
+	 *
+	 * @param parameters must not be {@literal null}.
+	 * @return a basic {@link QueryParameterSetterFactory} that can handle named parameters.
+	 */
+	static QueryParameterSetterFactory forLikeRewrite(JpaParameters parameters) {
+
+		Assert.notNull(parameters, "JpaParameters must not be null");
+
+		return new LikeRewritingQueryParameterSetterFactory(parameters);
 	}
 
 	/**
@@ -115,6 +130,29 @@ abstract class QueryParameterSetterFactory {
 
 		return new NamedOrIndexedQueryParameterSetter(valueExtractor.andThen(binding::prepare),
 				ParameterImpl.of(parameter, binding), temporalType);
+	}
+
+	@Nullable
+	private static JpaParameter findParameterForBinding(Parameters<JpaParameters, JpaParameter> parameters, String name) {
+
+		JpaParameters bindableParameters = parameters.getBindableParameters();
+
+		for (JpaParameter bindableParameter : bindableParameters) {
+			if (name.equals(getRequiredName(bindableParameter))) {
+				return bindableParameter;
+			}
+		}
+
+		return null;
+	}
+
+	private static String getRequiredName(JpaParameter p) {
+		return p.getName().orElseThrow(() -> new IllegalStateException(ParameterBinder.PARAMETER_NEEDS_TO_BE_NAMED));
+	}
+
+	@Nullable
+	static Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
+		return accessor.getValue(parameter);
 	}
 
 	/**
@@ -177,6 +215,46 @@ abstract class QueryParameterSetterFactory {
 	}
 
 	/**
+	 * Handles bindings that use Like-rewriting.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.1.2
+	 */
+	private static class LikeRewritingQueryParameterSetterFactory extends QueryParameterSetterFactory {
+
+		private final Parameters<?, ?> parameters;
+
+		/**
+		 * @param parameters must not be {@literal null}.
+		 */
+		LikeRewritingQueryParameterSetterFactory(Parameters<?, ?> parameters) {
+
+			Assert.notNull(parameters, "Parameters must not be null");
+
+			this.parameters = parameters;
+		}
+
+		@Nullable
+		@Override
+		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
+
+			if (binding.isExpression() || !(binding instanceof LikeParameterBinding likeBinding)
+					|| !declaredQuery.hasNamedParameter()) {
+				return null;
+			}
+			JpaParameter parameter = QueryParameterSetterFactory.findParameterForBinding((JpaParameters) parameters,
+					likeBinding.getDeclaredName());
+
+			if (parameter == null) {
+				return null;
+			}
+
+			return createSetter(values -> values.getValue(parameter), binding, parameter);
+		}
+
+	}
+
+	/**
 	 * Extracts values for parameter bindings from method parameters. It handles named as well as indexed parameters.
 	 *
 	 * @author Jens Schauder
@@ -205,7 +283,7 @@ abstract class QueryParameterSetterFactory {
 			JpaParameter parameter;
 
 			if (declaredQuery.hasNamedParameter()) {
-				parameter = findParameterForBinding(binding);
+				parameter = findParameterForBinding(parameters, binding.getRequiredName());
 			} else {
 
 				int parameterIndex = binding.getRequiredPosition() - 1;
@@ -228,28 +306,6 @@ abstract class QueryParameterSetterFactory {
 					: createSetter(values -> getValue(values, parameter), binding, parameter);
 		}
 
-		@Nullable
-		private JpaParameter findParameterForBinding(ParameterBinding binding) {
-
-			JpaParameters bindableParameters = parameters.getBindableParameters();
-
-			for (JpaParameter bindableParameter : bindableParameters) {
-				if (binding.getRequiredName().equals(getName(bindableParameter))) {
-					return bindableParameter;
-				}
-			}
-
-			return null;
-		}
-
-		@Nullable
-		private Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
-			return accessor.getValue(parameter);
-		}
-
-		private static String getName(JpaParameter p) {
-			return p.getName().orElseThrow(() -> new IllegalStateException(ParameterBinder.PARAMETER_NEEDS_TO_BE_NAMED));
-		}
 	}
 
 	/**
@@ -366,7 +422,7 @@ abstract class QueryParameterSetterFactory {
 		@Nullable
 		private static String getName(@Nullable JpaParameter parameter, ParameterBinding binding) {
 
-			if (parameter == null) {
+			if (binding.hasName() || parameter == null) {
 				return binding.getName();
 			}
 
