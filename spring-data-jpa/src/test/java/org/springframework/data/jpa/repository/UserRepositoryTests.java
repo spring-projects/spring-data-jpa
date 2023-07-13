@@ -971,14 +971,13 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(thirdUser);
 	}
 
-	@Test // DATAJPA-292
+	@Test // DATAJPA-292, GH-3041
 	void executesManualQueryWithNamedLikeExpressionCorrectly() {
 
 		flushTestUsers();
 
-		List<User> result = repository.findByFirstnameLikeNamed("Da");
-
-		assertThat(result).containsOnly(thirdUser);
+		assertThat(repository.findByFirstnameLikeNamed("Da")).containsOnly(thirdUser);
+		assertThat(repository.findByFirstnameLikeNamed("in")).containsOnly(fourthUser);
 	}
 
 	@Test // DATAJPA-231
