@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Nils Borrmann
  * @author Andriy Redko
  * @author Diego Krupitza
+ * @author Mark Paluch
  */
 class StringQueryUnitTests {
 
@@ -68,7 +69,7 @@ class StringQueryUnitTests {
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
-				.isEqualTo("select u from User u where u.firstname like CONCAT('%',?1,'%') or u.lastname like CONCAT('%',?2)");
+				.isEqualTo("select u from User u where u.firstname like ?1 or u.lastname like ?2");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(2);
@@ -90,7 +91,7 @@ class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like CONCAT('%',:firstname)");
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).hasSize(1);
@@ -99,6 +100,55 @@ class StringQueryUnitTests {
 		assertThat(binding).isNotNull();
 		assertThat(binding.hasName("firstname")).isTrue();
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+	}
+
+	@Test // DATAJPA-292
+	void rewritesNamedLikeToUniqueParametersIfNecessary() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname%", true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like :firstname or u.firstname like :firstname_1");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasName("firstname_1")).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+	}
+
+	@Test // DATAJPA-292
+	void reusesLikeBindingsWherePossible() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like %:firstname or u.firstname like %:firstname% or u.firstname like %:firstname% or u.firstname like %:firstname",
+				true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname like :firstname_1 or u.firstname like :firstname");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.hasName("firstname_1")).isTrue();
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
 
 	@Test // DATAJPA-461
@@ -208,11 +258,8 @@ class StringQueryUnitTests {
 		assertNamedBinding(LikeParameterBinding.class, "escapedWord", bindings.get(0));
 		assertNamedBinding(ParameterBinding.class, "word", bindings.get(1));
 
-		softly.assertThat(query.getQueryString())
-				.isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~'"
-						+ " OR a.content LIKE CONCAT('%',:escapedWord,'%') ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
-
-		softly.assertAll();
+		assertThat(query.getQueryString()).isEqualTo("SELECT a FROM Article a WHERE a.overview LIKE :escapedWord ESCAPE '~'"
+				+ " OR a.content LIKE :escapedWord ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC");
 	}
 
 	@Test // DATAJPA-483
@@ -293,6 +340,17 @@ class StringQueryUnitTests {
 		String queryString = query.getQueryString();
 
 		assertThat(queryString).isEqualTo("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2");
+	}
+
+	@Test // DATAJPA-712
+	void shouldReplaceExpressionWithLikeParameters() {
+
+		StringQuery query = new StringQuery(
+				"select a from A a where a.b LIKE :#{#filter.login}% and a.c LIKE %:#{#filter.login}", true);
+		String queryString = query.getQueryString();
+
+		assertThat(queryString)
+				.isEqualTo("select a from A a where a.b LIKE :__$synthetic$__1 and a.c LIKE :__$synthetic$__2");
 	}
 
 	@Test // DATAJPA-712
