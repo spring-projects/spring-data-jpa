@@ -1,0 +1,11 @@
+version: ${project.version}
+
+asciidoc:
+  attributes:
+    version: ${project.version}
+    springversion: ${spring}
+    attribute-missing: 'warn'
+    spring-data-commons-docs-url: https://rwinch.github.io
+    spring-data-commons-javadoc-base: https://docs.spring.io/spring-data/data-commons/docs/current/api/
+    springdocsurl: https://docs.spring.io/spring-framework/docs/${spring}/reference/html
+    springjavadocurl: https://docs.spring.io/spring-framework/docs/${spring}/javadoc-api
