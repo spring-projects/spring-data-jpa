@@ -22,7 +22,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.7.14-SNAPSHOT</version>
+		<version>2.7.14</version>
 	</parent>
 
 	<properties>
@@ -34,7 +34,7 @@
 		<jsqlparser>4.5</jsqlparser>
 		<mysql-connector-java>8.0.31</mysql-connector-java>
 		<postgresql>42.5.0</postgresql>
-		<springdata.commons>2.7.14-SNAPSHOT</springdata.commons>
+		<springdata.commons>2.7.14</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
@@ -570,20 +570,8 @@
 	</build>
 
 	<repositories>
-		<repository>
-			<id>spring-snapshot</id>
-			<url>https://repo.spring.io/snapshot</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 
 </project>
