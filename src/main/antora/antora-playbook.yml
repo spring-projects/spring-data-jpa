@@ -4,17 +4,16 @@
 antora:
   extensions:
     - '@antora/collector-extension'
-    - require: '@springio/antora-extensions/tabs-migration-extension'
-      unwrap_example_block: always
     - require: '@springio/antora-extensions/root-component-extension'
       root_component_name: 'data-jpa'
 site:
   title: Spring Data JPA
-  url: https://https://rwinch.github.io/spring-data-jpa/
+  url: https://docs.spring.io/spring-data-jpa/reference/
 content:
   sources:
-    - url: .
+    - url: ./../../..
       branches: HEAD
+      start_path: src/main/antora
       worktrees: true
 asciidoc:
   attributes:
@@ -34,5 +33,5 @@ runtime:
     format: pretty
 ui:
   bundle:
-    url: https://github.com/spring-io/antora-ui-spring/releases/download/latest/ui-bundle.zip
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.3.3/ui-bundle.zip
     snapshot: true
