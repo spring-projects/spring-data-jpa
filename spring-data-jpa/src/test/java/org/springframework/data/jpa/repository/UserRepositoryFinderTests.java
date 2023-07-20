@@ -32,14 +32,17 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.IdOnly;
+import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.repository.sample.UserRepository.RolesAndFirstname;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
@@ -219,6 +222,19 @@ class UserRepositoryFinderTests {
 		assertThat(slice).containsExactlyInAnyOrder(dave, oliver);
 		assertThat(slice.getNumberOfElements()).isEqualTo(2);
 		assertThat(slice.hasNext()).isFalse();
+	}
+
+	@Test // GH-3077
+	void shouldProjectWithKeysetScrolling() {
+
+		Window<NameOnly> first = userRepository.findTop1ByLastnameOrderByFirstname(ScrollPosition.keyset(), //
+				"Matthews");
+
+		Window<NameOnly> next = userRepository.findTop1ByLastnameOrderByFirstname(first.positionAt(0), //
+				"Matthews");
+
+		assertThat(first.getContent()).extracting(NameOnly::getFirstname).containsOnly(dave.getFirstname());
+		assertThat(next.getContent()).extracting(NameOnly::getFirstname).containsOnly(oliver.getFirstname());
 	}
 
 	@Test // DATAJPA-830
