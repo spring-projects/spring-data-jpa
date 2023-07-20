@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.IdClass;
 import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.IdentifiableType;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -154,6 +156,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		// If it's a simple type, then immediately delegate to the provider
 		if (idMetadata.hasSimpleId()) {
+
+			if (entity instanceof Tuple t) {
+				return (ID) t.get(idMetadata.getSimpleIdAttribute().getName());
+			}
+
 			return (ID) persistenceUnitUtil.getIdentifier(entity);
 		}
 
@@ -225,25 +232,36 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity) {
 
-		// TODO: Proxy handling requires more elaborate refactoring, see
-		// https://github.com/spring-projects/spring-data-jpa/issues/2784
-		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+		Function<String, Object> getter = getPropertyValueFunction(entity);
 
 		Map<String, Object> keyset = new LinkedHashMap<>();
 
 		if (hasCompositeId()) {
 			for (String idAttributeName : getIdAttributeNames()) {
-				keyset.put(idAttributeName, entityWrapper.getPropertyValue(idAttributeName));
+				keyset.put(idAttributeName, getter.apply(idAttributeName));
 			}
 		} else {
 			keyset.put(getIdAttribute().getName(), getId(entity));
 		}
 
 		for (String propertyPath : propertyPaths) {
-			keyset.put(propertyPath, entityWrapper.getPropertyValue(propertyPath));
+			keyset.put(propertyPath, getter.apply(propertyPath));
 		}
 
 		return keyset;
+	}
+
+	private Function<String, Object> getPropertyValueFunction(Object entity) {
+
+		if (entity instanceof Tuple t) {
+			return t::get;
+		}
+
+		// TODO: Proxy handling requires more elaborate refactoring, see
+		// https://github.com/spring-projects/spring-data-jpa/issues/2784
+		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+
+		return entityWrapper::getPropertyValue;
 	}
 
 	/**
