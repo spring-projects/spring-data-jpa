@@ -18,14 +18,18 @@ package org.springframework.data.jpa.repository.query;
 import static java.util.regex.Pattern.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
@@ -41,7 +45,7 @@ import org.springframework.util.StringUtils;
  * Encapsulation of a JPA query String. Offers access to parameters as bindings. The internal query String is cleaned
  * from decorated parameters like {@literal %:lastname%} and the matching bindings take care of applying the decorations
  * in the {@link ParameterBinding#prepare(Object)} method. Note that this class also handles replacing SpEL expressions
- * with synthetic bind parameters
+ * with synthetic bind parameters.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -169,9 +173,9 @@ class StringQuery implements DeclaredQuery {
 		// .............................................................^ start with a question mark.
 		private static final Pattern PARAMETER_BINDING_BY_INDEX = Pattern.compile(POSITIONAL_OR_INDEXED_PARAMETER);
 		private static final Pattern PARAMETER_BINDING_PATTERN;
-		private static final Pattern JDBC_STYLE_PARAM = Pattern.compile(" \\?(?!\\d)"); // <space>?[no digit]
-		private static final Pattern NUMBERED_STYLE_PARAM = Pattern.compile(" \\?(?=\\d)"); // <space>?[digit]
-		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile(" :\\w+"); // <space>:[text]
+		private static final Pattern JDBC_STYLE_PARAM = Pattern.compile("(?!\\\\)\\?(?!\\d)"); // no \ and [no digit]
+		private static final Pattern NUMBERED_STYLE_PARAM = Pattern.compile("(?!\\\\)\\?\\d"); // no \ and [digit]
+		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile("(?!\\\\):\\w+"); // no \ and :[text]
 
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type; "
 				+ "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
@@ -233,10 +237,21 @@ class StringQuery implements DeclaredQuery {
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
 
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
+			int syntheticParameterIndex = expressionParameterIndex + spelExtractor.size();
 
-			LikeParameterBindings likeParameterBindings = new LikeParameterBindings();
+			ParameterBindings parameterBindings = new ParameterBindings(bindings, it -> checkAndRegister(it, bindings),
+					syntheticParameterIndex);
+			int currentIndex = 0;
 
 			boolean usesJpaStyleParameters = false;
+			if (JDBC_STYLE_PARAM.matcher(resultingQuery).find()) {
+				queryMeta.usesJdbcStyleParameters = true;
+			}
+
+			if (NUMBERED_STYLE_PARAM.matcher(resultingQuery).find() || NAMED_STYLE_PARAM.matcher(resultingQuery).find()) {
+				usesJpaStyleParameters = true;
+			}
+
 			while (matcher.find()) {
 
 				if (spelExtractor.isQuoted(matcher.start())) {
@@ -253,10 +268,6 @@ class StringQuery implements DeclaredQuery {
 				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				queryMeta.usesJdbcStyleParameters = JDBC_STYLE_PARAM.matcher(resultingQuery).find();
-				usesJpaStyleParameters = NUMBERED_STYLE_PARAM.matcher(resultingQuery).find()
-						|| NAMED_STYLE_PARAM.matcher(resultingQuery).find();
-
 				expressionParameterIndex++;
 				if ("".equals(parameterIndexString)) {
 					parameterIndex = expressionParameterIndex;
@@ -266,51 +277,65 @@ class StringQuery implements DeclaredQuery {
 					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
 				}
 
-				BindingIdentifier identifier;
+				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {
-					identifier = BindingIdentifier.of(parameterIndex);
+					queryParameter = BindingIdentifier.of(parameterIndex);
 				} else {
-					identifier = BindingIdentifier.of(parameterName);
+					queryParameter = BindingIdentifier.of(parameterName);
 				}
 				ParameterOrigin origin = ObjectUtils.isEmpty(expression)
 						? ParameterOrigin.ofParameter(parameterName, parameterIndex)
 						: ParameterOrigin.ofExpression(expression);
 
+				BindingIdentifier targetBinding = queryParameter;
 				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
-						Type likeType = ParameterBinding.LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-						replacement = matcher.group(3);
+						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
 
-						if (parameterIndex != null) {
-							checkAndRegister(new LikeParameterBinding(identifier, origin, likeType), bindings);
+						if (origin.isExpression()) {
+							parameterBindings.register(new LikeParameterBinding(queryParameter, origin, likeType));
 						} else {
-
-							LikeParameterBinding binding = likeParameterBindings.getOrCreate(parameterName, likeType, origin);
-							checkAndRegister(binding, bindings);
-
-							replacement = ":" + binding.getRequiredName();
+							targetBinding = parameterBindings.register(queryParameter, origin,
+									(identifier) -> new LikeParameterBinding(identifier, origin, likeType));
 						}
 
 						break;
 
 					case IN:
 
-						checkAndRegister(new InParameterBinding(identifier, origin), bindings);
+						parameterBindings.register(new InParameterBinding(queryParameter, origin));
 
 						break;
 
-					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
+					case AS_IS: // fall-through we don't need a special parameter queryParameter for the given parameter.
 					default:
 
-						bindings.add(new ParameterBinding(identifier, origin));
+						if (origin.isExpression()) {
+							parameterBindings.register(new ParameterBinding(queryParameter, origin));
+						} else {
+							targetBinding = parameterBindings.register(queryParameter, origin,
+									(identifier) -> new ParameterBinding(identifier, origin));
+						}
 				}
 
-				if (replacement != null) {
-					resultingQuery = replaceFirst(resultingQuery, matcher.group(2), replacement);
+				replacement = targetBinding.hasName() ? ":" + targetBinding.getName()
+						: ((!usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) ? "?"
+								: "?" + targetBinding.getPosition());
+				String result;
+				String substring = matcher.group(2);
+
+				int index = resultingQuery.indexOf(substring, currentIndex);
+				if (index < 0) {
+					result = resultingQuery;
+				} else {
+					currentIndex = index + replacement.length();
+					result = resultingQuery.substring(0, index) + replacement
+							+ resultingQuery.substring(index + substring.length());
 				}
 
+				resultingQuery = result;
 			}
 
 			return resultingQuery;
@@ -334,16 +359,6 @@ class StringQuery implements DeclaredQuery {
 			BiFunction<String, String, String> parameterNameToReplacement = (prefix, name) -> fixedPrefix + name;
 
 			return SpelQueryContext.of(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
-		}
-
-		private static String replaceFirst(String text, String substring, String replacement) {
-
-			int index = text.indexOf(substring);
-			if (index < 0) {
-				return text;
-			}
-
-			return text.substring(0, index) + replacement + text.substring(index + substring.length());
 		}
 
 		@Nullable
@@ -438,54 +453,96 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	/**
-	 * Utility to create unique parameter bindings for LIKE that can be evaluated by
-	 * {@code LikeRewritingQueryParameterSetterFactory}.
+	 * Utility to create unique parameter bindings for LIKE that refer to the same underlying method parameter but are
+	 * bound to potentially unique query parameters for {@link LikeParameterBinding#prepare(Object) LIKE rewrite}.
 	 *
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	static class LikeParameterBindings {
+	static class ParameterBindings {
 
-		private final MultiValueMap<String, LikeParameterBinding> likeBindings = new LinkedMultiValueMap<>();
+		private final MultiValueMap<BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
+
+		private final Consumer<ParameterBinding> registration;
+		private int syntheticParameterIndex;
+
+		public ParameterBindings(List<ParameterBinding> bindings, Consumer<ParameterBinding> registration,
+				int syntheticParameterIndex) {
+
+			for (ParameterBinding binding : bindings) {
+				this.methodArgumentToLikeBindings.put(binding.getIdentifier(), new ArrayList<>(List.of(binding)));
+			}
+
+			this.registration = registration;
+			this.syntheticParameterIndex = syntheticParameterIndex;
+		}
 
 		/**
-		 * Get an existing or create a new {@link LikeParameterBinding} if a previously bound {@code LIKE} expression cannot
-		 * be reused.
+		 * Return whether the identifier is already bound.
 		 *
-		 * @param parameterName the parameter name as declared in the actual JPQL query.
-		 * @param likeType type of the LIKE expression.
-		 * @param origin origin of the parameter.
-		 * @return the Like binding. Can return an already existing binding.
+		 * @param identifier
+		 * @return
 		 */
-		LikeParameterBinding getOrCreate(String parameterName, Type likeType, ParameterOrigin origin) {
+		public boolean isBound(BindingIdentifier identifier) {
+			return !getBindings(identifier).isEmpty();
+		}
 
-			List<LikeParameterBinding> likeParameterBindings = likeBindings.computeIfAbsent(parameterName,
-					s -> new ArrayList<>());
-			LikeParameterBinding reuse = null;
+		BindingIdentifier register(BindingIdentifier identifier, ParameterOrigin origin,
+				Function<BindingIdentifier, ParameterBinding> bindingFactory) {
 
-			// unique parameters only required for literals as expressions create unique parameter names
-			if (origin.isMethodArgument()) {
-				for (LikeParameterBinding likeParameterBinding : likeParameterBindings) {
+			Assert.isInstanceOf(MethodInvocationArgument.class, origin);
 
-					if (likeParameterBinding.getType() == likeType) {
-						reuse = likeParameterBinding;
-						break;
-					}
+			BindingIdentifier methodArgument = ((MethodInvocationArgument) origin).identifier();
+			List<ParameterBinding> bindingsForOrigin = getBindings(methodArgument);
+
+			if (!isBound(identifier)) {
+
+				ParameterBinding binding = bindingFactory.apply(identifier);
+				registration.accept(binding);
+				bindingsForOrigin.add(binding);
+				return binding.getIdentifier();
+			}
+
+			ParameterBinding binding = bindingFactory.apply(identifier);
+
+			for (ParameterBinding existing : bindingsForOrigin) {
+
+				if (existing.isCompatibleWith(binding)) {
+					return existing.getIdentifier();
 				}
 			}
 
-			if (reuse != null) {
-				return reuse;
+			BindingIdentifier syntheticIdentifier;
+			if (identifier.hasName() && methodArgument.hasName()) {
+
+				int index = 0;
+				String newName = methodArgument.getName();
+				while (existsBoundParameter(newName)) {
+					index++;
+					newName = methodArgument.getName() + "_" + index;
+				}
+				syntheticIdentifier = BindingIdentifier.of(newName);
+			} else {
+				syntheticIdentifier = BindingIdentifier.of(++syntheticParameterIndex);
 			}
 
-			if (!likeParameterBindings.isEmpty()) {
-				parameterName = parameterName + "_" + likeParameterBindings.size();
-			}
+			ParameterBinding newBinding = bindingFactory.apply(syntheticIdentifier);
+			registration.accept(newBinding);
+			bindingsForOrigin.add(newBinding);
+			return newBinding.getIdentifier();
+		}
 
-			LikeParameterBinding binding = new LikeParameterBinding(BindingIdentifier.of(parameterName), origin, likeType);
-			likeParameterBindings.add(binding);
+		private boolean existsBoundParameter(String key) {
+			return methodArgumentToLikeBindings.values().stream().flatMap(Collection::stream)
+					.anyMatch(it -> key.equals(it.getName()));
+		}
 
-			return binding;
+		private List<ParameterBinding> getBindings(BindingIdentifier identifier) {
+			return methodArgumentToLikeBindings.computeIfAbsent(identifier, s -> new ArrayList<>());
+		}
+
+		public void register(ParameterBinding parameterBinding) {
+			registration.accept(parameterBinding);
 		}
 	}
 }

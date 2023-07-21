@@ -22,9 +22,12 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.Expression;
 import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
+import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -82,7 +85,33 @@ class StringQueryUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
-	@Test // DATAJPA-292
+	@Test // DATAJPA-292, GH-3041
+	void detectsAnonymousLikeBindings() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like %?% or u.lastname like %? or u.lastname=?", true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like ? or u.lastname like ? or u.lastname=?");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(3);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofParameter(1));
+		assertThat(binding.getRequiredPosition()).isEqualTo(1);
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofParameter(2));
+		assertThat(binding.getRequiredPosition()).isEqualTo(2);
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+	}
+
+	@Test // DATAJPA-292, GH-3041
 	void detectsNamedLikeBindings() {
 
 		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", true);
@@ -99,18 +128,20 @@ class StringQueryUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
-	@Test // DATAJPA-292
+	@Test // GH-3041
 	void rewritesNamedLikeToUniqueParametersIfNecessary() {
 
 		StringQuery query = new StringQuery(
-				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname%", true);
+				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname% or u.firstname = :firstname",
+				true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
-				.isEqualTo("select u from User u where u.firstname like :firstname or u.firstname like :firstname_1");
+				.isEqualTo(
+						"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname = :firstname_2");
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings).hasSize(2);
+		assertThat(bindings).hasSize(3);
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding).isNotNull();
@@ -123,8 +154,22 @@ class StringQueryUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
 	}
 
-	@Test // DATAJPA-292
-	void reusesLikeBindingsWherePossible() {
+	@Test // GH-3041
+	void rewritesPositionalLikeToUniqueParametersIfNecessary() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like %?1 or u.firstname like ?1% or u.firstname = ?1", true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like ?1 or u.firstname like ?2 or u.firstname = ?3");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(3);
+	}
+
+	@Test // GH-3041
+	void reusesNamedLikeBindingsWherePossible() {
 
 		StringQuery query = new StringQuery(
 				"select u from User u where u.firstname like %:firstname or u.firstname like %:firstname% or u.firstname like %:firstname% or u.firstname like %:firstname",
@@ -134,18 +179,51 @@ class StringQueryUnitTests {
 		assertThat(query.getQueryString()).isEqualTo(
 				"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname like :firstname_1 or u.firstname like :firstname");
 
+
+		query = new StringQuery("select u from User u where u.firstname like %:firstname or u.firstname =:firstname", true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like :firstname or u.firstname =:firstname_1");
+	}
+
+	@Test // GH-3041
+	void reusesPositionalLikeBindingsWherePossible() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like %?1 or u.firstname like %?1% or u.firstname like %?1% or u.firstname like %?1",
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where u.firstname like ?1 or u.firstname like ?2 or u.firstname like ?2 or u.firstname like ?1");
+
+		query = new StringQuery("select u from User u where u.firstname like %?1 or u.firstname =?1", false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like ?1 or u.firstname =?2");
+	}
+
+	@Test // GH-3041
+	void shouldRewritePositionalBindingsWithParameterReuse() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where u.firstname like ?2 or u.firstname like %?2% or u.firstname like %?1% or u.firstname like %?1 OR u.firstname like ?1",
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where u.firstname like ?2 or u.firstname like ?3 or u.firstname like ?1 or u.firstname like ?4 OR u.firstname like ?5");
+
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings).hasSize(2);
+		assertThat(bindings).hasSize(5);
 
-		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
-		assertThat(binding).isNotNull();
-		assertThat(binding.getName()).isEqualTo("firstname");
-		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
-
-		binding = (LikeParameterBinding) bindings.get(1);
-		assertThat(binding).isNotNull();
-		assertThat(binding.getName()).isEqualTo("firstname_1");
-		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
+		assertThat(bindings).extracting(ParameterBinding::getRequiredPosition).containsOnly(1, 2, 3, 4, 5);
+		assertThat(bindings).extracting(ParameterBinding::getOrigin) //
+				.map(MethodInvocationArgument.class::cast) //
+				.map(MethodInvocationArgument::identifier) //
+				.map(BindingIdentifier::getPosition) //
+				.containsOnly(1, 2);
 	}
 
 	@Test // DATAJPA-461
@@ -218,12 +296,6 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-373
 	void handlesMultipleNamedLikeBindingsCorrectly() {
 		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar", true);
-	}
-
-	@Test // DATAJPA-292, DATAJPA-362
-	void rejectsDifferentBindingsForRepeatedParameter() {
-		assertThatIllegalArgumentException().isThrownBy(
-				() -> new StringQuery("select u from User u where u.firstname like %?1 and u.lastname like ?1%", true));
 	}
 
 	@Test // DATAJPA-461
@@ -307,12 +379,6 @@ class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
-	}
-
-	@Test // DATAJPA-362
-	void rejectsDifferentBindingsForRepeatedParameter2() {
-		assertThatIllegalArgumentException().isThrownBy(
-				() -> new StringQuery("select u from User u where u.firstname like ?1 and u.lastname like %?1", true));
 	}
 
 	@Test // DATAJPA-712
@@ -503,6 +569,8 @@ class StringQueryUnitTests {
 
 		assertThat(new StringQuery("from Something something where something = ?", false).usesJdbcStyleParameters())
 				.isTrue();
+		assertThat(new StringQuery("from Something something where something =?", false).usesJdbcStyleParameters())
+				.isTrue();
 
 		List<String> testQueries = Arrays.asList( //
 				"from Something something where something = ?1", //
@@ -514,6 +582,7 @@ class StringQueryUnitTests {
 
 			assertThat(new StringQuery(testQuery, false) //
 					.usesJdbcStyleParameters()) //
+							.describedAs(testQuery)
 							.describedAs(testQuery) //
 							.isFalse();
 		}

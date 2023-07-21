@@ -24,7 +24,6 @@ import java.util.function.Function;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
-import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterImpl;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
 import org.springframework.data.repository.query.Parameter;
@@ -321,6 +320,49 @@ abstract class QueryParameterSetterFactory {
 				JpaParametersParameterAccessor accessor) {
 			return metadata.prepare(accessor.getValue(parameter));
 		}
+	}
+
+	static class ParameterImpl<T> implements jakarta.persistence.Parameter<T> {
+
+		private final BindingIdentifier identifier;
+		private final Class<T> parameterType;
+
+		/**
+		 * Creates a new {@link ParameterImpl} for the given {@link JpaParameter} and {@link ParameterBinding}.
+		 *
+		 * @param parameter can be {@literal null}.
+		 * @param binding must not be {@literal null}.
+		 * @return a {@link jakarta.persistence.Parameter} object based on the information from the arguments.
+		 */
+		static jakarta.persistence.Parameter<?> of(@Nullable JpaParameter parameter, ParameterBinding binding) {
+
+			Class<?> type = parameter == null ? Object.class : parameter.getType();
+
+			return new ParameterImpl<>(binding.getIdentifier(), type);
+		}
+
+		public ParameterImpl(BindingIdentifier identifier, Class<T> parameterType) {
+			this.identifier = identifier;
+			this.parameterType = parameterType;
+		}
+
+		@Nullable
+		@Override
+		public String getName() {
+			return identifier.hasName() ? identifier.getName() : null;
+		}
+
+		@Nullable
+		@Override
+		public Integer getPosition() {
+			return identifier.hasPosition() ? identifier.getPosition() : null;
+		}
+
+		@Override
+		public Class<T> getParameterType() {
+			return parameterType;
+		}
+
 	}
 
 }

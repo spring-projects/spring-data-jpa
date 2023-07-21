@@ -978,6 +978,9 @@ class UserRepositoryTests {
 
 		assertThat(repository.findByFirstnameLikeNamed("Da")).containsOnly(thirdUser);
 		assertThat(repository.findByFirstnameLikeNamed("in")).containsOnly(fourthUser);
+
+		assertThat(repository.findByFirstnameLikePositional("Da")).containsOnly(thirdUser);
+		assertThat(repository.findByFirstnameLikePositional("in")).containsOnly(fourthUser);
 	}
 
 	@Test // DATAJPA-231
