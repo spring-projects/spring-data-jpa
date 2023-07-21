@@ -19,8 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
+import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
@@ -46,11 +47,10 @@ class ParameterBinderFactory {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
 
-		QueryParameterSetterFactory likeFactory = QueryParameterSetterFactory.forLikeRewrite(parameters);
 		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
 		List<ParameterBinding> bindings = getBindings(parameters);
 
-		return new ParameterBinder(parameters, createSetters(bindings, likeFactory, setterFactory));
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
 	}
 
 	/**
@@ -97,11 +97,9 @@ class ParameterBinderFactory {
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
 				evaluationContextProvider, parameters);
 
-		QueryParameterSetterFactory like = QueryParameterSetterFactory.forLikeRewrite(parameters);
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 
-		return new ParameterBinder(parameters,
-				createSetters(bindings, query, expressionSetterFactory, like, basicSetterFactory),
+		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory),
 				!query.usesPaging());
 	}
 
@@ -113,7 +111,11 @@ class ParameterBinderFactory {
 		for (JpaParameter parameter : parameters) {
 
 			if (parameter.isBindable()) {
-				result.add(new ParameterBinding(++bindableParameterIndex));
+				int index = ++bindableParameterIndex;
+				BindingIdentifier bindingIdentifier = parameter.getName().map(it -> BindingIdentifier.of(it, index))
+						.orElseGet(() -> BindingIdentifier.of(index));
+
+				result.add(new ParameterBinding(bindingIdentifier, ParameterOrigin.ofParameter(bindingIdentifier)));
 			}
 		}
 

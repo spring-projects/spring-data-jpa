@@ -109,7 +109,7 @@ interface QueryParameterSetter {
 
 			} else {
 
-				final Object value = valueExtractor.apply(accessor);
+				Object value = valueExtractor.apply(accessor);
 
 				if (parameter instanceof ParameterExpression) {
 					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));

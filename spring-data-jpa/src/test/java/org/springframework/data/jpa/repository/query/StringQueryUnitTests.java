@@ -23,9 +23,9 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.repository.query.StringQuery.InParameterBinding;
-import org.springframework.data.jpa.repository.query.StringQuery.LikeParameterBinding;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.Expression;
+import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -58,7 +58,7 @@ class StringQueryUnitTests {
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding.getType()).isEqualTo(Type.LIKE);
 
-		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getName()).isEqualTo("firstname");
 	}
 
 	@Test // DATAJPA-292
@@ -76,12 +76,12 @@ class StringQueryUnitTests {
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasPosition(1)).isTrue();
+		assertThat(binding.getRequiredPosition()).isEqualTo(1);
 		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 
 		binding = (LikeParameterBinding) bindings.get(1);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasPosition(2)).isTrue();
+		assertThat(binding.getRequiredPosition()).isEqualTo(2);
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
@@ -98,7 +98,7 @@ class StringQueryUnitTests {
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getRequiredName()).isEqualTo("firstname");
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 	}
 
@@ -117,12 +117,12 @@ class StringQueryUnitTests {
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getName()).isEqualTo("firstname");
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 
 		binding = (LikeParameterBinding) bindings.get(1);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasName("firstname_1")).isTrue();
+		assertThat(binding.getName()).isEqualTo("firstname_1");
 		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
 	}
 
@@ -142,12 +142,12 @@ class StringQueryUnitTests {
 
 		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasName("firstname")).isTrue();
+		assertThat(binding.getName()).isEqualTo("firstname");
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
 
 		binding = (LikeParameterBinding) bindings.get(1);
 		assertThat(binding).isNotNull();
-		assertThat(binding.hasName("firstname_1")).isTrue();
+		assertThat(binding.getName()).isEqualTo("firstname_1");
 		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
 	}
 
@@ -359,11 +359,9 @@ class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}", true);
 		String queryString = query.getQueryString();
 
-		softly.assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
-		softly.assertThat(query.getParameterBindings().get(0).getExpression()).isEqualTo("#bs");
-		softly.assertThat(query.getParameterBindings().get(1).getExpression()).isEqualTo("#cs");
-
-		softly.assertAll();
+		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
+		assertThat(((Expression) query.getParameterBindings().get(0).getOrigin()).expression()).isEqualTo("#bs");
+		assertThat(((Expression) query.getParameterBindings().get(1).getOrigin()).expression()).isEqualTo("#cs");
 	}
 
 	@Test // DATAJPA-864
@@ -398,15 +396,13 @@ class StringQueryUnitTests {
 		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		softly.assertThat(bindings).isNotEmpty();
+		assertThat(bindings).isNotEmpty();
 
 		for (ParameterBinding binding : bindings) {
-			softly.assertThat(binding.getName()).isNotNull();
-			softly.assertThat(query.getQueryString()).contains(binding.getName());
-			softly.assertThat(binding.getExpression()).isEqualTo("#exp");
+			assertThat(binding.getName()).isNotNull();
+			assertThat(query.getQueryString()).contains(binding.getName());
+			assertThat(((Expression) binding.getOrigin()).expression()).isEqualTo("#exp");
 		}
-
-		softly.assertAll();
 	}
 
 	@Test // DATAJPA-1235
@@ -646,16 +642,16 @@ class StringQueryUnitTests {
 	private void assertPositionalBinding(Class<? extends ParameterBinding> bindingType, Integer position,
 			ParameterBinding expectedBinding) {
 
-		softly.assertThat(bindingType.isInstance(expectedBinding)).isTrue();
-		softly.assertThat(expectedBinding).isNotNull();
-		softly.assertThat(expectedBinding.hasPosition(position)).isTrue();
+		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		assertThat(expectedBinding).isNotNull();
+		assertThat(expectedBinding.getPosition()).isEqualTo(position);
 	}
 
 	private void assertNamedBinding(Class<? extends ParameterBinding> bindingType, String parameterName,
 			ParameterBinding expectedBinding) {
 
-		softly.assertThat(bindingType.isInstance(expectedBinding)).isTrue();
-		softly.assertThat(expectedBinding).isNotNull();
-		softly.assertThat(expectedBinding.hasName(parameterName)).isTrue();
+		assertThat(bindingType.isInstance(expectedBinding)).isTrue();
+		assertThat(expectedBinding).isNotNull();
+		assertThat(expectedBinding.getName()).isEqualTo(parameterName);
 	}
 }

@@ -71,9 +71,9 @@ interface DeclaredQuery {
 	boolean isDefaultProjection();
 
 	/**
-	 * Returns the {@link StringQuery.ParameterBinding}s registered.
+	 * Returns the {@link ParameterBinding}s registered.
 	 */
-	List<StringQuery.ParameterBinding> getParameterBindings();
+	List<ParameterBinding> getParameterBindings();
 
 	/**
 	 * Creates a new {@literal DeclaredQuery} representing a count query, i.e. a query returning the number of rows to be
