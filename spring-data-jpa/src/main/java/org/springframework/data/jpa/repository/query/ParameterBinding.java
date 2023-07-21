@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -151,8 +150,8 @@ class ParameterBinding {
 	/**
 	 * Check whether the {@code other} binding uses the same bind target.
 	 *
-	 * @param other
-	 * @return
+	 * @param other must not be {@literal null}.
+	 * @return {@code true} if the other binding uses the same parameter to bind to as this one.
 	 */
 	public boolean bindsTo(ParameterBinding other) {
 
@@ -169,6 +168,17 @@ class ParameterBinding {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check whether this binding can be bound as the {@code other} binding by checking its type and origin. Subclasses
+	 * may override this method to include other properties for the compatibility check.
+	 *
+	 * @param other
+	 * @return {@code true} if the other binding is compatible with this one.
+	 */
+	public boolean isCompatibleWith(ParameterBinding other) {
+		return other.getClass() == getClass() && other.getOrigin().equals(getOrigin());
 	}
 
 	/**
@@ -294,6 +304,16 @@ class ParameterBinding {
 					getType());
 		}
 
+		@Override
+		public boolean isCompatibleWith(ParameterBinding binding) {
+
+			if (super.isCompatibleWith(binding) && binding instanceof LikeParameterBinding other) {
+				return getType() == other.getType();
+			}
+
+			return false;
+		}
+
 		/**
 		 * Extracts the like {@link Type} from the given JPA like expression.
 		 *
@@ -319,52 +339,12 @@ class ParameterBinding {
 		}
 	}
 
-	static class ParameterImpl<T> implements jakarta.persistence.Parameter<T> {
-
-		private final BindingIdentifier identifier;
-		private final Class<T> parameterType;
-
-		/**
-		 * Creates a new {@link ParameterImpl} for the given {@link JpaParameter} and {@link ParameterBinding}.
-		 *
-		 * @param parameter can be {@literal null}.
-		 * @param binding must not be {@literal null}.
-		 * @return a {@link jakarta.persistence.Parameter} object based on the information from the arguments.
-		 */
-		static jakarta.persistence.Parameter<?> of(@Nullable JpaParameter parameter, ParameterBinding binding) {
-
-			Class<?> type = parameter == null ? Object.class : parameter.getType();
-
-			return new ParameterImpl<>(binding.getIdentifier(), type);
-		}
-
-		public ParameterImpl(BindingIdentifier identifier, Class<T> parameterType) {
-			this.identifier = identifier;
-			this.parameterType = parameterType;
-		}
-
-		@Nullable
-		@Override
-		public String getName() {
-			return identifier.hasName() ? identifier.getName() : null;
-		}
-
-		@Nullable
-		@Override
-		public Integer getPosition() {
-			return identifier.hasPosition() ? identifier.getPosition() : null;
-		}
-
-		@Override
-		public Class<T> getParameterType() {
-			return parameterType;
-		}
-
-	}
-
 	/**
 	 * Identifies a binding parameter by name, position or both. Used to bind parameters to a query or to describe a
 	 * {@link MethodInvocationArgument} origin.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.1.2
 	 */
 	sealed interface BindingIdentifier permits Named,Indexed,NamedAndIndexed {
 
@@ -453,6 +433,11 @@ class ParameterBinding {
 		public String getName() {
 			return name();
 		}
+
+		@Override
+		public String toString() {
+			return name();
+		}
 	}
 
 	private record Indexed(int position) implements BindingIdentifier {
@@ -465,6 +450,11 @@ class ParameterBinding {
 		@Override
 		public int getPosition() {
 			return position();
+		}
+
+		@Override
+		public String toString() {
+			return "[" + position() + "]";
 		}
 	}
 
@@ -489,10 +479,18 @@ class ParameterBinding {
 		public int getPosition() {
 			return position();
 		}
+
+		@Override
+		public String toString() {
+			return "[" + name() + ", " + position() + "]";
+		}
 	}
 
 	/**
 	 * Value type hierarchy to describe where a binding parameter comes from, either method call or an expression.
+	 *
+	 * @author Mark Paluch
+	 * @since 3.1.2
 	 */
 	sealed interface ParameterOrigin permits Expression,MethodInvocationArgument {
 
@@ -508,11 +506,11 @@ class ParameterBinding {
 
 		/**
 		 * Creates a {@link MethodInvocationArgument} object for {@code name} and {@code position}. Either the name or the
-		 * position must be given,
+		 * position must be given.
 		 *
 		 * @param name the parameter name from the method invocation, can be {@literal null}.
 		 * @param position the parameter position (1-based) from the method invocation, can be {@literal null}.
-		 * @return {@link MethodInvocationArgument} object for {@code name} and {@code position}
+		 * @return {@link MethodInvocationArgument} object for {@code name} and {@code position}.
 		 */
 		static MethodInvocationArgument ofParameter(@Nullable String name, @Nullable Integer position) {
 
@@ -529,18 +527,33 @@ class ParameterBinding {
 		}
 
 		/**
+		 * Creates a {@link MethodInvocationArgument} object for {@code position}.
+		 *
+		 * @param position the parameter position (1-based) from the method invocation.
+		 * @return {@link MethodInvocationArgument} object for {@code position}.
+		 */
+		static MethodInvocationArgument ofParameter(int position) {
+			return ofParameter(BindingIdentifier.of(position));
+		}
+
+		/**
 		 * Creates a {@link MethodInvocationArgument} using {@link BindingIdentifier}.
 		 *
 		 * @param identifier must not be {@literal null}.
 		 * @return {@link MethodInvocationArgument} for {@link BindingIdentifier}.
 		 */
 		static MethodInvocationArgument ofParameter(BindingIdentifier identifier) {
-
 			return new MethodInvocationArgument(identifier);
 		}
 
+		/**
+		 * @return {@code true} if the origin is a method argument reference.
+		 */
 		boolean isMethodArgument();
 
+		/**
+		 * @return {@code true} if the origin is an expression.
+		 */
 		boolean isExpression();
 	}
 
@@ -548,6 +561,8 @@ class ParameterBinding {
 	 * Value object capturing the expression of which a binding parameter originates.
 	 *
 	 * @param expression
+	 * @author Mark Paluch
+	 * @since 3.1.2
 	 */
 	public record Expression(String expression) implements ParameterOrigin {
 
@@ -566,6 +581,8 @@ class ParameterBinding {
 	 * Value object capturing the method invocation parameter reference.
 	 *
 	 * @param identifier
+	 * @author Mark Paluch
+	 * @since 3.1.2
 	 */
 	public record MethodInvocationArgument(BindingIdentifier identifier) implements ParameterOrigin {
 

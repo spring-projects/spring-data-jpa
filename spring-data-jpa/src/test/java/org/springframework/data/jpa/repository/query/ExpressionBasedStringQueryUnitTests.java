@@ -18,12 +18,16 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -99,6 +103,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "+ \"AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, true);
 
+		System.out.println(query.getQueryString());
 		assertThat(query.isNativeQuery()).isFalse();
 	}
 
@@ -117,4 +122,55 @@ class ExpressionBasedStringQueryUnitTests {
 
 		assertThat(query.isNativeQuery()).isTrue();
 	}
+
+	@Test // GH-3041
+	void namedExpressionsShouldCreateLikeBindings() {
+
+		StringQuery query = new ExpressionBasedStringQuery(
+				"select u from User u where u.firstname like %:#{foo} or u.firstname like :#{foo}%", metadata, SPEL_PARSER,
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where u.firstname like :__$synthetic$__1 or u.firstname like :__$synthetic$__2");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getName()).isEqualTo("__$synthetic$__1");
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getName()).isEqualTo("__$synthetic$__2");
+		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+	}
+
+	@Test // GH-3041
+	void indexedExpressionsShouldCreateLikeBindings() {
+
+		StringQuery query = new ExpressionBasedStringQuery(
+				"select u from User u where u.firstname like %?#{foo} or u.firstname like ?#{foo}%", metadata, SPEL_PARSER,
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString())
+				.isEqualTo("select u from User u where u.firstname like ?1 or u.firstname like ?2");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getPosition()).isEqualTo(1);
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getPosition()).isEqualTo(2);
+		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+	}
+
 }
