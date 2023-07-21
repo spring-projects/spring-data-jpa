@@ -16,19 +16,17 @@
 package org.springframework.data.jpa.repository.query;
 
 import static java.util.regex.Pattern.*;
-import static org.springframework.util.ObjectUtils.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
+import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.repository.query.SpelQueryContext;
 import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
 import org.springframework.data.repository.query.parser.Part.Type;
@@ -142,7 +140,7 @@ class StringQuery implements DeclaredQuery {
 
 	@Override
 	public boolean hasNamedParameter() {
-		return bindings.stream().anyMatch(b -> b.getName() != null);
+		return bindings.stream().anyMatch(b -> b.getIdentifier().hasName());
 	}
 
 	@Override
@@ -268,18 +266,28 @@ class StringQuery implements DeclaredQuery {
 					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
 				}
 
+				BindingIdentifier identifier;
+				if (parameterIndex != null) {
+					identifier = BindingIdentifier.of(parameterIndex);
+				} else {
+					identifier = BindingIdentifier.of(parameterName);
+				}
+				ParameterOrigin origin = ObjectUtils.isEmpty(expression)
+						? ParameterOrigin.ofParameter(parameterName, parameterIndex)
+						: ParameterOrigin.ofExpression(expression);
+
 				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
-						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+						Type likeType = ParameterBinding.LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
 						replacement = matcher.group(3);
 
 						if (parameterIndex != null) {
-							checkAndRegister(new LikeParameterBinding(parameterIndex, likeType, expression), bindings);
+							checkAndRegister(new LikeParameterBinding(identifier, origin, likeType), bindings);
 						} else {
 
-							LikeParameterBinding binding = likeParameterBindings.getOrCreate(parameterName, likeType, expression);
+							LikeParameterBinding binding = likeParameterBindings.getOrCreate(parameterName, likeType, origin);
 							checkAndRegister(binding, bindings);
 
 							replacement = ":" + binding.getRequiredName();
@@ -289,20 +297,14 @@ class StringQuery implements DeclaredQuery {
 
 					case IN:
 
-						if (parameterIndex != null) {
-							checkAndRegister(new InParameterBinding(parameterIndex, expression), bindings);
-						} else {
-							checkAndRegister(new InParameterBinding(parameterName, expression), bindings);
-						}
+						checkAndRegister(new InParameterBinding(identifier, origin), bindings);
 
 						break;
 
 					case AS_IS: // fall-through we don't need a special parameter binding for the given parameter.
 					default:
 
-						bindings.add(parameterIndex != null //
-								? new ParameterBinding(null, parameterIndex, expression) //
-								: new ParameterBinding(parameterName, null, expression));
+						bindings.add(new ParameterBinding(identifier, origin));
 				}
 
 				if (replacement != null) {
@@ -373,7 +375,7 @@ class StringQuery implements DeclaredQuery {
 		private static void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
 
 			bindings.stream() //
-					.filter(it -> it.hasName(binding.getName()) || it.hasPosition(binding.getPosition())) //
+					.filter(it -> it.bindsTo(binding)) //
 					.forEach(it -> Assert.isTrue(it.equals(binding), String.format(MESSAGE, it, binding)));
 
 			if (!bindings.contains(binding)) {
@@ -431,6 +433,10 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
+	private static class Metadata {
+		private boolean usesJdbcStyleParameters = false;
+	}
+
 	/**
 	 * Utility to create unique parameter bindings for LIKE that can be evaluated by
 	 * {@code LikeRewritingQueryParameterSetterFactory}.
@@ -448,27 +454,26 @@ class StringQuery implements DeclaredQuery {
 		 *
 		 * @param parameterName the parameter name as declared in the actual JPQL query.
 		 * @param likeType type of the LIKE expression.
-		 * @param expression expression content if the LIKE comparison value is provided by a SpEL expression.
+		 * @param origin origin of the parameter.
 		 * @return the Like binding. Can return an already existing binding.
 		 */
-		LikeParameterBinding getOrCreate(String parameterName, Type likeType, @Nullable String expression) {
+		LikeParameterBinding getOrCreate(String parameterName, Type likeType, ParameterOrigin origin) {
 
 			List<LikeParameterBinding> likeParameterBindings = likeBindings.computeIfAbsent(parameterName,
 					s -> new ArrayList<>());
 			LikeParameterBinding reuse = null;
 
 			// unique parameters only required for literals as expressions create unique parameter names
-			if (expression == null) {
+			if (origin.isMethodArgument()) {
 				for (LikeParameterBinding likeParameterBinding : likeParameterBindings) {
 
-					if (likeParameterBinding.type == likeType) {
+					if (likeParameterBinding.getType() == likeType) {
 						reuse = likeParameterBinding;
 						break;
 					}
 				}
 			}
 
-			String declaredParameterName = parameterName;
 			if (reuse != null) {
 				return reuse;
 			}
@@ -477,396 +482,10 @@ class StringQuery implements DeclaredQuery {
 				parameterName = parameterName + "_" + likeParameterBindings.size();
 			}
 
-			LikeParameterBinding binding = new LikeParameterBinding(parameterName, declaredParameterName, likeType,
-					expression);
+			LikeParameterBinding binding = new LikeParameterBinding(BindingIdentifier.of(parameterName), origin, likeType);
 			likeParameterBindings.add(binding);
 
 			return binding;
 		}
-	}
-
-	/**
-	 * A generic parameter binding with name or position information.
-	 *
-	 * @author Thomas Darimont
-	 */
-	static class ParameterBinding {
-
-		private final @Nullable String name;
-		private final @Nullable String expression;
-		private final @Nullable Integer position;
-
-		/**
-		 * Creates a new {@link ParameterBinding} for the parameter with the given position.
-		 *
-		 * @param position must not be {@literal null}.
-		 */
-		ParameterBinding(Integer position) {
-			this(null, position, null);
-		}
-
-		/**
-		 * Creates a new {@link ParameterBinding} for the parameter with the given name, position and expression
-		 * information. Either {@literal name} or {@literal position} must be not {@literal null}.
-		 *
-		 * @param name of the parameter may be {@literal null}.
-		 * @param position of the parameter may be {@literal null}.
-		 * @param expression the expression to apply to any value for this parameter.
-		 */
-		ParameterBinding(@Nullable String name, @Nullable Integer position, @Nullable String expression) {
-
-			if (name == null) {
-				Assert.notNull(position, "Position must not be null");
-			}
-
-			if (position == null) {
-				Assert.notNull(name, "Name must not be null");
-			}
-
-			this.name = name;
-			this.position = position;
-			this.expression = expression;
-		}
-
-		/**
-		 * Returns whether the binding has the given name. Will always be {@literal false} in case the
-		 * {@link ParameterBinding} has been set up from a position.
-		 */
-		boolean hasName(@Nullable String name) {
-			return this.position == null && this.name != null && this.name.equals(name);
-		}
-
-		boolean hasName() {
-			return this.position == null && !ObjectUtils.isEmpty(this.name);
-		}
-
-		/**
-		 * Returns whether the binding has the given position. Will always be {@literal false} in case the
-		 * {@link ParameterBinding} has been set up from a name.
-		 */
-		boolean hasPosition(@Nullable Integer position) {
-			return position != null && this.name == null && position.equals(this.position);
-		}
-
-		boolean hasPosition() {
-			return position != null && this.name == null;
-		}
-
-		/**
-		 * @return the name
-		 */
-		@Nullable
-		public String getName() {
-			return name;
-		}
-
-		/**
-		 * @return the name
-		 * @throws IllegalStateException if the name is not available.
-		 * @since 2.0
-		 */
-		String getRequiredName() throws IllegalStateException {
-
-			String name = getName();
-
-			if (name != null) {
-				return name;
-			}
-
-			throw new IllegalStateException(String.format("Required name for %s not available", this));
-		}
-
-		/**
-		 * @return the position
-		 */
-		@Nullable
-		Integer getPosition() {
-			return position;
-		}
-
-		/**
-		 * @return the position
-		 * @throws IllegalStateException if the position is not available.
-		 * @since 2.0
-		 */
-		int getRequiredPosition() throws IllegalStateException {
-
-			Integer position = getPosition();
-
-			if (position != null) {
-				return position;
-			}
-
-			throw new IllegalStateException(String.format("Required position for %s not available", this));
-		}
-
-		/**
-		 * @return {@literal true} if this parameter binding is a synthetic SpEL expression.
-		 */
-		public boolean isExpression() {
-			return this.expression != null;
-		}
-
-		@Override
-		public int hashCode() {
-
-			int result = 17;
-
-			result += nullSafeHashCode(this.name);
-			result += nullSafeHashCode(this.position);
-			result += nullSafeHashCode(this.expression);
-
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-
-			if (!(obj instanceof ParameterBinding)) {
-				return false;
-			}
-
-			ParameterBinding that = (ParameterBinding) obj;
-
-			return nullSafeEquals(this.name, that.name) && nullSafeEquals(this.position, that.position)
-					&& nullSafeEquals(this.expression, that.expression);
-		}
-
-		@Override
-		public String toString() {
-			return String.format("ParameterBinding [name: %s, position: %d, expression: %s]", getName(), getPosition(),
-					getExpression());
-		}
-
-		/**
-		 * @param valueToBind value to prepare
-		 */
-		@Nullable
-		public Object prepare(@Nullable Object valueToBind) {
-			return valueToBind;
-		}
-
-		@Nullable
-		public String getExpression() {
-			return expression;
-		}
-	}
-
-	/**
-	 * Represents a {@link ParameterBinding} in a JPQL query augmented with instructions of how to apply a parameter as an
-	 * {@code IN} parameter.
-	 *
-	 * @author Thomas Darimont
-	 */
-	static class InParameterBinding extends ParameterBinding {
-
-		/**
-		 * Creates a new {@link InParameterBinding} for the parameter with the given name.
-		 */
-		InParameterBinding(String name, @Nullable String expression) {
-			super(name, null, expression);
-		}
-
-		/**
-		 * Creates a new {@link InParameterBinding} for the parameter with the given position.
-		 */
-		InParameterBinding(int position, @Nullable String expression) {
-			super(null, position, expression);
-		}
-
-		@Override
-		public Object prepare(@Nullable Object value) {
-
-			if (!ObjectUtils.isArray(value)) {
-				return value;
-			}
-
-			int length = Array.getLength(value);
-			Collection<Object> result = new ArrayList<>(length);
-
-			for (int i = 0; i < length; i++) {
-				result.add(Array.get(value, i));
-			}
-
-			return result;
-		}
-	}
-
-	/**
-	 * Represents a parameter binding in a JPQL query augmented with instructions of how to apply a parameter as LIKE
-	 * parameter. This allows expressions like {@code …like %?1} in the JPQL query, which is not allowed by plain JPA.
-	 *
-	 * @author Oliver Gierke
-	 * @author Thomas Darimont
-	 * @author Mark Paluch
-	 */
-	static class LikeParameterBinding extends ParameterBinding {
-
-		private static final List<Type> SUPPORTED_TYPES = Arrays.asList(Type.CONTAINING, Type.STARTING_WITH,
-				Type.ENDING_WITH, Type.LIKE);
-
-		private final Type type;
-
-		private final @Nullable String declaredName;
-
-		/**
-		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type}.
-		 *
-		 * @param name parameter name in the final query, must not be {@literal null} or empty.
-		 * @param declaredName name of the declared parameter from the original query, referring to a
-		 *          {@link JpaParameter#getName()}, must not be {@literal null} or empty.
-		 * @param type must not be {@literal null}.
-		 */
-		LikeParameterBinding(String name, String declaredName, Type type) {
-			this(name, declaredName, type, null);
-		}
-
-		/**
-		 * Creates a new {@link LikeParameterBinding} for the parameter with the given name and {@link Type} and parameter
-		 * binding input.
-		 *
-		 * @param name parameter name in the final query, must not be {@literal null} or empty.
-		 * @param declaredName name of the declared parameter from the original query, referring to a
-		 *          {@link JpaParameter#getName()}, must not be {@literal null} or empty.
-		 * @param type must not be {@literal null}.
-		 * @param expression may be {@literal null}.
-		 */
-		LikeParameterBinding(String name, String declaredName, Type type, @Nullable String expression) {
-
-			super(name, null, expression);
-
-			Assert.hasText(name, "Name must not be null or empty");
-			if (expression == null && !StringUtils.hasText(declaredName)) {
-				throw new IllegalArgumentException("Declared name must not be null or empty");
-			}
-			Assert.notNull(type, "Type must not be null");
-
-			Assert.isTrue(SUPPORTED_TYPES.contains(type),
-					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
-
-			this.type = type;
-			this.declaredName = declaredName;
-		}
-
-		/**
-		 * Creates a new {@link LikeParameterBinding} for the parameter with the given position and {@link Type}.
-		 *
-		 * @param position position of the parameter in the query.
-		 * @param type must not be {@literal null}.
-		 */
-		LikeParameterBinding(int position, Type type) {
-			this(position, type, null);
-		}
-
-		/**
-		 * Creates a new {@link LikeParameterBinding} for the parameter with the given position and {@link Type}.
-		 *
-		 * @param position position of the parameter in the query.
-		 * @param type must not be {@literal null}.
-		 * @param expression may be {@literal null}.
-		 */
-		LikeParameterBinding(int position, Type type, @Nullable String expression) {
-
-			super(null, position, expression);
-
-			Assert.isTrue(position > 0, "Position must be greater than zero");
-			Assert.notNull(type, "Type must not be null");
-
-			Assert.isTrue(SUPPORTED_TYPES.contains(type),
-					String.format("Type must be one of %s", StringUtils.collectionToCommaDelimitedString(SUPPORTED_TYPES)));
-
-			this.type = type;
-			this.declaredName = null;
-		}
-
-		/**
-		 * Returns the {@link Type} of the binding.
-		 *
-		 * @return the type
-		 */
-		public Type getType() {
-			return type;
-		}
-
-		@Nullable
-		public String getDeclaredName() {
-			return declaredName;
-		}
-
-		/**
-		 * Prepares the given raw keyword according to the like type.
-		 */
-		@Nullable
-		@Override
-		public Object prepare(@Nullable Object value) {
-
-			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
-			if (unwrapped == null) {
-				return null;
-			}
-
-			return switch (type) {
-				case STARTING_WITH -> String.format("%s%%", unwrapped);
-				case ENDING_WITH -> String.format("%%%s", unwrapped);
-				case CONTAINING -> String.format("%%%s%%", unwrapped);
-				default -> unwrapped;
-			};
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-
-			if (!(obj instanceof LikeParameterBinding)) {
-				return false;
-			}
-
-			LikeParameterBinding that = (LikeParameterBinding) obj;
-
-			return super.equals(obj) && this.type.equals(that.type);
-		}
-
-		@Override
-		public int hashCode() {
-
-			int result = super.hashCode();
-
-			result += nullSafeHashCode(this.type);
-
-			return result;
-		}
-
-		@Override
-		public String toString() {
-			return String.format("LikeBinding [name: %s, position: %d, type: %s]", getName(), getPosition(), type);
-		}
-
-		/**
-		 * Extracts the like {@link Type} from the given JPA like expression.
-		 *
-		 * @param expression must not be {@literal null} or empty.
-		 */
-		private static Type getLikeTypeFrom(String expression) {
-
-			Assert.hasText(expression, "Expression must not be null or empty");
-
-			if (expression.matches("%.*%")) {
-				return Type.CONTAINING;
-			}
-
-			if (expression.startsWith("%")) {
-				return Type.ENDING_WITH;
-			}
-
-			if (expression.endsWith("%")) {
-				return Type.STARTING_WITH;
-			}
-
-			return Type.LIKE;
-		}
-
-	}
-
-	static class Metadata {
-		private boolean usesJdbcStyleParameters = false;
 	}
 }
