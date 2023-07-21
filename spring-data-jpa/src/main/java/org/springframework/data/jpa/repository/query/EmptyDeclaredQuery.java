@@ -60,7 +60,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public List<StringQuery.ParameterBinding> getParameterBindings() {
+	public List<ParameterBinding> getParameterBindings() {
 		return Collections.emptyList();
 	}
 

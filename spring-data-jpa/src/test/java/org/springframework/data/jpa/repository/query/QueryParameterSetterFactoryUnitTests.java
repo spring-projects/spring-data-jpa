@@ -25,9 +25,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBinding;
+import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 
 /**
  * Unit tests for {@link QueryParameterSetterFactory}.
@@ -60,6 +59,8 @@ class QueryParameterSetterFactoryUnitTests {
 	@Test // DATAJPA-1058
 	void exceptionWhenQueryContainNamedParametersAndMethodParametersAreNotNamed() {
 
+		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter("NamedParameter", 1));
+
 		assertThatExceptionOfType(IllegalStateException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
 				.withMessageContaining("Java 8") //
@@ -76,6 +77,7 @@ class QueryParameterSetterFactoryUnitTests {
 
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
+		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
@@ -90,6 +92,7 @@ class QueryParameterSetterFactoryUnitTests {
 
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
+		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = ?1", false))) //
