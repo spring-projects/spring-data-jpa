@@ -136,7 +136,7 @@ class StringQueryUnitTests {
 				true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString())
+		assertThat(query.getQueryString()) //
 				.isEqualTo(
 						"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname = :firstname_2");
 
@@ -152,6 +152,11 @@ class StringQueryUnitTests {
 		assertThat(binding).isNotNull();
 		assertThat(binding.getName()).isEqualTo("firstname_1");
 		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+
+		ParameterBinding parameterBinding = bindings.get(2);
+		assertThat(parameterBinding).isNotNull();
+		assertThat(parameterBinding.getName()).isEqualTo("firstname_2");
+		assertThat(((MethodInvocationArgument) parameterBinding.getOrigin()).identifier().getName()).isEqualTo("firstname");
 	}
 
 	@Test // GH-3041
@@ -178,7 +183,6 @@ class StringQueryUnitTests {
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(
 				"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname like :firstname_1 or u.firstname like :firstname");
-
 
 		query = new StringQuery("select u from User u where u.firstname like %:firstname or u.firstname =:firstname", true);
 
@@ -582,7 +586,7 @@ class StringQueryUnitTests {
 
 			assertThat(new StringQuery(testQuery, false) //
 					.usesJdbcStyleParameters()) //
-							.describedAs(testQuery)
+							.describedAs(testQuery) //
 							.describedAs(testQuery) //
 							.isFalse();
 		}

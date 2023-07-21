@@ -8,3 +8,6 @@ target/
 .sonar4clipse
 *.sonar4clipseExternals
 .DS_Store
+node
+node_modules
+package*.json

@@ -196,8 +196,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		Class<?> type;
 		try {
-			type = ClassUtils.forName("org.hibernate.query.TypedParameterValue",
-					PersistenceProvider.class.getClassLoader());
+			type = ClassUtils.forName("org.hibernate.query.TypedParameterValue", PersistenceProvider.class.getClassLoader());
 		} catch (ClassNotFoundException e) {
 			type = null;
 		}

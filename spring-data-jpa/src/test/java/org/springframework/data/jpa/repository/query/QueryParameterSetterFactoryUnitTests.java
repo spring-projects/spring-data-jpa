@@ -62,7 +62,8 @@ class QueryParameterSetterFactoryUnitTests {
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter("NamedParameter", 1));
 
 		assertThatExceptionOfType(IllegalStateException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+				.isThrownBy(() -> setterFactory.create(binding,
+						DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
@@ -80,7 +81,8 @@ class QueryParameterSetterFactoryUnitTests {
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+				.isThrownBy(() -> setterFactory.create(binding,
+						DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 
