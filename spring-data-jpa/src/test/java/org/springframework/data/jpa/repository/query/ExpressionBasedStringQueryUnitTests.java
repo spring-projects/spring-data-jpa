@@ -105,7 +105,6 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, true);
 
-		System.out.println(query.getQueryString());
 		assertThat(query.isNativeQuery()).isFalse();
 	}
 

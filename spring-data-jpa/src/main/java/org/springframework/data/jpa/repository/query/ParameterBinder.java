@@ -72,6 +72,7 @@ public class ParameterBinder {
 
 	public <T extends Query> T bind(T jpaQuery, QueryParameterSetter.QueryMetadata metadata,
 			JpaParametersParameterAccessor accessor) {
+
 		bind(metadata.withQuery(jpaQuery), accessor, ErrorHandling.STRICT);
 		return jpaQuery;
 	}
