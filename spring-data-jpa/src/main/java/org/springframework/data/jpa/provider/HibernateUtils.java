@@ -48,6 +48,13 @@ public abstract class HibernateUtils {
 
 			// Try the new Hibernate implementation first
 			if (query instanceof SqmQuery sqmQuery) {
+
+				String hql = sqmQuery.getQueryString();
+
+				if (!hql.equals("<criteria>")) {
+					return hql;
+				}
+
 				return sqmQuery.getSqmStatement().toHqlString();
 			}
 
@@ -55,7 +62,6 @@ public abstract class HibernateUtils {
 		} catch (RuntimeException o_O) {}
 
 		// Try the old way, as it still works in some cases (haven't investigated in which exactly)
-
 		if (query instanceof Query<?> hibernateQuery) {
 			return hibernateQuery.getQueryString();
 		} else {
