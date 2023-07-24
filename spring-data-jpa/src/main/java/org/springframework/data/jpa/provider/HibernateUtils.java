@@ -45,17 +45,23 @@ public abstract class HibernateUtils {
 		try {
 
 			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery) {
-				return ((SqmQuery) query).getSqmStatement().toHqlString();
+			if (query instanceof SqmQuery sqmQuery) {
+
+				String hql = sqmQuery.getQueryString();
+
+				if (!hql.equals("<criteria>")) {
+					return hql;
+				}
+
+				return sqmQuery.getSqmStatement().toHqlString();
 			}
 
 			// Couple of cases in which this still breaks, see HHH-15389
 		} catch (RuntimeException o_O) {}
 
 		// Try the old way, as it still works in some cases (haven't investigated in which exactly)
-
-		if (query instanceof Query) {
-			return ((Query<?>) query).getQueryString();
+		if (query instanceof Query<?> hibernateQuery) {
+			return hibernateQuery.getQueryString();
 		} else {
 			throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
 		}
