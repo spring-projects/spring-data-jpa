@@ -108,7 +108,7 @@
 		<profile>
 			<id>eclipselink-next</id>
 			<properties>
-				<eclipselink>4.0.0</eclipselink>
+				<eclipselink>4.0.2</eclipselink>
 			</properties>
 		</profile>
 		<profile>
