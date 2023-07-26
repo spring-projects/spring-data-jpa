@@ -40,6 +40,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Mark Paluch
  * @author Michael J. Simons
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -174,4 +175,30 @@ class ExpressionBasedStringQueryUnitTests {
 		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
 	}
 
+	@Test
+	public void doesTemplatingWhenEntityNameSpelIsPresent() {
+
+		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from #{#entityName} u",
+				metadata, SPEL_PARSER, false);
+
+		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
+	}
+
+	@Test
+	public void doesNoTemplatingWhenEntityNameSpelIsNotPresent() {
+
+		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from User u", metadata,
+				SPEL_PARSER, false);
+
+		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
+	}
+
+	@Test
+	public void doesTemplatingWhenEntityNameSpelIsPresentForBindParameter() {
+
+		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u where name = :#{#something}",
+				metadata, SPEL_PARSER, false);
+
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where name = :__$synthetic$__1");
+	}
 }
