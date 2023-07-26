@@ -37,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Tom Hombergs
  * @author Michael J. Simons
  * @author Diego Krupitza
+ * @author Greg Turnquist
  */
 class ExpressionBasedStringQuery extends StringQuery {
 
@@ -48,7 +49,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 
 	private static final String ENTITY_NAME = "entityName";
 	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
-	private static final String ENTITY_NAME_VARIABLE_EXPRESSION = "#{" + ENTITY_NAME_VARIABLE + "}";
+	private static final String ENTITY_NAME_VARIABLE_EXPRESSION = "#{" + ENTITY_NAME_VARIABLE;
 
 	/**
 	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
