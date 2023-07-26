@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.data.jpa.domain.sample.EmployeeWithName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -263,11 +264,29 @@ class QueryWithNullLikeIntegrationTests {
 				"Bilbo Baggins");
 	}
 
+	@Test // GH-1184
+	void mismatchedReturnTypeShouldCauseException() {
+		assertThatExceptionOfType(ConversionFailedException.class)
+				.isThrownBy(() -> repository.customQueryWithMismatchedReturnType());
+	}
+
+	@Test // GH-1184
+	void alignedReturnTypeShouldWork() {
+		assertThat(repository.customQueryWithAlignedReturnType()).containsExactly(new Object[][] {
+				{ "Frodo Baggins", "Frodo Baggins with suffix" }, { "Bilbo Baggins", "Bilbo Baggins with suffix" } });
+	}
+
 	@Transactional
 	public interface EmployeeWithNullLikeRepository extends JpaRepository<EmployeeWithName, Integer> {
 
 		@Query("select e from EmployeeWithName e where e.name like %:partialName%")
 		List<EmployeeWithName> customQueryWithNullableParam(@Nullable @Param("partialName") String partialName);
+
+		@Query("select e.name, concat(e.name, ' with suffix') from EmployeeWithName e")
+		List<EmployeeWithName> customQueryWithMismatchedReturnType();
+
+		@Query("select e.name, concat(e.name, ' with suffix') from EmployeeWithName e")
+		List<Object[]> customQueryWithAlignedReturnType();
 
 		@Query(value = "select * from EmployeeWithName as e where e.name like %:partialName%", nativeQuery = true)
 		List<EmployeeWithName> customQueryWithNullableParamInNative(@Nullable @Param("partialName") String partialName);
