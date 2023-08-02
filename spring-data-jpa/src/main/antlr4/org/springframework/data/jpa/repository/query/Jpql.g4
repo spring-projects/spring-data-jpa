@@ -597,6 +597,8 @@ trim_character
 identification_variable
     : IDENTIFICATION_VARIABLE
     | f=(COUNT
+    | DATE
+    | FROM
     | INNER
     | KEY
     | LEFT

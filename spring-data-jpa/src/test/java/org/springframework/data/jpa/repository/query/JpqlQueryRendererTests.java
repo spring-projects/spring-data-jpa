@@ -953,4 +953,9 @@ class JpqlQueryRendererTests {
 	void alternateNotEqualsOperatorShouldWork() {
 		assertQuery("select e from Employee e where e.firstName != :name");
 	}
+
+	@Test // GH-3092
+	void dateAndFromShouldBeValidNames() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
+	}
 }
