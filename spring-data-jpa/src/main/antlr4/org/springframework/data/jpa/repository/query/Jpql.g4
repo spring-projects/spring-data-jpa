@@ -606,6 +606,7 @@ identification_variable
     | OUTER
     | FLOOR
     | SIGN
+    | TIME
     | TYPE
     | VALUE)
     ;

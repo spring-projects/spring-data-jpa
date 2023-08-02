@@ -544,9 +544,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		ctx.update_item().forEach(updateItemContext -> {
 			tokens.addAll(visit(updateItemContext));
+			NOSPACE(tokens);
 			tokens.add(TOKEN_COMMA);
 		});
 		CLIP(tokens);
+		SPACE(tokens);
 
 		return tokens;
 	}
