@@ -36,7 +36,7 @@ jobs:
         echo BUILD_VERSION=$BUILD_VERSION >> $GITHUB_ENV
     - name: Run Antora
       run: |
-        ./mvnw compile
+        ./mvnw antora
     - name: Publish Docs
       uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.11
       with:
@@ -44,7 +44,7 @@ jobs:
         docs-host: ${{ secrets.DOCS_HOST }}
         docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
         docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
-        site-path: target/site
+        site-path: spring-data-jpa/target/antora/site
     - name: Bust Cloudflare Cache
       uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
       with:

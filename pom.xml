@@ -27,103 +27,30 @@
 		<scala>2.11.7</scala>
 		<xmlbeam>1.4.24</xmlbeam>
 		<java-module-name>spring.data.jpa</java-module-name>
-
-		<!-- Antora -->
-		<node.version>v18.12.1</node.version>
-		<npm.version>8.19.2</npm.version>
-		<antora.version>3.2.0-alpha.2</antora.version>
-		<antora-atlas.version>1.0.0-alpha.1</antora-atlas.version>
-		<antora-collector.version>1.0.0-alpha.3</antora-collector.version>
-		<asciidoctor-tabs.version>1.0.0-beta.3</asciidoctor-tabs.version>
-		<spring-antora-extensions.version>1.5.0</spring-antora-extensions.version>
-		<spring-asciidoctor-extensions.version>1.0.0-alpha.9</spring-asciidoctor-extensions.version>
-
+		<io.spring.maven.antora-version>0.0.3</io.spring.maven.antora-version>
 	</properties>
 
 
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.12.1</version>
-				<executions>
-					<execution>
-						<id>install node and npm</id>
-						<goals>
-							<goal>install-node-and-npm</goal>
-						</goals>
-						<phase>initialize</phase>
-						<configuration>
-							<nodeVersion>${node.version}</nodeVersion>
-							<npmVersion>${npm.version}</npmVersion>
-						</configuration>
-					</execution>
-					<execution>
-						<id>npm install antora</id>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<phase>initialize</phase>
-						<configuration>
-							<arguments>install @antora/cli@${antora.version} @antora/site-generator-default@${antora.version} @antora/atlas-extension@${antora-atlas.version} @antora/collector-extension@${antora-collector.version} @asciidoctor/tabs@${asciidoctor-tabs.version} @springio/antora-extensions@${spring-antora-extensions.version} @springio/asciidoctor-extensions@${spring-asciidoctor-extensions.version}</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<execution>
-						<id>antora</id>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<phase>compile</phase>
-						<configuration>
-							<environmentVariables>
-								<ALGOLIA_API_KEY>9d489079e5ec46dbb238909fee5c9c29</ALGOLIA_API_KEY>
-								<ALGOLIA_APP_ID>WB1FQYI187</ALGOLIA_APP_ID>
-								<ALGOLIA_INDEX_NAME>springdatajpa</ALGOLIA_INDEX_NAME>
-							</environmentVariables>
-							<!-- If we don't want to depend on default node installation path we can use a maven
-							 property aligned with frontend-maven-plugin's installDirectory configuration -->
-							<executable>node/node</executable>
-							<arguments>
-								<argument>node_modules/.bin/antora</argument>
-								<argument>antora-playbook.yml</argument>
-								<argument>--to-dir=target/site</argument>
-								<argument>--stacktrace</argument>
-							</arguments>
-							<workingDirectory>${project.basedir}</workingDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.1.0</version>
+				<groupId>io.spring.maven.antora</groupId>
+				<artifactId>antora-maven-plugin</artifactId>
+				<version>${io.spring.maven.antora-version}</version>
+				<extensions>true</extensions>
 				<configuration>
-					<filesets>
-						<fileset>
-							<directory>node</directory>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-						<fileset>
-							<directory>node_modules</directory>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-						<fileset>
-							<directory>build</directory>
-							<followSymlinks>false</followSymlinks>
-						</fileset>
-					</filesets>
+					<options>
+						<option>--to-dir=target/antora/site</option>
+						<option>--stacktrace</option>
+						<option>--fetch</option>
+					</options>
+					<environment>
+						<ALGOLIA_API_KEY>9d489079e5ec46dbb238909fee5c9c29</ALGOLIA_API_KEY>
+						<ALGOLIA_APP_ID>WB1FQYI187</ALGOLIA_APP_ID>
+						<ALGOLIA_INDEX_NAME>springdatajpa</ALGOLIA_INDEX_NAME>
+					</environment>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
 
