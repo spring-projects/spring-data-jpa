@@ -21,6 +21,7 @@
 
 	<properties>
 		<java-module-name>spring.data.jpa</java-module-name>
+		<io.spring.maven.antora-version>0.0.3</io.spring.maven.antora-version>
 	</properties>
 
 	<dependencies>
@@ -430,6 +431,29 @@
 				</configuration>
 			</plugin>
 
+
+
+			<plugin>
+				<groupId>io.spring.maven.antora</groupId>
+				<artifactId>antora-maven-plugin</artifactId>
+				<version>${io.spring.maven.antora-version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<playbook>src/main/antora/antora-playbook.yml</playbook>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.spring.maven.antora</groupId>
+				<artifactId>antora-component-version-maven-plugin</artifactId>
+				<version>${io.spring.maven.antora-version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>antora-component-version</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

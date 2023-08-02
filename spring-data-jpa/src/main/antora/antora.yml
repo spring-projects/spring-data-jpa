@@ -6,7 +6,7 @@ nav:
 ext:
   collector:
   - run:
-      command: mvnw -Pdocs resources:resources
+      command: mvnw validate resources:resources -pl :spring-data-jpa -am
       local: true
     scan:
-      dir: target/classes/antora-resources
+      dir: spring-data-jpa/target/classes/antora-resources

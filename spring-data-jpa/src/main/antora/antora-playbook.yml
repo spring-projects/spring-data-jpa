@@ -11,9 +11,9 @@ site:
   url: https://docs.spring.io/spring-data-jpa/reference/
 content:
   sources:
-    - url: ./../../..
+    - url: ./../../../..
       branches: HEAD
-      start_path: src/main/antora
+      start_path: spring-data-jpa/src/main/antora
       worktrees: true
 asciidoc:
   attributes:
