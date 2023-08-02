@@ -958,4 +958,13 @@ class JpqlQueryRendererTests {
 	void dateAndFromShouldBeValidNames() {
 		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
 	}
+
+	@Test // GH-3092
+	void timeShouldBeAValidParameterName() {
+		assertQuery("""
+				UPDATE Lock L
+				SET L.isLocked = TRUE, L.forceUnlockTime = :forceUnlockTime
+				WHERE L.isLocked = FALSE OR L.forceUnlockTime < :time
+				""");
+	}
 }
