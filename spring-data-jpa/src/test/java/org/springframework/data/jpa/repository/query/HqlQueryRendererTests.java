@@ -1556,4 +1556,32 @@ class HqlQueryRendererTests {
 		assertQuery("select e from Employee e where e.type = :_type");
 		assertQuery("select te from TestEntity te where te.type = :type");
 	}
+
+	@Test // GH-3099
+	void functionNamesShouldSupportSchemaScoping() {
+
+		assertQuery("""
+				SELECT b
+				FROM MyEntity b
+				WHERE b.status = :status
+				      AND utl_raw.cast_to_varchar2((nlssort(lower(b.name), 'nls_sort=binary_ai'))) LIKE lower(:name)
+				ORDER BY utl_raw.cast_to_varchar2((nlssort(lower(b.name), 'nls_sort=binary_ai'))) ASC
+				""");
+
+		assertQuery("""
+				select b
+				from Bairro b
+				where b.situacao = :situacao
+				and utl_raw.cast_to_varchar2((nlssort(lower(b.nome), 'nls_sort=binary_ai'))) like lower(:nome)
+				order by utl_raw.cast_to_varchar2((nlssort(lower(b.nome), 'nls_sort=binary_ai'))) ASC
+				""");
+
+		assertQuery("""
+				select b
+				from Bairro b
+				where b.situacao = :situacao
+				and CTM_UTLRAW_NLSSORT_LOWER(b.nome) like lower(:nome)
+				order by CTM_UTLRAW_NLSSORT_LOWER(b.nome) ASC
+				""");
+	}
 }
