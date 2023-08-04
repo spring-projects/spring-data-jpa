@@ -285,7 +285,7 @@ class HqlQueryTransformerTests {
 	void usesReturnedVariableInCountProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
-				"select count(distinct m.genre) from Media m where m.user = ?1");
+				"select count(distinct m) from Media m where m.user = ?1");
 	}
 
 	@Test // DATAJPA-343
@@ -318,7 +318,7 @@ class HqlQueryTransformerTests {
 	void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
-				"select count(distinct m.genre) from Media m where m.user = ?1");
+				"select count(distinct m) from Media m where m.user = ?1");
 	}
 
 	@Test // DATAJPA-375
@@ -1031,8 +1031,20 @@ class HqlQueryTransformerTests {
 						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
 	}
 
+	@Test // GH-3098
+	void foo() {
+
+		assertCountQuery("""
+				SELECT DISTINCT loc.name AS name, loc.lat AS latitude, loc,lon AS longitude
+				FROM LocalityEntity loc
+				""", """
+				SELECT count(DISTINCT loc)
+				FROM LocalityEntity loc
+				""");
+	}
+
 	private void assertCountQuery(String originalQuery, String countQuery) {
-		assertThat(createCountQueryFor(originalQuery)).isEqualTo(countQuery);
+		assertThat(createCountQueryFor(originalQuery)).isEqualToIgnoringWhitespace(countQuery);
 	}
 
 	private String createQueryFor(String query, Sort sort) {

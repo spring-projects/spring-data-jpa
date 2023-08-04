@@ -338,6 +338,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
 		if (countQuery && !isSubquery(ctx)) {
+
 			tokens.add(TOKEN_COUNT_FUNC);
 
 			if (countProjection != null) {
@@ -354,19 +355,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		if (countQuery && !isSubquery(ctx)) {
 
 			if (countProjection == null) {
-
-				if (ctx.DISTINCT() != null) {
-
-					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
-						// constructor
-						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
-					} else {
-						// keep all the select items to distinct against
-						tokens.addAll(selectionListTokens);
-					}
-				} else {
-					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
-				}
+				tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 			}
 
 			NOSPACE(tokens);
@@ -376,6 +365,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		}
 
 		if (!projectionProcessed && !isSubquery(ctx)) {
+
 			projection = selectionListTokens;
 			projectionProcessed = true;
 		}

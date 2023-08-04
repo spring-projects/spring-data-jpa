@@ -146,6 +146,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 		List<JpaQueryParsingToken> selectItemTokens = newArrayList();
 
 		ctx.select_item().forEach(selectItemContext -> {
+
 			selectItemTokens.addAll(visit(selectItemContext));
 			NOSPACE(selectItemTokens);
 			selectItemTokens.add(TOKEN_COMMA);
@@ -158,19 +159,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 			if (countProjection != null) {
 				tokens.add(new JpaQueryParsingToken(countProjection));
 			} else {
-
-				if (ctx.DISTINCT() != null) {
-
-					if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
-						// constructor
-						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
-					} else {
-						// keep all the select items to distinct against
-						tokens.addAll(selectItemTokens);
-					}
-				} else {
-					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
-				}
+				tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 			}
 
 			NOSPACE(tokens);
@@ -180,6 +169,7 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 		}
 
 		if (!projectionProcessed) {
+
 			projection = selectItemTokens;
 			projectionProcessed = true;
 		}

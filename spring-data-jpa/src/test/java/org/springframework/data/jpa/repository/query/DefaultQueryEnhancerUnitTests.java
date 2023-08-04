@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assumptions.*;
+
 /**
  * TCK Tests for {@link DefaultQueryEnhancer}.
  *
@@ -34,4 +36,13 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-2511, GH-2773
 	@Disabled("Not properly supported by QueryUtils")
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
+
+	@Override
+	void shouldDeriveJpqlCountQuery(String query, String expected) {
+
+		assumeThat(query).as("DefaultQueryEnhancer doesn't passing in the primary alias on COUNT(DISTINCT)") //
+				.doesNotContain("SELECT DISTINCT name");
+
+		super.shouldDeriveJpqlCountQuery(query, expected);
+	}
 }

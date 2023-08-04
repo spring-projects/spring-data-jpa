@@ -136,7 +136,7 @@ abstract class QueryEnhancerTckTests {
 
 				Arguments.of( //
 						"SELECT DISTINCT name FROM table_name some_alias", //
-						"select count(DISTINCT name) FROM table_name some_alias"),
+						"SELECT count(DISTINCT some_alias) FROM table_name some_alias"),
 
 				Arguments.of( //
 						"select distinct new com.example.User(u.name) from User u where u.foo = ?1", //
@@ -164,7 +164,7 @@ abstract class QueryEnhancerTckTests {
 
 				Arguments.of( //
 						"select distinct m.genre from Media m where m.user = ?1 order by m.genre asc", //
-						"select count(distinct m.genre) from Media m where m.user = ?1"));
+						"select count(distinct m) from Media m where m.user = ?1"));
 	}
 
 	@ParameterizedTest // GH-2511, GH-2773

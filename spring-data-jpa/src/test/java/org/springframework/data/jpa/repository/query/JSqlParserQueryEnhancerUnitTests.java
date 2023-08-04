@@ -49,6 +49,12 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		assumeThat(query).as("JSQLParser does not support constructor JPQL syntax").doesNotContain(" new ");
 
+		assumeThat(query).as("JSQLParser does not properly handle COUNT(DISTINCT) queries.")
+				.doesNotContain("SELECT DISTINCT name");
+
+		assumeThat(query).as("JSQLParser does not properly handle COUNT(DISTINCT) queries.")
+				.doesNotContain("select distinct m.genre");
+
 		super.shouldDeriveJpqlCountQuery(query, expected);
 	}
 

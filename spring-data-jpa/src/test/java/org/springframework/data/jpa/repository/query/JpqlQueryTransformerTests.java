@@ -274,7 +274,7 @@ class JpqlQueryTransformerTests {
 	void usesReturnedVariableInCountProjectionIfSet() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 order by m.genre asc",
-				"select count(distinct m.genre) from Media m where m.user = ?1");
+				"select count(distinct m) from Media m where m.user = ?1");
 	}
 
 	@Test // DATAJPA-343
@@ -307,7 +307,7 @@ class JpqlQueryTransformerTests {
 	void removesOrderByInGeneratedCountQueryFromOriginalQueryIfPresent() {
 
 		assertCountQuery("select distinct m.genre from Media m where m.user = ?1 OrDer  By   m.genre ASC",
-				"select count(distinct m.genre) from Media m where m.user = ?1");
+				"select count(distinct m) from Media m where m.user = ?1");
 	}
 
 	@Test // DATAJPA-375
