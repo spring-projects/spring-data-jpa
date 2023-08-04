@@ -37,6 +37,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Daniel Shuy
+ * @author Sergey Rukin
  */
 public interface Specification<T> extends Serializable {
 
@@ -109,6 +110,7 @@ public interface Specification<T> extends Serializable {
 	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
 	 * @return The conjunction of the specifications
 	 * @see #and(Specification)
+	 * @since 3.0
 	 */
 	static <T> Specification<T> allOf(Iterable<Specification<T>> specifications) {
 
@@ -118,6 +120,7 @@ public interface Specification<T> extends Serializable {
 
 	/**
 	 * @see #allOf(Iterable)
+	 * @since 3.0
 	 */
 	@SafeVarargs
 	static <T> Specification<T> allOf(Specification<T>... specifications) {
@@ -130,6 +133,7 @@ public interface Specification<T> extends Serializable {
 	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
 	 * @return The disjunction of the specifications
 	 * @see #or(Specification)
+	 * @since 3.0
 	 */
 	static <T> Specification<T> anyOf(Iterable<Specification<T>> specifications) {
 
@@ -139,6 +143,7 @@ public interface Specification<T> extends Serializable {
 
 	/**
 	 * @see #anyOf(Iterable)
+	 * @since 3.0
 	 */
 	@SafeVarargs
 	static <T> Specification<T> anyOf(Specification<T>... specifications) {
