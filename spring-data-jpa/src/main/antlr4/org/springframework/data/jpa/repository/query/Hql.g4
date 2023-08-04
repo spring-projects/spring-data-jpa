@@ -686,7 +686,7 @@ character
     ;
 
 functionName
-    : reservedWord
+    : reservedWord ('.' reservedWord)*
     ;
 
 reservedWord

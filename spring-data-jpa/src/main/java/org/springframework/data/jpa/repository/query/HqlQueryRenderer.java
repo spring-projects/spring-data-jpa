@@ -2503,7 +2503,17 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override
 	public List<JpaQueryParsingToken> visitFunctionName(HqlParser.FunctionNameContext ctx) {
-		return visit(ctx.reservedWord());
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		ctx.reservedWord().forEach(reservedWordContext -> {
+			tokens.addAll(visit(reservedWordContext));
+			NOSPACE(tokens);
+			tokens.add(TOKEN_DOT);
+		});
+		CLIP(tokens);
+
+		return tokens;
 	}
 
 	@Override
