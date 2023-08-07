@@ -2914,6 +2914,19 @@ class UserRepositoryTests {
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
 	}
 
+	@Test // GH-2989
+	void supportsProjectionsWithNativeQueriesSkippingJSql() {
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		NameOnly result = repository.findByNativeQueryWithNoJSql(user.getId());
+
+		assertThat(result.getFirstname()).isEqualTo(user.getFirstname());
+		assertThat(result.getLastname()).isEqualTo(user.getLastname());
+	}
+
 	@Test // DATAJPA-1248
 	void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {
 

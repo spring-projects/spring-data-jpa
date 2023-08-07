@@ -111,4 +111,8 @@ interface DeclaredQuery {
 	default boolean isNativeQuery() {
 		return false;
 	}
+
+	default boolean skipJSql() {
+		return false;
+	}
 }

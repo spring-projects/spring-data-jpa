@@ -60,7 +60,7 @@ public final class QueryEnhancerFactory {
 
 		if (query.isNativeQuery()) {
 
-			if (jSqlParserPresent) {
+			if (jSqlParserPresent && !query.skipJSql()) {
 				/*
 				 * If JSqlParser fails, throw some alert signaling that people should write a custom Impl.
 				 */

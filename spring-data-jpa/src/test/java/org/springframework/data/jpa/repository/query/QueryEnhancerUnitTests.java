@@ -625,6 +625,13 @@ class QueryEnhancerUnitTests {
 		assertThat(QueryEnhancerFactory.forQuery(modiQuery).createCountQueryFor()).isEqualToIgnoringCase(modifyingQuery);
 	}
 
+	@Test // GH-2989
+	void skippingJSqlShouldRevertToDefaultQueryEnhancer() {
+
+		assertThat(getEnhancer(new StringQuery(QUERY, true, false))).isInstanceOf(JSqlParserQueryEnhancer.class);
+		assertThat(getEnhancer(new StringQuery(QUERY, true, true))).isInstanceOf(DefaultQueryEnhancer.class);
+	}
+
 	@ParameterizedTest // GH-2593
 	@MethodSource("insertStatementIsProcessedSameAsDefaultSource")
 	void insertStatementIsProcessedSameAsDefault(String insertQuery) {

@@ -86,4 +86,12 @@ public @interface Query {
 	 * @since 3.0
 	 */
 	Class<? extends QueryRewriter> queryRewriter() default QueryRewriter.IdentityQueryRewriter.class;
+
+	/**
+	 * For native queries, indicate whether or not to skip the JSqlParser.
+	 *
+	 * @return
+	 * @since 3.2
+	 */
+	boolean skipJSql() default false;
 }

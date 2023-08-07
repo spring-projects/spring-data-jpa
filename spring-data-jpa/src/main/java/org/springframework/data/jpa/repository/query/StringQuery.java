@@ -65,6 +65,7 @@ class StringQuery implements DeclaredQuery {
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
+	private final boolean skipJSql;
 	private final QueryEnhancer queryEnhancer;
 
 	/**
@@ -73,11 +74,12 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	@SuppressWarnings("deprecation")
-	StringQuery(String query, boolean isNative) {
+	StringQuery(String query, boolean isNative, boolean skipJSql) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
 		this.isNative = isNative;
+		this.skipJSql = skipJSql;
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
 
@@ -90,6 +92,10 @@ class StringQuery implements DeclaredQuery {
 		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
 		this.alias = this.queryEnhancer.detectAlias();
 		this.hasConstructorExpression = this.queryEnhancer.hasConstructorExpression();
+	}
+
+	StringQuery(String query, boolean isNative) {
+		this(query, isNative, false);
 	}
 
 	/**
@@ -155,6 +161,11 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public boolean isNativeQuery() {
 		return isNative;
+	}
+
+	@Override
+	public boolean skipJSql() {
+		return skipJSql;
 	}
 
 	/**

@@ -94,6 +94,7 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<JpaEntityGraph> jpaEntityGraph;
 	private final Lazy<Modifying> modifying;
 	private final Lazy<Boolean> isNativeQuery;
+	private final Lazy<Boolean> skipJSql;
 	private final Lazy<Boolean> isCollectionQuery;
 	private final Lazy<Boolean> isProcedureQuery;
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
@@ -136,6 +137,7 @@ public class JpaQueryMethod extends QueryMethod {
 			return new JpaEntityGraph(entityGraph, getNamedQueryName());
 		});
 		this.isNativeQuery = Lazy.of(() -> getAnnotationValue("nativeQuery", Boolean.class));
+		this.skipJSql = Lazy.of(() -> getAnnotationValue("skipJSql", Boolean.class));
 		this.isCollectionQuery = Lazy.of(() -> super.isCollectionQuery() && !NATIVE_ARRAY_TYPES.contains(this.returnType));
 		this.isProcedureQuery = Lazy.of(() -> AnnotationUtils.findAnnotation(method, Procedure.class) != null);
 		this.entityMetadata = Lazy.of(() -> new DefaultJpaEntityMetadata<>(getDomainClass()));
@@ -385,6 +387,10 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean isNativeQuery() {
 		return this.isNativeQuery.get();
+	}
+
+	boolean skipJSql() {
+		return this.skipJSql.get();
 	}
 
 	@Override

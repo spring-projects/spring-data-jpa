@@ -585,6 +585,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
 	NameOnly findByNativeQuery(Integer id);
 
+	// GH-2989
+	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true, skipJSql = true)
+	NameOnly findByNativeQueryWithNoJSql(Integer id);
+
+
 	// DATAJPA-1248
 	@Query(value = "SELECT emailaddress FROM SD_User WHERE id = ?1", nativeQuery = true)
 	EmailOnly findEmailOnlyByNativeQuery(Integer id);
