@@ -8,3 +8,12 @@ target/
 .sonar4clipse
 *.sonar4clipseExternals
 .DS_Store
+
+# Spring Data JPA 3.x stuff
+node/
+node_modules/
+package-lock.json
+package.json
+spring-data-envers/
+spring-data-jpa-distribution/
+spring-data-jpa/
