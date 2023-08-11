@@ -1073,6 +1073,14 @@ class UserRepositoryTests {
 		assertThat(repository.findByActiveTrue()).isEmpty();
 	}
 
+	@Test // GH-3096
+	void shouldSupportNativeQueriesWithSpEL() {
+
+		flushTestUsers();
+
+		assertThat(repository.nativeQueryWithSpEL()).containsExactly(firstUser, secondUser, thirdUser, fourthUser);
+	}
+
 	@Test // DATAJPA-405
 	void executesFinderWithOrderClauseOnly() {
 

@@ -25,6 +25,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Jens Schauder
  * @author Diego Krupitza
+ * @author Greg Turnquist
  * @since 2.0.3
  */
 interface DeclaredQuery {
@@ -37,7 +38,28 @@ interface DeclaredQuery {
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
 	static DeclaredQuery of(@Nullable String query, boolean nativeQuery) {
-		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query, nativeQuery);
+		return of(query, nativeQuery, null);
+	}
+
+	/**
+	 * Creates a {@literal DeclaredQuery} from a query {@literal String} and the related {@link JpaQueryMethod}.
+	 *
+	 * @param query might be {@literal null} or empty.
+	 * @param nativeQuery is a given query is native or not
+	 * @param method is a {@link JpaQueryMethod} that has the related metadata
+	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
+	 */
+	static DeclaredQuery of(@Nullable String query, Boolean nativeQuery, @Nullable JpaQueryMethod method) {
+
+		if (ObjectUtils.isEmpty(query)) {
+			return EmptyDeclaredQuery.EMPTY_QUERY;
+		}
+
+		if (ExpressionBasedStringQuery.containsExpression(query) && method != null) {
+			return new ExpressionBasedStringQuery(query, method.getEntityInformation(), JpaQueryFactory.PARSER, nativeQuery);
+		}
+
+		return new StringQuery(query, nativeQuery);
 	}
 
 	/**

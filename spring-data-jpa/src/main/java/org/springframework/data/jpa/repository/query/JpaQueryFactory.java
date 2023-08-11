@@ -29,12 +29,13 @@ import org.springframework.lang.Nullable;
  *
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Greg Turnquist
  */
 enum JpaQueryFactory {
 
 	INSTANCE;
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.

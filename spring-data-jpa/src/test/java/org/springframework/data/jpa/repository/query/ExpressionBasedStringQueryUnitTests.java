@@ -97,7 +97,7 @@ class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test
-	void shouldDetectComplexNativeQueriesWithSpelAsNonNative() {
+	void shouldDetectComplexNativeQueriesWithSpelAsRetainingNativeQueryStatus() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
 				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )"
@@ -106,15 +106,15 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, true);
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.isNativeQuery()).isTrue();
 	}
 
 	@Test
-	void shouldDetectSimpleNativeQueriesWithSpelAsNonNative() {
+	void shouldDetectSimpleNativeQueriesWithSpelAsRetainingNativeQueryStatus() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, SPEL_PARSER, true);
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.isNativeQuery()).isTrue();
 	}
 
 	@Test

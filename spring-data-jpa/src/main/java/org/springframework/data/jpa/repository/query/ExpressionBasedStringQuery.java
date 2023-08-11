@@ -61,7 +61,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
 			boolean nativeQuery) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery);
 	}
 
 	/**
@@ -118,7 +118,10 @@ class ExpressionBasedStringQuery extends StringQuery {
 		return EXPRESSION_PARAMETER_QUOTING.matcher(query).replaceAll(QUOTED_EXPRESSION_PARAMETER);
 	}
 
-	private static boolean containsExpression(String query) {
+	/**
+	 * Does the {@literal query} contains a SpEL expression?
+	 */
+	static boolean containsExpression(String query) {
 		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
 	}
 }
