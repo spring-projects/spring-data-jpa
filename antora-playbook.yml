@@ -4,6 +4,7 @@ antora:
   - require: '@springio/antora-extensions/latest-version-extension'
   - require: '@springio/antora-extensions/inject-collector-cache-config-extension'
   - '@antora/collector-extension'
+  - './antora/lib/version-fix.js'
   - '@antora/atlas-extension'
   - require: '@springio/antora-extensions/root-component-extension'
     root_component_name: 'data-jpa'
@@ -21,6 +22,10 @@ content:
     branches: [ main,'({3..9}).+({0..9}).x', '!(3.{0..1}.x)' ]
     tags: [ '({3..9}).+({0..9}).+({0..9})?(-{RC,M}+({0..9}))', '!(3.{0..1}.+({0..9})?(-{RC,M}+({0..9})))','!(3.2.0-M1)','!(3.2.0-M2)' ]
     start_path: spring-data-jpa/src/main/antora
+  - url: https://github.com/spring-projects/spring-data-jpa
+    branches: []
+    tags: [ '3.2.0-M2' ]
+    start_path: src/main/antora
 asciidoc:
   attributes:
     page-stackoverflow-url: https://stackoverflow.com/tags/spring-data-jpa
