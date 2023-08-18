@@ -109,16 +109,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 *
 	 * @param entityInformation must not be {@literal null}.
-	 * @param entityManager must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 */
-	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
+	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager em) {
 
 		Assert.notNull(entityInformation, "JpaEntityInformation must not be null");
-		Assert.notNull(entityManager, "EntityManager must not be null");
+		Assert.notNull(em, "EntityManager must not be null");
 
 		this.entityInformation = entityInformation;
-		this.em = entityManager;
-		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+		this.em = em;
+		this.provider = PersistenceProvider.fromEntityManager(em);
 	}
 
 	/**
