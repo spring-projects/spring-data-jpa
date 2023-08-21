@@ -99,7 +99,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null";
 
 	private final JpaEntityInformation<T, ?> entityInformation;
-	private final EntityManager em;
+	private final EntityManager entityManager;
 	private final PersistenceProvider provider;
 
 	private @Nullable CrudMethodMetadata metadata;
@@ -109,26 +109,26 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given {@link JpaEntityInformation}.
 	 *
 	 * @param entityInformation must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
-	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager em) {
+	public SimpleJpaRepository(JpaEntityInformation<T, ?> entityInformation, EntityManager entityManager) {
 
 		Assert.notNull(entityInformation, "JpaEntityInformation must not be null");
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.entityInformation = entityInformation;
-		this.em = em;
-		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.entityManager = entityManager;
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 	}
 
 	/**
 	 * Creates a new {@link SimpleJpaRepository} to manage objects of the given domain type.
 	 *
 	 * @param domainClass must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
-	public SimpleJpaRepository(Class<T> domainClass, EntityManager em) {
-		this(JpaEntityInformationSupport.getEntityInformation(domainClass, em), em);
+	public SimpleJpaRepository(Class<T> domainClass, EntityManager entityManager) {
+		this(JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager), entityManager);
 	}
 
 	/**
@@ -188,14 +188,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Class<?> type = ProxyUtils.getUserClass(entity);
 
-		T existing = (T) em.find(type, entityInformation.getId(entity));
+		T existing = (T) entityManager.find(type, entityInformation.getId(entity));
 
 		// if the entity to be deleted doesn't exist, delete is a NOOP
 		if (existing == null) {
 			return;
 		}
 
-		em.remove(em.contains(entity) ? entity : em.merge(entity));
+		entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
 	}
 
 	@Override
@@ -230,7 +230,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
 					entityInformation.getIdAttribute().getName());
 
-			Query query = em.createQuery(queryString);
+			Query query = entityManager.createQuery(queryString);
 
 			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
@@ -271,7 +271,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, em)
+		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities,
+				entityManager)
 				.executeUpdate();
 	}
 
@@ -288,7 +289,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch() {
 
-		Query query = em.createQuery(getDeleteAllQueryString());
+		Query query = entityManager.createQuery(getDeleteAllQueryString());
 
 		applyQueryHints(query);
 
@@ -303,13 +304,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Class<T> domainType = getDomainClass();
 
 		if (metadata == null) {
-			return Optional.ofNullable(em.find(domainType, id));
+			return Optional.ofNullable(entityManager.find(domainType, id));
 		}
 
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.ofNullable(type == null ? em.find(domainType, id, hints) : em.find(domainType, id, type, hints));
+		return Optional.ofNullable(type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
 	@Deprecated
@@ -332,7 +333,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public T getReferenceById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
-		return em.getReference(getDomainClass(), id);
+		return entityManager.getReference(getDomainClass(), id);
 	}
 
 	@Override
@@ -349,7 +350,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
 		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
 
-		TypedQuery<Long> query = em.createQuery(existsQuery, Long.class);
+		TypedQuery<Long> query = entityManager.createQuery(existsQuery, Long.class);
 
 		applyQueryHints(query);
 
@@ -456,20 +457,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public boolean exists(Specification<T> spec) {
 
-		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder() //
+		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
 				.createQuery(Integer.class) //
-				.select(this.em.getCriteriaBuilder().literal(1));
+				.select(this.entityManager.getCriteriaBuilder().literal(1));
 
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
 	@Override
 	public long delete(Specification<T> spec) {
 
-		CriteriaBuilder builder = this.em.getCriteriaBuilder();
+		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
 
 		if (spec != null) {
@@ -480,7 +481,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			}
 		}
 
-		return this.em.createQuery(delete).executeUpdate();
+		return this.entityManager.createQuery(delete).executeUpdate();
 	}
 
 	@Override
@@ -522,7 +523,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
 		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
-				scrollDelegate, this::count, this::exists, this.em);
+				scrollDelegate, this::count, this::exists, this.entityManager);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
@@ -549,13 +550,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public <S extends T> boolean exists(Example<S> example) {
 
 		Specification<S> spec = new ExampleSpecification<>(example, this.escapeCharacter);
-		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder() //
+		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
 				.createQuery(Integer.class) //
-				.select(this.em.getCriteriaBuilder().literal(1));
+				.select(this.entityManager.getCriteriaBuilder().literal(1));
 
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
@@ -595,7 +596,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public long count() {
 
-		TypedQuery<Long> query = em.createQuery(getCountQueryString(), Long.class);
+		TypedQuery<Long> query = entityManager.createQuery(getCountQueryString(), Long.class);
 
 		applyQueryHintsForCount(query);
 
@@ -614,10 +615,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(entity, "Entity must not be null");
 
 		if (entityInformation.isNew(entity)) {
-			em.persist(entity);
+			entityManager.persist(entity);
 			return entity;
 		} else {
-			return em.merge(entity);
+			return entityManager.merge(entity);
 		}
 	}
 
@@ -659,7 +660,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	@Override
 	public void flush() {
-		em.flush();
+		entityManager.flush();
 	}
 
 	/**
@@ -742,7 +743,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
 
-		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query = builder.createQuery(domainClass);
 
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
@@ -752,7 +753,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyRepositoryMethodMetadata(em.createQuery(query));
+		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
 	}
 
 	/**
@@ -774,7 +775,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
 
-		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
@@ -788,7 +789,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return applyRepositoryMethodMetadataForCount(em.createQuery(query));
+		return applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
 	}
 
 	/**
@@ -825,7 +826,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return root;
 		}
 
-		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		Predicate predicate = spec.toPredicate(root, query, builder);
 
 		if (predicate != null) {
@@ -855,7 +856,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		getQueryHints().withFetchGraphs(em).forEach(query::setHint);
+		getQueryHints().withFetchGraphs(entityManager).forEach(query::setHint);
 		applyComment(metadata, query::setHint);
 	}
 
@@ -884,7 +885,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Map<String, Object> hints = new HashMap<>();
 
-		getQueryHints().withFetchGraphs(em).forEach(hints::put);
+		getQueryHints().withFetchGraphs(entityManager).forEach(hints::put);
 
 		if (metadata != null) {
 			applyComment(metadata, hints::put);
