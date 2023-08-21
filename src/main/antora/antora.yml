@@ -1,0 +1,12 @@
+name: data-jpa
+version: true
+title: Spring Data JPA
+nav:
+  - modules/ROOT/nav.adoc
+ext:
+  collector:
+  - run:
+      command: ./mvnw validate process-resources -pl :spring-data-jpa-distribution -am -Pantora-process-resources
+      local: true
+    scan:
+      dir: spring-data-jpa-distribution/target/classes/
