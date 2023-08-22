@@ -1,24 +1,21 @@
 [[spring-data-jpa-reference-documentation]]
 = Spring Data JPA
-Oliver Gierke; Thomas Darimont; Christoph Strobl; Mark Paluch; Jay Bryant; Greg Turnquist
 :revnumber: {version}
 :revdate: {localdate}
 :feature-scroll: true
 
-(C) 2008-2023 The original authors.
+_Spring Data JPA provides repository support for the Jakarta Persistence API (JPA).
+It eases development of applications with a consistent programming model that need to access JPA data sources._
 
-NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
+[horizontal]
+xref:jpa.adoc[JPA] :: JPA and JPA Repositories
+xref:envers.adoc[Envers] :: Support for Envers Revision Repositories
+https://github.com/spring-projects/spring-data-commons/wiki[Wiki] :: What's New,
+Upgrade Notes, Supported Versions, additional cross-version information.
 
-[[preface]]
-== Preface
-:page-section-summary-toc: 1
+Oliver Gierke, Thomas Darimont, Christoph Strobl, Mark Paluch, Jay Bryant, Greg Turnquist
 
-Spring Data JPA provides repository support for the Jakarta Persistence API (JPA). It eases development of applications that need to access JPA data sources.
+(C) 2008-2023 VMware, Inc.
 
-[[project]]
-== Project Metadata
+Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
-* Version control: https://github.com/spring-projects/spring-data-jpa
-* Bugtracker: https://github.com/spring-projects/spring-data-jpa/issues
-* Milestone repository: https://repo.spring.io/milestone
-* Snapshot repository: https://repo.spring.io/snapshot

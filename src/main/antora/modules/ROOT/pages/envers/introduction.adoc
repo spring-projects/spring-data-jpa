@@ -1,0 +1,14 @@
+[[envers.introduction]]
+= Introduction
+
+[[envers.what.is.spring.data]]
+== What is Spring Data Envers?
+
+Spring Data Envers makes typical Envers queries available in repositories for Spring Data JPA.
+It differs from other Spring Data modules in that it is always used in combination with another Spring Data Module: Spring Data JPA.
+
+[[envers.what]]
+== What is Envers?
+
+Envers is a https://hibernate.org/orm/envers/[Hibernate module] that adds auditing capabilities to JPA entities.
+This documentation assumes you are familiar with Envers, just as Spring Data Envers relies on Envers being properly configured.

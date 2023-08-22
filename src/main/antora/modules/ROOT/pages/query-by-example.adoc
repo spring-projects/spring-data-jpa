@@ -1,6 +1,6 @@
 = Query by Example
 
-Spring Data JPA leverages {spring-data-commons-docs-url}/query-by-example.html[Spring Data Commons support for Query by Example].
+include::{commons}@data-commons::page$query-by-example.adoc[leveloffset=+1]
 
 [[query-by-example.running]]
 In Spring Data JPA, you can use Query by Example with Repositories, as shown in the following example:

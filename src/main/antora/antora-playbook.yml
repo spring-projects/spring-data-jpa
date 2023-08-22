@@ -15,6 +15,11 @@ content:
       branches: HEAD
       start_path: src/main/antora
       worktrees: true
+    - url: https://github.com/spring-projects/spring-data-commons
+      # Refname matching:
+      # https://docs.antora.org/antora/latest/playbook/content-refname-matching/
+      branches: [main, 3.2.x]
+      start_path: src/main/antora
 asciidoc:
   attributes:
     page-pagination: ''

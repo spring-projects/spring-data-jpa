@@ -1,0 +1,93 @@
+[[envers.usage]]
+= Usage
+
+You can now use the methods from `RevisionRepository` to query the revisions of the entity, as the following test case shows:
+
+====
+[source,java]
+----
+@ExtendWith(SpringExtension.class)
+@Import(EnversDemoConfiguration.class) // <1>
+class EnversIntegrationTests {
+
+	final PersonRepository repository;
+	final TransactionTemplate tx;
+
+	EnversIntegrationTests(@Autowired PersonRepository repository, @Autowired PlatformTransactionManager tm) {
+		this.repository = repository;
+		this.tx = new TransactionTemplate(tm);
+	}
+
+	@Test
+	void testRepository() {
+
+		Person updated = preparePersonHistory();
+
+		Revisions<Long, Person> revisions = repository.findRevisions(updated.id);
+
+		Iterator<Revision<Long, Person>> revisionIterator = revisions.iterator();
+
+		checkNextRevision(revisionIterator, "John", RevisionType.INSERT);
+		checkNextRevision(revisionIterator, "Jonny", RevisionType.UPDATE);
+		checkNextRevision(revisionIterator, null, RevisionType.DELETE);
+		assertThat(revisionIterator.hasNext()).isFalse();
+
+	}
+
+	/**
+    * Checks that the next element in the iterator is a Revision entry referencing a Person
+    * with the given name after whatever change brought that Revision into existence.
+    * <p>
+    * As a side effect the Iterator gets advanced by one element.
+    *
+    * @param revisionIterator the iterator to be tested.
+    * @param name the expected name of the Person referenced by the Revision.
+    * @param revisionType the type of the revision denoting if it represents an insert, update or delete.
+    */
+	private void checkNextRevision(Iterator<Revision<Long, Person>> revisionIterator, String name,
+			RevisionType revisionType) {
+
+		assertThat(revisionIterator.hasNext()).isTrue();
+		Revision<Long, Person> revision = revisionIterator.next();
+		assertThat(revision.getEntity().name).isEqualTo(name);
+		assertThat(revision.getMetadata().getRevisionType()).isEqualTo(revisionType);
+	}
+
+	/**
+    * Creates a Person with a couple of changes so it has a non-trivial revision history.
+    * @return the created Person.
+    */
+	private Person preparePersonHistory() {
+
+		Person john = new Person();
+		john.setName("John");
+
+		// create
+		Person saved = tx.execute(__ -> repository.save(john));
+		assertThat(saved).isNotNull();
+
+		saved.setName("Jonny");
+
+		// update
+		Person updated = tx.execute(__ -> repository.save(saved));
+		assertThat(updated).isNotNull();
+
+		// delete
+		tx.executeWithoutResult(__ -> repository.delete(updated));
+		return updated;
+	}
+}
+----
+<1> This references the application context configuration presented earlier (in the xref:envers.adoc#envers.configuration[Configuration] section).
+====
+
+[[envers.resources]]
+== Further Resources
+
+You can download the https://github.com/spring-projects/spring-data-examples[Spring Data Envers example in the Spring Data Examples repository] and play around with to get a feel for how the library works.
+
+You should also check out the {spring-data-commons-javadoc-base}/org/springframework/data/repository/history/RevisionRepository.html[Javadoc for `RevisionRepository`] and related classes.
+
+You can ask questions at https://stackoverflow.com/questions/tagged/spring-data-envers[Stackoverflow by using the `spring-data-envers` tag].
+
+The https://github.com/spring-projects/spring-data-jpa[source code and issue tracker for Spring Data Envers is hosted at GitHub] (as a module of Spring Data JPA).

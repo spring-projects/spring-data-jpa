@@ -38,23 +38,23 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
+
+			<plugin>
 				<groupId>io.spring.maven.antora</groupId>
 				<artifactId>antora-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-
-		<profile>
-			<id>antora</id>
-			<build>
-				<plugins>
-
-				</plugins>
-			</build>
-		</profile>
-
-	</profiles>
 
 </project>
