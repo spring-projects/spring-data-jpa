@@ -288,36 +288,28 @@ class StringQuery implements DeclaredQuery {
 						: ParameterOrigin.ofExpression(expression);
 
 				BindingIdentifier targetBinding = queryParameter;
+				Function<BindingIdentifier, ParameterBinding> bindingFactory;
 				switch (ParameterBindingType.of(typeSource)) {
 
 					case LIKE:
 
 						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-
-						if (origin.isExpression()) {
-							parameterBindings.register(new LikeParameterBinding(queryParameter, origin, likeType));
-						} else {
-							targetBinding = parameterBindings.register(queryParameter, origin,
-									(identifier) -> new LikeParameterBinding(identifier, origin, likeType));
-						}
-
+						bindingFactory = (identifier) -> new LikeParameterBinding(identifier, origin, likeType);
 						break;
 
 					case IN:
-
-						parameterBindings.register(new InParameterBinding(queryParameter, origin));
-
+						bindingFactory = (identifier) -> new InParameterBinding(identifier, origin);
 						break;
 
 					case AS_IS: // fall-through we don't need a special parameter queryParameter for the given parameter.
 					default:
+						bindingFactory = (identifier) -> new ParameterBinding(identifier, origin);
+				}
 
-						if (origin.isExpression()) {
-							parameterBindings.register(new ParameterBinding(queryParameter, origin));
-						} else {
-							targetBinding = parameterBindings.register(queryParameter, origin,
-									(identifier) -> new ParameterBinding(identifier, origin));
-						}
+				if (origin.isExpression()) {
+					parameterBindings.register(bindingFactory.apply(queryParameter));
+				} else {
+					targetBinding = parameterBindings.register(queryParameter, origin, bindingFactory);
 				}
 
 				replacement = targetBinding.hasName() ? ":" + targetBinding.getName()
