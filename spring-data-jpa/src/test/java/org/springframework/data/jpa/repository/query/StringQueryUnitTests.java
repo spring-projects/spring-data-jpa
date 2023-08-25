@@ -246,8 +246,6 @@ class StringQueryUnitTests {
 		assertThat(bindings).hasSize(1);
 
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
-
-		softly.assertAll();
 	}
 
 	@Test // DATAJPA-461
@@ -282,8 +280,37 @@ class StringQueryUnitTests {
 		assertThat(bindings).hasSize(1);
 
 		assertPositionalBinding(InParameterBinding.class, 1, bindings.get(0));
+	}
 
-		softly.assertAll();
+	@Test // GH-3126
+	void allowsReuseOfParameterWithInAndRegularBinding() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where COALESCE(?1) is null OR u.id in ?1 OR COALESCE(?1) is null OR u.id in ?1", true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where COALESCE(?1) is null OR u.id in ?2 OR COALESCE(?1) is null OR u.id in ?2");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
+		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
+
+		query = new StringQuery(
+				"select u from User u where COALESCE(:foo) is null OR u.id in :foo OR COALESCE(:foo) is null OR u.id in :foo",
+				true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select u from User u where COALESCE(:foo) is null OR u.id in :foo_1 OR COALESCE(:foo) is null OR u.id in :foo_1");
+
+		bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		assertNamedBinding(ParameterBinding.class, "foo", bindings.get(0));
+		assertNamedBinding(InParameterBinding.class, "foo_1", bindings.get(1));
 	}
 
 	@Test // DATAJPA-461
@@ -360,8 +387,6 @@ class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertNamedBinding(InParameterBinding.class, "abonnés", bindings.get(0));
-
-		softly.assertAll();
 	}
 
 	@Test // DATAJPA-545
