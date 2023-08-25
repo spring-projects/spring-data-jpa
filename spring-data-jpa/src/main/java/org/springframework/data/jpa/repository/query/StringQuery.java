@@ -244,13 +244,6 @@ class StringQuery implements DeclaredQuery {
 			int currentIndex = 0;
 
 			boolean usesJpaStyleParameters = false;
-			if (JDBC_STYLE_PARAM.matcher(resultingQuery).find()) {
-				queryMeta.usesJdbcStyleParameters = true;
-			}
-
-			if (NUMBERED_STYLE_PARAM.matcher(resultingQuery).find() || NAMED_STYLE_PARAM.matcher(resultingQuery).find()) {
-				usesJpaStyleParameters = true;
-			}
 
 			while (matcher.find()) {
 
@@ -261,6 +254,19 @@ class StringQuery implements DeclaredQuery {
 				String parameterIndexString = matcher.group(INDEXED_PARAMETER_GROUP);
 				String parameterName = parameterIndexString != null ? null : matcher.group(NAMED_PARAMETER_GROUP);
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
+
+				String match = matcher.group(0);
+				if (JDBC_STYLE_PARAM.matcher(match).find()) {
+					queryMeta.usesJdbcStyleParameters = true;
+				}
+
+				if (NUMBERED_STYLE_PARAM.matcher(match).find() || NAMED_STYLE_PARAM.matcher(match).find()) {
+					usesJpaStyleParameters = true;
+				}
+
+				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
+					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
+				}
 
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				Assert.isTrue(parameterIndexString != null || parameterName != null,
@@ -273,9 +279,6 @@ class StringQuery implements DeclaredQuery {
 					parameterIndex = expressionParameterIndex;
 				}
 
-				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
-					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
-				}
 
 				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {
