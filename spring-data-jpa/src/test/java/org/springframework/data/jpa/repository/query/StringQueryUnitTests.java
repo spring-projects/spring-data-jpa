@@ -656,6 +656,7 @@ class StringQueryUnitTests {
 		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
 		softly.assertThat(query.hasParameterBindings()).isFalse();
 		softly.assertThat(query.getParameterBindings()).hasSize(0);
+		softly.assertThat(query.usesJdbcStyleParameters()).isFalse();
 
 		softly.assertAll();
 	}
@@ -693,6 +694,20 @@ class StringQueryUnitTests {
 					.describedAs(queryString) //
 					.isTrue();
 		}
+
+		softly.assertAll();
+	}
+
+	@Test // GH-3125
+	void questionMarkInStringLiteralWithParameters() {
+
+		String queryString = "SELECT CAST(REGEXP_SUBSTR(itp.template_as_txt, '(?<=templateId\\\\\\\\=)(\\\\\\\\d+)(?:\\\\\\\\R)') AS INT) AS templateId FROM foo itp WHERE bar = ?1 AND baz = 1";
+		StringQuery query = new StringQuery(queryString, false);
+
+		softly.assertThat(query.getQueryString()).isEqualTo(queryString);
+		softly.assertThat(query.hasParameterBindings()).isTrue();
+		softly.assertThat(query.getParameterBindings()).hasSize(1);
+		softly.assertThat(query.usesJdbcStyleParameters()).isFalse();
 
 		softly.assertAll();
 	}
