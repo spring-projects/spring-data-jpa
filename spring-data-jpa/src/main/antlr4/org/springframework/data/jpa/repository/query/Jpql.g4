@@ -602,6 +602,7 @@ identification_variable
     | INNER
     | KEY
     | LEFT
+    | NEW
     | ORDER
     | OUTER
     | FLOOR

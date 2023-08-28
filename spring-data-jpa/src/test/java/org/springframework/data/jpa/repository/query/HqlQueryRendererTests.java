@@ -1584,4 +1584,20 @@ class HqlQueryRendererTests {
 				order by CTM_UTLRAW_NLSSORT_LOWER(b.nome) ASC
 				""");
 	}
+
+	@Test // GH-3128
+	void newShouldBeLegalAsPartOfAStateFieldPathExpression() {
+
+		assertQuery("""
+				SELECT j
+				FROM AgentUpdateTask j
+				WHERE j.creationTimestamp < :date
+				AND (j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.NEW
+					OR
+					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.STARTED
+					OR
+					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.QUEUED)
+				ORDER BY j.id
+				""");
+	}
 }
