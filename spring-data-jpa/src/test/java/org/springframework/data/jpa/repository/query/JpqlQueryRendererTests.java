@@ -967,4 +967,20 @@ class JpqlQueryRendererTests {
 				WHERE L.isLocked = FALSE OR L.forceUnlockTime < :time
 				""");
 	}
+
+	@Test // GH-3128
+	void newShouldBeLegalAsPartOfAStateFieldPathExpression() {
+
+		assertQuery("""
+				SELECT j
+				FROM AgentUpdateTask j
+				WHERE j.creationTimestamp < :date
+				AND (j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.NEW
+					OR
+					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.STARTED
+					OR
+					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.QUEUED)
+				ORDER BY j.id
+				""");
+	}
 }
