@@ -108,8 +108,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		@Override
 		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
-				EntityManager em) {
-			return new HibernateJpaParametersParameterAccessor(parameters, values, em);
+				EntityManager entityManager) {
+			return new HibernateJpaParametersParameterAccessor(parameters, values, entityManager);
 		}
 
 		@Override
@@ -238,14 +238,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
 	 * determined {@link #GENERIC_JPA} will be returned.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
-	public static PersistenceProvider fromEntityManager(EntityManager em) {
+	public static PersistenceProvider fromEntityManager(EntityManager entityManager) {
 
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
-		Class<?> entityManagerType = em.getDelegate().getClass();
+		Class<?> entityManagerType = entityManager.getDelegate().getClass();
 		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
 
 		if (cachedProvider != null) {
@@ -254,7 +254,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		for (PersistenceProvider provider : ALL) {
 			for (String entityManagerClassName : provider.entityManagerClassNames) {
-				if (isEntityManagerOfType(em, entityManagerClassName)) {
+				if (isEntityManagerOfType(entityManager, entityManagerClassName)) {
 					return cacheAndReturn(entityManagerType, provider);
 				}
 			}
@@ -293,7 +293,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	}
 
 	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
-			EntityManager em) {
+			EntityManager entityManager) {
 		return new JpaParametersParameterAccessor(parameters, values);
 	}
 
@@ -351,7 +351,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "jakarta.persistence.EntityManager";
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
-		// needed as Spring only exposes that interface via the EM proxy
+		// needed as Spring only exposes that interface via the EntityManager proxy
 		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.engine.spi.SessionImplementor";
 
 		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.model.domain.JpaMetamodel";

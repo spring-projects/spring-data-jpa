@@ -55,18 +55,18 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * query {@link String}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
 	 * @param countQueryString must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
 	 * @param queryRewriter must not be {@literal null}.
 	 */
-	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
+	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager entityManager, String queryString,
 			@Nullable String countQueryString, QueryRewriter queryRewriter,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em);
+		super(method, entityManager);
 
 		Assert.hasText(queryString, "Query string must not be null or empty");
 		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null");
@@ -117,11 +117,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	protected Query doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
 		String queryString = countQuery.get().getQueryString();
-		EntityManager em = getEntityManager();
+		EntityManager entityManager = getEntityManager();
 
 		Query query = getQueryMethod().isNativeQuery() //
-				? em.createNativeQuery(queryString) //
-				: em.createQuery(queryString, Long.class);
+				? entityManager.createNativeQuery(queryString) //
+				: entityManager.createQuery(queryString, Long.class);
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(queryString, query);
 
@@ -151,17 +151,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	protected Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable,
 			ReturnedType returnedType) {
 
-		EntityManager em = getEntityManager();
+		EntityManager entityManager = getEntityManager();
 
 		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
-			return em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable));
+			return entityManager.createQuery(potentiallyRewriteQuery(queryString, sort, pageable));
 		}
 
 		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null //
-				? em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable)) //
-				: em.createQuery(potentiallyRewriteQuery(queryString, sort, pageable), typeToRead);
+				? entityManager.createQuery(potentiallyRewriteQuery(queryString, sort, pageable)) //
+				: entityManager.createQuery(potentiallyRewriteQuery(queryString, sort, pageable), typeToRead);
 	}
 
 	/**

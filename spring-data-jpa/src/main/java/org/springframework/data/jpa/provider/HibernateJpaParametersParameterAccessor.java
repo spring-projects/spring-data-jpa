@@ -49,13 +49,13 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
-	HibernateJpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values, EntityManager em) {
+	HibernateJpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values, EntityManager entityManager) {
 
 		super(parameters, values);
 
-		this.typeHelper = em.getEntityManagerFactory() //
+		this.typeHelper = entityManager.getEntityManagerFactory() //
 				.unwrap(SessionFactoryImplementor.class) //
 				.getTypeConfiguration() //
 				.getBasicTypeRegistry();

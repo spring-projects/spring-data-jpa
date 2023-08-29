@@ -65,7 +65,7 @@ import org.springframework.util.Assert;
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private final JpaQueryMethod method;
-	private final EntityManager em;
+	private final EntityManager entityManager;
 	private final JpaMetamodel metamodel;
 	private final PersistenceProvider provider;
 	private final Lazy<JpaQueryExecution> execution;
@@ -76,17 +76,17 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * Creates a new {@link AbstractJpaQuery} from the given {@link JpaQueryMethod}.
 	 *
 	 * @param method
-	 * @param em
+	 * @param entityManager
 	 */
-	public AbstractJpaQuery(JpaQueryMethod method, EntityManager em) {
+	public AbstractJpaQuery(JpaQueryMethod method, EntityManager entityManager) {
 
 		Assert.notNull(method, "JpaQueryMethod must not be null");
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.method = method;
-		this.em = em;
-		this.metamodel = JpaMetamodel.of(em.getMetamodel());
-		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.entityManager = entityManager;
+		this.metamodel = JpaMetamodel.of(entityManager.getMetamodel());
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 		this.execution = Lazy.of(() -> {
 
 			if (method.isStreamQuery()) {
@@ -118,7 +118,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return will never be {@literal null}.
 	 */
 	protected EntityManager getEntityManager() {
-		return em;
+		return entityManager;
 	}
 
 	/**
@@ -153,7 +153,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
 
-		return provider.getParameterAccessor(method.getParameters(), values, em);
+		return provider.getParameterAccessor(method.getParameters(), values, entityManager);
 	}
 
 	protected JpaQueryExecution getExecution() {
@@ -165,7 +165,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		}
 
 		if (method.isModifyingQuery()) {
-			return new ModifyingExecution(method, em);
+			return new ModifyingExecution(method, entityManager);
 		} else {
 			return new SingleEntityExecution();
 		}
@@ -247,7 +247,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
 		if (entityGraph != null) {
-			QueryHints hints = Jpa21Utils.getFetchGraphHint(em, method.getEntityGraph(),
+			QueryHints hints = Jpa21Utils.getFetchGraphHint(entityManager, method.getEntityGraph(),
 					getQueryMethod().getEntityInformation().getJavaType());
 
 			hints.forEach(query::setHint);

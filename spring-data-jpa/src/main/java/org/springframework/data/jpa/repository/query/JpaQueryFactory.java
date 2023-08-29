@@ -40,13 +40,13 @@ enum JpaQueryFactory {
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param countQueryString
 	 * @param queryString must not be {@literal null}.
 	 * @param evaluationContextProvider
 	 * @return
 	 */
-	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
+	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager entityManager, String queryString,
 			@Nullable String countQueryString, QueryRewriter queryRewriter,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
@@ -55,9 +55,9 @@ enum JpaQueryFactory {
 		}
 
 		return method.isNativeQuery()
-				? new NativeJpaQuery(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider,
+				? new NativeJpaQuery(method, entityManager, queryString, countQueryString, queryRewriter, evaluationContextProvider,
 						PARSER)
-				: new SimpleJpaQuery(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider,
+				: new SimpleJpaQuery(method, entityManager, queryString, countQueryString, queryRewriter, evaluationContextProvider,
 						PARSER);
 	}
 
@@ -65,15 +65,15 @@ enum JpaQueryFactory {
 	 * Creates a {@link StoredProcedureJpaQuery} from the given {@link JpaQueryMethod} query.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @return
 	 */
-	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager em) {
+	public StoredProcedureJpaQuery fromProcedureAnnotation(JpaQueryMethod method, EntityManager entityManager) {
 
 		if (method.isScrollQuery()) {
 			throw QueryCreationException.create(method, "Scroll queries are not supported using stored procedures");
 		}
 
-		return new StoredProcedureJpaQuery(method, em);
+		return new StoredProcedureJpaQuery(method, entityManager);
 	}
 }

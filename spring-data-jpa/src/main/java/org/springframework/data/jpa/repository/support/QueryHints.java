@@ -56,10 +56,10 @@ public interface QueryHints {
 	/**
 	 * Creates and returns a new {@link QueryHints} instance including {@link jakarta.persistence.EntityGraph}.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @return new instance of {@link QueryHints}.
 	 */
-	QueryHints withFetchGraphs(EntityManager em);
+	QueryHints withFetchGraphs(EntityManager entityManager);
 
 	/**
 	 * Creates and returns a new {@link QueryHints} instance that will contain only those hints applicable for count
@@ -93,7 +93,7 @@ public interface QueryHints {
 		INSTANCE;
 
 		@Override
-		public QueryHints withFetchGraphs(EntityManager em) {
+		public QueryHints withFetchGraphs(EntityManager entityManager) {
 			return this;
 		}
 

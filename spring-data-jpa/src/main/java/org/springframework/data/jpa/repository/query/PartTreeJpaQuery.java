@@ -59,7 +59,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	private final QueryPreparer query;
 	private final QueryPreparer countQuery;
-	private final EntityManager em;
+	private final EntityManager entityManager;
 	private final EscapeCharacter escape;
 	private final JpaMetamodelEntityInformation<?, Object> entityInformation;
 
@@ -67,30 +67,30 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * Creates a new {@link PartTreeJpaQuery}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
-		this(method, em, EscapeCharacter.DEFAULT);
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager entityManager) {
+		this(method, entityManager, EscapeCharacter.DEFAULT);
 	}
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param escape character used for escaping characters used as patterns in LIKE-expressions.
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, EscapeCharacter escape) {
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager entityManager, EscapeCharacter escape) {
 
-		super(method, em);
+		super(method, entityManager);
 
-		this.em = em;
+		this.entityManager = entityManager;
 		this.escape = escape;
 		this.parameters = method.getParameters();
 
 		Class<?> domainClass = method.getEntityInformation().getJavaType();
-		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
-		this.entityInformation = new JpaMetamodelEntityInformation<>(domainClass, em.getMetamodel(), persistenceUnitUtil);
+		PersistenceUnitUtil persistenceUnitUtil = entityManager.getEntityManagerFactory().getPersistenceUnitUtil();
+		this.entityInformation = new JpaMetamodelEntityInformation<>(domainClass, entityManager.getMetamodel(), persistenceUnitUtil);
 
 		boolean recreationRequired = parameters.hasDynamicProjection() || parameters.potentiallySortsDynamically()
 				|| method.isScrollQuery();
@@ -125,7 +125,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		if (this.getQueryMethod().isScrollQuery()) {
 			return new ScrollExecution(this.tree.getSort(), new ScrollDelegate<>(entityInformation));
 		} else if (this.tree.isDelete()) {
-			return new DeleteExecution(em);
+			return new DeleteExecution(entityManager);
 		} else if (this.tree.isExistsProjection()) {
 			return new ExistsExecution();
 		}

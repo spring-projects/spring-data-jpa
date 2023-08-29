@@ -38,7 +38,7 @@ public class MutableQueryHints implements QueryHints {
 	private final MultiValueMap<String, Object> values = new LinkedMultiValueMap<>();
 
 	@Override
-	public QueryHints withFetchGraphs(EntityManager em) {
+	public QueryHints withFetchGraphs(EntityManager entityManager) {
 		return this;
 	}
 

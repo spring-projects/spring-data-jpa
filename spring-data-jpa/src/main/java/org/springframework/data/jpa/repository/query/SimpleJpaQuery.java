@@ -40,32 +40,32 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
 	 *
 	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
+	 * @param entityManager must not be {@literal null}
 	 * @param countQueryString
 	 * @param queryRewriter must not be {@literal null}
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager entityManager, @Nullable String countQueryString,
 			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
+		this(method, entityManager, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
 	}
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
 	 *
 	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
+	 * @param entityManager must not be {@literal null}
 	 * @param queryString must not be {@literal null} or empty
 	 * @param countQueryString
 	 * @param queryRewriter
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager entityManager, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
 			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
 
-		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
+		super(method, entityManager, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 
@@ -87,11 +87,11 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-		EntityManager validatingEm = null;
+		EntityManager validatingEntityManager = null;
 
 		try {
-			validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager();
-			validatingEm.createQuery(query);
+			validatingEntityManager = getEntityManager().getEntityManagerFactory().createEntityManager();
+			validatingEntityManager.createQuery(query);
 
 		} catch (RuntimeException e) {
 
@@ -101,8 +101,8 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		} finally {
 
-			if (validatingEm != null) {
-				validatingEm.close();
+			if (validatingEntityManager != null) {
+				validatingEntityManager.close();
 			}
 		}
 	}

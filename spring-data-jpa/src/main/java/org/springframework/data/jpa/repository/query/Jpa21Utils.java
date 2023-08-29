@@ -64,7 +64,7 @@ public class Jpa21Utils {
 		// prevent instantiation
 	}
 
-	public static QueryHints getFetchGraphHint(EntityManager em, @Nullable JpaEntityGraph entityGraph,
+	public static QueryHints getFetchGraphHint(EntityManager entityManager, @Nullable JpaEntityGraph entityGraph,
 			Class<?> entityType) {
 
 		MutableQueryHints result = new MutableQueryHints();
@@ -73,7 +73,7 @@ public class Jpa21Utils {
 			return result;
 		}
 
-		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
+		EntityGraph<?> graph = tryGetFetchGraph(entityManager, entityGraph, entityType);
 
 		if (graph == null) {
 			return result;
@@ -88,15 +88,15 @@ public class Jpa21Utils {
 	 *
 	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
 	 *      Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117</a>
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
 	 * @param entityType must not be {@literal null}.
 	 * @return the {@link EntityGraph} described by the given {@code entityGraph}.
 	 */
 	@Nullable
-	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
+	private static EntityGraph<?> tryGetFetchGraph(EntityManager entityManager, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
 
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 		Assert.notNull(jpaEntityGraph, "EntityGraph must not be null");
 		Assert.notNull(entityType, "EntityType must not be null");
 
@@ -106,31 +106,31 @@ public class Jpa21Utils {
 
 		try {
 			// first check whether an entityGraph with that name is already registered.
-			return em.getEntityGraph(jpaEntityGraph.getName());
+			return entityManager.getEntityGraph(jpaEntityGraph.getName());
 		} catch (Exception ex) {
 			// try to create and dynamically register the entityGraph
-			return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+			return createDynamicEntityGraph(entityManager, jpaEntityGraph, entityType);
 		}
 	}
 
 	/**
 	 * Creates a dynamic {@link EntityGraph} from the given {@link JpaEntityGraph} information.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
 	 * @param entityType must not be {@literal null}.
 	 * @return
 	 * @since 1.9
 	 */
-	private static EntityGraph<?> createDynamicEntityGraph(EntityManager em, JpaEntityGraph jpaEntityGraph,
+	private static EntityGraph<?> createDynamicEntityGraph(EntityManager entityManager, JpaEntityGraph jpaEntityGraph,
 			Class<?> entityType) {
 
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 		Assert.notNull(jpaEntityGraph, "JpaEntityGraph must not be null");
 		Assert.notNull(entityType, "Entity type must not be null");
 		Assert.isTrue(jpaEntityGraph.isAdHocEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic");
 
-		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
+		EntityGraph<?> entityGraph = entityManager.createEntityGraph(entityType);
 		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
 
 		return entityGraph;

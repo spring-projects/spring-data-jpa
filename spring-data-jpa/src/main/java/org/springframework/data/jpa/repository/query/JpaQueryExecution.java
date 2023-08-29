@@ -229,7 +229,7 @@ public abstract class JpaQueryExecution {
 	 */
 	static class ModifyingExecution extends JpaQueryExecution {
 
-		private final EntityManager em;
+		private final EntityManager entityManager;
 		private final boolean flush;
 		private final boolean clear;
 
@@ -237,11 +237,11 @@ public abstract class JpaQueryExecution {
 		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or clears
 		 * the given {@link EntityManager} after execution.
 		 *
-		 * @param em Must not be {@literal null}.
+		 * @param entityManager Must not be {@literal null}.
 		 */
-		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
+		public ModifyingExecution(JpaQueryMethod method, EntityManager entityManager) {
 
-			Assert.notNull(em, "The EntityManager must not be null");
+			Assert.notNull(entityManager, "The EntityManager must not be null");
 
 			Class<?> returnType = method.getReturnType();
 
@@ -251,7 +251,7 @@ public abstract class JpaQueryExecution {
 			Assert.isTrue(isInt || isVoid,
 					"Modifying queries can only use void or int/Integer as return type; Offending method: " + method);
 
-			this.em = em;
+			this.entityManager = entityManager;
 			this.flush = method.getFlushAutomatically();
 			this.clear = method.getClearAutomatically();
 		}
@@ -260,13 +260,13 @@ public abstract class JpaQueryExecution {
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (flush) {
-				em.flush();
+				entityManager.flush();
 			}
 
 			int result = query.createQuery(accessor).executeUpdate();
 
 			if (clear) {
-				em.clear();
+				entityManager.clear();
 			}
 
 			return result;
@@ -282,10 +282,10 @@ public abstract class JpaQueryExecution {
 	 */
 	static class DeleteExecution extends JpaQueryExecution {
 
-		private final EntityManager em;
+		private final EntityManager entityManager;
 
-		public DeleteExecution(EntityManager em) {
-			this.em = em;
+		public DeleteExecution(EntityManager entityManager) {
+			this.entityManager = entityManager;
 		}
 
 		@Override
@@ -295,7 +295,7 @@ public abstract class JpaQueryExecution {
 			List<?> resultList = query.getResultList();
 
 			for (Object o : resultList) {
-				em.remove(o);
+				entityManager.remove(o);
 			}
 
 			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();

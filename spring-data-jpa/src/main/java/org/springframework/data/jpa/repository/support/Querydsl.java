@@ -51,23 +51,23 @@ import com.querydsl.jpa.impl.JPAQuery;
  */
 public class Querydsl {
 
-	private final EntityManager em;
+	private final EntityManager entityManager;
 	private final PersistenceProvider provider;
 	private final PathBuilder<?> builder;
 
 	/**
 	 * Creates a new {@link Querydsl} for the given {@link EntityManager} and {@link PathBuilder}.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param builder must not be {@literal null}.
 	 */
-	public Querydsl(EntityManager em, PathBuilder<?> builder) {
+	public Querydsl(EntityManager entityManager, PathBuilder<?> builder) {
 
-		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityManager, "EntityManager must not be null");
 		Assert.notNull(builder, "PathBuilder must not be null");
 
-		this.em = em;
-		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.entityManager = entityManager;
+		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 		this.builder = builder;
 	}
 
@@ -78,12 +78,12 @@ public class Querydsl {
 
 		switch (provider) {
 			case ECLIPSELINK:
-				return new JPAQuery<>(em, EclipseLinkTemplates.DEFAULT);
+				return new JPAQuery<>(entityManager, EclipseLinkTemplates.DEFAULT);
 			case HIBERNATE:
-				return new JPAQuery<>(em, HQLTemplates.DEFAULT);
+				return new JPAQuery<>(entityManager, HQLTemplates.DEFAULT);
 			case GENERIC_JPA:
 			default:
-				return new JPAQuery<>(em);
+				return new JPAQuery<>(entityManager);
 		}
 	}
 

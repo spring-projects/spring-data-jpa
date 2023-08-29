@@ -46,16 +46,16 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * Creates a new {@link NativeJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param queryString must not be {@literal null} or empty.
 	 * @param countQueryString must not be {@literal null} or empty.
 	 * @param rewriter the query rewriter to use.
 	 */
-	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+	public NativeJpaQuery(JpaQueryMethod method, EntityManager entityManager, String queryString, @Nullable String countQueryString,
 			QueryRewriter rewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
 			SpelExpressionParser parser) {
 
-		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
+		super(method, entityManager, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
 
 		Parameters<?, ?> parameters = method.getParameters();
 
@@ -67,11 +67,11 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	@Override
 	protected Query createJpaQuery(String queryString, Sort sort, Pageable pageable, ReturnedType returnedType) {
 
-		EntityManager em = getEntityManager();
+		EntityManager entityManager = getEntityManager();
 		Class<?> type = getTypeToQueryFor(returnedType);
 
-		return type == null ? em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable))
-				: em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable), type);
+		return type == null ? entityManager.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable))
+				: entityManager.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable), type);
 	}
 
 	@Nullable

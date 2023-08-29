@@ -56,9 +56,9 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Creates a new {@link NamedQuery}.
 	 */
-	private NamedQuery(JpaQueryMethod method, EntityManager em) {
+	private NamedQuery(JpaQueryMethod method, EntityManager entityManager) {
 
-		super(method, em);
+		super(method, entityManager);
 
 		this.queryName = method.getNamedQueryName();
 		this.countQueryName = method.getNamedCountQueryName();
@@ -72,9 +72,9 @@ final class NamedQuery extends AbstractJpaQuery {
 					+ "not contain a sort parameter as we cannot modify the query; Use @Query instead", method));
 		}
 
-		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
+		this.namedCountQueryIsPresent = hasNamedQuery(entityManager, countQueryName);
 
-		Query query = em.createNamedQuery(queryName);
+		Query query = entityManager.createNamedQuery(queryName);
 		String queryString = extractor.extractQueryString(query);
 
 		this.declaredQuery = DeclaredQuery.of(queryString, false);
@@ -98,19 +98,19 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Returns whether the named query with the given name exists.
 	 *
-	 * @param em        must not be {@literal null}.
+	 * @param entityManager        must not be {@literal null}.
 	 * @param queryName must not be {@literal null}.
 	 */
-	static boolean hasNamedQuery(EntityManager em, String queryName) {
+	static boolean hasNamedQuery(EntityManager entityManager, String queryName) {
 
 		/*
-		 * See DATAJPA-617, we have to use a dedicated em for the lookups to avoid a
+		 * See DATAJPA-617, we have to use a dedicated entityManager for the lookups to avoid a
 		 * potential rollback of the running tx.
 		 */
-		EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager();
+		EntityManager lookupEntityManager = entityManager.getEntityManagerFactory().createEntityManager();
 
 		try {
-			lookupEm.createNamedQuery(queryName);
+			lookupEntityManager.createNamedQuery(queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
 
@@ -119,7 +119,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			}
 			return false;
 		} finally {
-			lookupEm.close();
+			lookupEntityManager.close();
 		}
 	}
 
@@ -127,10 +127,10 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em     must not be {@literal null}.
+	 * @param entityManager     must not be {@literal null}.
 	 */
 	@Nullable
-	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
+	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager entityManager) {
 
 		final String queryName = method.getNamedQueryName();
 
@@ -138,7 +138,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			LOG.debug(String.format("Looking up named query %s", queryName));
 		}
 
-		if (!hasNamedQuery(em, queryName)) {
+		if (!hasNamedQuery(entityManager, queryName)) {
 			return null;
 		}
 
@@ -148,7 +148,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		try {
 
-			RepositoryQuery query = new NamedQuery(method, em);
+			RepositoryQuery query = new NamedQuery(method, entityManager);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(String.format("Found named query %s", queryName));
 			}
@@ -161,7 +161,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Override
 	protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
-		EntityManager em = getEntityManager();
+		EntityManager entityManager = getEntityManager();
 
 		JpaQueryMethod queryMethod = getQueryMethod();
 		ResultProcessor processor = queryMethod.getResultProcessor().withDynamicProjection(accessor);
@@ -169,8 +169,8 @@ final class NamedQuery extends AbstractJpaQuery {
 		Class<?> typeToRead = getTypeToRead(processor.getReturnedType());
 
 		Query query = typeToRead == null //
-				? em.createNamedQuery(queryName) //
-				: em.createNamedQuery(queryName, typeToRead);
+				? entityManager.createNamedQuery(queryName) //
+				: entityManager.createNamedQuery(queryName, typeToRead);
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(queryName, query);
 
@@ -180,19 +180,19 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Override
 	protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 
-		EntityManager em = getEntityManager();
+		EntityManager entityManager = getEntityManager();
 		TypedQuery<Long> countQuery;
 
 		String cacheKey;
 		if (namedCountQueryIsPresent) {
 			cacheKey = countQueryName;
-			countQuery = em.createNamedQuery(countQueryName, Long.class);
+			countQuery = entityManager.createNamedQuery(countQueryName, Long.class);
 
 		} else {
 
 			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
 			cacheKey = countQueryString;
-			countQuery = em.createQuery(countQueryString, Long.class);
+			countQuery = entityManager.createQuery(countQueryString, Long.class);
 		}
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(cacheKey, countQuery);

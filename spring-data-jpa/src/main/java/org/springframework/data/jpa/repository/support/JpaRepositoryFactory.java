@@ -323,13 +323,13 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		/**
 		 * Creates a new {@link EclipseLinkProjectionQueryCreationListener} for the given {@link EntityManager}.
 		 *
-		 * @param em must not be {@literal null}.
+		 * @param entityManager must not be {@literal null}.
 		 */
-		public EclipseLinkProjectionQueryCreationListener(EntityManager em) {
+		public EclipseLinkProjectionQueryCreationListener(EntityManager entityManager) {
 
-			Assert.notNull(em, "EntityManager must not be null");
+			Assert.notNull(entityManager, "EntityManager must not be null");
 
-			this.metamodel = JpaMetamodel.of(em.getMetamodel());
+			this.metamodel = JpaMetamodel.of(entityManager.getMetamodel());
 		}
 
 		@Override

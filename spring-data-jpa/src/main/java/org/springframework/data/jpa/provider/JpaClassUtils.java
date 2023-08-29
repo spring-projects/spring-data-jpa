@@ -39,14 +39,14 @@ abstract class JpaClassUtils {
 	/**
 	 * Returns whether the given {@link EntityManager} is of the given type.
 	 *
-	 * @param em must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
 	 * @return whether the given {@code EntityManager} is of the given type.
 	 */
-	public static boolean isEntityManagerOfType(EntityManager em, String type) {
+	public static boolean isEntityManagerOfType(EntityManager entityManager, String type) {
 
-		EntityManager entityManagerToUse = em;
-		Object delegate = em.getDelegate();
+		EntityManager entityManagerToUse = entityManager;
+		Object delegate = entityManager.getDelegate();
 
 		if (delegate instanceof EntityManager) {
 			entityManagerToUse = (EntityManager) delegate;

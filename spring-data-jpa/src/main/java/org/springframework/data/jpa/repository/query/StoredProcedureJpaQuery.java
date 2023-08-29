@@ -55,11 +55,11 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * Creates a new {@link StoredProcedureJpaQuery}.
 	 *
 	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
+	 * @param entityManager must not be {@literal null}
 	 */
-	StoredProcedureJpaQuery(JpaQueryMethod method, EntityManager em) {
+	StoredProcedureJpaQuery(JpaQueryMethod method, EntityManager entityManager) {
 
-		super(method, em);
+		super(method, entityManager);
 		this.procedureAttributes = method.getProcedureAttributes();
 		this.useNamedParameters = useNamedParameters(method);
 	}
