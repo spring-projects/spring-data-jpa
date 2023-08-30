@@ -32,13 +32,14 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+				GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+				GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
 				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 			}
 			steps {
 				script {
 					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 						sh 'PROFILE=all-dbs ci/test.sh'
-						sh "ci/clean.sh"
 					}
 				}
 			}
@@ -61,13 +62,14 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
 							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
 								sh 'PROFILE=all-dbs,hibernate-63-next ci/test.sh'
-								sh "ci/clean.sh"
 							}
 						}
 					}
@@ -79,13 +81,14 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
 							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
 								sh 'PROFILE=all-dbs ci/test.sh'
-								sh "ci/clean.sh"
 							}
 						}
 					}
@@ -97,13 +100,14 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
 						script {
 							docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 								sh 'PROFILE=all-dbs,eclipselink-next ci/test.sh'
-								sh "ci/clean.sh"
 							}
 						}
 					}
@@ -126,19 +130,27 @@ pipeline {
 
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+				GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+				GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
 			}
 
 			steps {
 				script {
 					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ./mvnw -s settings.xml -Pci,artifactory ' +
+						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ' +
+								'GRADLE_ENTERPRISE_CACHE_USERNAME=${GRADLE_ENTERPRISE_CACHE_USR} ' +
+								'GRADLE_ENTERPRISE_CACHE_PASSWORD=${GRADLE_ENTERPRISE_CACHE_PSW} ' +
+								'GRADLE_ENTERPRISE_ACCESS_KEY=${GRADLE_ENTERPRISE_ACCESS_KEY} ' +
+								'./mvnw -s settings.xml -Pci,artifactory ' +
 								'-Dartifactory.server=https://repo.spring.io ' +
 								"-Dartifactory.username=${ARTIFACTORY_USR} " +
 								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
 								"-Dartifactory.staging-repository=libs-snapshot-local " +
 								"-Dartifactory.build-name=spring-data-jpa " +
 								"-Dartifactory.build-number=${BUILD_NUMBER} " +
-								'-Dmaven.test.skip=true clean deploy -U -B'
+								'-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
+								'-Dmaven.test.skip=true clean deploy -U -B '
+
 					}
 				}
 			}
