@@ -85,7 +85,7 @@ class JpaQueryTransformerSupport {
 	 */
 	private void checkSortExpression(Sort.Order order) {
 
-		if (order instanceof JpaSort.JpaOrder && ((JpaSort.JpaOrder) order).isUnsafe()) {
+		if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
 			return;
 		}
 

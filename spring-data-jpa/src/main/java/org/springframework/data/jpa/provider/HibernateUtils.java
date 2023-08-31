@@ -45,8 +45,8 @@ public abstract class HibernateUtils {
 		try {
 
 			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery) {
-				return ((SqmQuery) query).getSqmStatement().toHqlString();
+			if (query instanceof SqmQuery sqmQuery) {
+				return sqmQuery.getSqmStatement().toHqlString();
 			}
 
 			// Couple of cases in which this still breaks, see HHH-15389

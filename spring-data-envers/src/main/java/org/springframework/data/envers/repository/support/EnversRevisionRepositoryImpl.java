@@ -169,8 +169,8 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		AuditQuery baseQuery = createBaseQuery(id);
 
-		List<AuditOrder> orderMapped = (pageable.getSort() instanceof RevisionSort) ?
-				Collections.singletonList(mapRevisionSort((RevisionSort) pageable.getSort())) :
+		List<AuditOrder> orderMapped = (pageable.getSort() instanceof RevisionSort revisionSort) ?
+				Collections.singletonList(mapRevisionSort(revisionSort)) :
 				mapPropertySort(pageable.getSort());
 
 		orderMapped.forEach(baseQuery::addOrder);
@@ -232,8 +232,8 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		RevisionMetadata<?> createRevisionMetadata() {
 
-			return metadata instanceof DefaultRevisionEntity //
-					? new DefaultRevisionMetadata((DefaultRevisionEntity) metadata, revisionType) //
+			return metadata instanceof DefaultRevisionEntity defaultRevisionEntity //
+					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType) //
 					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
 					revisionType);
 		}

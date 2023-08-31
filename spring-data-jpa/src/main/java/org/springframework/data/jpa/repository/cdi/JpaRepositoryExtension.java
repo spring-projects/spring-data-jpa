@@ -68,7 +68,7 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 		Bean<X> bean = processBean.getBean();
 		for (Type type : bean.getTypes()) {
 			// Check if the bean is an EntityManager.
-			if (type instanceof Class<?> && EntityManager.class.isAssignableFrom((Class<?>) type)) {
+			if (type instanceof Class<?> classType && EntityManager.class.isAssignableFrom(classType)) {
 				Set<Annotation> qualifiers = new HashSet<>(bean.getQualifiers());
 				if (bean.isAlternative() || !entityManagers.containsKey(qualifiers)) {
 					LOGGER.debug(String.format("Discovered '%s' with qualifiers %s", EntityManager.class.getName(), qualifiers));
