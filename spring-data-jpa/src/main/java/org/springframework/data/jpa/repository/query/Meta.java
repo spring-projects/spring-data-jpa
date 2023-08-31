@@ -103,7 +103,7 @@ public class Meta {
 			values = new LinkedHashMap<>(2);
 		}
 
-		if (value == null || (value instanceof String && !StringUtils.hasText((String) value))) {
+		if (value == null || (value instanceof String stringValue && !StringUtils.hasText(stringValue))) {
 			this.values.remove(key);
 		}
 		this.values.put(key, value);

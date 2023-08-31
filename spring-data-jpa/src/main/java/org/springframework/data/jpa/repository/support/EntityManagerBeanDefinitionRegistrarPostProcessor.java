@@ -64,12 +64,11 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 
 			BeanFactory definitionFactory = definition.getBeanFactory();
 
-			if (!(definitionFactory instanceof BeanDefinitionRegistry)) {
+			if (!(definitionFactory instanceof BeanDefinitionRegistry definitionRegistry)) {
 				continue;
 			}
 
 			String entityManagerBeanName = "jpaSharedEM_AWC_" + definition.getBeanName();
-			BeanDefinitionRegistry definitionRegistry = (BeanDefinitionRegistry) definitionFactory;
 
 			if (!beanFactory.containsBeanDefinition(entityManagerBeanName)
 					&& !definitionRegistry.containsBeanDefinition(entityManagerBeanName)) {
