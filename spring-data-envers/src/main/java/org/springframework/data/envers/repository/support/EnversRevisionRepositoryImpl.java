@@ -240,17 +240,12 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		private static RevisionMetadata.RevisionType convertRevisionType(RevisionType datum) {
 
-			switch (datum) {
-
-				case ADD:
-					return INSERT;
-				case MOD:
-					return UPDATE;
-				case DEL:
-					return DELETE;
-				default:
-					return UNKNOWN;
-			}
+            return switch (datum) {
+                case ADD -> INSERT;
+                case MOD -> UPDATE;
+                case DEL -> DELETE;
+                default -> UNKNOWN;
+            };
 		}
 	}
 
