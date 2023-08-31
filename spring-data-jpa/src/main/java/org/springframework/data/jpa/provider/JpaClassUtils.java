@@ -48,8 +48,8 @@ abstract class JpaClassUtils {
 		EntityManager entityManagerToUse = em;
 		Object delegate = em.getDelegate();
 
-		if (delegate instanceof EntityManager) {
-			entityManagerToUse = (EntityManager) delegate;
+		if (delegate instanceof EntityManager delegateEntityManager) {
+			entityManagerToUse = delegateEntityManager;
 		}
 
 		return isOfType(entityManagerToUse, type, entityManagerToUse.getClass().getClassLoader());

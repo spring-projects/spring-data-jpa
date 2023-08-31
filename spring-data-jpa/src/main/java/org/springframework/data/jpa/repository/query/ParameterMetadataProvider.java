@@ -274,9 +274,8 @@ class ParameterMetadataProvider {
 				return null;
 			}
 
-			if (value instanceof Collection) {
+			if (value instanceof Collection<?> collection) {
 
-				Collection<?> collection = (Collection<?>) value;
 				return collection.isEmpty() ? null : collection;
 			}
 

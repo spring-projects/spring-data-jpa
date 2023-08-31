@@ -846,11 +846,9 @@ public abstract class QueryUtils {
 			return true;
 		}
 
-		if (!(propertyPathModel instanceof Attribute)) {
+		if (!(propertyPathModel instanceof Attribute<?, ?> attribute)) {
 			return false;
 		}
-
-		Attribute<?, ?> attribute = (Attribute<?, ?>) propertyPathModel;
 
 		// not a persistent attribute type association (@OneToOne, @ManyToOne)
 		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
@@ -882,11 +880,11 @@ public abstract class QueryUtils {
 
 		Member member = attribute.getJavaMember();
 
-		if (!(member instanceof AnnotatedElement)) {
+		if (!(member instanceof AnnotatedElement annotatedMember)) {
 			return defaultValue;
 		}
 
-		Annotation annotation = AnnotationUtils.getAnnotation((AnnotatedElement) member, associationAnnotation);
+		Annotation annotation = AnnotationUtils.getAnnotation(annotatedMember, associationAnnotation);
 		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
 	}
 
@@ -945,7 +943,7 @@ public abstract class QueryUtils {
 	 */
 	static void checkSortExpression(Order order) {
 
-		if (order instanceof JpaOrder && ((JpaOrder) order).isUnsafe()) {
+		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
 			return;
 		}
 

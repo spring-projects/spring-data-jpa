@@ -137,8 +137,8 @@ public class Querydsl {
 			return query;
 		}
 
-		if (sort instanceof QSort) {
-			return addOrderByFrom((QSort) sort, query);
+		if (sort instanceof QSort qsort) {
+			return addOrderByFrom(qsort, query);
 		}
 
 		return addOrderByFrom(sort, query);

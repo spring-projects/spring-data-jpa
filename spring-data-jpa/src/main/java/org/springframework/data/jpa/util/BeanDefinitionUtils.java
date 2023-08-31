@@ -107,8 +107,8 @@ public final class BeanDefinitionUtils {
 
 		BeanFactory parentBeanFactory = beanFactory.getParentBeanFactory();
 
-		if (parentBeanFactory instanceof ConfigurableListableBeanFactory) {
-			definitions.addAll(getEntityManagerFactoryBeanDefinitions((ConfigurableListableBeanFactory) parentBeanFactory));
+		if (parentBeanFactory instanceof ConfigurableListableBeanFactory parentConfigurableListableBeanFactory) {
+			definitions.addAll(getEntityManagerFactoryBeanDefinitions(parentConfigurableListableBeanFactory));
 		}
 
 		return definitions;
@@ -157,8 +157,8 @@ public final class BeanDefinitionUtils {
 
 			BeanFactory parentBeanFactory = beanFactory.getParentBeanFactory();
 
-			if (parentBeanFactory instanceof ConfigurableListableBeanFactory) {
-				return getBeanDefinition(name, (ConfigurableListableBeanFactory) parentBeanFactory);
+			if (parentBeanFactory instanceof ConfigurableListableBeanFactory parentConfigurableListableBeanFactory) {
+				return getBeanDefinition(name, parentConfigurableListableBeanFactory);
 			}
 
 			throw o_O;
