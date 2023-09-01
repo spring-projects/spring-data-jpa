@@ -80,6 +80,29 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.appendExpression(visit(ctx.orderby_clause()));
 		}
 
+		ctx.setOperator_with_select_statement().forEach(setOperatorWithSelectStatementContext -> {
+			tokens.addAll(visit(setOperatorWithSelectStatementContext));
+		});
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitSetOperator_with_select_statement(
+			JpqlParser.SetOperator_with_select_statementContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		if (ctx.INTERSECT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.INTERSECT()));
+		} else if (ctx.UNION() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.UNION()));
+		} else if (ctx.EXCEPT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.EXCEPT()));
+		}
+
+		tokens.addAll(visit(ctx.select_statement()));
+
 		return builder;
 	}
 
@@ -800,6 +823,25 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		if (ctx.nullsPrecedence() != null) {
 			builder.append(visit(ctx.nullsPrecedence()));
 		}
+		if (ctx.nullsPrecedence() != null) {
+			tokens.addAll(visit(ctx.nullsPrecedence()));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitNullsPrecedence(JpqlParser.NullsPrecedenceContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.NULLS()));
+
+		if (ctx.FIRST() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.FIRST()));
+		} else if (ctx.LAST() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.LAST()));
+		}
 
 		return builder;
 	}
@@ -1518,6 +1560,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(visit(ctx.type_cast_function()));
 		} else if (ctx.function_invocation() != null) {
 			builder.append(visit(ctx.function_invocation()));
+		} else if (ctx.op != null) {
+
+			tokens.addAll(visit(ctx.string_expression(0)));
+			tokens.add(new JpaQueryParsingToken(ctx.op));
+			tokens.addAll(visit(ctx.string_expression(1)));
 		} else if (ctx.subquery() != null) {
 
 			builder.append(TOKEN_OPEN_PAREN);
