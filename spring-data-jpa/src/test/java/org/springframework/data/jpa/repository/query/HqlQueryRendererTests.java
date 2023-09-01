@@ -1639,42 +1639,36 @@ class HqlQueryRendererTests {
 	@Test // GH-2962
 	void orderByWithNullsFirstOrLastShouldWork() {
 
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-					select a,
-						case
-							when a.geaendertAm is null then a.erstelltAm
-							else a.geaendertAm end as mutationAm
-					from Element a
-					where a.erstelltDurch = :variable
-					order by mutationAm desc nulls first
-					""");
-		});
+		assertQuery("""
+				select a,
+					case
+						when a.geaendertAm is null then a.erstelltAm
+						else a.geaendertAm end as mutationAm
+				from Element a
+				where a.erstelltDurch = :variable
+				order by mutationAm desc nulls first
+				""");
 
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-						select a,
-							case
-								when a.geaendertAm is null then a.erstelltAm
-								else a.geaendertAm end as mutationAm
-						from Element a
-						where a.erstelltDurch = :variable
-						order by mutationAm desc nulls last
+		assertQuery("""
+				select a,
+					case
+						when a.geaendertAm is null then a.erstelltAm
+						else a.geaendertAm end as mutationAm
+				from Element a
+				where a.erstelltDurch = :variable
+				order by mutationAm desc nulls last
 					""");
-		});
 	}
 
 	@Test // GH-2964
 	void roundFunctionShouldWorkLikeAnyOtherFunction() {
 
-		assertThatNoException().isThrownBy(() -> {
-			parseWithoutChanges("""
-					select round(count(ri) * 100 / max(ri.receipt.positions), 0) as perc
-					from StockOrderItem oi
-					right join StockReceiptItem ri
-					on ri.article = oi.article
-					""");
-		});
+		assertQuery("""
+				select round(count(ri)*100/max(ri.receipt.positions), 0) as perc
+				from StockOrderItem oi
+				right join StockReceiptItem ri
+				on ri.article = oi.article
+				""");
 	}
 
 	@Test // GH-3711
@@ -1852,6 +1846,42 @@ class HqlQueryRendererTests {
 	@Test // GH-3143
 	void powerShouldBeLegalInAQuery() {
 		assertQuery("select e.power.id from MyEntity e");
+	}
+
+	@Test // GH-3136
+	void doublePipeShouldBeValidAsAStringConcatOperator() {
+
+		assertQuery("""
+				select e.name || ' ' || e.title
+				from Employee e
+				""");
+	}
+
+	@Test // GH-3136
+	void additionalStringOperationsShouldWork() {
+
+		assertQuery("""
+				select
+					replace(e.name, 'Baggins', 'Proudfeet'),
+					left(e.role, 4),
+					right(e.home, 5),
+					cast(e.distance_from_home, int)
+				from Employee e
+				""");
+	}
+
+	@Test // GH-3136
+	void combinedSelectStatementsShouldWork() {
+
+		assertQuery("""
+				select e from Employee e where e.last_name = 'Baggins'
+				intersect
+				select e from Employee e where e.first_name = 'Samwise'
+				union
+				select e from Employee e where e.home = 'The Shire'
+				except
+				select e from Employee e where e.home = 'Isengard'
+				""");
 	}
 
 	@Test // GH-3219

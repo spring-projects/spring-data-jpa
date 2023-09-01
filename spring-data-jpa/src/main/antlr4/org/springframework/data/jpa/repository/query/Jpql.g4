@@ -43,7 +43,13 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)?
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (setOperator_with_select_statement)*
+    ;
+
+setOperator_with_select_statement
+    : INTERSECT select_statement
+    | UNION select_statement
+    | EXCEPT select_statement
     ;
 
 update_statement
@@ -439,6 +445,7 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
+    | string_expression op='||' string_expression
     | '(' subquery ')'
     ;
 
@@ -887,6 +894,7 @@ ELSE                        : E L S E;
 EMPTY                       : E M P T Y;
 ENTRY                       : E N T R Y;
 ESCAPE                      : E S C A P E;
+EXCEPT                      : E X C E P T;
 EXISTS                      : E X I S T S;
 EXP                         : E X P;
 EXTRACT                     : E X T R A C T;
@@ -901,6 +909,7 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
 JOIN                        : J O I N;
 KEY                         : K E Y;
@@ -945,6 +954,7 @@ TREAT                       : T R E A T;
 TRIM                        : T R I M;
 TRUE                        : T R U E;
 TYPE                        : T Y P E;
+UNION                       : U N I O N;
 UPDATE                      : U P D A T E;
 UPPER                       : U P P E R;
 VALUE                       : V A L U E;
