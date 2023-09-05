@@ -28,6 +28,8 @@ import org.springframework.util.ClassUtils;
  * @author Oliver Gierke
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Donghun Shin
+ * @author Greg Turnquist
  */
 abstract class JpaClassUtils {
 
@@ -45,12 +47,9 @@ abstract class JpaClassUtils {
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
 
-		EntityManager entityManagerToUse = em;
-		Object delegate = em.getDelegate();
-
-		if (delegate instanceof EntityManager delegateEntityManager) {
-			entityManagerToUse = delegateEntityManager;
-		}
+		EntityManager entityManagerToUse = em.getDelegate()instanceof EntityManager delegate //
+				? delegate //
+				: em;
 
 		return isOfType(entityManagerToUse, type, entityManagerToUse.getClass().getClassLoader());
 	}

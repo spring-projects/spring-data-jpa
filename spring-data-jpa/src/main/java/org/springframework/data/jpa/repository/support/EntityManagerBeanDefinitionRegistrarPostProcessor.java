@@ -43,6 +43,7 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  * @author Oliver Gierke
  * @author Réda Housni Alaoui
  * @author Mark Paluch
+ * @author Donghun Shin
  */
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
 

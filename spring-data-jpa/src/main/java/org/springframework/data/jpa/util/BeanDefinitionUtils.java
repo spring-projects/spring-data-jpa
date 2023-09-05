@@ -18,14 +18,14 @@ package org.springframework.data.jpa.util;
 import static java.util.Arrays.*;
 import static org.springframework.beans.factory.BeanFactoryUtils.*;
 
+import jakarta.persistence.EntityManagerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import jakarta.persistence.EntityManagerFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -43,6 +43,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Oliver Gierke
  * @author Mark Paluch
+ * @author Donghun Shin
  */
 public final class BeanDefinitionUtils {
 

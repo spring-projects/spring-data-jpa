@@ -18,7 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.ParameterExpression;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -46,6 +51,8 @@ import org.springframework.util.ObjectUtils;
  * @author Jens Schauder
  * @author Andrey Kovalev
  * @author Yuriy Tsarkov
+ * @author Donghun Shin
+ * @author Greg Turnquist
  */
 class ParameterMetadataProvider {
 
@@ -275,7 +282,6 @@ class ParameterMetadataProvider {
 			}
 
 			if (value instanceof Collection<?> collection) {
-
 				return collection.isEmpty() ? null : collection;
 			}
 
