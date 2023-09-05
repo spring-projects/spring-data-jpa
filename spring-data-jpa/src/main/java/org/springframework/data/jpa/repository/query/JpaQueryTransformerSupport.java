@@ -18,6 +18,7 @@ import org.springframework.util.ObjectUtils;
  * Transformational operations needed to support either {@link HqlQueryTransformer} or {@link JpqlQueryTransformer}.
  * 
  * @author Greg Turnquist
+ * @author Donghun Shin
  * @since 3.1
  */
 class JpaQueryTransformerSupport {

@@ -15,7 +15,15 @@
  */
 package org.springframework.data.envers.repository.support;
 
+import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
+
 import jakarta.persistence.EntityManager;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
@@ -43,13 +51,6 @@ import org.springframework.data.repository.history.support.RevisionEntityInforma
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
-
 /**
  * Repository implementation using Hibernate Envers to implement revision specific query methods.
  *
@@ -61,6 +62,8 @@ import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
  * @author Mark Paluch
  * @author Sander Bylemans
  * @author Niklas Loechte
+ * @author Donghun Shin
+ * @author Greg Turnquist
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
@@ -73,12 +76,12 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	 * Creates a new {@link EnversRevisionRepositoryImpl} using the given {@link JpaEntityInformation},
 	 * {@link RevisionEntityInformation} and {@link EntityManager}.
 	 *
-	 * @param entityInformation         must not be {@literal null}.
+	 * @param entityInformation must not be {@literal null}.
 	 * @param revisionEntityInformation must not be {@literal null}.
-	 * @param entityManager             must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
 	public EnversRevisionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation,
-										RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
+			RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
 
 		Assert.notNull(revisionEntityInformation, "RevisionEntityInformation must not be null!");
 
@@ -136,7 +139,6 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		return Revisions.of(revisionList);
 	}
 
-
 	private AuditOrder mapRevisionSort(RevisionSort revisionSort) {
 
 		return RevisionSort.getRevisionDirection(revisionSort).isDescending() //
@@ -154,9 +156,9 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		for (Sort.Order order : sort) {
 
 			AuditProperty<Object> property = AuditEntity.property(order.getProperty());
-			AuditOrder auditOrder = order.getDirection().isAscending() ?
-					property.asc() :
-					property.desc();
+			AuditOrder auditOrder = order.getDirection().isAscending() //
+					? property.asc() //
+					: property.desc();
 
 			result.add(auditOrder);
 		}
@@ -169,9 +171,9 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		AuditQuery baseQuery = createBaseQuery(id);
 
-		List<AuditOrder> orderMapped = (pageable.getSort() instanceof RevisionSort revisionSort) ?
-				Collections.singletonList(mapRevisionSort(revisionSort)) :
-				mapPropertySort(pageable.getSort());
+		List<AuditOrder> orderMapped = (pageable.getSort()instanceof RevisionSort revisionSort)
+				? List.of(mapRevisionSort(revisionSort))
+				: mapPropertySort(pageable.getSort());
 
 		orderMapped.forEach(baseQuery::addOrder);
 
@@ -235,17 +237,17 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			return metadata instanceof DefaultRevisionEntity defaultRevisionEntity //
 					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType) //
 					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
-					revisionType);
+							revisionType);
 		}
 
 		private static RevisionMetadata.RevisionType convertRevisionType(RevisionType datum) {
 
-            return switch (datum) {
-                case ADD -> INSERT;
-                case MOD -> UPDATE;
-                case DEL -> DELETE;
-                default -> UNKNOWN;
-            };
+			return switch (datum) {
+				case ADD -> INSERT;
+				case MOD -> UPDATE;
+				case DEL -> DELETE;
+				default -> UNKNOWN;
+			};
 		}
 	}
 

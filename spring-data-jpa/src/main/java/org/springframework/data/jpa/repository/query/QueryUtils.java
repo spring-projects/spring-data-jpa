@@ -80,6 +80,7 @@ import org.springframework.util.StringUtils;
  * @author Simon Paradies
  * @author Vladislav Yukharin
  * @author Chris Fraser
+ * @author Donghun Shin
  */
 public abstract class QueryUtils {
 

@@ -48,6 +48,7 @@ import com.querydsl.jpa.impl.JPAQuery;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Marcus Voltolim
+ * @author Donghun Shin
  */
 public class Querydsl {
 

@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
  * Value object to hold metadata about repository methods.
  *
  * @author Greg Turnquist
+ * @author Donghun Shin
  * @since 3.0
  * @see org.springframework.data.jpa.repository.Meta
  */
