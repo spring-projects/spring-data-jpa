@@ -46,17 +46,17 @@ interface DeclaredQuery {
 	 *
 	 * @param query might be {@literal null} or empty.
 	 * @param nativeQuery is a given query is native or not
-	 * @param method is a {@link JpaQueryMethod} that has the related metadata
+	 * @param entityMetadata is a {@link JpaEntityMetadata} that might be {@literal null}
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
-	static DeclaredQuery of(@Nullable String query, Boolean nativeQuery, @Nullable JpaQueryMethod method) {
+	static DeclaredQuery of(@Nullable String query, Boolean nativeQuery, @Nullable JpaEntityMetadata<?> entityMetadata) {
 
 		if (ObjectUtils.isEmpty(query)) {
 			return EmptyDeclaredQuery.EMPTY_QUERY;
 		}
 
-		if (ExpressionBasedStringQuery.containsExpression(query) && method != null) {
-			return new ExpressionBasedStringQuery(query, method.getEntityInformation(), JpaQueryFactory.PARSER, nativeQuery);
+		if (ExpressionBasedStringQuery.containsExpression(query) && entityMetadata != null) {
+			return new ExpressionBasedStringQuery(query, entityMetadata, JpaQueryFactory.PARSER, nativeQuery);
 		}
 
 		return new StringQuery(query, nativeQuery);
