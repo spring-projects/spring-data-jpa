@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -37,7 +38,30 @@ interface DeclaredQuery {
 	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
 	 */
 	static DeclaredQuery of(@Nullable String query, boolean nativeQuery) {
-		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query, nativeQuery);
+		return of(query, nativeQuery, null, null);
+	}
+
+	/**
+	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
+	 *
+	 * @param query might be {@literal null} or empty.
+	 * @param nativeQuery is a given query is native or not
+	 * @param entityMetadata metadata about the repository's related type
+	 * @param parser a {@link SpelExpressionParser} used to process potential SpEL expressions found in the query
+	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
+	 */
+	static DeclaredQuery of(@Nullable String query, boolean nativeQuery, @Nullable JpaEntityMetadata<?> entityMetadata,
+			@Nullable SpelExpressionParser parser) {
+
+		if (ObjectUtils.isEmpty(query)) {
+			return EmptyDeclaredQuery.EMPTY_QUERY;
+		}
+
+		if (entityMetadata != null) {
+			return new ExpressionBasedStringQuery(query, entityMetadata, parser, nativeQuery);
+		}
+
+		return new StringQuery(query, nativeQuery);
 	}
 
 	/**

@@ -34,7 +34,7 @@ enum JpaQueryFactory {
 
 	INSTANCE;
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+	static final SpelExpressionParser PARSER = new SpelExpressionParser();
 
 	/**
 	 * Creates a {@link RepositoryQuery} from the given {@link String} query.

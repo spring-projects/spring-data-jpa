@@ -106,7 +106,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, SPEL_PARSER, true);
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.isNativeQuery()).isTrue();
 	}
 
 	@Test
@@ -114,7 +114,7 @@ class ExpressionBasedStringQueryUnitTests {
 
 		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, SPEL_PARSER, true);
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.isNativeQuery()).isTrue();
 	}
 
 	@Test

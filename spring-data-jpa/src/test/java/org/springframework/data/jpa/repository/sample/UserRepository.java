@@ -734,6 +734,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname >= (select Min(u0.firstname) from User u0)")
 	List<NameOnly> findProjectionBySubselect();
 
+	// GH-3096
+	@Query(value = "select * from SD_User as #{#entityName}", nativeQuery = true)
+	List<User> nativeQueryWithSpEL();
+
 	Window<User> findBy(OffsetScrollPosition position);
 
 	interface RolesAndFirstname {
