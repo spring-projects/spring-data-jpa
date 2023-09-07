@@ -38,16 +38,17 @@ jobs:
       run: |
         ./mvnw antora
     - name: Publish Docs
-      uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.11
+      uses: rwinch/spring-doc-actions/rsync-antora-reference@httpdocs-path
       with:
         docs-username: ${{ secrets.DOCS_USERNAME }}
         docs-host: ${{ secrets.DOCS_HOST }}
         docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
         docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
         site-path: target/antora/site
+        httpdocs-path: /spring-data/jpa/reference
     - name: Bust Cloudflare Cache
       uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
       with:
-        context-root: spring-data-jpa
+        context-root: spring-data/jpa/reference
         cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}
