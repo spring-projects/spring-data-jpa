@@ -54,7 +54,7 @@ pipeline {
 			}
 
 			parallel {
-				stage("test: java.next (hibernate 6.1)") {
+				stage("test: baseline (hibernate 6.3.x snapshots)") {
 					agent {
 						label 'data'
 					}
@@ -66,25 +66,7 @@ pipeline {
 					steps {
 						script {
 							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-								sh 'PROFILE=all-dbs,hibernate-61 ci/test.sh'
-								sh "ci/clean.sh"
-							}
-						}
-					}
-				}
-				stage("test: baseline (hibernate 6.3)") {
-					agent {
-						label 'data'
-					}
-					options { timeout(time: 30, unit: 'MINUTES')}
-					environment {
-						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
-					}
-					steps {
-						script {
-							docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-								sh 'PROFILE=all-dbs,hibernate-63 ci/test.sh'
+								sh 'PROFILE=all-dbs,hibernate-63-next ci/test.sh'
 								sh "ci/clean.sh"
 							}
 						}

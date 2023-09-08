@@ -53,16 +53,25 @@
 
 	<profiles>
 		<profile>
-			<id>hibernate-61</id>
+			<id>hibernate-63</id>
 			<properties>
-				<hibernate>6.1.7.Final</hibernate>
+				<hibernate>6.3.0.Final</hibernate>
 			</properties>
 		</profile>
 		<profile>
-			<id>hibernate-63</id>
+			<id>hibernate-63-next</id>
 			<properties>
-				<hibernate>6.3.0.CR1</hibernate>
+				<hibernate>6.3.1-SNAPSHOT</hibernate>
 			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-oss</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
 		</profile>
 		<profile>
 			<id>all-dbs</id>
