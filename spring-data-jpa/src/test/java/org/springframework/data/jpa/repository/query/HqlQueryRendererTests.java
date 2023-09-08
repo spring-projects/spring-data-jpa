@@ -1600,4 +1600,9 @@ class HqlQueryRendererTests {
 				ORDER BY j.id
 				""");
 	}
+
+	@Test // GH-3143
+	void powerShouldBeLegalInAQuery() {
+		assertQuery("select e.power.id from MyEntity e");
+	}
 }
