@@ -8,7 +8,7 @@ antora:
       root_component_name: 'data-jpa'
 site:
   title: Spring Data JPA
-  url: https://docs.spring.io/spring-data-jpa/reference/
+  url: https://docs.spring.io/spring-data/jpa/reference/
 content:
   sources:
     - url: ./../../..

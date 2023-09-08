@@ -1,6 +1,3 @@
-image:https://spring.io/badges/spring-data-jpa/ga.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
-image:https://spring.io/badges/spring-data-jpa/snapshot.svg[Spring Data JPA,link=https://projects.spring.io/spring-data-jpa/#quick-start]
-
 = Spring Data JPA image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-jpa/] https://gitter.im/spring-projects/spring-data[image:https://badges.gitter.im/spring-projects/spring-data.svg[Gitter]]
 
 Spring Data JPA, part of the larger https://projects.spring.io/spring-data[Spring Data] family, makes it easy to implement JPA-based repositories.
@@ -104,7 +101,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>${version}.RELEASE</version>
+  <version>${version}</version>
 </dependency>
 ----
 
@@ -115,7 +112,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 <dependency>
   <groupId>org.springframework.data</groupId>
   <artifactId>spring-data-jpa</artifactId>
-  <version>${version}.BUILD-SNAPSHOT</version>
+  <version>${version}-SNAPSHOT</version>
 </dependency>
 
 <repository>
@@ -130,7 +127,7 @@ If you'd rather like the latest snapshots of the upcoming major version, use our
 Having trouble with Spring Data? We’d love to help!
 
 * Check the
-https://docs.spring.io/spring-data/jpa/docs/current/reference/html/[reference documentation], and https://docs.spring.io/spring-data/jpa/docs/current/api/[Javadocs].
+https://docs.spring.io/spring-data/jpa/reference/[reference documentation], and https://docs.spring.io/spring-data/jpa/docs/current/api/[Javadocs].
 * Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
 If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
 * If you are upgrading, check out the https://github.com/spring-projects/spring-data-jpa/releases[Spring Data JPA release notes] and scroll down to the one you're considering. See the details there. (Also check out the https://github.com/spring-projects/spring-data-jpa/releases/latest[latest stable release])
@@ -159,7 +156,7 @@ You also need JDK 17 or above.
  $ ./mvnw clean install
 ----
 
-If you want to build with the regular `mvn` command, you will need https://maven.apache.org/run-maven/index.html[Maven v3.5.0 or above].
+If you want to build with the regular `mvn` command, you will need https://maven.apache.org/run-maven/index.html[Maven v3.8.0 or above].
 
 _Also see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] if you wish to submit pull requests, and in particular please sign the https://cla.pivotal.io/sign/spring[Contributor’s Agreement] before your first non-trivial change._
 
@@ -169,10 +166,10 @@ Building the documentation builds also the project without running tests.
 
 [source,bash]
 ----
- $ ./mvnw clean install -Pdistribute
+ $ ./mvnw clean install -Pantora
 ----
 
-The generated documentation is available from `target/site/reference/html/index.html`.
+The generated documentation is available from `target/antora/site/index.html`.
 
 == Guides
 

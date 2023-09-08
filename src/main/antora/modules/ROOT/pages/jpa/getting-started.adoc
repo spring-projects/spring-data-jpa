@@ -1,0 +1,67 @@
+[[jpa.getting-started]]
+= Getting Started
+
+An easy way to bootstrap setting up a working environment is to create a Spring-based project via https://start.spring.io/#!type=maven-project&dependencies=h2,data-jpa[start.spring.io] or create a Spring project in https://spring.io/tools[Spring Tools].
+
+[[jpa.examples-repo]]
+== Examples Repository
+
+The GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] hosts several examples that you can download and play around with to get a feel for how the library works.
+
+[[redis.hello-world]]
+== Hello World
+
+Let's start with a simple entity and its corresponding repository:
+
+[source,java]
+----
+@Entity
+class Person {
+
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
+  private String name;
+
+  // getters and setters ommited for brevity
+}
+
+interface PersonRepository extends Repository<Person, Long> {
+
+  Person save(Person person);
+
+  Optional<Person> findById(long id);
+}
+----
+
+Create the main application to run, as the following example shows:
+
+[source,java]
+----
+@SpringBootApplication
+public class DemoApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(DemoApplication.class, args);
+  }
+
+  @Bean
+  CommandLineRunner runner(PersonRepository repository) {
+    return args -> {
+
+      Person person = new Person();
+      person.setName("John");
+
+      repository.save(person);
+      Person saved = repository.findById(person.getId()).orElseThrow(NoSuchElementException::new);
+    };
+  }
+}
+----
+
+Even in this simple example, there are a few notable things to point out:
+
+* Repository instances are automatically implemented.
+When used as parameters of `@Bean` methods, these will be autowired without further need for annotations.
+* The basic repository extends `Repository`.
+We suggest to consider how much API surface you want to expose towards your application.
+More complex repository interfaces are `ListCrudRepository` or `JpaRepository`.
