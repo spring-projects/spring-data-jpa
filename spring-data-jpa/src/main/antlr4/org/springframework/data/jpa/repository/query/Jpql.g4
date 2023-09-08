@@ -605,6 +605,7 @@ identification_variable
     | NEW
     | ORDER
     | OUTER
+    | POWER
     | FLOOR
     | SIGN
     | TIME

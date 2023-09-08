@@ -812,6 +812,7 @@ reservedWord
 	| PERCENT
 	| PLACING
 	| POSITION
+	| POWER
 	| PRECEDING
 	| QUARTER
 	| RANGE
