@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.data.annotation.QueryAnnotation;
+import org.springframework.data.jpa.repository.query.QueryEnhancerOption;
 
 /**
  * Annotation to declare finder queries directly on repository methods.
@@ -93,5 +94,5 @@ public @interface Query {
 	 * @return
 	 * @since 3.2
 	 */
-	boolean skipJSql() default false;
+	QueryEnhancerOption queryEnhancerOption() default QueryEnhancerOption.AUTOMATIC_BEST_FIT;
 }

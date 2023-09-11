@@ -65,7 +65,7 @@ class StringQuery implements DeclaredQuery {
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
-	private final boolean skipJSql;
+	private final QueryEnhancerOption queryEnhancerOption;
 	private final QueryEnhancer queryEnhancer;
 
 	/**
@@ -74,12 +74,12 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	@SuppressWarnings("deprecation")
-	StringQuery(String query, boolean isNative, boolean skipJSql) {
+	StringQuery(String query, boolean isNative, QueryEnhancerOption queryEnhancerOption) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
 		this.isNative = isNative;
-		this.skipJSql = skipJSql;
+		this.queryEnhancerOption = queryEnhancerOption;
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
 
@@ -89,13 +89,13 @@ class StringQuery implements DeclaredQuery {
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 
-		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
+		this.queryEnhancer = queryEnhancerOption.forQuery(this);
 		this.alias = this.queryEnhancer.detectAlias();
 		this.hasConstructorExpression = this.queryEnhancer.hasConstructorExpression();
 	}
 
 	StringQuery(String query, boolean isNative) {
-		this(query, isNative, false);
+		this(query, isNative, QueryEnhancerOption.AUTOMATIC_BEST_FIT);
 	}
 
 	/**
@@ -164,8 +164,8 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public boolean skipJSql() {
-		return skipJSql;
+	public QueryEnhancerOption queryEnhancerOption() {
+		return queryEnhancerOption;
 	}
 
 	/**
@@ -289,7 +289,6 @@ class StringQuery implements DeclaredQuery {
 				if ("".equals(parameterIndexString)) {
 					parameterIndex = expressionParameterIndex;
 				}
-
 
 				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {

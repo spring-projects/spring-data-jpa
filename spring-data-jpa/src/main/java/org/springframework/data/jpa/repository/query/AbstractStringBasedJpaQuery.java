@@ -75,7 +75,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		this.evaluationContextProvider = evaluationContextProvider;
 		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
-				method.isNativeQuery(), method.skipJSql());
+				method.isNativeQuery(), method.queryEnhancerOption());
 
 		this.countQuery = Lazy.of(() -> {
 			DeclaredQuery countQuery = query.deriveCountQuery(countQueryString, method.getCountQueryProjection());
@@ -92,7 +92,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
-		String sortedQueryString = QueryEnhancerFactory.forQuery(query) //
+		String sortedQueryString = query.queryEnhancerOption().forQuery(query) //
 				.applySorting(accessor.getSort(), query.getAlias());
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 

@@ -61,7 +61,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select SOME_COLUMN from SOME_OTHER_TABLE where REPORTING_DATE = :REPORTING_DATE";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
@@ -84,7 +84,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
@@ -111,7 +111,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "\t;";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("CustomerID");
@@ -131,7 +131,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		String setQuery = "VALUES (1, 2, 'test')";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isNullOrEmpty();
@@ -152,7 +152,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select day, value from sample_data as a";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
@@ -175,7 +175,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select day, value from sample_data as a";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
@@ -195,7 +195,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	void truncateStatementShouldWork() {
 
 		StringQuery stringQuery = new StringQuery("TRUNCATE TABLE foo", true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNull();
 		assertThat(stringQuery.getProjection()).isEmpty();
@@ -213,7 +213,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	void mergeStatementWorksWithJSqlParser(String query, String alias) {
 
 		StringQuery stringQuery = new StringQuery(query, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
 		assertThat(QueryUtils.detectAlias(query)).isNull();

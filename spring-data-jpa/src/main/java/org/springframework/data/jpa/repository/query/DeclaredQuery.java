@@ -112,7 +112,7 @@ interface DeclaredQuery {
 		return false;
 	}
 
-	default boolean skipJSql() {
-		return false;
+	default QueryEnhancerOption queryEnhancerOption() {
+		return QueryEnhancerOption.AUTOMATIC_BEST_FIT;
 	}
 }

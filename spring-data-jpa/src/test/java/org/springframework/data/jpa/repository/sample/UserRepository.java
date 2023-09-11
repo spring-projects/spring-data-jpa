@@ -44,6 +44,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.query.QueryEnhancerOption;
 import org.springframework.data.querydsl.ListQuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -586,9 +587,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	NameOnly findByNativeQuery(Integer id);
 
 	// GH-2989
-	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true, skipJSql = true)
+	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true,
+			queryEnhancerOption = QueryEnhancerOption.AUTOMATIC_BEST_FIT_WITHOUT_JSQL)
 	NameOnly findByNativeQueryWithNoJSql(Integer id);
-
 
 	// DATAJPA-1248
 	@Query(value = "SELECT emailaddress FROM SD_User WHERE id = ?1", nativeQuery = true)

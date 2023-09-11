@@ -60,14 +60,14 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param nativeQuery is a given query is native or not
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
-			boolean nativeQuery, boolean skipJSql) {
+			boolean nativeQuery, QueryEnhancerOption queryEnhancerOption) {
 		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
-				skipJSql);
+				queryEnhancerOption);
 	}
 
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
 			boolean nativeQuery) {
-		this(query, metadata, parser, nativeQuery, false);
+		this(query, metadata, parser, nativeQuery, QueryEnhancerOption.AUTOMATIC_BEST_FIT);
 	}
 
 	/**
@@ -81,7 +81,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser, boolean nativeQuery) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery, query.skipJSql());
+		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery, query.queryEnhancerOption());
 	}
 
 	/**

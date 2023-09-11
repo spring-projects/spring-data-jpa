@@ -622,14 +622,17 @@ class QueryEnhancerUnitTests {
 		assertThat(modiQuery.hasConstructorExpression()).isEqualTo(constructorExpressionNotConsideringQueryType);
 
 		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
-		assertThat(QueryEnhancerFactory.forQuery(modiQuery).createCountQueryFor()).isEqualToIgnoringCase(modifyingQuery);
+		assertThat(modiQuery.queryEnhancerOption().forQuery(modiQuery).createCountQueryFor())
+				.isEqualToIgnoringCase(modifyingQuery);
 	}
 
 	@Test // GH-2989
 	void skippingJSqlShouldRevertToDefaultQueryEnhancer() {
 
-		assertThat(getEnhancer(new StringQuery(QUERY, true, false))).isInstanceOf(JSqlParserQueryEnhancer.class);
-		assertThat(getEnhancer(new StringQuery(QUERY, true, true))).isInstanceOf(DefaultQueryEnhancer.class);
+		assertThat(getEnhancer(new StringQuery(QUERY, true, QueryEnhancerOption.AUTOMATIC_BEST_FIT)))
+				.isInstanceOf(JSqlParserQueryEnhancer.class);
+		assertThat(getEnhancer(new StringQuery(QUERY, true, QueryEnhancerOption.AUTOMATIC_BEST_FIT_WITHOUT_JSQL)))
+				.isInstanceOf(DefaultQueryEnhancer.class);
 	}
 
 	@ParameterizedTest // GH-2593
@@ -637,7 +640,7 @@ class QueryEnhancerUnitTests {
 	void insertStatementIsProcessedSameAsDefault(String insertQuery) {
 
 		StringQuery stringQuery = new StringQuery(insertQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = stringQuery.queryEnhancerOption().forQuery(stringQuery);
 
 		Sort sorting = Sort.by("day").descending();
 
@@ -693,7 +696,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	private static QueryEnhancer getEnhancer(DeclaredQuery query) {
-		return QueryEnhancerFactory.forQuery(query);
+		return query.queryEnhancerOption().forQuery(query);
 	}
 
 }
