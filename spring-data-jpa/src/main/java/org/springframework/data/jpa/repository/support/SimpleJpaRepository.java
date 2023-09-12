@@ -266,8 +266,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities,
-				entityManager)
+		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, entityManager)
 				.executeUpdate();
 	}
 
@@ -305,7 +304,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.ofNullable(type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
+		return Optional.ofNullable(
+				type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
 	@Deprecated
@@ -484,17 +484,17 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public boolean exists(Specification<T> spec) {
 
-		CriteriaQuery<Integer> cq = this.em.getCriteriaBuilder().createQuery(Integer.class);
-		cq.select(this.em.getCriteriaBuilder().literal(1));
+		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder().createQuery(Integer.class);
+		cq.select(this.entityManager.getCriteriaBuilder().literal(1));
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.em.createQuery(cq));
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
 	@Override
 	public long delete(Specification<T> spec) {
 
-		CriteriaBuilder builder = this.em.getCriteriaBuilder();
+		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
 
 		if (spec != null) {
@@ -505,7 +505,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			}
 		}
 
-		return this.em.createQuery(delete).executeUpdate();
+		return this.entityManager.createQuery(delete).executeUpdate();
 	}
 
 	@Override
@@ -544,7 +544,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		};
 
 		FetchableFluentQuery<S> fluentQuery = new FetchableFluentQueryByExample<>(example, finder, this::count,
-				this::exists, this.em, this.escapeCharacter);
+				this::exists, this.entityManager, this.escapeCharacter);
 
 		return queryFunction.apply(fluentQuery);
 	}
@@ -558,7 +558,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, getDomainClass(), sort);
 
 		FetchableFluentQuery<R> fluentQuery = new FetchableFluentQueryBySpecification<T, R>(spec, getDomainClass(),
-				Sort.unsorted(), null, finder, this::count, this::exists, this.em);
+				Sort.unsorted(), null, finder, this::count, this::exists, this.entityManager);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
