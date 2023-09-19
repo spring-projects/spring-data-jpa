@@ -30,9 +30,8 @@
 		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.3</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
-		<hibernate>6.2.4.Final</hibernate>
-		<hibernate-next>6.3.0.Final</hibernate-next>
-		<hibernate-next-snapshots>6.3.1-SNAPSHOT</hibernate-next-snapshots>
+		<hibernate>6.3.1.Final</hibernate>
+		<hibernate-next-snapshots>6.3.2-SNAPSHOT</hibernate-next-snapshots>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
 		<jsqlparser>4.5</jsqlparser>
@@ -55,12 +54,6 @@
 
 
 	<profiles>
-		<profile>
-			<id>hibernate-63</id>
-			<properties>
-				<hibernate>${hibernate-next}</hibernate>
-			</properties>
-		</profile>
 		<profile>
 			<id>hibernate-63-next</id>
 			<properties>
