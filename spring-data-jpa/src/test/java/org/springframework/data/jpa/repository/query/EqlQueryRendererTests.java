@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,33 +24,32 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests built around examples of JPQL found in the JPA spec
+ * Tests built around examples of EQL found in the JPA spec
  * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc<br/>
  * <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
- * @since 3.1
  */
-class JpqlQueryRendererTests {
+class EqlQueryRendererTests {
 
 	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
 
 	/**
-	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
+	 * Parse the query using {@link EqlParser} then run it through the query-preserving {@link EqlQueryRenderer}.
 	 *
 	 * @param query
 	 */
 	private static String parseWithoutChanges(String query) {
 
-		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
-		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
+		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
+		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
 
 		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
-		JpqlParser.StartContext parsedQuery = parser.start();
+		EqlParser.StartContext parsedQuery = parser.start();
 
-		return render(new JpqlQueryRenderer().visit(parsedQuery));
+		return render(new EqlQueryRenderer().visit(parsedQuery));
 	}
 
 	private void assertQuery(String query) {
@@ -747,8 +746,8 @@ class JpqlQueryRendererTests {
 
 	/**
 	 * NOTE: This query is specifically dubbed illegal in the spec. However, it's not due to a grammar failure but instead
-	 * for semantic reasons. Our parser does NOT check if the ORDER BY matches the SELECT or not. Hence, this is left to
-	 * the JPA provider.
+	 * for semantic reasons. Our parser does NOT check if the ORDER BY clause matches the SELECT or not. Hence, this is
+	 * left to the JPA provider.
 	 */
 	@Test
 	void orderByClauseThatIsNotReflectedInTheSelectClause() {

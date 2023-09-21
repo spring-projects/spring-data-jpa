@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,55 +16,21 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests built around examples of JPQL found in the JPA spec
+ * Tests built around examples of EQL found in the JPA spec
  * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc<br/>
  * <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
- * @since 3.1
  */
-class JpqlQueryRendererTests {
+class EqlSpecificationTests {
 
 	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
-
-	/**
-	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
-	 *
-	 * @param query
-	 */
-	private static String parseWithoutChanges(String query) {
-
-		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
-		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
-
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		JpqlParser.StartContext parsedQuery = parser.start();
-
-		return render(new JpqlQueryRenderer().visit(parsedQuery));
-	}
-
-	private void assertQuery(String query) {
-
-		String slimmedDownQuery = reduceWhitespace(query);
-		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
-	}
-
-	private String reduceWhitespace(String original) {
-
-		return original //
-				.replaceAll("[ \\t\\n]{1,}", " ") //
-				.trim();
-	}
 
 	/**
 	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
@@ -72,7 +38,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order AS o JOIN o.lineItems AS l
 				WHERE l.shipped = FALSE
@@ -86,7 +52,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l JOIN l.product p
 				WHERE p.productType = 'office_supplies'
@@ -99,12 +65,12 @@ class JpqlQueryRendererTests {
 	@Test
 	void rangeVariableDeclarations() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o1
 				FROM Order o1, Order o2
 				WHERE o1.quantity > o2.quantity AND
 				 o2.customer.lastname = 'Smith' AND
-				 o2.customer.firstname = 'John'
+				 o2.customer.firstname= 'John'
 				""");
 	}
 
@@ -114,7 +80,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT i.name, VALUE(p)
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -127,7 +93,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT i.name, p
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -140,7 +106,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample3() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo.phones p
 				""");
@@ -152,7 +118,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionsExample4() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE e.contactInfo.address.zipcode = '95054'
@@ -162,7 +128,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionSyntaxExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT l.product
 				FROM Order AS o JOIN o.lineItems l
 				""");
@@ -171,7 +137,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinsExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
 				""");
 	}
@@ -179,7 +145,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinsExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -187,7 +153,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinsInnerExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -195,7 +161,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void joinsInExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
 				""");
 	}
@@ -203,7 +169,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void doubleJoinExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE c.address.zipcode = '95054'
@@ -213,7 +179,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void leftJoinExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				GROUP BY s.name
@@ -223,7 +189,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void leftJoinOnExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				    ON p.status = 'inStock'
@@ -234,7 +200,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void leftJoinWhereExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				WHERE p.status = 'inStock'
@@ -245,7 +211,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void leftJoinFetchExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT d
 				FROM Department d LEFT JOIN FETCH d.employees
 				WHERE d.deptno = 1
@@ -255,7 +221,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void collectionMemberExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.productType = 'office_supplies'
@@ -265,7 +231,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void collectionMemberInExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
@@ -275,7 +241,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void fromClauseExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order AS o JOIN o.lineItems l JOIN l.product p
 				""");
@@ -284,7 +250,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
 				    """);
@@ -293,7 +259,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
 				    """);
@@ -306,7 +272,7 @@ class JpqlQueryRendererTests {
 	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
 	void fromClauseDowncastingExample3_SPEC_BUG() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -317,7 +283,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample3fixed() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -328,7 +294,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void fromClauseDowncastingExample4() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
@@ -338,7 +304,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.status = :stat
@@ -348,7 +314,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void betweenExpressionsExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT t
 				FROM CreditCard c JOIN c.transactionHistory t
 				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
@@ -358,7 +324,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void isEmptyExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -368,7 +334,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void memberOfExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT p
 				FROM Person p
 				WHERE 'Joe' MEMBER OF p.nicknames
@@ -378,34 +344,37 @@ class JpqlQueryRendererTests {
 	@Test
 	void existsSubSelectExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
+				WHERE EXISTS (
+				    SELECT spouseEmp
 				    FROM Employee spouseEmp
-				    WHERE spouseEmp = emp.spouse)
+				        WHERE spouseEmp = emp.spouse)
 				""");
 	}
 
 	@Test
 	void allExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT emp
 				FROM Employee emp
-				WHERE emp.salary > ALL (SELECT m.salary
-				FROM Manager m
-				WHERE m.department = emp.department)
+				WHERE emp.salary > ALL (
+				    SELECT m.salary
+				    FROM Manager m
+				    WHERE m.department = emp.department)
 				    """);
 	}
 
 	@Test
 	void existsSubSelectExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
+				WHERE EXISTS (
+				    SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
 				    """);
@@ -414,7 +383,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void subselectNumericComparisonExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
@@ -424,17 +393,18 @@ class JpqlQueryRendererTests {
 	@Test
 	void subselectNumericComparisonExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
+				WHERE goodCustomer.balanceOwed < (
+				    SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
 				""");
 	}
 
 	@Test
 	void indexExample() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT w.name
 				FROM Course c JOIN c.studentWaitlist w
 				WHERE c.name = 'Calculus'
@@ -449,7 +419,7 @@ class JpqlQueryRendererTests {
 	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
 	void functionInvocationExample_SPEC_BUG() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
@@ -459,7 +429,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void functionInvocationExampleWithCorrection() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
@@ -469,12 +439,12 @@ class JpqlQueryRendererTests {
 	@Test
 	void updateCaseExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE WHEN e.rating = 1 THEN e.salary*1.1
-				         WHEN e.rating = 2 THEN e.salary*1.05
-				         ELSE e.salary*1.01
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				         ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -482,12 +452,12 @@ class JpqlQueryRendererTests {
 	@Test
 	void updateCaseExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE e.rating WHEN 1 THEN e.salary*1.1
-				                  WHEN 2 THEN e.salary*1.05
-				                  ELSE e.salary*1.01
+				    CASE e.rating WHEN 1 THEN e.salary * 1.1
+				                  WHEN 2 THEN e.salary * 1.05
+				                  ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -495,7 +465,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void selectCaseExample1() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e.name,
 				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
 				                 WHEN Contractor THEN 'Contractor'
@@ -510,7 +480,7 @@ class JpqlQueryRendererTests {
 	@Test
 	void selectCaseExample2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e.name,
 				       f.name,
 				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
@@ -523,19 +493,19 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void inClauseWithTypeLiteralsShouldWork() {
+	void theRest() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (Exempt, Contractor)
+				 FROM Employee e
+				 WHERE TYPE(e) IN (Exempt, Contractor)
 				 """);
 	}
 
 	@Test
-	void inClauseWithParametersShouldWork() {
+	void theRest2() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e
 				    FROM Employee e
 				    WHERE TYPE(e) IN (:empType1, :empType2)
@@ -543,9 +513,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void inClauseWithSingleParameterShouldWork() {
+	void theRest3() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN :empTypes
@@ -553,9 +523,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void notEqualsForTypeShouldWork() {
+	void theRest4() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT TYPE(e)
 				FROM Employee e
 				WHERE TYPE(e) <> Exempt
@@ -563,9 +533,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void havingWithInClauseShouldWork() {
+	void theRest5() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
 				FROM Customer c
 				GROUP BY c.status
@@ -574,9 +544,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void havingClauseWithComparisonShouldWork() {
+	void theRest6() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c.country, COUNT(c)
 				FROM Customer c
 				GROUP BY c.country
@@ -585,9 +555,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void havingClauseWithAnotherComparisonShouldWork() {
+	void theRest7() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c, COUNT(o)
 				FROM Customer c JOIN c.orders o
 				GROUP BY c
@@ -596,9 +566,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void whereClauseWithComparisonShouldWork() {
+	void theRest8() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c.id, c.status
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -606,9 +576,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void keyValueFunctionsShouldWork() {
+	void theRest9() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
 				FROM VideoStore v JOIN v.videoInventory i
 				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
@@ -616,17 +586,17 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void fromClauseWithAsShouldWork() {
+	void theRest10() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o.lineItems FROM Order AS o
 				""");
 	}
 
 	@Test
-	void countFunctionWithAsClauseShouldWork() {
+	void theRest11() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT c, COUNT(l) AS itemCount
 				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
 				WHERE c.address.state = 'CA'
@@ -636,9 +606,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void objectConstructionShouldWork() {
+	void theRest12() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -646,26 +616,26 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void selectWithAsClauseShouldWork() {
+	void theRest13() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT e.address AS addr
 				FROM Employee e
 				""");
 	}
 
 	@Test
-	void averageFunctionShouldWork() {
+	void theRest14() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) FROM Order o
 				""");
 	}
 
 	@Test
-	void sumFunctionShouldWork() {
+	void theRest15() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT SUM(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -673,17 +643,17 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void countFunctionShouldWork() {
+	void theRest16() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT COUNT(o) FROM Order o
 				""");
 	}
 
 	@Test
-	void countFunctionOnSubElementShouldWork() {
+	void theRest17() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT COUNT(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -691,9 +661,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void equivalentCountFunctionShouldAlsoWork() {
+	void theRest18() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT COUNT(l)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
@@ -701,9 +671,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void orderByBasedOnSelectClauseShouldWork() {
+	void theRest19() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -712,9 +682,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void orderByThatMatchesSelectClauseShouldWork() {
+	void theRest20() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o.quantity, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -723,9 +693,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void orderByThatMatchesAllSelectAliasesShouldWork() {
+	void theRest21() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
@@ -734,9 +704,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void orderByThatMatchesSelectFunctionAliasShouldWork() {
+	void theRest22() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT AVG(o.quantity) as q, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -745,15 +715,10 @@ class JpqlQueryRendererTests {
 				""");
 	}
 
-	/**
-	 * NOTE: This query is specifically dubbed illegal in the spec. However, it's not due to a grammar failure but instead
-	 * for semantic reasons. Our parser does NOT check if the ORDER BY matches the SELECT or not. Hence, this is left to
-	 * the JPA provider.
-	 */
 	@Test
-	void orderByClauseThatIsNotReflectedInTheSelectClause() {
+	void theRest23() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT p.product_name
 				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -762,13 +727,13 @@ class JpqlQueryRendererTests {
 	}
 
 	/**
-	 * NOTE: This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
+	 * This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
 	 */
 	@Test
-	void orderByClauseThatIsNotReflectedInTheSelectClauseButAlsoHasAnInClauseInTheFromClause() {
+	void theRest24() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
-			assertQuery("""
+			EqlQueryParser.parseQuery("""
 					SELECT p.product_name
 					FROM Order o, IN(o.lineItems) l JOIN o.customer c
 					WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -778,9 +743,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void simpleDeleteShouldWork() {
+	void theRest25() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -788,9 +753,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void deleteWithMoreComplexCriteriaShouldWork() {
+	void theRest26() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -799,9 +764,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void simpleUpdateShouldWork() {
+	void theRest27() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				UPDATE Customer c
 				SET c.status = 'outstanding'
 				WHERE c.balance < 10000
@@ -809,9 +774,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void moreComplexUpdateShouldWork() {
+	void theRest28() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				UPDATE Employee e
 				SET e.address.building = 22
 				WHERE e.address.building = 14
@@ -821,18 +786,18 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void simpleSelectShouldWork() {
+	void theRest29() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				""");
 	}
 
 	@Test
-	void selectWithWhereClauseShouldWork() {
+	void theRest30() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress.state = 'CA'
@@ -840,27 +805,27 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void selectWithDistinctSubElementShouldWork() {
+	void theRest31() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o.shippingAddress.state
 				FROM Order o
 				""");
 	}
 
 	@Test
-	void selectWithSimpleDistinctShouldWork() {
+	void theRest32() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				""");
 	}
 
 	@Test
-	void selectWithIsNotEmptyCriteriaShouldWork() {
+	void theRest33() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS NOT EMPTY
@@ -868,9 +833,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void selectWithIsEmptyCriteriaShouldWork() {
+	void theRest34() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -878,9 +843,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void findAllPendingOrders() {
+	void theRest35() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.shipped = FALSE
@@ -888,9 +853,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void findAllOrdersWhereShippingAddressDoesNotMatchBillingAddress() {
+	void theRest36() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE
@@ -901,9 +866,9 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void simplerVersionOfShippingAddressNotMatchingBillingAddress() {
+	void theRest37() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress <> o.billingAddress
@@ -911,86 +876,12 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void findOrdersThatHaveProductNamedByAParameter() {
+	void theRest38() {
 
-		assertQuery("""
+		EqlQueryParser.parseQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.name = ?1
 				""");
-	}
-
-	@Test // GH-2982
-	void floorShouldBeValidEntityName() {
-
-		assertQuery("""
-				SELECT f
-				FROM Floor f
-				WHERE f.name = :name
-				""");
-
-		assertQuery("""
-				SELECT r
-				FROM Room r
-				JOIN r.floor f
-				WHERE f.name = :name
-				""");
-	}
-
-	@Test // GH-2994
-	void queryWithSignShouldWork() {
-		assertQuery("select t.sign from TestEntity t");
-	}
-
-	@Test // GH-3028
-	void queryWithValueShouldWork() {
-		assertQuery("select t.value from TestEntity t");
-	}
-
-	@Test // GH-3062, GH-3056
-	void typeShouldBeAValidParameter() {
-
-		assertQuery("select e from Employee e where e.type = :_type");
-		assertQuery("select te from TestEntity te where te.type = :type");
-	}
-
-	@Test // GH-3061
-	void alternateNotEqualsOperatorShouldWork() {
-		assertQuery("select e from Employee e where e.firstName != :name");
-	}
-
-	@Test // GH-3092
-	void dateAndFromShouldBeValidNames() {
-		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
-	}
-
-	@Test // GH-3092
-	void timeShouldBeAValidParameterName() {
-		assertQuery("""
-				UPDATE Lock L
-				SET L.isLocked = TRUE, L.forceUnlockTime = :forceUnlockTime
-				WHERE L.isLocked = FALSE OR L.forceUnlockTime < :time
-				""");
-	}
-
-	@Test // GH-3128
-	void newShouldBeLegalAsPartOfAStateFieldPathExpression() {
-
-		assertQuery("""
-				SELECT j
-				FROM AgentUpdateTask j
-				WHERE j.creationTimestamp < :date
-				AND (j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.NEW
-					OR
-					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.STARTED
-					OR
-					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.QUEUED)
-				ORDER BY j.id
-				""");
-	}
-
-	@Test // GH-3143
-	void powerShouldBeLegalInAQuery() {
-		assertQuery("select e.power.id from MyEntity e");
 	}
 }

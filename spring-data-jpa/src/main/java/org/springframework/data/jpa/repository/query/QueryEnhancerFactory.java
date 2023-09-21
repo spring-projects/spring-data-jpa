@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -34,18 +35,20 @@ public final class QueryEnhancerFactory {
 	private static final boolean jSqlParserPresent = ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser",
 			QueryEnhancerFactory.class.getClassLoader());
 
-	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
-			QueryEnhancerFactory.class.getClassLoader());
-
 	static {
 
 		if (jSqlParserPresent) {
 			LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used");
 		}
 
-		if (hibernatePresent) {
+		if (PersistenceProvider.ECLIPSELINK.isPresent()) {
+			LOG.info("EclipseLink is in classpath; If applicable, EQL parser will be used.");
+		}
+
+		if (PersistenceProvider.HIBERNATE.isPresent()) {
 			LOG.info("Hibernate is in classpath; If applicable, HQL parser will be used.");
 		}
+
 	}
 
 	private QueryEnhancerFactory() {}
@@ -70,7 +73,13 @@ public final class QueryEnhancerFactory {
 			return new DefaultQueryEnhancer(query);
 		}
 
-		return hibernatePresent ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
+		if (PersistenceProvider.HIBERNATE.isPresent()) {
+			return JpaQueryEnhancer.forHql(query);
+		} else if (PersistenceProvider.ECLIPSELINK.isPresent()) {
+			return JpaQueryEnhancer.forEql(query);
+		} else {
+			return JpaQueryEnhancer.forJpql(query);
+		}
 	}
 
 }
