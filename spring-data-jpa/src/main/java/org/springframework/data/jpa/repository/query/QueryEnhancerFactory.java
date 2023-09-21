@@ -37,6 +37,9 @@ public final class QueryEnhancerFactory {
 	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
 			QueryEnhancerFactory.class.getClassLoader());
 
+	private static final boolean eclipseLinkPresent = ClassUtils
+			.isPresent("org.eclipse.persistence.internal.jpa.jpql.HermesParser", QueryEnhancerFactory.class.getClassLoader());
+
 	static {
 
 		if (jSqlParserPresent) {
@@ -70,7 +73,13 @@ public final class QueryEnhancerFactory {
 			return new DefaultQueryEnhancer(query);
 		}
 
-		return hibernatePresent ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
+		if (hibernatePresent) {
+			return JpaQueryEnhancer.forHql(query);
+		} else if (eclipseLinkPresent) {
+			return JpaQueryEnhancer.forEql(query);
+		} else {
+			return JpaQueryEnhancer.forJpql(query);
+		}
 	}
 
 }

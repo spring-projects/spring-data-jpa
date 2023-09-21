@@ -67,6 +67,12 @@ class JpaQueryParsingToken {
 
 	public static final JpaQueryParsingToken TOKEN_MATERIALIZED = new JpaQueryParsingToken("materialized");
 
+	public static final JpaQueryParsingToken TOKEN_NULLS = new JpaQueryParsingToken("NULLS");
+
+	public static final JpaQueryParsingToken TOKEN_FIRST = new JpaQueryParsingToken("FIRST");
+
+	public static final JpaQueryParsingToken TOKEN_LAST = new JpaQueryParsingToken("LAST");
+
 	/**
 	 * The text value of the token.
 	 */

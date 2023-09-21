@@ -73,6 +73,19 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		return new JpaQueryEnhancer(query, new HqlQueryParser(query.getQueryString()));
 	}
 
+	/**
+	 * Factory method to create a {@link JpaQueryParserSupport} for {@link DeclaredQuery} using EQL grammar.
+	 *
+	 * @param query must not be {@literal null}.
+	 * @return a new {@link JpaQueryEnhancer} using EQL.
+	 */
+	public static JpaQueryEnhancer forEql(DeclaredQuery query) {
+
+		Assert.notNull(query, "DeclaredQuery must not be null!");
+
+		return new JpaQueryEnhancer(query, new EqlQueryParser(query.getQueryString()));
+	}
+
 	protected JpaQueryParserSupport getQueryParsingStrategy() {
 		return queryParser;
 	}
