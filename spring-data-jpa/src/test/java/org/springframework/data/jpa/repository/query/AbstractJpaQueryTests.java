@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.HibernateJpaParametersParameterAccessor;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
@@ -60,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Krzysztof Krason
+ * @author Julia Lee
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")

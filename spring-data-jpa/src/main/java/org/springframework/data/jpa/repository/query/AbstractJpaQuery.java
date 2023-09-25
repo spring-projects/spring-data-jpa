@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.jpa.provider.HibernateJpaParametersParameterAccessor;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
@@ -62,6 +61,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Сергей Цыпанов
  * @author Wonchul Heo
+ * @author Julia Lee
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 

@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
+ * @author Julia Lee
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = QueryWithNullLikeIntegrationTests.Config.class)

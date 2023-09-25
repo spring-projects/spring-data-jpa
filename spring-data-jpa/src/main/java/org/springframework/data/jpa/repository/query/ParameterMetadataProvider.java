@@ -233,10 +233,10 @@ class ParameterMetadataProvider {
 		/**
 		 * Prepares the object before it's actually bound to the {@link jakarta.persistence.Query;}.
 		 *
-		 * @param value the value to be prepared.
+		 * @param value can be {@literal null}.
 		 */
 		@Nullable
-		public Object prepare(Object value) {
+		public Object prepare(@Nullable Object value) {
 
 			if (value == null || expression.getJavaType() == null) {
 				return value;
