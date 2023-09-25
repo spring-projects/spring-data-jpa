@@ -22,16 +22,31 @@ import java.util.Collections;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 
-import org.junit.jupiter.api.Test;
+import org.eclipse.persistence.internal.jpa.querydef.ParameterExpressionImpl;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link ParameterMetadataProvider}.
  *
  * @author Jens Schauder
+ * @author Julia Lee
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.STRICT_STUBS)
 class ParameterMetadataProviderUnitTests {
+
+	@Mock(answer = Answers.RETURNS_DEEP_STUBS) Part part;
+
+	private ParameterExpressionImpl parameterExpression = new ParameterExpressionImpl(null, String.class);
 
 	@Test // DATAJPA-863
 	void errorMessageMentionesParametersWhenParametersAreExhausted() {
@@ -49,4 +64,20 @@ class ParameterMetadataProviderUnitTests {
 				.withMessageContaining("parameter");
 	}
 
+	@Test // GH-3137
+	void returnAugmentedValueForStringExpressions() {
+		when(part.getProperty().getLeafProperty().isCollection()).thenReturn(false);
+
+		assertThat(createParameterMetadata(Part.Type.STARTING_WITH).prepare("starting with")).isEqualTo("starting with%");
+		assertThat(createParameterMetadata(Part.Type.ENDING_WITH).prepare("ending with")).isEqualTo("%ending with");
+		assertThat(createParameterMetadata(Part.Type.CONTAINING).prepare("containing")).isEqualTo("%containing%");
+		assertThat(createParameterMetadata(Part.Type.NOT_CONTAINING).prepare("not containing")).isEqualTo("%not containing%");
+		assertThat(createParameterMetadata(Part.Type.LIKE).prepare("%like%")).isEqualTo("%like%");
+		assertThat(createParameterMetadata(Part.Type.IS_NULL).prepare(null)).isEqualTo(null);
+	}
+
+	private ParameterMetadataProvider.ParameterMetadata createParameterMetadata(Part.Type partType) {
+		when(part.getType()).thenReturn(partType);
+		return new ParameterMetadataProvider.ParameterMetadata<>(parameterExpression, part, null, EscapeCharacter.DEFAULT);
+	}
 }

@@ -233,31 +233,27 @@ class ParameterMetadataProvider {
 		/**
 		 * Prepares the object before it's actually bound to the {@link jakarta.persistence.Query;}.
 		 *
-		 * @param value must not be {@literal null}.
+		 * @param value can be {@literal null}.
 		 */
 		@Nullable
-		public Object prepare(Object value) {
+		public Object prepare(@Nullable Object value) {
 
-			Assert.notNull(value, "Value must not be null");
-
-			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
-
-			if (unwrapped == null || expression.getJavaType() == null) {
-				return unwrapped;
+			if (value == null || expression.getJavaType() == null) {
+				return value;
 			}
 
 			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(unwrapped.toString()));
+						return String.format("%s%%", escape.escape(value.toString()));
 					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(unwrapped.toString()));
+						return String.format("%%%s", escape.escape(value.toString()));
 					case CONTAINING:
 					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(unwrapped.toString()));
+						return String.format("%%%s%%", escape.escape(value.toString()));
 					default:
-						return unwrapped;
+						return value;
 				}
 			}
 

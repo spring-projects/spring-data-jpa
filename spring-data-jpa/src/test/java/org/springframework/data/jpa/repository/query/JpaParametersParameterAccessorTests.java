@@ -43,8 +43,7 @@ class JpaParametersParameterAccessorTests {
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
 		JpaParameters parameters = new JpaParameters(withNativeQuery);
-		JpaParametersParameterAccessor accessor = PersistenceProvider.GENERIC_JPA.getParameterAccessor(parameters, values,
-				em);
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(parameters, values);
 
 		bind(parameters, accessor);
 
@@ -57,8 +56,7 @@ class JpaParametersParameterAccessorTests {
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
 		JpaParameters parameters = new JpaParameters(withNativeQuery);
-		JpaParametersParameterAccessor accessor = PersistenceProvider.HIBERNATE.getParameterAccessor(parameters, values,
-				em);
+		JpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters, values, em);
 
 		bind(parameters, accessor);
 
