@@ -61,6 +61,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Сергей Цыпанов
  * @author Wonchul Heo
+ * @author Julia Lee
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -153,7 +154,11 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
 
-		return provider.getParameterAccessor(method.getParameters(), values, em);
+		if (method.isNativeQuery() && PersistenceProvider.HIBERNATE.equals(provider)) {
+			return new HibernateJpaParametersParameterAccessor(method.getParameters(), values, em);
+		}
+
+		return new JpaParametersParameterAccessor(method.getParameters(), values);
 	}
 
 	protected JpaQueryExecution getExecution() {
