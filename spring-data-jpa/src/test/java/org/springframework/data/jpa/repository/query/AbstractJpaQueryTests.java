@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
@@ -33,6 +35,7 @@ import org.junit.Assume;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -53,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Julia Lee
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -62,12 +66,14 @@ public class AbstractJpaQueryTests {
 
 	private Query query;
 	private TypedQuery<Long> countQuery;
+	private JpaQueryExecution execution;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
 	void setUp() {
 		query = mock(Query.class);
 		countQuery = mock(TypedQuery.class);
+		execution = mock(JpaQueryExecution.class);
 	}
 
 	@Test // DATADOC-97
@@ -147,6 +153,37 @@ public class AbstractJpaQueryTests {
 		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
 	}
 
+	@Test // GH-3137
+	void shouldCreateHibernateJpaParameterParametersAccessorForNativeQuery() throws Exception {
+
+		JpaQueryMethod queryMethod = getMethod("findByLastnameNativeQuery", String.class);
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+
+		jpaQuery.execute(new Object[] {"some last name"});
+
+		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor.forClass(JpaParametersParameterAccessor.class);
+		verify(execution).execute(eq(jpaQuery), captor.capture());
+		JpaParametersParameterAccessor parameterAccessor = captor.getValue();
+
+		assertThat(parameterAccessor).isInstanceOf(HibernateJpaParametersParameterAccessor.class);
+	}
+
+	@Test // GH-3137
+	void shouldCreateGenericJpaParameterParametersAccessorForNonNativeQuery() throws Exception {
+
+		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+
+		jpaQuery.execute(new Object[] {"some first name"});
+
+		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor.forClass(JpaParametersParameterAccessor.class);
+		verify(execution).execute(eq(jpaQuery), captor.capture());
+		JpaParametersParameterAccessor parameterAccessor = captor.getValue();
+
+		assertThat(parameterAccessor).isNotInstanceOf(HibernateJpaParametersParameterAccessor.class);
+	}
+
 	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) throws Exception {
 
 		Method method = SampleRepository.class.getMethod(name, parameterTypes);
@@ -160,6 +197,9 @@ public class AbstractJpaQueryTests {
 
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 		List<User> findByLastname(String lastname);
+
+		@org.springframework.data.jpa.repository.Query(value = "select u from User u where u.lastname = ?1", nativeQuery = true)
+		List<User> findByLastnameNativeQuery(String lastname);
 
 		@QueryHints(value = { @QueryHint(name = "bar", value = "foo") }, forCounting = false)
 		List<User> findByFirstname(String firstname);
@@ -181,6 +221,11 @@ public class AbstractJpaQueryTests {
 
 		DummyJpaQuery(JpaQueryMethod method, EntityManager em) {
 			super(method, em);
+		}
+
+		@Override
+		protected JpaQueryExecution getExecution() {
+			return execution;
 		}
 
 		@Override

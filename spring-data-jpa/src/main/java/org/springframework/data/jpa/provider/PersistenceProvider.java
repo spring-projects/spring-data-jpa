@@ -107,12 +107,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 
 		@Override
-		public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
-				EntityManager em) {
-			return new HibernateJpaParametersParameterAccessor(parameters, values, em);
-		}
-
-		@Override
 		public String getCommentHintKey() {
 			return "org.hibernate.comment";
 		}
@@ -290,11 +284,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 
 		return cacheAndReturn(metamodelType, GENERIC_JPA);
-	}
-
-	public JpaParametersParameterAccessor getParameterAccessor(JpaParameters parameters, Object[] values,
-			EntityManager em) {
-		return new JpaParametersParameterAccessor(parameters, values);
 	}
 
 	/**

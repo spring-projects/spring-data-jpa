@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.provider;
+package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
 
@@ -21,7 +21,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.query.TypedParameterValue;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
-import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -38,6 +37,7 @@ import org.springframework.lang.Nullable;
  * @author Robert Wilson
  * @author Oliver Drotbohm
  * @author Greg Turnquist
+ * @author Julia Lee
  * @since 2.7
  */
 class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
