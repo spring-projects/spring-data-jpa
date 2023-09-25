@@ -66,7 +66,8 @@ class QueryWithNullLikeIntegrationTests {
 	void setUp() {
 		repository.saveAllAndFlush(List.of( //
 				new EmployeeWithName("Frodo Baggins"), //
-				new EmployeeWithName("Bilbo Baggins")));
+				new EmployeeWithName("Bilbo Baggins"),
+				new EmployeeWithName(null)));
 	}
 
 	@Test
@@ -273,7 +274,14 @@ class QueryWithNullLikeIntegrationTests {
 	@Test // GH-1184
 	void alignedReturnTypeShouldWork() {
 		assertThat(repository.customQueryWithAlignedReturnType()).containsExactly(new Object[][] {
-				{ "Frodo Baggins", "Frodo Baggins with suffix" }, { "Bilbo Baggins", "Bilbo Baggins with suffix" } });
+				{ "Frodo Baggins", "Frodo Baggins with suffix" }, { "Bilbo Baggins", "Bilbo Baggins with suffix" }, { null, null} });
+	}
+
+	@Test
+	void nullOptionalParameterShouldReturnAllEntries() {
+		List<EmployeeWithName> result = repository.customQueryWithOptionalParameter(null);
+
+		assertThat(result).hasSize(3);
 	}
 
 	@Transactional
@@ -290,6 +298,9 @@ class QueryWithNullLikeIntegrationTests {
 
 		@Query(value = "select * from EmployeeWithName as e where e.name like %:partialName%", nativeQuery = true)
 		List<EmployeeWithName> customQueryWithNullableParamInNative(@Nullable @Param("partialName") String partialName);
+
+		@Query("select e from EmployeeWithName e where (:partialName is null or e.name like %:partialName%)")
+		List<EmployeeWithName> customQueryWithOptionalParameter(@Nullable @Param("partialName") String partialName);
 
 		List<EmployeeWithName> findByNameStartsWith(@Nullable String partialName);
 

@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.jpa.provider.HibernateJpaParametersParameterAccessor;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
@@ -153,7 +154,11 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
 
-		return provider.getParameterAccessor(method.getParameters(), values, em);
+		if (method.isNativeQuery() && PersistenceProvider.HIBERNATE.equals(provider)) {
+			return new HibernateJpaParametersParameterAccessor(method.getParameters(), values, em);
+		}
+
+		return new JpaParametersParameterAccessor(method.getParameters(), values);
 	}
 
 	protected JpaQueryExecution getExecution() {

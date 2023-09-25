@@ -40,7 +40,7 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  * @since 2.7
  */
-class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
+public class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAccessor {
 
 	private final BasicTypeRegistry typeHelper;
 
@@ -51,7 +51,7 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	 * @param values must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
-	HibernateJpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values, EntityManager em) {
+	public HibernateJpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values, EntityManager em) {
 
 		super(parameters, values);
 
