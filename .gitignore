@@ -17,3 +17,4 @@ package.json
 spring-data-envers/
 spring-data-jpa-distribution/
 spring-data-jpa/
+.mvn/.gradle-enterprise/
