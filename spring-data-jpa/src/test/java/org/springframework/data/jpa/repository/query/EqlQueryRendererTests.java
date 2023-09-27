@@ -761,7 +761,7 @@ class EqlQueryRendererTests {
 	}
 
 	/**
-	 * This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
+	 * NOTE: This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
 	 */
 	@Test
 	void orderByClauseThatIsNotReflectedInTheSelectClauseButAlsoHasAnInClauseInTheFromClause() {
@@ -777,7 +777,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest25() {
+	void simpleDeleteShouldWork() {
 
 		assertQuery("""
 				DELETE
@@ -787,7 +787,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest26() {
+	void deleteWithMoreComplexCriteriaShouldWork() {
 
 		assertQuery("""
 				DELETE
@@ -798,7 +798,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest27() {
+	void simpleUpdateShouldWork() {
 
 		assertQuery("""
 				UPDATE Customer c
@@ -808,7 +808,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest28() {
+	void moreComplexUpdateShouldWork() {
 
 		assertQuery("""
 				UPDATE Employee e
@@ -820,7 +820,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest29() {
+	void simpleSelectShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -829,7 +829,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest30() {
+	void selectWithWhereClauseShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -839,7 +839,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest31() {
+	void selectWithDistinctSubElementShouldWork() {
 
 		assertQuery("""
 				SELECT DISTINCT o.shippingAddress.state
@@ -848,7 +848,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest32() {
+	void selectWithSimpleDistinctShouldWork() {
 
 		assertQuery("""
 				SELECT DISTINCT o
@@ -857,7 +857,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest33() {
+	void selectWithIsNotEmptyCriteriaShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -867,7 +867,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest34() {
+	void selectWithIsEmptyCriteriaShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -877,7 +877,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest35() {
+	void findAllPendingOrders() {
 
 		assertQuery("""
 				SELECT DISTINCT o
@@ -887,7 +887,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest36() {
+	void findAllOrdersWhereShippingAddressDoesNotMatchBillingAddress() {
 
 		assertQuery("""
 				SELECT o
@@ -900,7 +900,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest37() {
+	void simplerVersionOfShippingAddressNotMatchingBillingAddress() {
 
 		assertQuery("""
 				SELECT o
@@ -910,7 +910,7 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest38() {
+	void findOrdersThatHaveProductNamedByAParameter() {
 
 		assertQuery("""
 				SELECT DISTINCT o

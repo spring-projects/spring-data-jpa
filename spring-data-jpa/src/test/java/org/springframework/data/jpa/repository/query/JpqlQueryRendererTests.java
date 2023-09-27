@@ -746,9 +746,9 @@ class JpqlQueryRendererTests {
 	}
 
 	/**
-	 * NOTE: This query is specifically dubbed illegal in the spec. However, it's not due to a grammar failure but instead for
-	 * semantic reasons. Our parser does NOT check if the ORDER BY matches the SELECT or not. Hence, this is left to the
-	 * JPA provider.
+	 * NOTE: This query is specifically dubbed illegal in the spec. However, it's not due to a grammar failure but instead
+	 * for semantic reasons. Our parser does NOT check if the ORDER BY matches the SELECT or not. Hence, this is left to
+	 * the JPA provider.
 	 */
 	@Test
 	void orderByClauseThatIsNotReflectedInTheSelectClause() {
@@ -762,7 +762,7 @@ class JpqlQueryRendererTests {
 	}
 
 	/**
-	 * This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
+	 * NOTE: This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
 	 */
 	@Test
 	void orderByClauseThatIsNotReflectedInTheSelectClauseButAlsoHasAnInClauseInTheFromClause() {
@@ -778,7 +778,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest25() {
+	void simpleDeleteShouldWork() {
 
 		assertQuery("""
 				DELETE
@@ -788,7 +788,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest26() {
+	void deleteWithMoreComplexCriteriaShouldWork() {
 
 		assertQuery("""
 				DELETE
@@ -799,7 +799,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest27() {
+	void simpleUpdateShouldWork() {
 
 		assertQuery("""
 				UPDATE Customer c
@@ -809,7 +809,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest28() {
+	void moreComplexUpdateShouldWork() {
 
 		assertQuery("""
 				UPDATE Employee e
@@ -821,7 +821,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest29() {
+	void simpleSelectShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -830,7 +830,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest30() {
+	void selectWithWhereClauseShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -840,7 +840,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest31() {
+	void selectWithDistinctSubElementShouldWork() {
 
 		assertQuery("""
 				SELECT DISTINCT o.shippingAddress.state
@@ -849,7 +849,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest32() {
+	void selectWithSimpleDistinctShouldWork() {
 
 		assertQuery("""
 				SELECT DISTINCT o
@@ -858,7 +858,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest33() {
+	void selectWithIsNotEmptyCriteriaShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -868,7 +868,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest34() {
+	void selectWithIsEmptyCriteriaShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -878,7 +878,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest35() {
+	void findAllPendingOrders() {
 
 		assertQuery("""
 				SELECT DISTINCT o
@@ -888,7 +888,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest36() {
+	void findAllOrdersWhereShippingAddressDoesNotMatchBillingAddress() {
 
 		assertQuery("""
 				SELECT o
@@ -901,7 +901,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest37() {
+	void simplerVersionOfShippingAddressNotMatchingBillingAddress() {
 
 		assertQuery("""
 				SELECT o
@@ -911,7 +911,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest38() {
+	void findOrdersThatHaveProductNamedByAParameter() {
 
 		assertQuery("""
 				SELECT DISTINCT o
