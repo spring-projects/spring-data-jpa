@@ -55,7 +55,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
+public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment, PresenceDetector {
 
 	/**
 	 * Hibernate persistence provider.
@@ -116,6 +116,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		public String getCommentHintKey() {
 			return "org.hibernate.comment";
 		}
+
 	},
 
 	/**
@@ -209,6 +210,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
 
+	private boolean present;
+
 	/**
 	 * Creates a new {@link PersistenceProvider}.
 	 *
@@ -220,6 +223,13 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		this.entityManagerClassNames = entityManagerClassNames;
 		this.metamodelClassNames = metamodelClassNames;
+
+		this.present = false;
+		entityManagerClassNames.forEach(entityManagerClassName -> {
+			if (ClassUtils.isPresent(entityManagerClassName, PersistenceProvider.class.getClassLoader())) {
+				this.present = true;
+			}
+		});
 	}
 
 	/**
@@ -339,6 +349,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		return typedParameterValueClass != null && typedParameterValueClass.isInstance(value) //
 				? null //
 				: value;
+	}
+
+	@Override
+	public boolean isPresent() {
+		return this.present;
 	}
 
 	/**
