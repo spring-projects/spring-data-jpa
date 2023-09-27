@@ -49,6 +49,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
@@ -737,8 +738,22 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	private static jakarta.persistence.criteria.Order toJpaOrder(Order order, From<?, ?> from, CriteriaBuilder cb) {
 
-		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
-		Expression<?> expression = toExpressionRecursively(from, property);
+		Expression<?> expression;
+
+		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+
+			if (PersistenceProvider.HIBERNATE.isPresent()) {
+				expression = new HqlOrderByExtractor(cb, from).extractCriteriaExpression(jpaOrder);
+			} else if (PersistenceProvider.ECLIPSELINK.isPresent()) {
+				expression = new EqlOrderByExtractor(from).extractCriteriaExpression(jpaOrder);
+			} else {
+				expression = new JpqlOrderByExtractor(from).extractCriteriaExpression(jpaOrder);
+			}
+		} else {
+
+			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
+			expression = toExpressionRecursively(from, property);
+		}
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
 			Expression<String> upper = cb.lower((Expression<String>) expression);

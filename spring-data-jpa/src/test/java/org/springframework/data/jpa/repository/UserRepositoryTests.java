@@ -54,9 +54,11 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
@@ -3343,5 +3345,281 @@ class UserRepositoryTests {
 
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
+	}
+
+	@Test // GH-3172
+	void unsafeFindAllWithPageRequest() {
+
+		flushTestUsers();
+
+		firstUser.setManager(firstUser);
+		secondUser.setManager(firstUser);
+		thirdUser.setManager(secondUser);
+		fourthUser.setManager(secondUser);
+
+		repository.saveAllAndFlush(List.of(firstUser, secondUser, thirdUser, fourthUser));
+
+		// Generic function calls with one or more arguments
+		assertThat(repository.findAll(PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname)")))).containsExactly(thirdUser,
+				fourthUser, firstUser, secondUser);
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("char_length(firstname)"))))
+				.containsExactly(thirdUser, fourthUser, firstUser, secondUser);
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("substring(emailAddress, 0, 3)"))))
+				.containsExactly(secondUser, firstUser, thirdUser, fourthUser);
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("repeat('a', 5)"))))
+				.containsExactly(firstUser, secondUser, thirdUser, fourthUser);
+
+		// Trim function call
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("trim(leading '.' from lastname)"))))
+				.containsExactly(secondUser, firstUser, thirdUser, fourthUser);
+
+		// Grouped expression
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("(firstname)"))))
+				.containsExactly(thirdUser, secondUser, firstUser, fourthUser);
+
+		// Tuple argument
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("(firstname, lastname)")));
+		});
+
+		// Subquery
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("(select e from Employee e)")));
+
+		});
+
+		// Literal expressions
+		assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("'a'")));
+		});
+
+		assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("'abc'")));
+		});
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("5")))).containsExactly(firstUser, secondUser, thirdUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("length('a')"))))
+				.containsExactly(firstUser, secondUser, thirdUser, fourthUser);
+
+		// Parameters
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll(PageRequest.of(0, 4, JpaSort.unsafe(":name")));
+		});
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll(PageRequest.of(0, 4, JpaSort.unsafe("?1")));
+		});
+
+		// Arithmetic calls
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname) + 5"))))
+				.containsExactly(thirdUser, fourthUser, firstUser, secondUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname) - 1"))))
+				.containsExactly(thirdUser, fourthUser, firstUser, secondUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname) * 5.0"))))
+				.containsExactly(thirdUser, fourthUser, firstUser, secondUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname) / 5.0"))))
+				.containsExactly(thirdUser, firstUser, secondUser, fourthUser);
+
+		// Concat operation
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("firstname || lastname"))))
+				.containsExactly(thirdUser, secondUser, firstUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("upper(firstname) || upper(lastname)"))))
+				.containsExactly(thirdUser, secondUser, fourthUser, firstUser);
+
+		// Path-based expression
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("manager.firstname"))))
+				.containsExactly(thirdUser, fourthUser, firstUser, secondUser);
+
+		// Compound JpaOrder.unsafe operation
+		assertThat(repository.findAll(PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(lastname)") //
+				.and(JpaSort.unsafe("LENGTH(firstname)").descending()))))
+				.containsExactly(secondUser, firstUser, fourthUser, thirdUser);
+
+		// Case-based expressions
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case firstname when 'Oliver' then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case firstname when 'Oliver' then 'z' else firstname end"))))
+				.containsExactly(thirdUser, secondUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case firstname when 'Oliver' then 'A' when 'Joachim' then 'z' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, fourthUser, secondUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case firstname when 'Oliver' then 'z' when 'Joachim' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe(
+								"case when firstname = 'Oliver' then 'z' when firstname = 'Joachim' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age < 31 then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age <= 31 then 'A' else firstname end"))))
+				.containsExactly(firstUser, fourthUser, thirdUser, secondUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age > 42 then 'A' else firstname end"))))
+				.containsExactly(thirdUser, secondUser, firstUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age >= 43 then 'A' else firstname end"))))
+				.containsExactly(thirdUser, secondUser, firstUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age <> 28 then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age != 28 then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age ^= 28 then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		// Hibernate doesn't support using function calls inside case predicates.
+		assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("case when LENGTH(firstname) = 6 then 'A' else firstname end")));
+		});
+
+		// Case when IS NOT? NULL expressions
+		firstUser.setManager(null);
+		secondUser.setManager(firstUser);
+		thirdUser.setManager(firstUser);
+		fourthUser.setManager(firstUser);
+
+		repository.saveAllAndFlush(List.of(firstUser, secondUser, thirdUser, fourthUser));
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when manager is null then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when manager is not null then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		// Case IS NOT? DISTINCT FROM expression
+		firstUser.setLastname(firstUser.getFirstname());
+		repository.saveAndFlush(firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case when firstname is distinct from lastname then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case when firstname is not distinct from lastname then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		// Case NOT? IN
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname in ('Oliver', 'Dave') then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case when firstname not in ('Oliver', 'Dave') then 'A' else firstname end"))))
+				.containsExactly(secondUser, fourthUser, thirdUser, firstUser);
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4,
+							JpaSort.unsafe("case when firstname in ELEMENTS (manager.firstname) then 'A' else firstname end")));
+		});
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4,
+							JpaSort.unsafe("case when firstname in (select u.firstname from User u) then 'A' else firstname end")));
+		});
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+			repository.findAll( //
+					PageRequest.of(0, 4, JpaSort.unsafe("case when firstname in :names then 'A' else firstname end")));
+		});
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age between 25 and 30 then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when age not between 25 and 30 then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname like 'O%' then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname not like 'O%' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname ilike 'O%' then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname not ilike 'O%' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname like 'O%' escape '^' then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case when firstname not like 'O%' escape '^' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4, JpaSort.unsafe("case when firstname ilike 'O%' escape '^' then 'A' else firstname end"))))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
+
+		assertThat(repository.findAll( //
+				PageRequest.of(0, 4,
+						JpaSort.unsafe("case when firstname not ilike 'O%' escape '^' then 'A' else firstname end"))))
+				.containsExactly(secondUser, thirdUser, fourthUser, firstUser);
+
+		//
+		// Also works with custom Specification
+		//
+
+		Specification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+
+		assertThat(repository.findAll(spec, //
+				PageRequest.of(0, 4, JpaSort.unsafe("LENGTH(firstname)")))).containsExactly(thirdUser, firstUser);
 	}
 }

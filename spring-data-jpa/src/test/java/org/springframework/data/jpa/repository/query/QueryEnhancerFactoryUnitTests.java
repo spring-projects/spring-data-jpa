@@ -18,6 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.provider.HideHibernate;
+import org.springframework.data.jpa.provider.HidePersistenceProviders;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 
 /**
  * Unit tests for {@link QueryEnhancerFactory}.
@@ -28,18 +31,35 @@ import org.junit.jupiter.api.Test;
 class QueryEnhancerFactoryUnitTests {
 
 	@Test
-	void createsParsingImplementationForNonNativeQuery() {
+	void nonNativeQueryPicksHqlParserWhenHibernateOnClasspath() {
 
-		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory
+				.forQuery(new StringQuery("select new com.example.User(u.firstname) from User u", false));
 
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query);
+		assertThat(queryEnhancer).isInstanceOf(JpaQueryEnhancer.class);
+		assertThat(((JpaQueryEnhancer) queryEnhancer).getQueryParsingStrategy()).isInstanceOf(HqlQueryParser.class);
+	}
 
-		assertThat(queryEnhancer) //
-				.isInstanceOf(JpaQueryEnhancer.class);
+	@Test // GH-3172
+	@HideHibernate
+	void nonNativeQueryPicksEqlParserWhenEclipseLinkOnClasspath() {
 
-		JpaQueryEnhancer queryParsingEnhancer = (JpaQueryEnhancer) queryEnhancer;
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory
+				.forQuery(new StringQuery("select new com.example.User(u.firstname) from User u", false));
 
-		assertThat(queryParsingEnhancer.getQueryParsingStrategy()).isInstanceOf(HqlQueryParser.class);
+		assertThat(queryEnhancer).isInstanceOf(JpaQueryEnhancer.class);
+		assertThat(((JpaQueryEnhancer) queryEnhancer).getQueryParsingStrategy()).isInstanceOf(EqlQueryParser.class);
+	}
+
+	@Test // GH-3172
+	@HidePersistenceProviders({ PersistenceProvider.HIBERNATE, PersistenceProvider.ECLIPSELINK })
+	void nonNativeQueryPicksJpqlParserWhenHibernateAndEclipseLinkAreNotOnClasspath() {
+
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory
+				.forQuery(new StringQuery("select new com.example.User(u.firstname) from User u", false));
+
+		assertThat(queryEnhancer).isInstanceOf(JpaQueryEnhancer.class);
+		assertThat(((JpaQueryEnhancer) queryEnhancer).getQueryParsingStrategy()).isInstanceOf(JpqlQueryParser.class);
 	}
 
 	@Test
