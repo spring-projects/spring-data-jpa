@@ -278,8 +278,9 @@ public class QueryWithNullLikeHibernateIntegrationTests {
 				{ "Frodo Baggins", "Frodo Baggins with suffix" }, { "Bilbo Baggins", "Bilbo Baggins with suffix" }, { null, null} });
 	}
 
-	@Test
+	@Test // GH-3137
 	void nullOptionalParameterShouldReturnAllEntries() {
+
 		List<EmployeeWithName> result = repository.customQueryWithOptionalParameter(null);
 
 		assertThat(result).hasSize(3);
