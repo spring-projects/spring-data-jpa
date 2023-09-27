@@ -15,15 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.currentEntityManagerIsAJpa21EntityManager;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -83,7 +79,6 @@ class AbstractJpaQueryTests {
 	void addsHintsToQueryObject() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByLastname", String.class);
-
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
 		Query result = jpaQuery
@@ -116,8 +111,8 @@ class AbstractJpaQueryTests {
 		when(query.setLockMode(any(LockModeType.class))).thenReturn(query);
 
 		JpaQueryMethod queryMethod = getMethod("findOneLocked", Integer.class);
-
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+
 		Query result = jpaQuery.createQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { Integer.valueOf(1) }));
 		verify(result).setLockMode(LockModeType.PESSIMISTIC_WRITE);
@@ -130,7 +125,6 @@ class AbstractJpaQueryTests {
 		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		JpaQueryMethod queryMethod = getMethod("findAll");
-
 		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
@@ -146,7 +140,6 @@ class AbstractJpaQueryTests {
 		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 
 		JpaQueryMethod queryMethod = getMethod("getById", Integer.class);
-
 		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
 
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
@@ -160,12 +153,12 @@ class AbstractJpaQueryTests {
 	void shouldCreateHibernateJpaParameterParametersAccessorForNativeQuery() throws Exception {
 
 		JpaQueryMethod queryMethod = getMethod("findByLastnameNativeQuery", String.class);
-
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
-		jpaQuery.execute(new Object[] {"some last name"});
+		jpaQuery.execute(new Object[] { "some last name" });
 
-		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor.forClass(JpaParametersParameterAccessor.class);
+		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor
+				.forClass(JpaParametersParameterAccessor.class);
 		verify(execution).execute(eq(jpaQuery), captor.capture());
 		JpaParametersParameterAccessor parameterAccessor = captor.getValue();
 
@@ -178,9 +171,10 @@ class AbstractJpaQueryTests {
 		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class);
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 
-		jpaQuery.execute(new Object[] {"some first name"});
+		jpaQuery.execute(new Object[] { "some first name" });
 
-		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor.forClass(JpaParametersParameterAccessor.class);
+		ArgumentCaptor<JpaParametersParameterAccessor> captor = ArgumentCaptor
+				.forClass(JpaParametersParameterAccessor.class);
 		verify(execution).execute(eq(jpaQuery), captor.capture());
 		JpaParametersParameterAccessor parameterAccessor = captor.getValue();
 
@@ -201,7 +195,8 @@ class AbstractJpaQueryTests {
 		@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 		List<User> findByLastname(String lastname);
 
-		@org.springframework.data.jpa.repository.Query(value = "select u from User u where u.lastname = ?1", nativeQuery = true)
+		@org.springframework.data.jpa.repository.Query(value = "select u from User u where u.lastname = ?1",
+				nativeQuery = true)
 		List<User> findByLastnameNativeQuery(String lastname);
 
 		@QueryHints(value = { @QueryHint(name = "bar", value = "foo") }, forCounting = false)
