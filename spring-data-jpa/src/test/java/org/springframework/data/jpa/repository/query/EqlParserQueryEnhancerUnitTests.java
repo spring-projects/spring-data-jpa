@@ -24,7 +24,6 @@ import org.junit.jupiter.params.provider.MethodSource;
  * TCK Tests for {@link EqlQueryParser} mixed into {@link JpaQueryEnhancer}.
  *
  * @author Greg Turnquist
- * @since 3.2
  */
 public class EqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 

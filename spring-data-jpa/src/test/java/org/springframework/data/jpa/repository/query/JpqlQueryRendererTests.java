@@ -523,7 +523,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest() {
+	void inClauseWithTypeLiteralsShouldWork() {
 
 		assertQuery("""
 				SELECT e
@@ -533,7 +533,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest2() {
+	void inClauseWithParametersShouldWork() {
 
 		assertQuery("""
 				SELECT e
@@ -543,7 +543,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest3() {
+	void inClauseWithSingleParameterShouldWork() {
 
 		assertQuery("""
 				SELECT e
@@ -553,7 +553,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest4() {
+	void notEqualsForTypeShouldWork() {
 
 		assertQuery("""
 				SELECT TYPE(e)
@@ -563,7 +563,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest5() {
+	void havingWithInClauseShouldWork() {
 
 		assertQuery("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
@@ -574,7 +574,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest6() {
+	void havingClauseWithComparisonShouldWork() {
 
 		assertQuery("""
 				SELECT c.country, COUNT(c)
@@ -585,7 +585,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest7() {
+	void havingClauseWithAnotherComparisonShouldWork() {
 
 		assertQuery("""
 				SELECT c, COUNT(o)
@@ -596,7 +596,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest8() {
+	void whereClauseWithComparisonShouldWork() {
 
 		assertQuery("""
 				SELECT c.id, c.status
@@ -606,7 +606,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest9() {
+	void keyValueFunctionsShouldWork() {
 
 		assertQuery("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
@@ -616,7 +616,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest10() {
+	void fromClauseWithAsShouldWork() {
 
 		assertQuery("""
 				SELECT o.lineItems FROM Order AS o
@@ -624,7 +624,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest11() {
+	void countFunctionWithAsClauseShouldWork() {
 
 		assertQuery("""
 				SELECT c, COUNT(l) AS itemCount
@@ -636,7 +636,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest12() {
+	void objectConstructionShouldWork() {
 
 		assertQuery("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
@@ -646,7 +646,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest13() {
+	void selectWithAsClauseShouldWork() {
 
 		assertQuery("""
 				SELECT e.address AS addr
@@ -655,7 +655,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest14() {
+	void averageFunctionShouldWork() {
 
 		assertQuery("""
 				SELECT AVG(o.quantity) FROM Order o
@@ -663,7 +663,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest15() {
+	void sumFunctionShouldWork() {
 
 		assertQuery("""
 				SELECT SUM(l.price)
@@ -673,7 +673,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest16() {
+	void countFunctionShouldWork() {
 
 		assertQuery("""
 				SELECT COUNT(o) FROM Order o
@@ -681,7 +681,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest17() {
+	void countFunctionOnSubElementShouldWork() {
 
 		assertQuery("""
 				SELECT COUNT(l.price)
@@ -691,7 +691,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest18() {
+	void equivalentCountFunctionShouldAlsoWork() {
 
 		assertQuery("""
 				SELECT COUNT(l)
@@ -701,7 +701,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest19() {
+	void orderByBasedOnSelectClauseShouldWork() {
 
 		assertQuery("""
 				SELECT o
@@ -712,7 +712,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest20() {
+	void orderByThatMatchesSelectClauseShouldWork() {
 
 		assertQuery("""
 				SELECT o.quantity, a.zipcode
@@ -723,7 +723,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest21() {
+	void orderByThatMatchesAllSelectAliasesShouldWork() {
 
 		assertQuery("""
 				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
@@ -734,7 +734,7 @@ class JpqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest22() {
+	void orderByThatMatchesSelectFunctionAliasShouldWork() {
 
 		assertQuery("""
 				SELECT AVG(o.quantity) as q, a.zipcode
@@ -745,8 +745,13 @@ class JpqlQueryRendererTests {
 				""");
 	}
 
+	/**
+	 * NOTE: This query is specifically dubbed illegal in the spec. However, it's not due to a grammar failure but instead for
+	 * semantic reasons. Our parser does NOT check if the ORDER BY matches the SELECT or not. Hence, this is left to the
+	 * JPA provider.
+	 */
 	@Test
-	void theRest23() {
+	void orderByClauseThatIsNotReflectedInTheSelectClause() {
 
 		assertQuery("""
 				SELECT p.product_name
@@ -760,7 +765,7 @@ class JpqlQueryRendererTests {
 	 * This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
 	 */
 	@Test
-	void theRest24() {
+	void orderByClauseThatIsNotReflectedInTheSelectClauseButAlsoHasAnInClauseInTheFromClause() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
 			assertQuery("""
