@@ -26,6 +26,7 @@ import java.util.List;
  * @author Greg Turnquist
  * @since 3.1
  */
+@SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
 class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override

@@ -26,6 +26,7 @@ import java.util.List;
  * @author Greg Turnquist
  * @since 3.2
  */
+@SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
 class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override

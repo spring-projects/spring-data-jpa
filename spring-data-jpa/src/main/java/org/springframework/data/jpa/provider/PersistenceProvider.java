@@ -55,7 +55,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment, PresenceDetector {
+public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
 	/**
 	 * Hibernate persistence provider.
@@ -204,7 +204,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
 
-	private boolean present;
+	private final boolean present;
 
 	/**
 	 * Creates a new {@link PersistenceProvider}.
@@ -218,12 +218,16 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		this.entityManagerClassNames = entityManagerClassNames;
 		this.metamodelClassNames = metamodelClassNames;
 
-		this.present = false;
-		entityManagerClassNames.forEach(entityManagerClassName -> {
+		boolean present = false;
+		for (String entityManagerClassName : entityManagerClassNames) {
+
 			if (ClassUtils.isPresent(entityManagerClassName, PersistenceProvider.class.getClassLoader())) {
-				this.present = true;
+				present = true;
+				break;
 			}
-		});
+		}
+
+		this.present = present;
 	}
 
 	/**
@@ -340,7 +344,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 				: value;
 	}
 
-	@Override
 	public boolean isPresent() {
 		return this.present;
 	}
