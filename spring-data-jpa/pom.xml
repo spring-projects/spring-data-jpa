@@ -224,31 +224,9 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!--
-		Apache Open Web beans offers a jakarta based version using maven classifiers.
-		Unfortunately the dependencies are broken, so one has to exclude the broken ones and add the proper ones
-		explicitly.
-
-		This can be simpliefied once https://issues.apache.org/jira/browse/OWB-1368 is fixed.
-
-		See: https://stackoverflow.com/questions/66610586/openwebbeans-gives-error-java-lang-noclassdeffounderror-when-using-with-tomcat-1
-		-->
 		<dependency>
 			<groupId>org.apache.openwebbeans</groupId>
 			<artifactId>openwebbeans-se</artifactId>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-impl</artifactId>
-			<classifier>jakarta</classifier>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.openwebbeans</groupId>
-			<artifactId>openwebbeans-spi</artifactId>
-			<classifier>jakarta</classifier>
 			<scope>test</scope>
 		</dependency>
 
