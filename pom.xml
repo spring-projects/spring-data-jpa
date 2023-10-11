@@ -31,7 +31,8 @@
 		<eclipselink>3.0.3</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
 		<hibernate>6.3.1.Final</hibernate>
-		<hibernate-next-snapshots>6.3.2-SNAPSHOT</hibernate-next-snapshots>
+		<hibernate-64-next-snapshots>6.4.0-SNAPSHOT</hibernate-64-next-snapshots>
+		<hibernate-63-next-snapshots>6.3.2-SNAPSHOT</hibernate-63-next-snapshots>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
 		<jsqlparser>4.5</jsqlparser>
@@ -55,9 +56,24 @@
 
 	<profiles>
 		<profile>
+			<id>hibernate-64-next</id>
+			<properties>
+				<hibernate>${hibernate-64-next-snapshots}</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-oss</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
 			<id>hibernate-63-next</id>
 			<properties>
-				<hibernate>${hibernate-next-snapshots}</hibernate>
+				<hibernate>${hibernate-63-next-snapshots}</hibernate>
 			</properties>
 			<repositories>
 				<repository>

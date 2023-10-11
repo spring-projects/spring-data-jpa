@@ -74,6 +74,25 @@ pipeline {
 						}
 					}
 				}
+				stage("test: baseline (hibernate 6.4.x snapshots)") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES')}
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
+						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
+					}
+					steps {
+						script {
+							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+								sh 'PROFILE=all-dbs,hibernate-64-next ci/test.sh'
+							}
+						}
+					}
+				}
 				stage("test: java.next (next)") {
 					agent {
 						label 'data'
