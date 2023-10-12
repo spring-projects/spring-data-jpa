@@ -51,6 +51,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
+import org.springframework.data.jpa.domain.ParametersValues;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -61,6 +62,7 @@ import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpe
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
@@ -428,9 +430,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Optional<T> findOne(Specification<T> spec) {
+		return findOne(spec, ParametersValues.empty());
+	}
 
+	@Override
+	public Optional<T> findOne(Specification<T> spec, ParametersValues parametersValues) {
 		try {
-			return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResult());
+			return Optional.of(getQuery(spec, Sort.unsorted(), parametersValues).setMaxResults(2).getSingleResult());
 		} catch (NoResultException e) {
 			return Optional.empty();
 		}
@@ -438,25 +444,45 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public List<T> findAll(Specification<T> spec) {
-		return getQuery(spec, Sort.unsorted()).getResultList();
+		return findAll(spec, ParametersValues.empty());
+	}
+
+	@Override
+	public List<T> findAll(Specification<T> spec, @Nullable ParametersValues parametersValues) {
+		return getQuery(spec, Sort.unsorted(), parametersValues).getResultList();
 	}
 
 	@Override
 	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
-		TypedQuery<T> query = getQuery(spec, pageable);
+		return findAll(spec, pageable, null);
+	}
+
+	@Override
+	public Page<T> findAll(Specification<T> spec, Pageable pageable, @Nullable ParametersValues parametersValues) {
+
+		TypedQuery<T> query = getQuery(spec, pageable, parametersValues);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
 				: readPage(query, getDomainClass(), pageable, spec);
 	}
 
 	@Override
 	public List<T> findAll(Specification<T> spec, Sort sort) {
-		return getQuery(spec, sort).getResultList();
+		return findAll(spec, sort, null);
+	}
+
+	@Override
+	public List<T> findAll(Specification<T> spec, Sort sort, @Nullable ParametersValues parametersValues) {
+		return getQuery(spec, sort, parametersValues).getResultList();
 	}
 
 	@Override
 	public boolean exists(Specification<T> spec) {
+		return exists(spec, null);
+	}
 
+	@Override
+	public boolean exists(Specification<T> spec, @Nullable ParametersValues parametersValues) {
 		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
 				.createQuery(Integer.class) //
 				.select(this.entityManager.getCriteriaBuilder().literal(1));
@@ -464,12 +490,22 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
+
+		if (parametersValues != null) {
+			parametersValues.forEach(query::setParameter);
+		}
+
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
 	@Override
 	public long delete(Specification<T> spec) {
 
+		return delete(spec, null);
+	}
+
+	@Override
+	public long delete(Specification<T> spec, @Nullable ParametersValues parametersValues) {
 		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
 
@@ -480,21 +516,35 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				delete.where(predicate);
 			}
 		}
+		
+		Query query = this.entityManager.createQuery(delete);
 
-		return this.entityManager.createQuery(delete).executeUpdate();
+		if(parametersValues != null) {
+			parametersValues.forEach(query::setParameter);
+		}
+
+		return query.executeUpdate();
 	}
 
 	@Override
 	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
+
+
+		return findBy(spec, queryFunction, null);
+	}
+
+	@Override
+	public <S extends T, R> R findBy(Specification<T> spec,
+			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction, @Nullable ParametersValues parametersValues) {
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		return doFindBy(spec, getDomainClass(), queryFunction);
+		return doFindBy(spec, getDomainClass(), queryFunction, parametersValues);
 	}
 
 	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
-			Function<FetchableFluentQuery<S>, R> queryFunction) {
+			Function<FetchableFluentQuery<S>, R> queryFunction, @Nullable ParametersValues parametersValues) {
 
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
@@ -518,7 +568,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return query;
 		};
 
-		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, domainClass, sort);
+		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, domainClass, sort, parametersValues);
 
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
@@ -590,7 +640,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
 		Class<S> probeType = example.getProbeType();
 
-		return doFindBy((Specification<T>) spec, (Class<T>) probeType, queryFunction);
+		return doFindBy((Specification<T>) spec, (Class<T>) probeType, queryFunction, null);
 	}
 
 	@Override
@@ -605,7 +655,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public long count(@Nullable Specification<T> spec) {
-		return executeCountQuery(getCountQuery(spec, getDomainClass()));
+		return count(spec, null);
+	}
+
+	@Override
+	public long count(@Nullable Specification<T> spec, @Nullable ParametersValues parametersValues) {
+		return executeCountQuery(getCountQuery(spec, getDomainClass(), parametersValues));
 	}
 
 	@Transactional
@@ -706,8 +761,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
 
+		return getQuery(spec, pageable, null);
+	}
+
+	/**
+	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
+	 * @param parametersValues can be {@literal null}.
+	 */
+	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable,
+			@Nullable ParametersValues parametersValues) {
+
 		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
-		return getQuery(spec, getDomainClass(), sort);
+		return getQuery(spec, getDomainClass(), sort, parametersValues);
 	}
 
 	/**
@@ -738,10 +806,34 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param spec can be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @param parametersValues can be {@literal null}.
+	 */
+	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Sort sort, @Nullable ParametersValues parametersValues) {
+		return getQuery(spec, getDomainClass(), sort, parametersValues);
+	}
+
+
+	/**
+	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
+		return getQuery(spec, domainClass, sort, null);
+	}
+
+	/**
+	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param parametersValues can be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 */
+	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort, @Nullable ParametersValues parametersValues) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query = builder.createQuery(domainClass);
@@ -753,7 +845,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
+		TypedQuery<S> typedQuery = entityManager.createQuery(query);
+
+		if (parametersValues != null) {
+			parametersValues.forEach(typedQuery::setParameter);
+		}
+
+		return applyRepositoryMethodMetadata(typedQuery);
 	}
 
 	/**
@@ -767,13 +865,19 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return getCountQuery(spec, getDomainClass());
 	}
 
+	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
+		return getCountQuery(spec, domainClass, null);
+	}
+
 	/**
 	 * Creates a new count query for the given {@link Specification}.
 	 *
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
+	 * @param parametersValues van be {@literal null}
 	 */
-	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
+	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass,
+			@Nullable ParametersValues parametersValues) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -789,7 +893,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
+
+		TypedQuery<Long> typedQuery = entityManager.createQuery(query);
+
+		if (parametersValues != null) {
+			parametersValues.forEach(typedQuery::setParameter);
+		}
+
+		return applyRepositoryMethodMetadataForCount(typedQuery);
 	}
 
 	/**

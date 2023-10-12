@@ -27,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
  *
  * @author Oliver Gierke
  * @author Diego Krupitza
+ * @author Vladimir Iftodi
  */
 public class UserSpecifications {
 
@@ -39,6 +40,14 @@ public class UserSpecifications {
 	}
 
 	/**
+	 * A {@link Specification} to match on a {@link User}'s firstname via a named parameter.
+	 */
+	public static Specification<User> userHasFirstNameEqNamedParameter() {
+
+		return simpleNamedParameterSpec("firstname", String.class, "firstname");
+	}
+
+	/**
 	 * A {@link Specification} to match on a {@link User}'s lastname.
 	 */
 	public static Specification<User> userHasLastname(final String lastname) {
@@ -47,11 +56,28 @@ public class UserSpecifications {
 	}
 
 	/**
+	 * A {@link Specification} to match on a {@link User}'s lastname via a named parameter.
+	 */
+	public static Specification<User> userHasLastNameEqNamedParameter() {
+
+		return simpleNamedParameterSpec("lastname", String.class, "lastname");
+	}
+
+
+	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s firstname.
 	 */
 	public static Specification<User> userHasFirstnameLike(final String expression) {
 
 		return (root, query, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
+	}
+
+	/**
+	 * A {@link Specification} to do a like-match on a {@link User}'s firstname with a param.
+	 */
+	public static Specification<User> userHasFirstnameLikeWithParam() {
+
+		return (root, query, cb) -> cb.like(root.get("firstname").as(String.class), cb.parameter(String.class, "like"));
 	}
 
 	/**
@@ -63,6 +89,18 @@ public class UserSpecifications {
 
 		return (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
 	}
+
+	/**
+	 * A {@link Specification} to do an age check with a parameter.
+	 *
+	 */
+	public static Specification<User> userHasAgeLessThanParam() {
+
+		return (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), cb.parameter(Integer.class, "age"));
+	}
+
+
+	
 
 	/**
 	 * A {@link Specification} to do a like-match on a {@link User}'s lastname but also adding a sort order on the
@@ -82,4 +120,10 @@ public class UserSpecifications {
 
 		return (root, query, builder) -> builder.equal(root.get(property), value);
 	}
+
+	private static <T> Specification<T> simpleNamedParameterSpec(final String property, Class<?> paramClass, final String parameterName) {
+
+		return (root, query, builder) -> builder.equal(root.get(property), builder.parameter(paramClass, parameterName));
+	}
+
 }

@@ -26,6 +26,7 @@ import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.ParametersValues;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 
@@ -36,6 +37,7 @@ import org.springframework.data.repository.query.FluentQuery;
  * @author Christoph Strobl
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Vladimir Iftodi
  */
 public interface JpaSpecificationExecutor<T> {
 
@@ -49,6 +51,16 @@ public interface JpaSpecificationExecutor<T> {
 	Optional<T> findOne(Specification<T> spec);
 
 	/**
+	 * Returns a single entity matching the given {@link Specification} or {@link Optional#empty()} if none found.
+	 *
+	 * @param spec             must not be {@literal null}.
+	 * @param parametersValues the values for the query params, can be {@literal null}.
+	 * @return never {@literal null}.
+	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
+	 */
+	Optional<T> findOne(Specification<T> spec, ParametersValues parametersValues);
+
+	/**
 	 * Returns all entities matching the given {@link Specification}.
 	 *
 	 * @param spec must not be {@literal null}.
@@ -57,13 +69,32 @@ public interface JpaSpecificationExecutor<T> {
 	List<T> findAll(Specification<T> spec);
 
 	/**
+	 * Returns all entities matching the given {@link Specification}.
+	 *
+	 * @param spec             must not be {@literal null}.
+	 * @param parametersValues the values for the query params, can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	List<T> findAll(Specification<T> spec, ParametersValues parametersValues);
+
+	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
 	 *
-	 * @param spec must not be {@literal null}.
+	 * @param spec     must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
 	Page<T> findAll(Specification<T> spec, Pageable pageable);
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 *
+	 * @param spec             must not be {@literal null}.
+	 * @param pageable         must not be {@literal null}.
+	 * @param parametersValues the values for the query params, can be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	Page<T> findAll(Specification<T> spec, Pageable pageable, ParametersValues parametersValues);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
@@ -75,12 +106,31 @@ public interface JpaSpecificationExecutor<T> {
 	List<T> findAll(Specification<T> spec, Sort sort);
 
 	/**
+	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param spec             must not be {@literal null}.
+	 * @param sort             must not be {@literal null}.
+	 * @param parametersValues may be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	List<T> findAll(Specification<T> spec, Sort sort, ParametersValues parametersValues);
+
+	/**
 	 * Returns the number of instances that the given {@link Specification} will return.
 	 *
 	 * @param spec the {@link Specification} to count instances for, must not be {@literal null}.
 	 * @return the number of instances.
 	 */
 	long count(Specification<T> spec);
+
+	/**
+	 * Returns the number of instances that the given {@link Specification} will return.
+	 *
+	 * @param spec the {@link Specification} to count instances for, may not be {@literal null}.
+	 * @param parametersValues  may be {@literal null}.
+	 * @return the number of instances.
+	 */
+	long count(Specification<T> spec, ParametersValues parametersValues);
 
 	/**
 	 * Checks whether the data store contains elements that match the given {@link Specification}.
@@ -90,6 +140,16 @@ public interface JpaSpecificationExecutor<T> {
 	 *         {@code false}.
 	 */
 	boolean exists(Specification<T> spec);
+
+	/**
+	 * Checks whether the data store contains elements that match the given {@link Specification}.
+	 *
+	 * @param spec the {@link Specification} to use for the existence check, ust not be {@literal null}.
+	 * @param parametersValues may be {@literal null}.
+	 * @return {@code true} if the data store contains elements that match the given {@link Specification} otherwise
+	 *         {@code false}.
+	 */
+	boolean exists(Specification<T> spec, ParametersValues parametersValues);
 
 	/**
 	 * Deletes by the {@link Specification} and returns the number of rows deleted.
@@ -109,6 +169,24 @@ public interface JpaSpecificationExecutor<T> {
 	long delete(Specification<T> spec);
 
 	/**
+	 * Deletes by the {@link Specification} and returns the number of rows deleted.
+	 * <p>
+	 * This method uses {@link jakarta.persistence.criteria.CriteriaDelete Criteria API bulk delete} that maps directly to
+	 * database delete operations. The persistence context is not synchronized with the result of the bulk delete.
+	 * <p>
+	 * Please note that {@link jakarta.persistence.criteria.CriteriaQuery} in,
+	 * {@link Specification#toPredicate(Root, CriteriaQuery, CriteriaBuilder)} will be {@literal null} because
+	 * {@link jakarta.persistence.criteria.CriteriaBuilder#createCriteriaDelete(Class)} does not implement
+	 * {@code CriteriaQuery}.
+	 *
+	 * @param spec the {@link Specification} to use for the existence check, must not be {@literal null}.
+	 * @param parametersValues may be {@literal null}
+	 * @return the number of entities deleted.
+	 * @since 3.0
+	 */
+	long delete(Specification<T> spec, ParametersValues parametersValues);
+
+	/**
 	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
 	 * and its result type.
 	 *
@@ -118,5 +196,17 @@ public interface JpaSpecificationExecutor<T> {
 	 * @since 3.0
 	 */
 	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+
+	/**
+	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
+	 * and its result type.
+	 *
+	 * @param spec must not be null.
+	 * @param queryFunction the query function defining projection, sorting, and the result type
+	 * @param parametersValues may be {@literal null}
+	 * @return all entities matching the given Example.
+	 * @since 3.0
+	 */
+	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction, ParametersValues parametersValues);
 
 }

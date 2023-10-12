@@ -57,6 +57,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.ParametersValues;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
@@ -92,6 +93,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
+ * @author Vladimir Iftodi
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -465,10 +467,25 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	void executesSpecificationWithParametersCorrectly() {
+		flushTestUsers();
+		var spec = where(userHasFirstNameEqNamedParameter());
+		assertThat(repository.findAll(spec, ParametersValues.of("firstname", "Oliver"))).hasSize(1);
+	}
+
+	@Test
 	void executesSingleEntitySpecificationCorrectly() {
 
 		flushTestUsers();
 		assertThat(repository.findOne(userHasFirstname("Oliver"))).contains(firstUser);
+	}
+
+	@Test
+	void executesSingleEntitySpecificationWithNamedParameterCorrectly() {
+
+		flushTestUsers();
+		var spec = userHasFirstNameEqNamedParameter();
+		assertThat(repository.findOne(spec, ParametersValues.of("firstname", "Oliver"))).contains(firstUser);
 	}
 
 	@Test
@@ -499,6 +516,29 @@ class UserRepositoryTests {
 				userHasFirstname("Oliver"), //
 				userHasLastname("Arrasz"));
 		List<User> users2 = repository.findAll(spec2);
+		assertThat(users2).hasSize(2);
+
+		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
+	}
+
+	@Test
+	void executesCombinedSpecificationsWithMultipleParametersCorrectly() {
+
+		flushTestUsers();
+		Specification<User> spec1 = userHasFirstNameEqNamedParameter().or(userHasLastNameEqNamedParameter());
+		var paramsValues = new ParametersValues();
+		paramsValues.setValue("firstname", "Oliver");
+		paramsValues.setValue("lastname", "Arrasz");
+
+
+		List<User> users1 = repository.findAll(spec1, paramsValues);
+		assertThat(users1).hasSize(2);
+
+		Specification<User> spec2 = Specification.anyOf( //
+				userHasFirstNameEqNamedParameter(), //
+				userHasLastNameEqNamedParameter());
+
+		List<User> users2 = repository.findAll(spec2, paramsValues);
 		assertThat(users2).hasSize(2);
 
 		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
@@ -2591,6 +2631,18 @@ class UserRepositoryTests {
 		assertThat(users).containsExactly(thirdUser, firstUser, fourthUser);
 	}
 
+	@Test
+	void findByFluentSpecificationWithParamAndWithSorting() {
+
+		flushTestUsers();
+
+		List<User> users = repository.findBy(
+			userHasFirstnameLikeWithParam(), q -> q.sortBy(Sort.by("firstname")).all(), ParametersValues.of("like", "%v%"));
+
+		assertThat(users).containsExactly(thirdUser, firstUser, fourthUser);
+	}
+
+
 	@Test // GH-2274
 	void findByFluentSpecificationFirstValue() {
 
@@ -3158,6 +3210,18 @@ class UserRepositoryTests {
 		assertThat(repository.exists(hundredYearsOld)).isTrue();
 	}
 
+	@Test
+	void existsWithSpecWithParameters() {
+
+		flushTestUsers();
+
+		Specification<User> minorSpec = userHasAgeLessThanParam();
+		Specification<User> hundredYearsOld = userHasAgeLessThanParam();
+
+		assertThat(repository.exists(minorSpec, ParametersValues.of("age", 18))).isFalse();
+		assertThat(repository.exists(hundredYearsOld, ParametersValues.of("age", 100))).isTrue();
+	}
+
 	@Test // GH-2555
 	void modifyingUpdateNativeQueryWorksWithJSQLParser() {
 
@@ -3181,6 +3245,19 @@ class UserRepositoryTests {
 
 		long initialCount = repository.count();
 		assertThat(repository.delete(usersWithEInTheirName)).isEqualTo(3L);
+		long finalCount = repository.count();
+		assertThat(initialCount - finalCount).isEqualTo(3L);
+	}
+
+	@Test
+	void deleteWithSpecWithParam() {
+
+		flushTestUsers();
+
+		Specification<User> usersWithEInTheirName = userHasFirstnameLikeWithParam();
+
+		long initialCount = repository.count();
+		assertThat(repository.delete(usersWithEInTheirName, ParametersValues.of("like", "%e%"))).isEqualTo(3L);
 		long finalCount = repository.count();
 		assertThat(initialCount - finalCount).isEqualTo(3L);
 	}
