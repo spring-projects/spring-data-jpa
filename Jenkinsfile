@@ -148,7 +148,7 @@ pipeline {
 								"-Dartifactory.staging-repository=libs-snapshot-local " +
 								"-Dartifactory.build-name=spring-data-jpa " +
 								"-Dartifactory.build-number=${BUILD_NUMBER} " +
-								'-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
+								'-Duser.name=spring-builds+jenkins -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
 								'-Dmaven.test.skip=true clean deploy -U -B '
 
 					}
