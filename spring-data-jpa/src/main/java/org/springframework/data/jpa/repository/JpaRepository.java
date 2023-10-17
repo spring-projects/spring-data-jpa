@@ -79,7 +79,9 @@ public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPag
 	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
-	 *
+	 * <p>
+	 * It will also NOT honor cascade semantics of JPA, nor will it emit JPA  lifecycle events.
+	 *</p>
 	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @since 2.5
 	 */
