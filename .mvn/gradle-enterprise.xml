@@ -21,11 +21,11 @@
 			<server>
 				<credentials>
 					<username>spring-builds+jenkins</username>
-					<password>${env.GRADLE_ENTERPRISE_CACHE_PASSWORD}</password>
+					<password>${env.DEVELOCITY_CACHE_PASSWORD}</password>
 				</credentials>
 			</server>
 			<enabled>true</enabled>
-			<storeEnabled>#{env['GRADLE_ENTERPRISE_CACHE_USERNAME'] != null and env['GRADLE_ENTERPRISE_CACHE_PASSWORD'] != null}</storeEnabled>
+			<storeEnabled>#{env['DEVELOCITY_CACHE_USERNAME'] != null and env['DEVELOCITY_CACHE_PASSWORD'] != null}</storeEnabled>
 		</remote>
 	</buildCache>
 </gradleEnterprise>

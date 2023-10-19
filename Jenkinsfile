@@ -32,8 +32,8 @@ pipeline {
 			options { timeout(time: 30, unit: 'MINUTES') }
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
-				GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 				TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 			}
 			steps {
@@ -62,8 +62,8 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
-						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
@@ -81,8 +81,8 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
-						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
@@ -100,8 +100,8 @@ pipeline {
 					options { timeout(time: 30, unit: 'MINUTES')}
 					environment {
 						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-						GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
-						GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
 					}
 					steps {
@@ -130,17 +130,17 @@ pipeline {
 
 			environment {
 				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
-				GRADLE_ENTERPRISE_CACHE = credentials("${p['gradle-enterprise-cache.credentials']}")
-				GRADLE_ENTERPRISE_ACCESS_KEY = credentials("${p['gradle-enterprise.access-key']}")
+				DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+				DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
 			}
 
 			steps {
 				script {
 					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home" ' +
-								'GRADLE_ENTERPRISE_CACHE_USERNAME=${GRADLE_ENTERPRISE_CACHE_USR} ' +
-								'GRADLE_ENTERPRISE_CACHE_PASSWORD=${GRADLE_ENTERPRISE_CACHE_PSW} ' +
-								'GRADLE_ENTERPRISE_ACCESS_KEY=${GRADLE_ENTERPRISE_ACCESS_KEY} ' +
+						sh 'MAVEN_OPTS="-Duser.name=spring-builds+jenkins -Duser.home=/tmp/jenkins-home" ' +
+								'DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} ' +
+								'DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} ' +
+								'GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} ' +
 								'./mvnw -s settings.xml -Pci,artifactory ' +
 								'-Dartifactory.server=https://repo.spring.io ' +
 								"-Dartifactory.username=${ARTIFACTORY_USR} " +
@@ -148,7 +148,7 @@ pipeline {
 								"-Dartifactory.staging-repository=libs-snapshot-local " +
 								"-Dartifactory.build-name=spring-data-jpa " +
 								"-Dartifactory.build-number=${BUILD_NUMBER} " +
-								'-Duser.name=spring-builds+jenkins -Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
+								'-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
 								'-Dmaven.test.skip=true clean deploy -U -B '
 
 					}
