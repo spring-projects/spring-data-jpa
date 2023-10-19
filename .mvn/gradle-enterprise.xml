@@ -20,7 +20,7 @@
 		<remote>
 			<server>
 				<credentials>
-					<username>spring-builds+jenkins</username>
+					<username>${env.DEVELOCITY_CACHE_USERNAME}</username>
 					<password>${env.DEVELOCITY_CACHE_PASSWORD}</password>
 				</credentials>
 			</server>
