@@ -25,6 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  * @author Greg Turnquist
  */
+@Disabled("Pending resolution of https://github.com/eclipse-ee4j/eclipselink/issues/1990")
 @ContextConfiguration("classpath:eclipselink-h2.xml")
 class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 

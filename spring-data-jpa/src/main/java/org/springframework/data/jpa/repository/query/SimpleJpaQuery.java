@@ -33,7 +33,9 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @deprecated Use {@link AnnotationBasedQueryContext} instead.ø
  */
+@Deprecated
 final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 	/**
@@ -47,8 +49,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param parser must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider, parser);
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, evaluationContextProvider,
+				parser);
 	}
 
 	/**
@@ -62,8 +66,9 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param evaluationContextProvider must not be {@literal null}
 	 * @param parser must not be {@literal null}
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+			QueryRewriter queryRewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
+			SpelExpressionParser parser) {
 
 		super(method, em, queryString, countQueryString, queryRewriter, evaluationContextProvider, parser);
 

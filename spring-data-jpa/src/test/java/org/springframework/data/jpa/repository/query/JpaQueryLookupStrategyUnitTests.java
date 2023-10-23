@@ -25,7 +25,6 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -41,6 +40,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.AbstractQueryEngine.PagedQueryEngine;
+import org.springframework.data.jpa.repository.query.AbstractQueryEngine.SingleEntityQueryEngine;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;
@@ -97,9 +98,9 @@ class JpaQueryLookupStrategyUnitTests {
 		Throwable reference = new RuntimeException();
 		when(em.createQuery(anyString())).thenThrow(reference);
 
-		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
-				.withCause(reference);
+		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> {
+			strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+		}).withCause(reference);
 	}
 
 	@Test // DATAJPA-554
@@ -132,10 +133,14 @@ class JpaQueryLookupStrategyUnitTests {
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
 		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
-		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
-		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
-		assertThat(query.getQuery().getQueryString()).isEqualTo("select foo from Foo foo");
-		assertThat(query.getCountQuery().getQueryString()).isEqualTo("select count(foo) from Foo foo");
+
+		assertThat(repositoryQuery).isInstanceOf(PagedQueryEngine.class);
+		PagedQueryEngine engine = (PagedQueryEngine) repositoryQuery;
+		assertThat(engine.getQueryContext()).isInstanceOf(AnnotationBasedQueryContext.class);
+
+		AnnotationBasedQueryContext query = (AnnotationBasedQueryContext) engine.getQueryContext();
+		assertThat(query.getQueryString().getQuery()).isEqualTo("select foo from Foo foo");
+		assertThat(query.getCountQueryString()).isEqualTo("select count(foo) from Foo foo");
 	}
 
 	@Test // GH-2217
@@ -152,9 +157,11 @@ class JpaQueryLookupStrategyUnitTests {
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
 		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
-		assertThat(repositoryQuery).isInstanceOf(SimpleJpaQuery.class);
-		SimpleJpaQuery query = (SimpleJpaQuery) repositoryQuery;
-		assertThat(query.getCountQuery().getQueryString()).isEqualTo("select count(foo) from Foo foo");
+		assertThat(repositoryQuery).isInstanceOf(PagedQueryEngine.class);
+		PagedQueryEngine engine = (PagedQueryEngine) repositoryQuery;
+		assertThat(engine.getQueryContext()).isInstanceOf(AnnotationBasedQueryContext.class);
+		AnnotationBasedQueryContext queryContext = (AnnotationBasedQueryContext) engine.getQueryContext();
+		assertThat(queryContext.getCountQueryString()).isEqualTo("select count(foo) from Foo foo");
 	}
 
 	@Test // GH-2319
@@ -167,7 +174,9 @@ class JpaQueryLookupStrategyUnitTests {
 
 		RepositoryQuery repositoryQuery = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
 
-		assertThat(repositoryQuery).isInstanceOf(AbstractStringBasedJpaQuery.class);
+		assertThat(repositoryQuery).isInstanceOf(SingleEntityQueryEngine.class);
+		SingleEntityQueryEngine engine = (SingleEntityQueryEngine) repositoryQuery;
+		assertThat(engine.getQueryContext()).isInstanceOf(AnnotationBasedQueryContext.class);
 	}
 
 	@Test // GH-2018

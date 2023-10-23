@@ -44,7 +44,9 @@ import org.springframework.util.StringUtils;
  * @author Jeff Sheets
  * @author JyotirmoyVS
  * @since 1.6
+ * @deprecated Use {@link StoredProcedureQueryContext} instead.
  */
+@Deprecated
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	private final StoredProcedureAttributes procedureAttributes;

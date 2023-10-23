@@ -39,7 +39,9 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @deprecated Use {@link AnnotationBasedQueryContext} instead.
  */
+@Deprecated
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
 	/**

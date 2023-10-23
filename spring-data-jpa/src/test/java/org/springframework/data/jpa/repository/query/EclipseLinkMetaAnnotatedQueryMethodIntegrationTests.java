@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,7 @@ class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 		assertAtLeastOneComment();
 	}
 
+	@Disabled("Pending resolution of https://github.com/eclipse-ee4j/eclipselink/issues/1990")
 	@Test // GH-775
 	void customFinderShouldLogAComment() throws Exception {
 
@@ -166,6 +168,7 @@ class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 		assertAtLeastOneComment();
 	}
 
+	@Disabled("Pending resolution of https://github.com/eclipse-ee4j/eclipselink/issues/1990")
 	@Test // GH-775
 	void customCountShouldLogAComment() {
 

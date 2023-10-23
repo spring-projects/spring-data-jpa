@@ -46,7 +46,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		super(method);
 	}
 
-	private JpaParameters(List<JpaParameter> parameters) {
+	public JpaParameters(List<JpaParameter> parameters) {
 		super(parameters);
 	}
 
@@ -77,6 +77,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 		private final @Nullable Temporal annotation;
 		private @Nullable TemporalType temporalType;
+		private final Class<?> domainType;
 
 		/**
 		 * Creates a new {@link JpaParameter}.
@@ -94,6 +95,8 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 				throw new IllegalArgumentException(
 						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter");
 			}
+
+			this.domainType = parameter.getParameterType();
 		}
 
 		@Override
@@ -135,6 +138,10 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 			}
 
 			throw new IllegalStateException(String.format("Required temporal type not found for %s", getType()));
+		}
+
+		public Class<?> getDomainType() {
+			return domainType;
 		}
 
 		private boolean hasTemporalParamAnnotation() {

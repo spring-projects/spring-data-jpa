@@ -63,6 +63,15 @@ abstract class QueryParameterSetterFactory {
 		return new BasicQueryParameterSetterFactory(parameters);
 	}
 
+	public static QueryParameterSetterFactory forOneflowQuery(JpaParameters parameters,
+			List<ParameterMetadataContextProvider.ParameterMetadata<?>> metadata) {
+
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(metadata, "ParameterMetadata must not be null");
+
+		return new OneflowQueryParameterSetterFactory(parameters, metadata);
+	}
+
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} using the given {@link JpaParameters} and
 	 * {@link ParameterMetadata}.
@@ -186,7 +195,7 @@ abstract class QueryParameterSetterFactory {
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
-			if (!(binding.getOrigin()instanceof ParameterBinding.Expression e)) {
+			if (!(binding.getOrigin() instanceof ParameterBinding.Expression e)) {
 				return null;
 			}
 
@@ -239,7 +248,7 @@ abstract class QueryParameterSetterFactory {
 			Assert.notNull(binding, "Binding must not be null");
 
 			JpaParameter parameter;
-			if (!(binding.getOrigin()instanceof MethodInvocationArgument mia)) {
+			if (!(binding.getOrigin() instanceof MethodInvocationArgument mia)) {
 				return QueryParameterSetter.NOOP;
 			}
 
@@ -259,6 +268,54 @@ abstract class QueryParameterSetterFactory {
 		@Nullable
 		private Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
 			return accessor.getValue(parameter);
+		}
+	}
+
+	private static class OneflowQueryParameterSetterFactory extends QueryParameterSetterFactory {
+
+		private final JpaParameters parameters;
+		private final List<ParameterMetadataContextProvider.ParameterMetadata<?>> parameterMetadata;
+
+		public OneflowQueryParameterSetterFactory(JpaParameters parameters,
+				List<ParameterMetadataContextProvider.ParameterMetadata<?>> metadata) {
+
+			Assert.notNull(parameters, "JpaParameters must not be null");
+			Assert.notNull(metadata, "Expressions must not be null");
+
+			this.parameters = parameters;
+			this.parameterMetadata = metadata;
+		}
+
+		@Override
+		QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
+
+			int parameterIndex = binding.getRequiredPosition() - 1;
+
+			Assert.isTrue( //
+					parameterIndex < parameterMetadata.size(), //
+					() -> String.format( //
+							"At least %s parameter(s) provided but only %s parameter(s) present in query", //
+							binding.getRequiredPosition(), //
+							parameterMetadata.size() //
+					) //
+			);
+
+			ParameterMetadataContextProvider.ParameterMetadata<?> metadata = parameterMetadata.get(parameterIndex);
+
+			if (metadata.isIsNullParameter()) {
+				return QueryParameterSetter.NOOP;
+			}
+
+			JpaParameter parameter = parameters.getBindableParameter(parameterIndex);
+			TemporalType temporalType = parameter.isTemporalParameter() ? parameter.getRequiredTemporalType() : null;
+
+			return new NamedOrIndexedQueryParameterSetter(values -> getAndPrepare(parameter, metadata, values),
+					metadata.getExpression(), temporalType);
+		}
+
+		private Object getAndPrepare(JpaParameter parameter, ParameterMetadataContextProvider.ParameterMetadata<?> metadata,
+				JpaParametersParameterAccessor accessor) {
+			return metadata.prepare(accessor.getValue(parameter));
 		}
 	}
 
@@ -320,11 +377,13 @@ abstract class QueryParameterSetterFactory {
 				JpaParametersParameterAccessor accessor) {
 			return metadata.prepare(accessor.getValue(parameter));
 		}
+
 	}
 
 	static class ParameterImpl<T> implements jakarta.persistence.Parameter<T> {
 
 		private final BindingIdentifier identifier;
+
 		private final Class<T> parameterType;
 
 		/**
@@ -364,5 +423,4 @@ abstract class QueryParameterSetterFactory {
 		}
 
 	}
-
 }

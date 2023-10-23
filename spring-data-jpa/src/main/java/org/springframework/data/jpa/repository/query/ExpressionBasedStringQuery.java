@@ -38,7 +38,9 @@ import org.springframework.util.Assert;
  * @author Michael J. Simons
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @deprecated See {@link AnnotationBasedQueryContext} instead.
  */
+@Deprecated
 class ExpressionBasedStringQuery extends StringQuery {
 
 	private static final String EXPRESSION_PARAMETER = "$1#{";
@@ -73,6 +75,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param nativeQuery is a given query native or not
 	 * @return A query supporting SpEL expressions.
 	 */
+	@Deprecated
 	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
 			SpelExpressionParser parser, boolean nativeQuery) {
 		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);

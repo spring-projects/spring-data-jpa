@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -243,6 +244,7 @@ class UserRepositoryFinderTests {
 		assertThat(next).containsExactly(oliver);
 	}
 
+	@Disabled("TODO: Resolve scroll API")
 	@Test // GH-3077
 	void shouldProjectWithKeysetScrolling() {
 

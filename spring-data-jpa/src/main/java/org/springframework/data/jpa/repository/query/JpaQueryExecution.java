@@ -34,6 +34,7 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -57,7 +58,9 @@ import org.springframework.util.ReflectionUtils;
  * @author Jens Schauder
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @deprecated Migrate to {@link AbstractQueryEngine} and its subtypes.
  */
+@Deprecated
 public abstract class JpaQueryExecution {
 
 	private static final ConversionService CONVERSION_SERVICE;
@@ -136,6 +139,7 @@ public abstract class JpaQueryExecution {
 	 * @author Mark Paluch
 	 * @since 3.1
 	 */
+	@Deprecated
 	static class ScrollExecution extends JpaQueryExecution {
 
 		private final Sort sort;
@@ -154,7 +158,8 @@ public abstract class JpaQueryExecution {
 			ScrollPosition scrollPosition = accessor.getScrollPosition();
 			Query scrollQuery = query.createQuery(accessor);
 
-			return delegate.scroll(scrollQuery, sort.and(accessor.getSort()), scrollPosition);
+			Window<?> scroll = delegate.scroll(scrollQuery, sort.and(accessor.getSort()), scrollPosition);
+			return scroll;
 		}
 	}
 
@@ -164,6 +169,7 @@ public abstract class JpaQueryExecution {
 	 * @author Oliver Gierke
 	 * @since 1.6
 	 */
+	@Deprecated
 	static class SlicedExecution extends JpaQueryExecution {
 
 		@Override
@@ -193,6 +199,7 @@ public abstract class JpaQueryExecution {
 	 * Executes the {@link AbstractStringBasedJpaQuery} to return a {@link org.springframework.data.domain.Page} of
 	 * entities.
 	 */
+	@Deprecated
 	static class PagedExecution extends JpaQueryExecution {
 
 		@Override
@@ -215,6 +222,7 @@ public abstract class JpaQueryExecution {
 	/**
 	 * Executes a {@link AbstractStringBasedJpaQuery} to return a single entity.
 	 */
+	@Deprecated
 	static class SingleEntityExecution extends JpaQueryExecution {
 
 		@Override
@@ -227,6 +235,7 @@ public abstract class JpaQueryExecution {
 	/**
 	 * Executes a modifying query such as an update, insert or delete.
 	 */
+	@Deprecated
 	static class ModifyingExecution extends JpaQueryExecution {
 
 		private final EntityManager em;
@@ -280,6 +289,7 @@ public abstract class JpaQueryExecution {
 	 * @author Oliver Gierke
 	 * @since 1.6
 	 */
+	@Deprecated
 	static class DeleteExecution extends JpaQueryExecution {
 
 		private final EntityManager em;
@@ -308,6 +318,7 @@ public abstract class JpaQueryExecution {
 	 * @author Mark Paluch
 	 * @since 1.11
 	 */
+	@Deprecated
 	static class ExistsExecution extends JpaQueryExecution {
 
 		@Override
@@ -322,6 +333,7 @@ public abstract class JpaQueryExecution {
 	 * @author Thomas Darimont
 	 * @since 1.6
 	 */
+	@Deprecated
 	static class ProcedureExecution extends JpaQueryExecution {
 
 		private final boolean collectionQuery;
@@ -371,6 +383,7 @@ public abstract class JpaQueryExecution {
 	 * @author Thomas Darimont
 	 * @since 1.8
 	 */
+	@Deprecated
 	static class StreamExecution extends JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";

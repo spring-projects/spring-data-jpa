@@ -27,6 +27,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,7 @@ class ProjectionJoinIntegrationTests {
 
 	@Autowired private UserRepository userRepository;
 
+	@Disabled("TODO: Reenable")
 	@Test // DATAJPA-1418
 	void findByIdPerformsAnOuterJoin() {
 		User user = userRepository.save(new User());

@@ -56,6 +56,8 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
+import org.springframework.data.jpa.repository.query.QueryContext;
+import org.springframework.data.jpa.repository.query.QueryEngine;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpecification.SpecificationScrollDelegate;
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
@@ -271,8 +273,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities,
-				entityManager)
+		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, entityManager)
 				.executeUpdate();
 	}
 
@@ -310,7 +311,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.ofNullable(type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
+		return Optional.ofNullable(
+				type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
 	@Deprecated
@@ -532,53 +534,70 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
 		try {
-			return Optional
-					.of(getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
-							.setMaxResults(2).getSingleResult());
-		} catch (NoResultException e) {
+			QueryContext queryContext = QueryContext.extractQueryByExampleContext(entityManager, example,
+					this::applyQueryHints);
+
+			QueryEngine engine = QueryEngine.singleEntityEngine(entityManager, queryContext);
+
+			return Optional.ofNullable((S) engine.execute());
+		} catch (NoResultException ignored) {
 			return Optional.empty();
 		}
 	}
 
 	@Override
 	public <S extends T> long count(Example<S> example) {
-		return executeCountQuery(
-				getCountQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType()));
+
+		QueryContext queryContext = QueryContext.extractQueryByExampleContext(entityManager, example,
+				this::applyQueryHints);
+
+		QueryEngine engine = QueryEngine.singleEntityEngine(entityManager, queryContext);
+
+		return engine.executeCount();
 	}
 
 	@Override
 	public <S extends T> boolean exists(Example<S> example) {
 
-		Specification<S> spec = new ExampleSpecification<>(example, this.escapeCharacter);
-		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
-				.createQuery(Integer.class) //
-				.select(this.entityManager.getCriteriaBuilder().literal(1));
+		QueryContext queryContext = QueryContext.extractQueryByExampleContext(entityManager, example,
+				this::applyQueryHints);
 
-		applySpecificationToCriteria(spec, example.getProbeType(), cq);
+		QueryEngine engine = QueryEngine.collectionEngine(entityManager, queryContext);
 
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
-		return query.setMaxResults(1).getResultList().size() == 1;
+		List<S> results = (List<S>) engine.execute();
+
+		return !results.isEmpty();
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example) {
-		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
-				.getResultList();
+		return findAll(example, Sort.unsorted());
 	}
 
 	@Override
 	public <S extends T> List<S> findAll(Example<S> example, Sort sort) {
-		return getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), sort).getResultList();
+
+		QueryContext queryContext = QueryContext.extractQueryByExampleContext(entityManager, example, sort,
+				this::applyQueryHints);
+
+		QueryEngine engine = QueryEngine.collectionEngine(entityManager, queryContext);
+
+		return (List<S>) engine.execute();
 	}
 
 	@Override
 	public <S extends T> Page<S> findAll(Example<S> example, Pageable pageable) {
 
-		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
-		Class<S> probeType = example.getProbeType();
-		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example, escapeCharacter), probeType, pageable);
+		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
 
-		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList()) : readPage(query, probeType, pageable, spec);
+		QueryContext queryContext = QueryContext.extractQueryByExampleContext(entityManager, example, sort,
+				this::applyQueryHints);
+
+		if (pageable.isUnpaged()) {
+			return (Page<S>) QueryEngine.collectionEngine(entityManager, queryContext).execute();
+		} else {
+			return readPage(QueryEngine.collectionEngine(entityManager, queryContext), pageable);
+		}
 	}
 
 	@Override
@@ -696,6 +715,17 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		return PageableExecutionUtils.getPage(query.getResultList(), pageable,
 				() -> executeCountQuery(getCountQuery(spec, domainClass)));
+	}
+
+	/**
+	 * Reads the given {@link QueryContext} into a {@link Page}.
+	 * 
+	 * @param pageable
+	 * @return
+	 * @param <S>
+	 */
+	protected <S extends T> Page<S> readPage(QueryEngine engine, Pageable pageable) {
+		return PageableExecutionUtils.getPage((List<S>) engine.execute(), pageable, engine::executeCount);
 	}
 
 	/**
@@ -957,7 +987,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param <T>
 	 * @author Christoph Strobl
 	 * @since 1.10
+	 * @deprecated Use {@link org.springframework.data.jpa.repository.query.QueryByExampleQueryContext} instead.
 	 */
+	@Deprecated
 	private static class ExampleSpecification<T> implements Specification<T> {
 
 		private static final long serialVersionUID = 1L;

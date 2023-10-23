@@ -40,7 +40,9 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @deprecated Use {@link AnnotationBasedQueryContext} instead.
  */
+@Deprecated
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final DeclaredQuery query;
@@ -108,7 +110,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	@Override
 	protected ParameterBinder createBinder() {
-
 		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
 				evaluationContextProvider);
 	}

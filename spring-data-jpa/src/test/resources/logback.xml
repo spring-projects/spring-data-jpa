@@ -15,9 +15,22 @@
 <!--	<logger name="org.hibernate.SQL" level="debug" />-->
 
 	<!-- Hibernate 6 - show bindings -->
+<!--	<logger name="org.hibernate.orm" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.ast" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.ast.tree" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.jdbc" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.results" level="trace" />-->
 <!--	<logger name="org.hibernate.orm.jdbc.bind" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.ast" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.ast.internal" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.ast.spi" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.ast.tree" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.exec" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.exec.internal" level="trace" />-->
+<!--	<logger name="org.hibernate.orm.sql.exec.spi" level="trace" />-->
 
-<!--	<logger name="org.testcontainers" level="debug" />-->
+	<!--	<logger name="org.testcontainers" level="debug" />-->
 
 	<root level="error">
 		<appender-ref ref="console"/>

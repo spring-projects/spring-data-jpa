@@ -146,7 +146,7 @@ public class JpaMetamodel {
 	 * @param entityType must not be {@literal null}.
 	 * @return
 	 */
-	private static Optional<? extends SingularAttribute<?, ?>> getSingularIdAttribute(EntityType<?> entityType) {
+	static Optional<? extends SingularAttribute<?, ?>> getSingularIdAttribute(EntityType<?> entityType) {
 
 		if (!entityType.hasSingleIdAttribute()) {
 			return Optional.empty();

@@ -42,7 +42,7 @@ import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.cdi.Eager;
 
 /**
- * Unit tests for repository with {@link Query} and {@link QueryRewrite} in a CDI environment.
+ * Unit tests for repository with {@link Query} and {@link QueryRewriter} in a CDI environment.
  *
  * @author Greg Turnquist
  */

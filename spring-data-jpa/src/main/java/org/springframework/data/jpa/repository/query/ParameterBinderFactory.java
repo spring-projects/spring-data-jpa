@@ -53,6 +53,19 @@ class ParameterBinderFactory {
 		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
 	}
 
+	static ParameterBinder oneFlowBinder(JpaParameters parameters,
+			List<ParameterMetadataContextProvider.ParameterMetadata<?>> metadata) {
+
+		Assert.notNull(parameters, "JpaParameters must not be null");
+		Assert.notNull(metadata, "Parameter metadata must not be null");
+
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forOneflowQuery(parameters, metadata);
+		List<ParameterBinding> bindings = getBindings(parameters);
+
+		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
+
+	}
+
 	/**
 	 * Creates a {@link ParameterBinder} that just matches method parameter to parameters of a
 	 * {@link jakarta.persistence.criteria.CriteriaQuery}.

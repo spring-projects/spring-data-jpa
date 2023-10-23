@@ -216,7 +216,7 @@ class StringQuery implements DeclaredQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
+		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings, Metadata queryMeta) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
@@ -443,7 +443,7 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
-	private static class Metadata {
+	static class Metadata {
 		private boolean usesJdbcStyleParameters = false;
 	}
 

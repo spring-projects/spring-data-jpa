@@ -126,7 +126,7 @@ public abstract class QueryUtils {
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
-	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
+	static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
@@ -696,6 +696,54 @@ public abstract class QueryUtils {
 		return orders;
 	}
 
+	public static List<String> toOrders(Sort sort, Class<?> domainClass) {
+
+		if (sort.isUnsorted()) {
+			return List.of();
+		}
+
+		return sort.stream() //
+				.map(order -> toJpaOrder(order, domainClass)) //
+				.toList();
+	}
+
+	private static String toJpaOrder(Order order, Class<?> domainClass) {
+
+		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+			return jpaOrder.getProperty() + " " + jpaOrder.getDirection();
+		}
+
+		PropertyPath property = PropertyPath.from(order.getProperty(), domainClass);
+		String expression = toExpressionRecursively(domainClass, property);
+
+		if (order.isIgnoreCase() && String.class.equals(property.getType())) {
+			String upper = "upper(" + expression + ")";
+			return order.isAscending() ? upper + " asc" : upper + " desc";
+		} else {
+			return order.isAscending() ? expression + " asc" : expression + " desc";
+		}
+	}
+
+	private static String toExpressionRecursively(Class<?> domainClass, PropertyPath property) {
+
+		String simpleAlias = domainClass.getSimpleName().substring(0, 1).toLowerCase();
+
+		String expression = simpleAlias + "." + property.getSegment();
+
+		return property.hasNext() //
+				? toExpressionRecursively(expression + ".", property.next()) //
+				: expression;
+	}
+
+	private static String toExpressionRecursively(String accum, PropertyPath property) {
+
+		String expression = accum + property.getSegment();
+
+		return property.hasNext() //
+				? toExpressionRecursively(expression + ".", property.next()) //
+				: expression;
+	}
+
 	/**
 	 * Returns whether the given JPQL query contains a constructor expression.
 	 *
@@ -871,7 +919,7 @@ public abstract class QueryUtils {
 	}
 
 	@Nullable
-	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
+	static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 

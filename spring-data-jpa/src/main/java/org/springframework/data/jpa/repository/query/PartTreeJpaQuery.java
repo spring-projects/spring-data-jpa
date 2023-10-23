@@ -51,7 +51,9 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @deprecated Use {@link CustomFinderQueryContext} instead.
  */
+@Deprecated
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	private final PartTree tree;
@@ -319,7 +321,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				returnedType = processor.getReturnedType();
 			}
 
-			if (accessor != null && accessor.getScrollPosition()instanceof KeysetScrollPosition keyset) {
+			if (accessor != null && accessor.getScrollPosition() instanceof KeysetScrollPosition keyset) {
 				return new JpaKeysetScrollQueryCreator(tree, returnedType, builder, provider, entityInformation, keyset);
 			}
 

@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -47,7 +46,8 @@ class JpaParametersParameterAccessorTests {
 
 		bind(parameters, accessor);
 
-		verify(query).setParameter(eq(1), isNull());
+		verify(query, times(3)).getParameters();
+		verify(query).setParameter(any(QueryParameterSetterFactory.ParameterImpl.class), isNull());
 	}
 
 	@Test // GH-2370
@@ -61,7 +61,10 @@ class JpaParametersParameterAccessorTests {
 		bind(parameters, accessor);
 
 		ArgumentCaptor<TypedParameterValue<?>> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
-		verify(query).setParameter(eq(1), captor.capture());
+
+		verify(query, times(3)).getParameters();
+		verify(query).setParameter(any(QueryParameterSetterFactory.ParameterImpl.class), captor.capture());
+
 		TypedParameterValue<?> captorValue = captor.getValue();
 		assertThat(captorValue.getType().getBindableJavaType()).isEqualTo(Integer.class);
 		assertThat(captorValue.getValue()).isNull();
@@ -69,12 +72,11 @@ class JpaParametersParameterAccessorTests {
 
 	private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
 
-		ParameterBinderFactory.createBinder(parameters)
-				.bind( //
-						QueryParameterSetter.BindableQuery.from(query), //
-						accessor, //
-						QueryParameterSetter.ErrorHandling.LENIENT //
-				);
+		ParameterBinderFactory.createBinder(parameters).bind( //
+				QueryParameterSetter.BindableQuery.from(query), //
+				accessor, //
+				QueryParameterSetter.ErrorHandling.LENIENT //
+		);
 	}
 
 	interface SampleRepository {

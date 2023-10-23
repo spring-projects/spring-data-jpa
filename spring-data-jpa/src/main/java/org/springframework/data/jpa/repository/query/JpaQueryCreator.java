@@ -286,16 +286,13 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 						Expression<Collection<Object>> propertyExpression = traversePath(root, property);
 						ParameterExpression<Object> parameterExpression = provider.next(part).getExpression();
 
-						// Can't just call .not() in case of negation as EclipseLink chokes on that.
 						return type.equals(NOT_CONTAINING) //
 								? isNotMember(builder, parameterExpression, propertyExpression) //
 								: isMember(builder, parameterExpression, propertyExpression);
 					}
-
 				case LIKE:
 				case NOT_LIKE:
-					Expression<String> stringPath = getTypedPath(root, part);
-					Expression<String> propertyExpression = upperIfIgnoreCase(stringPath);
+					Expression<String> propertyExpression = upperIfIgnoreCase(getTypedPath(root, part));
 					Expression<String> parameterExpression = upperIfIgnoreCase(provider.next(part, String.class).getExpression());
 					Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
 					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING) ? like.not() : like;
@@ -353,6 +350,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 
 					Assert.state(canUpperCase(expression), "Unable to ignore case of " + expression.getJavaType().getName()
 							+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
+
 					return (Expression<T>) builder.upper((Expression<String>) expression);
 
 				case WHEN_POSSIBLE:

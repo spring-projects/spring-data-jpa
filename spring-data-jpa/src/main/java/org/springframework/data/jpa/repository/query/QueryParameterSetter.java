@@ -26,12 +26,14 @@ import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -111,7 +113,7 @@ interface QueryParameterSetter {
 
 				Object value = valueExtractor.apply(accessor);
 
-				if (parameter instanceof ParameterExpression) {
+				if (parameter instanceof Parameter<?>) {
 					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));
 				} else if (query.hasNamedParameters() && parameter.getName() != null) {
 					errorHandling.execute(() -> query.setParameter(parameter.getName(), value));
@@ -315,7 +317,31 @@ interface QueryParameterSetter {
 		}
 
 		public <T> Query setParameter(Parameter<T> param, T value) {
-			return unwrapped.setParameter(param, value);
+
+			// Parameters that are byte[] require special handling
+			if (value instanceof List<?> bytes && param.getParameterType().componentType() == byte.class) {
+
+				byte[] byteArray = new byte[bytes.size()];
+
+				for (int i = 0; i < bytes.size(); i++) {
+					byteArray[i] = (byte) bytes.get(i);
+				}
+
+				ParameterMetadataContextProvider.ParameterImpl<byte[]> newParam = new ParameterMetadataContextProvider.ParameterImpl<>(
+						byte[].class, param.getName());
+
+				return unwrapped.setParameter(newParam, byteArray);
+			}
+
+			try {
+				return unwrapped.setParameter(param, value);
+			} catch (IllegalArgumentException ignored) {
+				try {
+					return unwrapped.setParameter(param.getPosition(), value);
+				} catch (Exception ex) {
+					throw new InvalidDataAccessApiUsageException(ex.getMessage());
+				}
+			}
 		}
 
 		public Query setParameter(Parameter<Date> param, Date value, TemporalType temporalType) {
