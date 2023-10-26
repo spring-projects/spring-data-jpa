@@ -20,13 +20,17 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import org.springframework.data.jpa.domain.ParameterizedSpecification;
 import org.springframework.data.jpa.domain.Specification;
+
+import java.util.Map;
 
 /**
  * Collection of {@link Specification}s for a {@link User}.
  *
  * @author Oliver Gierke
  * @author Diego Krupitza
+ * @author Yanming Zhou
  */
 public class UserSpecifications {
 
@@ -81,5 +85,41 @@ public class UserSpecifications {
 	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
 
 		return (root, query, builder) -> builder.equal(root.get(property), value);
+	}
+
+	public static ParameterizedSpecification<User> userHasAgeLessThan(Integer age) {
+
+		return new ParameterizedSpecification<>() {
+
+			@Override
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.lessThan(root.get("age").as(Integer.class), cb.parameter(Integer.class, "age"));
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("age", age);
+			}
+
+		};
+
+	}
+
+	public static ParameterizedSpecification<User> incorrectUserHasAgeLessThan(Integer age) {
+
+		return new ParameterizedSpecification<>() {
+
+			@Override
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.lessThan(root.get("age").as(Integer.class), cb.parameter(Integer.class, "age"));
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("age1", age); // incorrect name
+			}
+
+		};
+
 	}
 }

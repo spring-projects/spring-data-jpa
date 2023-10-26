@@ -92,6 +92,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -534,6 +535,20 @@ class UserRepositoryTests {
 		assertThat(users2.getTotalElements()).isEqualTo(2L);
 
 		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
+	}
+
+	@Test
+	void executesParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(userHasAgeLessThan(30))).containsOnly(firstUser);
+	}
+
+	@Test
+	void executesIncorrectParameterizedSpecification() {
+
+		flushTestUsers();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> repository.findAll(incorrectUserHasAgeLessThan(30)));
 	}
 
 	@Test

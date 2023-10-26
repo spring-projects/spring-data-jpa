@@ -51,6 +51,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
+import org.springframework.data.jpa.domain.ParameterizedSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -464,6 +465,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
+		applySpecificationToTypedQuery(spec, cq, query);
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
@@ -557,6 +559,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
+		applySpecificationToTypedQuery(spec, cq, query);
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
@@ -753,7 +756,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
+		TypedQuery<S> typedQuery = applyRepositoryMethodMetadata(entityManager.createQuery(query));
+		return applySpecificationToTypedQuery(spec, query, typedQuery);
 	}
 
 	/**
@@ -789,7 +793,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
+		TypedQuery<Long> typedQuery = applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
+		return applySpecificationToTypedQuery(spec, query, typedQuery);
 	}
 
 	/**
@@ -834,6 +839,25 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		return root;
+	}
+
+	private <S, U extends T> TypedQuery<S> applySpecificationToTypedQuery(@Nullable Specification<U> spec, CriteriaQuery<S> criteriaQuery, TypedQuery<S> typedQuery) {
+
+		if (spec == null) {
+			return typedQuery;
+		}
+
+		if (spec instanceof ParameterizedSpecification<U> ps) {
+			Map<String, Object> parameters = ps.getParameters();
+			for (Parameter<?> parameter : criteriaQuery.getParameters()) {
+				if (!parameters.containsKey(parameter.getName())) {
+					throw new IllegalArgumentException(String.format("Defined parameter '%s' is missing", parameter.getName()));
+				}
+			}
+			ps.getParameters().forEach(typedQuery::setParameter);
+		}
+
+		return typedQuery;
 	}
 
 	private <S> TypedQuery<S> applyRepositoryMethodMetadata(TypedQuery<S> query) {
