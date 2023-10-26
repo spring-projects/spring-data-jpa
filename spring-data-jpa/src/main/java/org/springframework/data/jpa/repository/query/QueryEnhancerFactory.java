@@ -25,6 +25,7 @@ import org.springframework.util.ClassUtils;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Aurelien Marionneau
  * @since 2.7.0
  */
 public final class QueryEnhancerFactory {
@@ -37,13 +38,16 @@ public final class QueryEnhancerFactory {
 	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
 			QueryEnhancerFactory.class.getClassLoader());
 
+	private static final boolean hibernate5Present = ClassUtils.isPresent("org.hibernate.jpa.TypedParameterValue",
+			QueryEnhancerFactory.class.getClassLoader());
+
 	static {
 
 		if (jSqlParserPresent) {
 			LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used");
 		}
 
-		if (hibernatePresent) {
+		if (hibernatePresent || hibernate5Present) {
 			LOG.info("Hibernate is in classpath; If applicable, HQL parser will be used.");
 		}
 	}
@@ -70,7 +74,7 @@ public final class QueryEnhancerFactory {
 			return new DefaultQueryEnhancer(query);
 		}
 
-		return hibernatePresent ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
+		return (hibernatePresent || hibernate5Present) ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
 	}
 
 }
