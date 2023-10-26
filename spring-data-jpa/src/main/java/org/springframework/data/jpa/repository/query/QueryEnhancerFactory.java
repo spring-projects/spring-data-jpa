@@ -25,6 +25,7 @@ import org.springframework.util.ClassUtils;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Aurelien Marionneau
  * @since 2.7.0
  */
 public final class QueryEnhancerFactory {
