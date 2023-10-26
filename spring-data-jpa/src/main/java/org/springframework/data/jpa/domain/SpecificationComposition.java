@@ -16,6 +16,10 @@
 package org.springframework.data.jpa.domain;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -31,6 +35,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Yanming Zhou
  * @see Specification
  * @since 2.2
  */
@@ -42,17 +47,49 @@ class SpecificationComposition {
 
 	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
 			Combiner combiner) {
+		return new Specification<>() {
+			@Override
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
 
-		return (root, query, builder) -> {
+				Predicate thisPredicate = SpecificationComposition.toPredicate(lhs, root, query, builder);
+				Predicate otherPredicate = SpecificationComposition.toPredicate(rhs, root, query, builder);
 
-			Predicate thisPredicate = toPredicate(lhs, root, query, builder);
-			Predicate otherPredicate = toPredicate(rhs, root, query, builder);
+				if (thisPredicate == null) {
+					return otherPredicate;
+				}
 
-			if (thisPredicate == null) {
-				return otherPredicate;
+				return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
 			}
 
-			return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+			@Override
+			public Map<String, Object> getParameters() {
+				if (lhs == null && rhs == null) {
+					return Collections.emptyMap();
+				}
+				if (lhs == null || lhs.getParameters().isEmpty() && rhs != null) {
+					return rhs.getParameters();
+				}
+				if (rhs == null || rhs.getParameters().isEmpty()) {
+					return lhs.getParameters();
+				}
+				Map<String, Object> parameters = new HashMap<>(lhs.getParameters());
+				for (Map.Entry<String, Object> entry : rhs.getParameters().entrySet()) {
+					String name = entry.getKey();
+					Object value = entry.getValue();
+					if (parameters.containsKey(name)) {
+						Object existing = parameters.get(name);
+						if (!Objects.equals(existing, value)) {
+							throw new IllegalStateException("Ambiguous parameter \"" + name
+									+ "\" is bound to different values: [" + existing
+									+ "] and [" + value + "]");
+						}
+					}
+					else {
+						parameters.put(name, value);
+					}
+				}
+				return parameters;
+			}
 		};
 	}
 

@@ -95,6 +95,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -537,6 +538,49 @@ class UserRepositoryTests {
 		assertThat(users2.getTotalElements()).isEqualTo(2L);
 
 		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
+	}
+
+	@Test
+	void executesParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(userHasAgeLessThan(30))).containsOnly(firstUser);
+	}
+
+	@Test
+	void executesNegatedParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(not(userHasAgeLessThan(30)))).doesNotContain(firstUser);
+	}
+
+	@Test
+	void executesAndParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(userHasAgeGreaterThan(30).and(userHasAgeLessThan(40)))).containsOnly(secondUser, fourthUser);
+	}
+
+	@Test
+	void executesOrParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(userHasAgeGreaterThan(40).or(userHasAgeLessThan(30)))).containsOnly(firstUser, thirdUser);
+	}
+
+
+	@Test
+	void executesAllOfParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(allOf(List.of(userHasAgeGreaterThan(30), userHasAgeLessThan(40))))).containsOnly(secondUser, fourthUser);
+	}
+
+	@Test
+	void executesAnyOfParameterizedSpecificationCorrectly() {
+
+		flushTestUsers();
+		assertThat(repository.findAll(anyOf(List.of(userHasAgeGreaterThan(40), userHasAgeLessThan(30))))).containsOnly(firstUser, thirdUser);
 	}
 
 	@Test

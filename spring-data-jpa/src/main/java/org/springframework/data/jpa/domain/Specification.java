@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain;
 
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,6 +24,8 @@ import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import org.springframework.lang.Nullable;
@@ -38,10 +41,34 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @author Daniel Shuy
  * @author Sergey Rukin
+ * @author Yanming Zhou
  */
 public interface Specification<T> extends Serializable {
 
 	long serialVersionUID = 1L;
+
+	/**
+	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
+	 * {@link Root} and {@link CriteriaQuery}.
+	 *
+	 * @param root must not be {@literal null}.
+	 * @param query must not be {@literal null}.
+	 * @param criteriaBuilder must not be {@literal null}.
+	 * @return a {@link Predicate}, may be {@literal null}.
+	 */
+	@Nullable
+	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+
+	/**
+	 * Required parameters of the underlying {@link TypedQuery}.
+	 *
+	 * @return Required parameters of the underlying {@link TypedQuery}, should not be {@literal null}.
+	 * @see CriteriaQuery#getParameters()
+	 * @see TypedQuery#setParameter(String, Object)
+	 */
+	default Map<String, Object> getParameters() {
+		return Collections.emptyMap();
+	}
 
 	/**
 	 * Negates the given {@link Specification}.
@@ -52,10 +79,22 @@ public interface Specification<T> extends Serializable {
 	 * @since 2.0
 	 */
 	static <T> Specification<T> not(@Nullable Specification<T> spec) {
+		if (spec == null) {
+			return (root, query, builder) -> null;
+		}
 
-		return spec == null //
-				? (root, query, builder) -> null //
-				: (root, query, builder) -> builder.not(spec.toPredicate(root, query, builder));
+		return new Specification<T>() {
+			@Override
+			public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+				return builder.not(spec.toPredicate(root, query, builder));
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return spec.getParameters();
+			}
+		};
+
 	}
 
 	/**
@@ -91,18 +130,6 @@ public interface Specification<T> extends Serializable {
 	default Specification<T> or(@Nullable Specification<T> other) {
 		return SpecificationComposition.composed(this, other, CriteriaBuilder::or);
 	}
-
-	/**
-	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
-	 * {@link Root} and {@link CriteriaQuery}.
-	 *
-	 * @param root must not be {@literal null}.
-	 * @param query must not be {@literal null}.
-	 * @param criteriaBuilder must not be {@literal null}.
-	 * @return a {@link Predicate}, may be {@literal null}.
-	 */
-	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 	/**
 	 * Applies an AND operation to all the given {@link Specification}s.

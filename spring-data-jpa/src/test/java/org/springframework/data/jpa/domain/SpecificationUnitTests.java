@@ -27,6 +27,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,7 @@ import org.mockito.quality.Strictness;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Daniel Shuy
+ * @author Yanming Zhou
  */
 @SuppressWarnings("serial")
 @ExtendWith(MockitoExtension.class)
@@ -212,6 +214,70 @@ class SpecificationUnitTests implements Serializable {
 		first.or(second).toPredicate(root, query, builder);
 
 		verify(builder).or(firstPredicate, secondPredicate);
+	}
+
+	@Test // #3448
+	void combinesSpecificationsShouldCombinesParameters() {
+
+		Specification<Object> first = new Specification<> () {
+
+			@Override
+			public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				return mock(Predicate.class);
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("a", "a", "b", "b");
+			}
+		};
+
+		Specification<Object> second = new Specification<> () {
+
+			@Override
+			public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				return mock(Predicate.class);
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("b", "b", "c", "c");
+			}
+		};
+
+		assertThat(first.or(second).getParameters()).containsAllEntriesOf(Map.of("a", "a", "b", "b", "c", "c"));
+	}
+
+	@Test // #3448
+	void combinesSpecificationsWithAmbiguousParameter() {
+
+		Specification<Object> first = new Specification<> () {
+
+			@Override
+			public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				return mock(Predicate.class);
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("foo", "foo");
+			}
+		};
+
+		Specification<Object> second = new Specification<> () {
+
+			@Override
+			public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+				return mock(Predicate.class);
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("foo", "bar");
+			}
+		};
+
+		assertThatIllegalStateException().isThrownBy(() -> first.or(second).getParameters()).withMessageStartingWith("Ambiguous parameter");
 	}
 
 	static class SerializableSpecification implements Serializable, Specification<Object> {

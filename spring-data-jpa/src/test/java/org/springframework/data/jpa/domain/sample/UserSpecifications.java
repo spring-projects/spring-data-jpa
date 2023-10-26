@@ -22,11 +22,14 @@ import jakarta.persistence.criteria.Root;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Map;
+
 /**
  * Collection of {@link Specification}s for a {@link User}.
  *
  * @author Oliver Gierke
  * @author Diego Krupitza
+ * @author Yanming Zhou
  */
 public class UserSpecifications {
 
@@ -63,5 +66,41 @@ public class UserSpecifications {
 	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
 
 		return (root, query, builder) -> builder.equal(root.get(property), value);
+	}
+
+	public static Specification<User> userHasAgeLessThan(Integer upperBound) {
+
+		return new Specification<>() {
+
+			@Override
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.lessThan(root.get("age").as(Integer.class), cb.parameter(Integer.class, "upperBound"));
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("upperBound", upperBound);
+			}
+
+		};
+
+	}
+
+	public static Specification<User> userHasAgeGreaterThan(Integer lowerBound) {
+
+		return new Specification<>() {
+
+			@Override
+			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+				return cb.greaterThan(root.get("age").as(Integer.class), cb.parameter(Integer.class, "lowerBound"));
+			}
+
+			@Override
+			public Map<String, Object> getParameters() {
+				return Map.of("lowerBound", lowerBound);
+			}
+
+		};
+
 	}
 }

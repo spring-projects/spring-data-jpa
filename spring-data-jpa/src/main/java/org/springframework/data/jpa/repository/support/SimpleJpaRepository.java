@@ -472,6 +472,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
+		applySpecificationToTypedQuery(spec, query);
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
@@ -567,6 +568,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
+		applySpecificationToTypedQuery(spec, query);
 		return query.setMaxResults(1).getResultList().size() == 1;
 	}
 
@@ -763,7 +765,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
+		TypedQuery<S> typedQuery = applyRepositoryMethodMetadata(entityManager.createQuery(query));
+		return applySpecificationToTypedQuery(spec, typedQuery);
 	}
 
 	/**
@@ -799,7 +802,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
+		TypedQuery<Long> typedQuery = applyRepositoryMethodMetadataForCount(entityManager.createQuery(query));
+		return applySpecificationToTypedQuery(spec, typedQuery);
 	}
 
 	/**
@@ -844,6 +848,17 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		return root;
+	}
+
+	private <S, U extends T> TypedQuery<S> applySpecificationToTypedQuery(@Nullable Specification<U> spec, TypedQuery<S> typedQuery) {
+
+		if (spec == null) {
+			return typedQuery;
+		}
+
+		spec.getParameters().forEach(typedQuery::setParameter);
+
+		return typedQuery;
 	}
 
 	private <S> TypedQuery<S> applyRepositoryMethodMetadata(TypedQuery<S> query) {
