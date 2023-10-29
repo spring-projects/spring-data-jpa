@@ -49,7 +49,7 @@ public final class JSqlParserUtils {
 				.map(Column::new) //
 				.collect(Collectors.toList());
 
-		ExpressionList countExpression = new ExpressionList(countColumns);
+		ExpressionList<Expression> countExpression = new ExpressionList<>(countColumns);
 
 		return new Function() //
 				.withName("count") //
@@ -66,7 +66,7 @@ public final class JSqlParserUtils {
 	public static Function getJSqlLower(String column) {
 
 		List<Expression> expressions = Collections.singletonList(new Column(column));
-		ExpressionList lowerParamExpression = new ExpressionList(expressions);
+		ExpressionList<Expression> lowerParamExpression = new ExpressionList<>(expressions);
 
 		return new Function() //
 				.withName("lower") //
