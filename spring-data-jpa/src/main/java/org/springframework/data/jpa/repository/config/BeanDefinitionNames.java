@@ -22,9 +22,11 @@ package org.springframework.data.jpa.repository.config;
  * @author Thomas Darimont
  * @author Andrew Walters
  */
-interface BeanDefinitionNames {
+public final class BeanDefinitionNames {
 
-	String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMappingContext";
-	String JPA_CONTEXT_BEAN_NAME = "jpaContext";
-	String EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "emBeanDefinitionRegistrarPostProcessor";
+	private BeanDefinitionNames() {}
+
+	static final String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMappingContext";
+	static final String JPA_CONTEXT_BEAN_NAME = "jpaContext";
+	static final String EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "emBeanDefinitionRegistrarPostProcessor";
 }
