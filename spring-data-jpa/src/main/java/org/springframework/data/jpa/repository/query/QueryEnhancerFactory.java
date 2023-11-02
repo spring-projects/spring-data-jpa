@@ -35,10 +35,7 @@ public final class QueryEnhancerFactory {
 	private static final boolean jSqlParserPresent = ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser",
 			QueryEnhancerFactory.class.getClassLoader());
 
-	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.query.TypedParameterValue",
-			QueryEnhancerFactory.class.getClassLoader());
-
-	private static final boolean hibernate5Present = ClassUtils.isPresent("org.hibernate.jpa.TypedParameterValue",
+	private static final boolean hibernatePresent = ClassUtils.isPresent("org.hibernate.Hibernate",
 			QueryEnhancerFactory.class.getClassLoader());
 
 	static {
@@ -47,7 +44,7 @@ public final class QueryEnhancerFactory {
 			LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used");
 		}
 
-		if (hibernatePresent || hibernate5Present) {
+		if (hibernatePresent) {
 			LOG.info("Hibernate is in classpath; If applicable, HQL parser will be used.");
 		}
 	}
@@ -74,7 +71,7 @@ public final class QueryEnhancerFactory {
 			return new DefaultQueryEnhancer(query);
 		}
 
-		return (hibernatePresent || hibernate5Present) ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
+		return hibernatePresent ? JpaQueryEnhancer.forHql(query) : JpaQueryEnhancer.forJpql(query);
 	}
 
 }
