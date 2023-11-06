@@ -1605,4 +1605,34 @@ class HqlQueryRendererTests {
 	void powerShouldBeLegalInAQuery() {
 		assertQuery("select e.power.id from MyEntity e");
 	}
+
+	@Test // GH-3219
+	void extractFunctionShouldSupportAdditionalExtensions() {
+
+		assertQuery("""
+				select extract(day of week from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(day of week from departureTime)
+				""");
+		assertQuery("""
+				select extract(day of month from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(day of month from departureTime)
+				""");
+		assertQuery("""
+				select extract(week of year from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(week of year from departureTime)
+				""");
+
+		assertQuery("""
+				select extract(date from departureTime) AS date
+				group by extract(date from departureTime)
+				""");
+		assertQuery("""
+				select extract(time from departureTime) AS time
+				group by extract(time from departureTime)
+				""");
+		assertQuery("""
+				select extract(epoch from departureTime) AS epoch
+				group by extract(epoch from departureTime)
+				""");
+	}
 }

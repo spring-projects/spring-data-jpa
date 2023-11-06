@@ -1223,6 +1223,42 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitDayOfWeekExpression(HqlParser.DayOfWeekExpressionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.DAY()));
+		tokens.add(new JpaQueryParsingToken(ctx.OF()));
+		tokens.add(new JpaQueryParsingToken(ctx.WEEK()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitDayOfMonthExpression(HqlParser.DayOfMonthExpressionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.DAY()));
+		tokens.add(new JpaQueryParsingToken(ctx.OF()));
+		tokens.add(new JpaQueryParsingToken(ctx.MONTH()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitWeekOfYearExpression(HqlParser.WeekOfYearExpressionContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.add(new JpaQueryParsingToken(ctx.WEEK()));
+		tokens.add(new JpaQueryParsingToken(ctx.OF()));
+		tokens.add(new JpaQueryParsingToken(ctx.YEAR()));
+
+		return tokens;
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
@@ -1914,11 +1950,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		if (ctx.EXTRACT() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.EXTRACT()));
+			tokens.add(new JpaQueryParsingToken(ctx.EXTRACT(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.expression(0)));
 			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
 			tokens.addAll(visit(ctx.expression(1)));
+			NOSPACE(tokens);
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.dateTimeFunction() != null) {
 
