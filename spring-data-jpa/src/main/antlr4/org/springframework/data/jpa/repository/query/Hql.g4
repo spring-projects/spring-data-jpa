@@ -382,6 +382,9 @@ expression
     | expression op=('*' | '/') expression                          # MultiplicationExpression
     | expression op=('+' | '-') expression                          # AdditionExpression
     | expression '||' expression                                    # HqlConcatenationExpression
+    | DAY OF WEEK                                                   # DayOfWeekExpression
+    | DAY OF MONTH                                                  # DayOfMonthExpression
+    | WEEK OF YEAR                                                  # WeekOfYearExpression
     ;
 
 primaryExpression
