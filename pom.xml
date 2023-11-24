@@ -27,7 +27,7 @@
 	</parent>
 
 	<properties>
-		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
+		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.3</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
 		<hibernate>6.4.0.Final</hibernate>
