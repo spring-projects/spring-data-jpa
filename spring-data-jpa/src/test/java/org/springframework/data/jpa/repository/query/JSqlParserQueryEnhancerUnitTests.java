@@ -162,7 +162,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16)))\n"
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))) "
 						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
@@ -185,7 +185,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))),test2 AS (VALUES (1, 2, 3))\n"
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))), test2 AS (VALUES (1, 2, 3)) "
 						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
