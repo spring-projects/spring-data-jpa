@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa-parent</artifactId>
-	<version>3.3.0-SNAPSHOT</version>
+	<version>3.3.0-GH-3254-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data JPA Parent</name>
@@ -37,7 +37,7 @@
 		<jsqlparser>4.5</jsqlparser>
 		<mysql-connector-java>8.0.33</mysql-connector-java>
 		<postgresql>42.6.0</postgresql>
-		<springdata.commons>3.3.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.3.0-GH-2995-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
