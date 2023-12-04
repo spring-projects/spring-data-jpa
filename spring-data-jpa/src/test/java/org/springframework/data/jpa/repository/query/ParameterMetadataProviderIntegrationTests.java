@@ -17,11 +17,11 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.lang.reflect.Method;
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+
+import java.lang.reflect.Method;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +30,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -77,7 +78,7 @@ class ParameterMetadataProviderIntegrationTests {
 
 	private ParameterMetadataProvider createProvider(Method method) {
 
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = new JpaParameters(ParametersSource.of(method));
 		simulateDiscoveredParametername(parameters);
 
 		return new ParameterMetadataProvider(em.getCriteriaBuilder(), parameters, EscapeCharacter.DEFAULT);

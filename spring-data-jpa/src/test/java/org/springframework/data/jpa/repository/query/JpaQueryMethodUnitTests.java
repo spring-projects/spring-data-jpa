@@ -68,6 +68,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Mark Paluch
  * @author Erik Pellizzon
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JpaQueryMethodUnitTests {
@@ -156,6 +157,8 @@ class JpaQueryMethodUnitTests {
 	void rejectsInvalidReturntypeOnPagebleFinder() {
 
 		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getRepositoryInterface()).thenReturn((Class) InvalidRepository.class);
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> new JpaQueryMethod(invalidReturnType, metadata, factory, extractor));
@@ -165,6 +168,8 @@ class JpaQueryMethodUnitTests {
 	void rejectsPageableAndSortInFinderMethod() {
 
 		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getRepositoryInterface()).thenReturn((Class) InvalidRepository.class);
 
 		assertThatIllegalStateException()
 				.isThrownBy(() -> new JpaQueryMethod(pageableAndSort, metadata, factory, extractor));
@@ -318,8 +323,10 @@ class JpaQueryMethodUnitTests {
 	@Test // DATAJPA-466
 	void shouldStoreJpa21FetchGraphInformationAsHint() {
 
-		doReturn(User.class).when(metadata).getDomainType();
-		doReturn(User.class).when(metadata).getReturnedDomainClass(queryMethodWithCustomEntityFetchGraph);
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(queryMethodWithCustomEntityFetchGraph)).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getRepositoryInterface()).thenReturn((Class) InvalidRepository.class);
 
 		JpaQueryMethod method = new JpaQueryMethod(queryMethodWithCustomEntityFetchGraph, metadata, factory, extractor);
 
@@ -331,8 +338,10 @@ class JpaQueryMethodUnitTests {
 	@Test // DATAJPA-612
 	void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethod() throws Exception {
 
-		doReturn(User.class).when(metadata).getDomainType();
-		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(queryMethodWithCustomEntityFetchGraph)).thenReturn((Class) User.class);
+		when(metadata.getRepositoryInterface()).thenReturn((Class) JpaRepositoryOverride.class);
 
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findAll"), metadata, factory,
 				extractor);
@@ -345,8 +354,10 @@ class JpaQueryMethodUnitTests {
 	@Test // DATAJPA-689
 	void shouldFindEntityGraphAnnotationOnOverriddenSimpleJpaRepositoryMethodFindOne() throws Exception {
 
-		doReturn(User.class).when(metadata).getDomainType();
-		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getRepositoryInterface()).thenReturn((Class) InvalidRepository.class);
 
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("findOne", Integer.class),
 				metadata, factory, extractor);
@@ -362,8 +373,10 @@ class JpaQueryMethodUnitTests {
 	@Test
 	void shouldFindEntityGraphAnnotationOnQueryMethodGetOneByWithDerivedName() throws Exception {
 
-		doReturn(User.class).when(metadata).getDomainType();
-		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getRepositoryInterface()).thenReturn((Class) JpaRepositoryOverride.class);
 
 		JpaQueryMethod method = new JpaQueryMethod(JpaRepositoryOverride.class.getMethod("getOneById", Integer.class),
 				metadata, factory, extractor);
@@ -473,8 +486,10 @@ class JpaQueryMethodUnitTests {
 	@Test // DATAJPA-871
 	void usesAliasedValueForEntityGraph() throws Exception {
 
-		doReturn(User.class).when(metadata).getDomainType();
-		doReturn(User.class).when(metadata).getReturnedDomainClass((Method) any());
+		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
+		when(metadata.getReturnedDomainClass(any())).thenReturn((Class) User.class);
+		when(metadata.getRepositoryInterface()).thenReturn((Class) JpaRepositoryOverride.class);
 
 		JpaQueryMethod method = new JpaQueryMethod(
 				JpaRepositoryOverride.class.getMethod("getOneWithCustomEntityGraphAnnotation"), metadata, factory, extractor);
