@@ -97,7 +97,9 @@ class SimpleJpaQueryUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(metadata.getRepositoryInterface()).thenReturn((Class) SampleRepository.class);
 		when(metadata.getDomainType()).thenReturn((Class) User.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
 		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
 		when(metadata.getReturnType(Mockito.any(Method.class)))
 				.thenAnswer(invocation -> TypeInformation.fromReturnTypeOf(invocation.getArgument(0)));
