@@ -447,8 +447,8 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	@Override
-	protected JpaParameters createParameters(Method method) {
-		return new JpaParameters(method);
+	protected JpaParameters createParameters(RepositoryMetadata metadata, Method method) {
+		return new JpaParameters(metadata, method);
 	}
 
 	@Override

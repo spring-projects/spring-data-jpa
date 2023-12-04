@@ -20,12 +20,15 @@ import jakarta.persistence.TemporalType;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.lang.Nullable;
 
 /**
@@ -41,9 +44,35 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	 * Creates a new {@link JpaParameters} instance from the given {@link Method}.
 	 *
 	 * @param method must not be {@literal null}.
+	 * @deprecated since 3.2.1, use {@link #JpaParameters(RepositoryMetadata, Method)} instead.
 	 */
+	@Deprecated(since = "3.2.1", forRemoval = true)
 	public JpaParameters(Method method) {
-		super(method);
+		super(null, method, null);
+	}
+
+	/**
+	 * Creates a new {@link JpaParameters} instance from the given {@link Method}.
+	 *
+	 * @param method must not be {@literal null}.
+	 * @param metadata not be {@literal null}.
+	 * @since 3.2.1
+	 */
+	public JpaParameters(RepositoryMetadata metadata, Method method) {
+		super(metadata, method, methodParameter -> new JpaParameter(methodParameter, metadata.getDomainTypeInformation()));
+	}
+
+	/**
+	 * Creates a new {@link JpaParameters} instance from the given {@link Method}.
+	 *
+	 * @param metadata must not be {@literal null}.
+	 * @param method must not be {@literal null}.
+	 * @param parameterFactory must not be {@literal null}.
+	 * @since 3.2.1
+	 */
+	protected JpaParameters(RepositoryMetadata metadata, Method method,
+			Function<MethodParameter, JpaParameter> parameterFactory) {
+		super(metadata, method, parameterFactory);
 	}
 
 	private JpaParameters(List<JpaParameter> parameters) {
@@ -51,6 +80,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	}
 
 	@Override
+	@Deprecated(forRemoval = true)
 	protected JpaParameter createParameter(MethodParameter parameter) {
 		return new JpaParameter(parameter);
 	}
@@ -82,14 +112,31 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		 * Creates a new {@link JpaParameter}.
 		 *
 		 * @param parameter must not be {@literal null}.
+		 * @deprecated since 3.2.1
 		 */
+		@Deprecated(since = "3.2.1", forRemoval = true)
 		protected JpaParameter(MethodParameter parameter) {
 
 			super(parameter);
 
 			this.annotation = parameter.getParameterAnnotation(Temporal.class);
 			this.temporalType = null;
+			if (!isDateParameter() && hasTemporalParamAnnotation()) {
+				throw new IllegalArgumentException(
+						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter");
+			}
+		}
 
+		/**
+		 * Creates a new {@link JpaParameter}.
+		 *
+		 * @param parameter must not be {@literal null}.
+		 */
+		protected JpaParameter(MethodParameter parameter, TypeInformation<?> domainType) {
+
+			super(parameter, domainType);
+			this.annotation = parameter.getParameterAnnotation(Temporal.class);
+			this.temporalType = null;
 			if (!isDateParameter() && hasTemporalParamAnnotation()) {
 				throw new IllegalArgumentException(
 						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter");

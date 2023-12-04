@@ -15,22 +15,22 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.Collections.*;
 import static jakarta.persistence.TemporalType.*;
+import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.any;
 
-import java.lang.reflect.Method;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.TemporalType;
+
+import java.lang.reflect.Method;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,8 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Temporal;
+import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
 
 /**
@@ -78,7 +80,7 @@ class ParameterBinderUnitTests {
 
 	}
 
-	interface SampleRepository {
+	interface SampleRepository extends Repository<User, Long> {
 
 		User useIndexedParameters(String lastname);
 
@@ -149,7 +151,7 @@ class ParameterBinderUnitTests {
 	void bindsEmbeddableCorrectly() throws Exception {
 
 		Method method = getClass().getMethod("findByEmbeddable", SampleEmbeddable.class);
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = createParameters(method);
 		SampleEmbeddable embeddable = new SampleEmbeddable();
 
 		Object[] values = { embeddable };
@@ -162,7 +164,7 @@ class ParameterBinderUnitTests {
 	void shouldSetTemporalQueryParameterToDate() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithDefaultTemporalTypeParameter", Date.class);
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = createParameters(method);
 		Date date = new Date();
 
 		Object[] values = { date };
@@ -175,7 +177,7 @@ class ParameterBinderUnitTests {
 	void shouldSetTemporalQueryParameterToTimestamp() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithCustomTemporalTypeParameter", Date.class);
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = createParameters(method);
 		Date date = new Date();
 
 		Object[] values = { date };
@@ -188,14 +190,14 @@ class ParameterBinderUnitTests {
 	void shouldThrowIllegalArgumentExceptionIfIsAnnotatedWithTemporalParamAndParameterTypeIsNotDate() throws Exception {
 		Method method = SampleRepository.class.getMethod("invalidWithTemporalTypeParameter", String.class);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> new JpaParameters(method));
+		assertThatIllegalArgumentException().isThrownBy(() -> createParameters(method));
 	}
 
 	@Test // DATAJPA-461
 	void shouldAllowBindingOfVarArgsAsIs() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("validWithVarArgs", Integer[].class);
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = createParameters(method);
 		Integer[] ids = new Integer[] { 1, 2, 3 };
 		Object[] values = { ids };
 		bind(method, parameters, values);
@@ -207,7 +209,7 @@ class ParameterBinderUnitTests {
 	void unwrapsOptionalParameter() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("optionalParameter", Optional.class);
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = createParameters(method);
 
 		Object[] values = { Optional.of("Foo") };
 		bind(method, parameters, values);
@@ -221,14 +223,14 @@ class ParameterBinderUnitTests {
 		Method method = SampleRepository.class.getMethod("withQuery", String.class, String.class);
 
 		Object[] values = { "foo", "superfluous" };
-		bind(method, new JpaParameters(method), values);
+		bind(method, createParameters(method), values);
 
 		verify(query).setParameter(eq(1), any());
 		verify(query, never()).setParameter(eq(2), any());
 	}
 
 	private void bind(Method method, Object[] values) {
-		bind(method, new JpaParameters(method), values);
+		bind(method, createParameters(method), values);
 	}
 
 	private void bind(Method method, JpaParameters parameters, Object[] values) {
@@ -237,7 +239,11 @@ class ParameterBinderUnitTests {
 	}
 
 	private JpaParametersParameterAccessor getAccessor(Method method, Object... values) {
-		return new JpaParametersParameterAccessor(new JpaParameters(method), values);
+		return new JpaParametersParameterAccessor(createParameters(method), values);
+	}
+
+	private static JpaParameters createParameters(Method method) {
+		return new JpaParameters(new DefaultRepositoryMetadata(SampleRepository.class), method);
 	}
 
 	// needs to be public

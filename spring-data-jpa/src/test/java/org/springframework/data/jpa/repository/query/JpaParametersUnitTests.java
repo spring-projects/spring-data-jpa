@@ -18,20 +18,24 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.TemporalType.*;
 import static org.assertj.core.api.Assertions.*;
 
+import jakarta.persistence.TemporalType;
+
 import java.lang.reflect.Method;
 import java.util.Date;
 
-import jakarta.persistence.TemporalType;
-
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 
 /**
  * Unit tests for {@link JpaParameters}.
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 class JpaParametersUnitTests {
 
@@ -40,7 +44,7 @@ class JpaParametersUnitTests {
 
 		Method method = SampleRepository.class.getMethod("foo", Date.class, String.class);
 
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = new JpaParameters(new DefaultRepositoryMetadata(SampleRepository.class), method);
 
 		JpaParameter parameter = parameters.getBindableParameter(0);
 		assertThat(parameter.isSpecialParameter()).isFalse();
@@ -51,7 +55,7 @@ class JpaParametersUnitTests {
 		assertThat(parameter.isTemporalParameter()).isFalse();
 	}
 
-	interface SampleRepository {
+	interface SampleRepository extends Repository<String, String> {
 
 		void foo(@Temporal(TIMESTAMP) Date date, String firstname);
 	}
