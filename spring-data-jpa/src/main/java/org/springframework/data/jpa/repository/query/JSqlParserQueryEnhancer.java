@@ -141,7 +141,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		selectBody.getOrderByElements().addAll(orderByElements);
 
-		return selectBody.toString();
+		return selectStatement.toString();
 
 	}
 
