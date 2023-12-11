@@ -179,6 +179,17 @@ class QueryEnhancerUnitTests {
 		assertThat(query).endsWithIgnoringCase("ORDER BY p.firstname, p.lastname asc");
 	}
 
+	@Test // GH-3263
+	void doesNotDropWithExpressionWhenApplySort() {
+
+		StringQuery query = new StringQuery("WITH all_projects AS (SELECT * FROM projects) SELECT * FROM all_projects p",
+				true);
+
+		assertThat(getEnhancer(query).applySorting(Sort.by("name"), "p")) //
+				.startsWithIgnoringCase("WITH all_projects AS (SELECT * FROM projects)")
+				.endsWithIgnoringCase("ORDER BY p.name ASC");
+	}
+
 	@Test // GH-2812
 	void createCountQueryFromDeleteQuery() {
 
