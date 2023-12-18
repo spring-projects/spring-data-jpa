@@ -92,6 +92,7 @@ import org.springframework.util.StringUtils;
  * @author Donghun Shin
  * @author Pranav HS
  * @author Eduard Dudar
+ * @author Yanming Zhou
  */
 public abstract class QueryUtils {
 
@@ -844,7 +845,15 @@ public abstract class QueryUtils {
 			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
 		}
 		if (managedType != null) {
-			propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
+			try {
+				propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
+			} catch (IllegalArgumentException ex) {
+				// ManagedType may be erased type for some vendor if the attribute is declared as generic
+				// see: https://hibernate.atlassian.net/browse/HHH-16144
+				// see: https://github.com/hibernate/hibernate-orm/pull/7630
+				// see: https://github.com/jakartaee/persistence/issues/562
+				propertyPathModel = from.get(segment).getModel();
+			}
 		} else {
 			propertyPathModel = from.get(segment).getModel();
 		}
