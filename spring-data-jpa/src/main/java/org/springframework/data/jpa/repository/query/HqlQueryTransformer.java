@@ -20,7 +20,6 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
@@ -31,6 +30,7 @@ import org.springframework.util.Assert;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 class HqlQueryTransformer extends HqlQueryRenderer {
@@ -358,23 +358,14 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 				if (ctx.DISTINCT() != null) {
 
-					List<JpaQueryParsingToken> target = new ArrayList<>(selectionListTokens.size());
-					for(int i=0;i<selectionListTokens.size();i++) {
-						JpaQueryParsingToken token = selectionListTokens.get(i);
-						if(token.getToken().equalsIgnoreCase("as")) {
-							i++;
-							continue;
-						}
-						target.add(token);
-					}
-					selectionListTokens = target;
+					List<JpaQueryParsingToken> countSelection = getCountSelection(selectionListTokens);
 
-					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
+					if (countSelection.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
 						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
-						tokens.addAll(selectionListTokens);
+						tokens.addAll(countSelection);
 					}
 				} else {
 					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
@@ -405,5 +396,20 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 	static <T> ArrayList<T> newArrayList() {
 		return new ArrayList<>();
+	}
+
+	private static List<JpaQueryParsingToken> getCountSelection(List<JpaQueryParsingToken> selectionListTokens) {
+
+		List<JpaQueryParsingToken> target = new ArrayList<>(selectionListTokens.size());
+		for (int i = 0; i < selectionListTokens.size(); i++) {
+			JpaQueryParsingToken token = selectionListTokens.get(i);
+			if (token.isA(TOKEN_AS)) {
+				i++;
+				continue;
+			}
+			target.add(token);
+		}
+		selectionListTokens = target;
+		return selectionListTokens;
 	}
 }
