@@ -81,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Vladislav Yukharin
  * @author Chris Fraser
  * @author Donghun Shin
+ * @author Yanming Zhou
  */
 public abstract class QueryUtils {
 
@@ -821,20 +822,28 @@ public abstract class QueryUtils {
 		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
 
-		// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
-		// regardless of which join operation is specified next
-		// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-		// still occurs as of 2.7
-		ManagedType<?> managedType = null;
-		if (model instanceof ManagedType) {
-			managedType = (ManagedType<?>) model;
-		} else if (model instanceof SingularAttribute
-				&& ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
-			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
-		}
-		if (managedType != null) {
-			propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
+		if (model.getClass().getName().startsWith("org.eclipse.persistence")) {
+			// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
+			// regardless of which join operation is specified next
+			// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
+			// still occurs as of 2.7
+			ManagedType<?> managedType = null;
+			if (model instanceof ManagedType) {
+				managedType = (ManagedType<?>) model;
+			} else if (model instanceof SingularAttribute
+					&& ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
+				managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
+			}
+			if (managedType != null) {
+				propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
+			} else {
+				propertyPathModel = from.get(segment).getModel();
+			}
 		} else {
+			// ManagedType may be erased type for some vendor if the attribute is declared as generic
+			// see: https://hibernate.atlassian.net/browse/HHH-16144
+			// see: https://github.com/hibernate/hibernate-orm/pull/7630
+			// see: https://github.com/jakartaee/persistence/issues/562
 			propertyPathModel = from.get(segment).getModel();
 		}
 

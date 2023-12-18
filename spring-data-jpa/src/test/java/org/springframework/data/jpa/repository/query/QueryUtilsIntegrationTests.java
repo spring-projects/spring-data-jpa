@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
@@ -54,6 +56,7 @@ import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Invoice;
 import org.springframework.data.jpa.domain.sample.InvoiceItem;
 import org.springframework.data.jpa.domain.sample.Order;
+import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
 import org.springframework.data.mapping.PropertyPath;
@@ -69,6 +72,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Patrice Blanchardie
  * @author Diego Krupitza
  * @author Krzysztof Krason
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -291,12 +295,14 @@ class QueryUtilsIntegrationTests {
 		Root<Category> root = query.from(Category.class);
 
 		Root<Category> mock = Mockito.mock(Root.class);
+		Path<Product> path = Mockito.mock(Path.class);
 		doReturn(root.getModel()).when(mock).getModel();
+		doReturn(path).when(mock).get("product");
 		doReturn(Collections.singleton(root.fetch("product", JoinType.LEFT))).when(mock).getFetches();
 
 		QueryUtils.toExpressionRecursively(mock, PropertyPath.from("product", Category.class));
 
-		verify(mock, times(1)).get("product");
+		verify(mock, atLeast(1)).get("product");
 		verify(mock, times(0)).join(Mockito.eq("product"), Mockito.any(JoinType.class));
 	}
 

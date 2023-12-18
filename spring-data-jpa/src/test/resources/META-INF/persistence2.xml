@@ -8,6 +8,7 @@
 		<class>org.springframework.data.jpa.domain.sample.AuditableUser</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableEntity</class>
 		<class>org.springframework.data.jpa.domain.sample.AuditableEmbeddable</class>
+		<class>org.springframework.data.jpa.domain.sample.Book</class>
 		<class>org.springframework.data.jpa.domain.sample.Category</class>
 		<class>org.springframework.data.jpa.domain.sample.CustomAbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.sample.EntityWithAssignedId</class>
@@ -20,6 +21,7 @@
 		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.Site</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Owner</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
