@@ -20,6 +20,7 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
@@ -356,6 +357,17 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 			if (countProjection == null) {
 
 				if (ctx.DISTINCT() != null) {
+
+					List<JpaQueryParsingToken> target = new ArrayList<>(selectionListTokens.size());
+					for(int i=0;i<selectionListTokens.size();i++) {
+						JpaQueryParsingToken token = selectionListTokens.get(i);
+						if(token.getToken().equalsIgnoreCase("as")) {
+							i++;
+							continue;
+						}
+						target.add(token);
+					}
+					selectionListTokens = target;
 
 					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
