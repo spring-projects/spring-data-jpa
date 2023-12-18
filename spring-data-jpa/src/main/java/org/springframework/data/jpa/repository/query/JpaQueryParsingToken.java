@@ -131,6 +131,15 @@ class JpaQueryParsingToken {
 		return this.space;
 	}
 
+	boolean isA(JpaQueryParsingToken token) {
+		return token.getToken().equalsIgnoreCase(this.getToken());
+	}
+
+	@Override
+	public String toString() {
+		return getToken();
+	}
+
 	/**
 	 * Switch the last {@link JpaQueryParsingToken}'s spacing to {@literal true}.
 	 */
