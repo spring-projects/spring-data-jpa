@@ -19,18 +19,18 @@ import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManagerFactory;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,12 +58,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.FileCopyUtils;
-import org.springframework.util.FileSystemUtils;
 
 /**
  * Verify that {@link Meta}-annotated methods properly embed comments into EclipseLink queries.
  *
  * @author Greg Turnquist
+ * @author Edoardo Patti
  * @since 3.0
  */
 @ExtendWith(SpringExtension.class)
@@ -74,16 +74,19 @@ class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 	@Autowired RoleRepositoryWithMeta repository;
 
 	private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
-	private static final String LOG_FILE = "test-eclipselink-meta.log";
+	private static String LOG_FILE;
 
-	@BeforeEach
-	void cleanoutLogfile() throws IOException {
-		new FileOutputStream(LOG_FILE).close();
+	private static Path logFile;
+
+	@BeforeAll
+	static void createLogfile() throws IOException {
+		logFile = Files.createTempFile("test-eclipselink-meta", ".log");
+		LOG_FILE = logFile.toAbsolutePath().toString();
 	}
 
 	@AfterAll
-	static void deleteLogfile() throws IOException {
-		FileSystemUtils.deleteRecursively(Path.of(LOG_FILE));
+	static void deleteLogFile() {
+		logFile.toFile().deleteOnExit();
 	}
 
 	@Test // GH-775
