@@ -852,10 +852,9 @@ WHERE                       : W H E R E;
 EQUAL                       : '=' ;
 NOT_EQUAL                   : '<>' | '!=' ;
 
-
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
 STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
-FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E '0' .. '9')* ;
+FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;
 LONGLITERAL                  : ('0' .. '9')+L ;
