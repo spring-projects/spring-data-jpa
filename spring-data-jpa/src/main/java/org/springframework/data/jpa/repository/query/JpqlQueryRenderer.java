@@ -722,6 +722,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.addAll(visit(ctx.aggregate_expression()));
 		} else if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
+		} else if (ctx.literal() != null) {
+			tokens.addAll(visit(ctx.literal()));
 		}
 
 		return tokens;
@@ -2152,6 +2154,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		if (ctx.STRINGLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
+		} else if (ctx.JAVASTRINGLITERAL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.JAVASTRINGLITERAL()));
 		} else if (ctx.INTLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {

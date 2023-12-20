@@ -164,7 +164,12 @@ abstract class QueryEnhancerTckTests {
 
 				Arguments.of( //
 						"select distinct m.genre from Media m where m.user = ?1 order by m.genre asc", //
-						"select count(distinct m.genre) from Media m where m.user = ?1"));
+						"select count(distinct m.genre) from Media m where m.user = ?1"),
+
+				Arguments.of( //
+						"select u from User u where MOD(u.age, 10L) = 2", //
+						"select count(u) from User u where MOD(u.age, 10L) = 2")
+				);
 	}
 
 	@ParameterizedTest // GH-2511, GH-2773
