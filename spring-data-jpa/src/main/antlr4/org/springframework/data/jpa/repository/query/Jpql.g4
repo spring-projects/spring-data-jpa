@@ -23,6 +23,7 @@ grammar Jpql;
  *
  * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#bnf
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 }
@@ -621,6 +622,7 @@ literal
     : STRINGLITERAL
     | INTLITERAL
     | FLOATLITERAL
+    | LONGLITERAL
     | boolean_literal
     | entity_type_literal
     ;
@@ -650,6 +652,7 @@ escape_character
 numeric_literal
     : INTLITERAL
     | FLOATLITERAL
+    | LONGLITERAL
     ;
 
 boolean_literal
@@ -855,3 +858,4 @@ IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | 
 STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E '0' .. '9')* ;
 INTLITERAL                  : ('0' .. '9')+ ;
+LONGLITERAL                  : ('0' .. '9')+L ;
