@@ -32,6 +32,7 @@ import org.springframework.data.domain.Sort;
  * @author Mark Paluch
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
+ * @author Christoph Strobl
  */
 public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
@@ -48,6 +49,8 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assumeThat(query).as("JSQLParser does not support simple JPQL syntax").doesNotStartWithIgnoringCase("FROM");
 
 		assumeThat(query).as("JSQLParser does not support constructor JPQL syntax").doesNotContain(" new ");
+
+		assumeThat(query).as("JSQLParser does not support MOD JPQL syntax").doesNotContain("MOD(");
 
 		super.shouldDeriveJpqlCountQuery(query, expected);
 	}
