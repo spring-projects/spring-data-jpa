@@ -15,51 +15,31 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import java.util.List;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.junit.jupiter.api.Test;
+import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
  * @author Christoph Strobl
  */
-public class JpqlComplianceTests {
+public class JpqlComplianceTests extends SqlParserTests {
 
-	private static String parseWithoutChanges(String query) {
+	@Override
+	ParseTree parse(String query) {
 
 		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
 		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
 
 		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
-		JpqlParser.StartContext parsedQuery = parser.start();
-
-		return render(new JpqlQueryRenderer().visit(parsedQuery));
+		return parser.start();
 	}
 
-	private void assertQuery(String query) {
-
-		String slimmedDownQuery = reduceWhitespace(query);
-		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
-	}
-
-	private String reduceWhitespace(String original) {
-
-		return original //
-				.replaceAll("[ \\t\\n]{1,}", " ") //
-				.trim();
-	}
-
-	@Test
-	void numericLiterals() {
-
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234");
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234L");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14F");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
+	@Override
+	<T extends ParseTree> List<JpaQueryParsingToken> analyze(T parseTree) {
+		return new JpqlQueryRenderer().visit(parseTree);
 	}
 
 }
