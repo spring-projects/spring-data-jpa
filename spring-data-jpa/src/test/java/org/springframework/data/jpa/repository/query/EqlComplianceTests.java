@@ -25,10 +25,13 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests built around examples of EQL found in the EclipseLink's docs at
  * https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL<br/>
+ * With the exception of {@literal MOD} which is defined as {@literal MOD(arithmetic_expression , arithmetic_expression)},
+ * but shown in tests as {@literal MOD(arithmetic_expression ? arithmetic_expression)}.
  * <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 class EqlComplianceTests {
 
@@ -214,7 +217,7 @@ class EqlComplianceTests {
 		assertQuery("SELECT e.name, CURRENT_TIMESTAMP FROM Employee e");
 		assertQuery("SELECT LENGTH(e.lastName) FROM Employee e");
 		assertQuery("SELECT LOWER(e.lastName) FROM Employee e");
-		assertQuery("SELECT MOD(e.hoursWorked / 8) FROM Employee e");
+		assertQuery("SELECT MOD(e.hoursWorked, 8) FROM Employee e");
 		assertQuery("SELECT NULLIF(e.salary, 0) FROM Employee e");
 		assertQuery("SELECT SQRT(o.RESULT) FROM Output o");
 		assertQuery("SELECT SUBSTRING(e.lastName, 0, 2) FROM Employee e");
@@ -243,7 +246,7 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e WHERE CURRENT_TIME > CURRENT_TIMESTAMP");
 		assertQuery("SELECT e FROM Employee e WHERE LENGTH(e.lastName) > 0");
 		assertQuery("SELECT e FROM Employee e WHERE LOWER(e.lastName) = 'bilbo'");
-		assertQuery("SELECT e FROM Employee e WHERE MOD(e.hoursWorked / 8) > 0");
+		assertQuery("SELECT e FROM Employee e WHERE MOD(e.hoursWorked, 8) > 0");
 		assertQuery("SELECT e FROM Employee e WHERE NULLIF(e.salary, 0) is null");
 		assertQuery("SELECT e FROM Employee e WHERE SQRT(o.RESULT) > 0.0");
 		assertQuery("SELECT e FROM Employee e WHERE SUBSTRING(e.lastName, 0, 2) = 'Bilbo'");
@@ -272,7 +275,7 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e ORDER BY CURRENT_TIMESTAMP");
 		assertQuery("SELECT e FROM Employee e ORDER BY LENGTH(e.lastName)");
 		assertQuery("SELECT e FROM Employee e ORDER BY LOWER(e.lastName)");
-		assertQuery("SELECT e FROM Employee e ORDER BY MOD(e.hoursWorked / 8)");
+		assertQuery("SELECT e FROM Employee e ORDER BY MOD(e.hoursWorked, 8)");
 		assertQuery("SELECT e FROM Employee e ORDER BY NULLIF(e.salary, 0)");
 		assertQuery("SELECT e FROM Employee e ORDER BY SQRT(o.RESULT)");
 		assertQuery("SELECT e FROM Employee e ORDER BY SUBSTRING(e.lastName, 0, 2)");
@@ -301,7 +304,7 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e GROUP BY CURRENT_TIMESTAMP");
 		assertQuery("SELECT e FROM Employee e GROUP BY LENGTH(e.lastName)");
 		assertQuery("SELECT e FROM Employee e GROUP BY LOWER(e.lastName)");
-		assertQuery("SELECT e FROM Employee e GROUP BY MOD(e.hoursWorked / 8)");
+		assertQuery("SELECT e FROM Employee e GROUP BY MOD(e.hoursWorked, 8)");
 		assertQuery("SELECT e FROM Employee e GROUP BY NULLIF(e.salary, 0)");
 		assertQuery("SELECT e FROM Employee e GROUP BY SQRT(o.RESULT)");
 		assertQuery("SELECT e FROM Employee e GROUP BY SUBSTRING(e.lastName, 0, 2)");
@@ -329,7 +332,7 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING CURRENT_TIME > CURRENT_TIMESTAMP");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING LENGTH(e.lastName) > 0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING LOWER(e.lastName) = 'bilbo'");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING MOD(e.hoursWorked / 8) > 0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING MOD(e.hoursWorked, 8) > 0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING NULLIF(e.salary, 0) is null");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING SQRT(o.RESULT) > 0.0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING SUBSTRING(e.lastName, 0, 2) = 'Bilbo'");
