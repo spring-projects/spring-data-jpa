@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an EQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.2
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -1912,7 +1913,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.MOD(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.arithmetic_expression(0)));
-			tokens.add(new JpaQueryParsingToken("/"));
+			NOSPACE(tokens);
+			tokens.add(TOKEN_COMMA);
 			tokens.addAll(visit(ctx.arithmetic_expression(1)));
 			NOSPACE(tokens);
 			tokens.add(TOKEN_CLOSE_PAREN);
