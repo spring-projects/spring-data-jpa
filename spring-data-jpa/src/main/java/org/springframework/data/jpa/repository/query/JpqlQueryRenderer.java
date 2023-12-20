@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -2156,6 +2157,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
+		} else if(ctx.LONGLITERAL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else if (ctx.boolean_literal() != null) {
 			tokens.addAll(visit(ctx.boolean_literal()));
 		} else if (ctx.entity_type_literal() != null) {
@@ -2216,6 +2219,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
+		} else if(ctx.LONGLITERAL() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else {
 			return List.of();
 		}
