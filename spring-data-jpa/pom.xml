@@ -81,9 +81,8 @@
 
 		<dependency>
 			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
+			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -362,11 +361,6 @@
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.14.0</version>
 				<dependencies>
-					<dependency>
-						<groupId>org.aspectj</groupId>
-						<artifactId>aspectjrt</artifactId>
-						<version>${aspectj}</version>
-					</dependency>
 					<dependency>
 						<groupId>org.aspectj</groupId>
 						<artifactId>aspectjtools</artifactId>
