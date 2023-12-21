@@ -318,6 +318,39 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<!--
+						To understand what this plugin execution does, please read
+						https://www.mojohaus.org/build-helper-maven-plugin/usage.html#set-a-property-according-to-whether-target-files-are-up-to-date
+					-->
+					<execution>
+						<id>set-antlr4-directory</id>
+						<goals>
+							<goal>uptodate-property</goal>
+						</goals>
+						<!-- Repeat default phase for clarity -->
+						<phase>validate</phase>
+						<configuration>
+							<name>antlr4.dir</name>
+							<value>antlr4-dummy</value>
+							<else>antlr4</else>
+							<fileSet>
+								<directory>${project.basedir}/src/main/antlr4</directory>
+								<outputDirectory>${project.build.directory}/generated-sources/antlr4</outputDirectory>
+								<mapper>
+									<type>glob</type>
+									<from>*.g4</from>
+									<to>*.interp</to>
+								</mapper>
+							</fileSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-maven-plugin</artifactId>
 				<version>${antlr}</version>
@@ -329,6 +362,8 @@
 						<phase>generate-sources</phase>
 						<configuration>
 							<visitor>true</visitor>
+							<!-- Set source dir explicitly, either to default or to dummy value, the latter yielding 0 hits -->
+							<sourceDirectory>${project.basedir}/src/main/${antlr4.dir}</sourceDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -336,24 +371,26 @@
 
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<version>1.4.1</version>
+				<artifactId>replacer</artifactId>
+				<version>1.5.3</version>
 				<executions>
 					<execution>
 						<phase>process-sources</phase>
 						<goals>
 							<goal>replace</goal>
 						</goals>
+						<configuration>
+							<basedir>${project.build.directory}/generated-sources</basedir>
+							<includes>
+								<!-- Replace tokens in real or dummy directory, the latter yielding 0 hits -->
+								<include>${antlr4.dir}/**/*.java</include>
+							</includes>
+							<variableTokenValueMap>
+								public class=class,public interface=interface
+							</variableTokenValueMap>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<includes>
-						<include>target/generated-sources/antlr4/**/*.java</include>
-					</includes>
-					<variableTokenValueMap>
-						public class=class,public interface=interface
-					</variableTokenValueMap>
-				</configuration>
 			</plugin>
 
 			<plugin>
