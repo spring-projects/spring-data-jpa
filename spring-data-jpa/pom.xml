@@ -357,6 +357,13 @@
 			</plugin>
 
 			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<proc>only</proc>
+				</configuration>
+			</plugin>
+
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.14.0</version>
@@ -369,32 +376,37 @@
 				</dependencies>
 				<executions>
 					<execution>
+						<id>aspectj-compile</id>
 						<goals>
 							<goal>compile</goal>
 						</goals>
 						<phase>process-classes</phase>
+						<configuration>
+						</configuration>
+					</execution>
+					<execution>
+						<id>aspectj-test-compile</id>
+						<goals>
+							<goal>test-compile</goal>
+						</goals>
+						<phase>process-test-classes</phase>
+						<configuration>
+						</configuration>
 					</execution>
 				</executions>
 				<configuration>
+					<!-- Annotation processing is done by Maven Compiler (hard to configure for AJ Maven) -->
+					<proc>none</proc>
+					<!-- Generate metadata for reflection on method parameters -->
+					<parameters>true</parameters>
 					<verbose>true</verbose>
-					<!--
-						To workaround:
-
-						- https://issues.apache.org/jira/browse/MCOMPILER-205
-						- https://issues.apache.org/jira/browse/MCOMPILER-209
-						- https://github.com/mojohaus/aspectj-maven-plugin/issues/15
-
-					-->
-					<forceAjcCompile>true</forceAjcCompile>
+					<showWeaveInfo>true</showWeaveInfo>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-aspects</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>
-					<includes>
-						<include>**/domain/support/AuditingEntityListener.java</include>
-					</includes>
 					<complianceLevel>${source.level}</complianceLevel>
 					<source>${source.level}</source>
 					<target>${source.level}</target>
