@@ -83,6 +83,7 @@
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjrt</artifactId>
 			<version>${aspectj}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -329,6 +330,7 @@
 						<phase>generate-sources</phase>
 						<configuration>
 							<visitor>true</visitor>
+							<sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
 						</configuration>
 					</execution>
 				</executions>
@@ -344,22 +346,37 @@
 						<goals>
 							<goal>replace</goal>
 						</goals>
+						<configuration>
+							<basedir>${project.build.directory}/generated-sources</basedir>
+							<includes>
+								<include>antlr4/**/*.java</include>
+							</includes>
+							<variableTokenValueMap>
+								public class=class,public interface=interface
+							</variableTokenValueMap>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<includes>
-						<include>target/generated-sources/antlr4/**/*.java</include>
-					</includes>
-					<variableTokenValueMap>
-						public class=class,public interface=interface
-					</variableTokenValueMap>
-				</configuration>
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<proc>only</proc>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>com.querydsl</groupId>
+							<artifactId>querydsl-apt</artifactId>
+							<version>${querydsl}</version>
+							<classifier>jakarta</classifier>
+						</path>
+						<path>
+							<groupId>org.hibernate.orm</groupId>
+							<artifactId>hibernate-jpamodelgen</artifactId>
+							<version>${hibernate}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
@@ -381,8 +398,6 @@
 							<goal>compile</goal>
 						</goals>
 						<phase>process-classes</phase>
-						<configuration>
-						</configuration>
 					</execution>
 					<execution>
 						<id>aspectj-test-compile</id>
@@ -390,8 +405,6 @@
 							<goal>test-compile</goal>
 						</goals>
 						<phase>process-test-classes</phase>
-						<configuration>
-						</configuration>
 					</execution>
 				</executions>
 				<configuration>
