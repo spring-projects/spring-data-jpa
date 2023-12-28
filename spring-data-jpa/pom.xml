@@ -337,29 +337,6 @@
 			</plugin>
 
 			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<version>1.4.1</version>
-				<executions>
-					<execution>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-						<configuration>
-							<basedir>${project.build.directory}/generated-sources</basedir>
-							<includes>
-								<include>antlr4/**/*.java</include>
-							</includes>
-							<variableTokenValueMap>
-								public class=class,public interface=interface
-							</variableTokenValueMap>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
