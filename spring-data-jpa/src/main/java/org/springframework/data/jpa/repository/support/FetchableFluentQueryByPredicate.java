@@ -173,6 +173,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		return createSortedAndProjectedQuery() //
 				.stream() //
+				.peek(entityManager::detach) //
 				.map(getConversionFunction());
 	}
 

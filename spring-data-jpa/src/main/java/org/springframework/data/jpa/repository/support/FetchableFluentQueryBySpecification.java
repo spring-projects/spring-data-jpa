@@ -165,6 +165,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		return createSortedAndProjectedQuery() //
 				.getResultStream() //
+				.peek(entityManager::detach) //
 				.map(getConversionFunction());
 	}
 
