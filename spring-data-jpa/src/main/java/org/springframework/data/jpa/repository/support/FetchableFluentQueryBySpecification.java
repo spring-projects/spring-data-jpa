@@ -52,25 +52,25 @@ import org.springframework.util.Assert;
 class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		implements FluentQuery.FetchableFluentQuery<R> {
 
-	private final Specification<S> spec;
+	private final Specification<? super S> spec;
 	private final Function<Sort, TypedQuery<S>> finder;
 	private final SpecificationScrollDelegate<S> scroll;
-	private final Function<Specification<S>, Long> countOperation;
-	private final Function<Specification<S>, Boolean> existsOperation;
+	private final Function<Specification<? super S>, Long> countOperation;
+	private final Function<Specification<? super S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
 
-	public FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
+	public FetchableFluentQueryBySpecification(Specification<? super S> spec, Class<S> entityType,
 			Function<Sort, TypedQuery<S>> finder, SpecificationScrollDelegate<S> scrollDelegate,
-			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
-			EntityManager entityManager) {
+			Function<Specification<? super S>, Long> countOperation,
+			Function<Specification<? super S>, Boolean> existsOperation, EntityManager entityManager) {
 		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scrollDelegate,
 				countOperation, existsOperation, entityManager);
 	}
 
-	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
+	private FetchableFluentQueryBySpecification(Specification<? super S> spec, Class<S> entityType, Class<R> resultType,
 			Sort sort, int limit, Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
-			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
-			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager) {
+			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<? super S>, Long> countOperation,
+			Function<Specification<? super S>, Boolean> existsOperation, EntityManager entityManager) {
 
 		super(resultType, sort, limit, properties, entityType);
 		this.spec = spec;

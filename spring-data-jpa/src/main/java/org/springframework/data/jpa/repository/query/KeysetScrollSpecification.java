@@ -42,7 +42,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 3.1
  */
-public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
+public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort sort,
 		JpaEntityInformation<?, ?> entity) implements Specification<T> {
 
 	public KeysetScrollSpecification(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
@@ -84,7 +84,7 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	}
 
 	@Override
-	public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+	public Predicate toPredicate(Root<? extends T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
 		return createPredicate(root, criteriaBuilder);
 	}
 

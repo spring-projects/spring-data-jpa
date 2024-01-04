@@ -427,7 +427,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public Optional<T> findOne(Specification<T> spec) {
+	public Optional<T> findOne(Specification<? super T> spec) {
 
 		try {
 			return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResult());
@@ -437,12 +437,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(Specification<T> spec) {
+	public List<T> findAll(Specification<? super T> spec) {
 		return getQuery(spec, Sort.unsorted()).getResultList();
 	}
 
 	@Override
-	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
+	public Page<T> findAll(Specification<? super T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
@@ -450,12 +450,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(Specification<T> spec, Sort sort) {
+	public List<T> findAll(Specification<? super T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
 
 	@Override
-	public boolean exists(Specification<T> spec) {
+	public boolean exists(Specification<? super T> spec) {
 
 		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
 				.createQuery(Integer.class) //
@@ -468,7 +468,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public long delete(Specification<T> spec) {
+	public long delete(Specification<? super T> spec) {
 
 		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
@@ -485,7 +485,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
+	public <S extends T, R> R findBy(Specification<? super T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
@@ -493,7 +493,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return doFindBy(spec, getDomainClass(), queryFunction);
 	}
 
-	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
+	private <S extends T, R> R doFindBy(Specification<? super T> spec, Class<T> domainClass,
 			Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(spec, "Specification must not be null");
@@ -501,7 +501,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		ScrollQueryFactory scrollFunction = (sort, scrollPosition) -> {
 
-			Specification<T> specToUse = spec;
+			Specification<? super T> specToUse = spec;
 
 			if (scrollPosition instanceof KeysetScrollPosition keyset) {
 				KeysetScrollSpecification<T> keysetSpec = new KeysetScrollSpecification<>(keyset, sort, entityInformation);
@@ -604,7 +604,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public long count(@Nullable Specification<T> spec) {
+	public long count(@Nullable Specification<? super T> spec) {
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
@@ -687,7 +687,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param pageable can be {@literal null}.
 	 */
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
-			@Nullable Specification<S> spec) {
+			@Nullable Specification<? super S> spec) {
 
 		if (pageable.isPaged()) {
 			query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
@@ -704,7 +704,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(@Nullable Specification<? super T> spec, Pageable pageable) {
 
 		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
 		return getQuery(spec, getDomainClass(), sort);
@@ -717,7 +717,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
+	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<? super S> spec, Class<S> domainClass,
 			Pageable pageable) {
 
 		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
@@ -730,7 +730,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Sort sort) {
+	protected TypedQuery<T> getQuery(@Nullable Specification<? super T> spec, Sort sort) {
 		return getQuery(spec, getDomainClass(), sort);
 	}
 
@@ -741,12 +741,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
+	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<? super S> spec, Class<S> domainClass,
+			Sort sort) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query = builder.createQuery(domainClass);
 
-		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
+		Root<? extends S> root = applySpecificationToCriteria(spec, domainClass, query);
 		query.select(root);
 
 		if (sort.isSorted()) {
@@ -773,7 +774,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
+	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<? super S> spec,
+			Class<S> domainClass) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -814,8 +816,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param query must not be {@literal null}.
 	 */
-	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass,
-			CriteriaQuery<S> query) {
+	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<? super U> spec,
+			Class<U> domainClass, CriteriaQuery<S> query) {
 
 		Assert.notNull(domainClass, "Domain class must not be null");
 		Assert.notNull(query, "CriteriaQuery must not be null");
@@ -942,7 +944,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		@Override
-		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		public Predicate toPredicate(Root<? extends T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());
 			parameter = (ParameterExpression<Collection<?>>) (ParameterExpression) cb.parameter(Collection.class);
@@ -981,7 +983,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		@Override
-		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		public Predicate toPredicate(Root<? extends T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);
 		}
 	}

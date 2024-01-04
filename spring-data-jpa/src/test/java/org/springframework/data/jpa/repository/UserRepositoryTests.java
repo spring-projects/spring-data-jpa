@@ -933,7 +933,7 @@ class UserRepositoryTests {
 
 		Page<User> page = repository.findAll(new Specification<User>() {
 			@Override
-			public Predicate toPredicate(Root<User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+			public Predicate toPredicate(Root<? extends User> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				return cb.equal(root.get("lastname"), "Gierke");
 			}
 		}, PageRequest.of(0, 20, Sort.by("manager.lastname")));

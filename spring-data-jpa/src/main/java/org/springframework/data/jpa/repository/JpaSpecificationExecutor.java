@@ -46,7 +46,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
 	 */
-	Optional<T> findOne(Specification<T> spec);
+	Optional<T> findOne(Specification<? super T> spec);
 
 	/**
 	 * Returns all entities matching the given {@link Specification}.
@@ -54,7 +54,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	List<T> findAll(Specification<T> spec);
+	List<T> findAll(Specification<? super T> spec);
 
 	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
@@ -63,7 +63,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	Page<T> findAll(Specification<T> spec, Pageable pageable);
+	Page<T> findAll(Specification<? super T> spec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
@@ -72,7 +72,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param sort must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
-	List<T> findAll(Specification<T> spec, Sort sort);
+	List<T> findAll(Specification<? super T> spec, Sort sort);
 
 	/**
 	 * Returns the number of instances that the given {@link Specification} will return.
@@ -80,7 +80,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link Specification} to count instances for, must not be {@literal null}.
 	 * @return the number of instances.
 	 */
-	long count(Specification<T> spec);
+	long count(Specification<? super T> spec);
 
 	/**
 	 * Checks whether the data store contains elements that match the given {@link Specification}.
@@ -89,7 +89,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return {@code true} if the data store contains elements that match the given {@link Specification} otherwise
 	 *         {@code false}.
 	 */
-	boolean exists(Specification<T> spec);
+	boolean exists(Specification<? super T> spec);
 
 	/**
 	 * Deletes by the {@link Specification} and returns the number of rows deleted.
@@ -106,7 +106,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return the number of entities deleted.
 	 * @since 3.0
 	 */
-	long delete(Specification<T> spec);
+	long delete(Specification<? super T> spec);
 
 	/**
 	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
@@ -117,6 +117,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return all entities matching the given Example.
 	 * @since 3.0
 	 */
-	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+	<S extends T, R> R findBy(Specification<? super T> spec,
+			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
 
 }
