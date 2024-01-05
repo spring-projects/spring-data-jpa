@@ -31,7 +31,6 @@ import javax.sql.DataSource;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,10 +76,16 @@ class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 	private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
 	private static String LOG_FILE;
 
+	private static Path logFile;
+
 	@BeforeAll
 	static void createLogfile() throws IOException {
-		Path logFile = Files.createTempFile("test-eclipselink-meta", ".log");
+		logFile = Files.createTempFile("test-eclipselink-meta", ".log");
 		LOG_FILE = logFile.toAbsolutePath().toString();
+	}
+
+	@AfterAll static void deleteLogFile(){
+		logFile.toFile().deleteOnExit();
 	}
 
 	@Test // GH-775
