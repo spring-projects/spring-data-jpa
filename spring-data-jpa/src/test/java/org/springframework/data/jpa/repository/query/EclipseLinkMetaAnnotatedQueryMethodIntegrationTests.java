@@ -84,7 +84,8 @@ class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 		LOG_FILE = logFile.toAbsolutePath().toString();
 	}
 
-	@AfterAll static void deleteLogFile(){
+	@AfterAll
+	static void deleteLogFile(){
 		logFile.toFile().deleteOnExit();
 	}
 
