@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,13 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
 
 /**
+ * Test to verify compliance of {@link JpqlParser} with standard SQL. Other than {@link JpqlSpecificationTests} tests in
+ * this class check that the parser follows a lenient approach and does not error on well known concepts like numeric
+ * suffix.
+ * 
  * @author Christoph Strobl
  */
-public class JpqlComplianceTests {
+class JpqlComplianceTests {
 
 	private static String parseWithoutChanges(String query) {
 
@@ -52,7 +56,7 @@ public class JpqlComplianceTests {
 				.trim();
 	}
 
-	@Test
+	@Test // GH-3277
 	void numericLiterals() {
 
 		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234");
