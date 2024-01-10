@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -33,22 +33,69 @@ import org.junit.jupiter.api.Test;
  * @author Greg Turnquist
  * @author Christoph Strobl
  */
-class EqlComplianceTests extends SqlParserTests{
+class EqlComplianceTests {
 
-	@Override
-	ParseTree parse(String query) {
+	/**
+	 * Parse the query using {@link EqlParser} then run it through the query-preserving {@link EqlQueryRenderer}.
+	 *
+	 * @param query
+	 */
+	private static String parseWithoutChanges(String query) {
 
 		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
 		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
 
 		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
 
-		return parser.start();
+		EqlParser.StartContext parsedQuery = parser.start();
+
+		return render(new EqlQueryRenderer().visit(parsedQuery));
 	}
 
-	@Override
-	<T extends ParseTree> List<JpaQueryParsingToken> analyze(T parseTree) {
-		return new EqlQueryRenderer().visit(parseTree);
+	private void assertQuery(String query) {
+
+		String slimmedDownQuery = reduceWhitespace(query);
+		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
+	}
+
+	private String reduceWhitespace(String original) {
+
+		return original //
+				.replaceAll("[ \\t\\n]{1,}", " ") //
+				.trim();
+	}
+
+	@Test
+	void selectQueries() {
+
+		assertQuery("Select e FROM Employee e WHERE e.salary > 100000");
+		assertQuery("Select e FROM Employee e WHERE e.id = :id");
+		assertQuery("Select MAX(e.salary) FROM Employee e");
+		assertQuery("Select e.firstName FROM Employee e");
+		assertQuery("Select e.firstName, e.lastName FROM Employee e");
+	}
+
+	@Test
+	void selectClause() {
+
+		assertQuery("SELECT COUNT(e) FROM Employee e");
+		assertQuery("SELECT MAX(e.salary) FROM Employee e");
+		assertQuery("SELECT NEW com.acme.reports.EmpReport(e.firstName, e.lastName, e.salary) FROM Employee e");
+	}
+
+	@Test
+	void fromClause() {
+
+		assertQuery("SELECT e FROM Employee e");
+		assertQuery("SELECT e, a FROM Employee e, MailingAddress a WHERE e.address = a.address");
+		assertQuery("SELECT e FROM com.acme.Employee e");
+	}
+
+	@Test
+	void join() {
+
+		assertQuery("SELECT e FROM Employee e JOIN e.address a WHERE a.city = :city");
+		assertQuery("SELECT e FROM Employee e JOIN e.projects p JOIN e.projects p2 WHERE p.name = :p1 AND p2.name = :p2");
 	}
 
 	@Test
@@ -56,6 +103,11 @@ class EqlComplianceTests extends SqlParserTests{
 
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address");
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address a ORDER BY a.city");
+	}
+
+	@Test
+	void leftJoin() {
+		assertQuery("SELECT e FROM Employee e LEFT JOIN e.address a ORDER BY a.city");
 	}
 
 	@Test
