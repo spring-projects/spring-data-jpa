@@ -66,4 +66,9 @@ class JpqlComplianceTests {
 		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
 	}
 
+	@Test // GH-3308
+	void newWithStrings() {
+		assertQuery("select new com.example.demo.SampleObject(se.id, se.sampleValue, \"java\") from SampleEntity se");
+	}
+
 }
