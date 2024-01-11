@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import java.util.Objects;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -28,6 +30,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentLruCache;
 
 /**
  * Base class for {@link String} based JPA queries.
@@ -40,6 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
@@ -49,6 +53,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	private final QueryRewriter queryRewriter;
+	private ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16, this::applySorting);
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -92,18 +97,22 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
-		String sortedQueryString = QueryEnhancerFactory.forQuery(query) //
-				.applySorting(accessor.getSort(), query.getAlias());
+		Sort sort = accessor.getSort();
+		String sortedQueryString = applySortingIfNecessary(query, sort);
+
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
-		Query query = createJpaQuery(sortedQueryString, accessor.getSort(), accessor.getPageable(),
-				processor.getReturnedType());
+		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), processor.getReturnedType());
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(sortedQueryString, query);
 
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
+	}
+
+	protected String applySorting(DeclaredQuery query, Sort sort) {
+		return queryCache.get(new CachableQuery(query, sort));
 	}
 
 	@Override
@@ -178,5 +187,78 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return pageable != null && pageable.isPaged() //
 				? queryRewriter.rewrite(originalQuery, pageable) //
 				: queryRewriter.rewrite(originalQuery, sort);
+	}
+
+	String applySorting(CachableQuery cachableQuery) {
+
+		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery()).applySorting(cachableQuery.getSort(),
+				cachableQuery.getAlias());
+	}
+
+	private String applySortingIfNecessary(DeclaredQuery query, Sort sort) {
+
+		if (sort.isUnsorted()) {
+			return query.getQueryString();
+		}
+		return applySorting(query, sort);
+	}
+
+	/**
+	 * Value object with optimized {@link Object#equals(Object)} to cache a query based on its query string and
+	 * {@link Sort sorting}.
+	 *
+	 * @since 3.2.3
+	 * @author Christoph Strobl
+	 */
+	static class CachableQuery {
+
+		private DeclaredQuery declaredQuery;
+		private final String queryString;
+		private final Sort sort;
+
+		CachableQuery(DeclaredQuery query, Sort sort) {
+
+			this.declaredQuery = query;
+			this.queryString = query.getQueryString();
+			this.sort = sort;
+		}
+
+		DeclaredQuery getDeclaredQuery() {
+			return declaredQuery;
+		}
+
+		Sort getSort() {
+			return sort;
+		}
+
+		String getAlias() {
+			return declaredQuery.getAlias();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+
+			CachableQuery that = (CachableQuery) o;
+
+			if (!Objects.equals(queryString, that.queryString)) {
+				return false;
+			}
+			return Objects.equals(sort, that.sort);
+		}
+
+		@Override
+		public int hashCode() {
+
+			int result = queryString != null ? queryString.hashCode() : 0;
+			result = 31 * result + (sort != null ? sort.hashCode() : 0);
+			return result;
+		}
 	}
 }
