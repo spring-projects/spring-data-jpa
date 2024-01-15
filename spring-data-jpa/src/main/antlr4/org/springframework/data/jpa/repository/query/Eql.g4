@@ -362,7 +362,7 @@ like_expression
     ;
 
 null_comparison_expression
-    : (single_valued_path_expression | input_parameter | nullif_expression) IS (NOT)? NULL
+    : (single_valued_path_expression | input_parameter | nullif_expression) ((IS (NOT)?) | (op=(EQUAL | NOT_EQUAL))) NULL
     ;
 
 empty_collection_comparison_expression

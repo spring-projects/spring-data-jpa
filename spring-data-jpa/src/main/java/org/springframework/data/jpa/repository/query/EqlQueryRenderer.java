@@ -1315,10 +1315,13 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.addAll(visit(ctx.nullif_expression()));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.IS()));
-
-		if (ctx.NOT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		if(ctx.op != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.op.getText()));
+		} else {
+			tokens.add(new JpaQueryParsingToken(ctx.IS()));
+			if (ctx.NOT() != null) {
+				tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+			}
 		}
 		tokens.add(new JpaQueryParsingToken(ctx.NULL()));
 
