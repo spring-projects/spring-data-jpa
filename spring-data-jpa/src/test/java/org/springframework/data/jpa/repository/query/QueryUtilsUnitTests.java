@@ -49,6 +49,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Chris Fraser
  * @author Michał Pachucki
  * @author Erik Pellizzon
+ * @author Pranav HS
  */
 class QueryUtilsUnitTests {
 
@@ -933,5 +934,11 @@ class QueryUtilsUnitTests {
 				) gp on gp.specialist_id = s.id
 				where name like :name
 				""", arg))).containsExactly("points");
+	}
+
+	@Test // GH-3324
+	void createCountQueryForSimpleQuery(){
+		String originalQuery = "select * from User";
+		assertCountQuery(originalQuery,"select count(*) from User");
 	}
 }
