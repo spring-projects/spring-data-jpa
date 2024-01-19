@@ -81,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Vladislav Yukharin
  * @author Chris Fraser
  * @author Donghun Shin
+ * @author Pranav HS
  */
 public abstract class QueryUtils {
 
@@ -156,7 +157,7 @@ public abstract class QueryUtils {
 		builder.append("\\s*");
 		builder.append("(select\\s+((distinct)?((?s).+?)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
-		builder.append("(?:\\s+as)?\\s+)");
+		builder.append("(?:\\s+as)?\\s*)");
 		builder.append(IDENTIFIER_GROUP);
 		builder.append("(.*)");
 
