@@ -111,9 +111,19 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
 
-		return DeclaredQuery.of( //
-				countQuery != null ? countQuery : this.queryEnhancer.createCountQueryFor(countQueryProjection), //
+		if(StringUtils.hasText(countQuery)) {
+			return new StringQuery(countQuery, this.isNative);
+		}
+
+		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
 				this.isNative);
+
+		if(this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
+			stringQuery.getParameterBindings().clear();
+			stringQuery.getParameterBindings().addAll(this.bindings);
+		}
+
+		return stringQuery;
 	}
 
 	@Override

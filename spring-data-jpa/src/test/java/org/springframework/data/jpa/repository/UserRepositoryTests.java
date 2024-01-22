@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -1745,6 +1746,25 @@ class UserRepositoryTests {
 		List<User> users = repository.findByFirstnameAndLastnameWithSpelExpression("Oliver", "ierk");
 
 		assertThat(users).containsOnly(firstUser);
+	}
+
+	@Test // GH-2393
+	void bindsSpELParameterOnlyUsedInCountQuery() {
+
+		flushTestUsers(); // add some noise
+
+		IntStream.range(0, 10).mapToObj(counter -> {
+			User source = new User();
+			source.setFirstname("%d-Spring".formatted(counter));
+			source.setLastname("Data");
+			source.setEmailAddress("spring-%s@data.org".formatted(counter));
+			return source;
+		}).forEach(repository::save);
+		em.flush();
+
+		Page<User> users = repository.findByWithSpelParameterOnlyUsedForCountQuery("Data", PageRequest.of(0, 2));
+		assertThat(users.getSize()).isEqualTo(2);
+		assertThat(users.getTotalElements()).isEqualTo(10);
 	}
 
 	@Test // DATAJPA-564
