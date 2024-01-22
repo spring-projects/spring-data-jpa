@@ -449,6 +449,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname = ?#{[0]} and u.firstname = ?1 and u.lastname like %?#{[1]}% and u.lastname like %?2%")
 	List<User> findByFirstnameAndLastnameWithSpelExpression(String firstname, String lastname);
 
+	@Query(value = "select * from SD_User", countQuery = "select count(1) from SD_User u where u.lastname = :#{#lastname}", nativeQuery = true)
+	Page<User> findByWithSpelParameterOnlyUsedForCountQuery(String lastname, Pageable page);
+
 	// DATAJPA-564
 	@Query("select u from User u where u.lastname like %:#{[0]}% and u.lastname like %:lastname%")
 	List<User> findByLastnameWithSpelExpression(@Param("lastname") String lastname);
