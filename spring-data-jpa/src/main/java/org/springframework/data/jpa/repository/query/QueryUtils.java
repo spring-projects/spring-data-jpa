@@ -623,7 +623,7 @@ public abstract class QueryUtils {
 			} else {
 
 				String alias = QueryUtils.detectAlias(originalQuery);
-				if (("*".equals(variable) && alias != null)) {
+				if ("*".equals(variable) && alias != null) {
 					replacement = alias;
 				}
 			}

@@ -36,7 +36,7 @@
 	<!-- Necessary to get the entity manager injected into the factory bean -->
 	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
 
-	<!-- Adds transaparent exception translation to the DAOs -->
+	<!-- Adds transparent exception translation to the DAOs -->
 	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
 
 	<bean id="expressionEvaluationContextProvider" class="org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider" autowire="constructor" />
