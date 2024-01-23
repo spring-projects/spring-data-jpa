@@ -49,6 +49,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Chris Fraser
  * @author Michał Pachucki
  * @author Erik Pellizzon
+ * @author Eduard Dudar
  */
 class QueryUtilsUnitTests {
 
@@ -586,17 +587,17 @@ class QueryUtilsUnitTests {
 				  where user.age = 18""");
 	}
 
-    @Test // https://github.com/spring-projects/spring-data-jpa/issues/3329
-    void createCountQuerySupportsNewLineCharacters() {
-        assertThat(createCountQueryFor("""
+	@Test // GH-3329
+	void createCountQuerySupportsNewLineCharacters() {
+		assertThat(createCountQueryFor("""
 				select * from User user
 				  where user.age = 18
 				  order by user.name,
-				           user.age DESC
+						   user.age DESC
 				\s""")).isEqualTo("""
 				select count(user) from User user
 				  where user.age = 18""");
-    }
+	}
 
 	@Test // GH-2341
 	void createCountQueryStarCharacterConverted() {
