@@ -59,7 +59,7 @@ import org.springframework.util.StringUtils;
 class StringQuery implements DeclaredQuery {
 
 	private final String query;
-	private List<ParameterBinding> bindings;
+	private final List<ParameterBinding> bindings;
 	private final @Nullable String alias;
 	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
@@ -115,10 +115,13 @@ class StringQuery implements DeclaredQuery {
 			return new StringQuery(countQuery, this.isNative);
 		}
 
-		// TODO: find better way of passing on bindings
 		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
 				this.isNative);
-		stringQuery.bindings = this.bindings; // carry over bindings
+
+		if(this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
+			stringQuery.getParameterBindings().clear();
+			stringQuery.getParameterBindings().addAll(this.bindings);
+		}
 
 		return stringQuery;
 	}
