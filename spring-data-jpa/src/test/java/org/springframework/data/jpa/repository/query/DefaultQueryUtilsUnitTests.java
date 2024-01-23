@@ -452,8 +452,17 @@ class DefaultQueryUtilsUnitTests {
 		assertThat(createCountQueryFor("select * from User user\n" + //
 				"  where user.age = 18\n" + //
 				"  order by user.name\n ")).isEqualTo("select count(user) from User user\n" + //
-						"  where user.age = 18\n ");
+						"  where user.age = 18");
 	}
+
+    @Test // https://github.com/spring-projects/spring-data-jpa/issues/3329
+    void createCountQuerySupportsNewLineCharacters() {
+        assertThat(createCountQueryFor("select * from User user\n" + //
+               "  where user.age = 18\n" + //
+               "  order by user.name,\n user.age DESC"))
+                .isEqualTo("select count(user) from User user\n" + //
+                           "  where user.age = 18");
+    }
 
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
@@ -463,7 +472,7 @@ class DefaultQueryUtilsUnitTests {
 				"  from User user\n" + //
 				"  where user.age = 18\n" + //
 				"  order\nby\nuser.name\n ")).isEqualTo("select count(user) from User user\n" + //
-						"  where user.age = 18\n ");
+						"  where user.age = 18");
 	}
 
 	@Test // DATAJPA-1061

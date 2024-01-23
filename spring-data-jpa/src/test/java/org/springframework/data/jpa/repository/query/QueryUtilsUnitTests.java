@@ -583,9 +583,20 @@ class QueryUtilsUnitTests {
 				  order by user.name
 				\s""")).isEqualTo("""
 				select count(user) from User user
-				  where user.age = 18
-				\s""");
+				  where user.age = 18""");
 	}
+
+    @Test // https://github.com/spring-projects/spring-data-jpa/issues/3329
+    void createCountQuerySupportsNewLineCharacters() {
+        assertThat(createCountQueryFor("""
+				select * from User user
+				  where user.age = 18
+				  order by user.name,
+				           user.age DESC
+				\s""")).isEqualTo("""
+				select count(user) from User user
+				  where user.age = 18""");
+    }
 
 	@Test // GH-2341
 	void createCountQueryStarCharacterConverted() {
@@ -605,8 +616,7 @@ class QueryUtilsUnitTests {
 				user.name
 				\s""")).isEqualTo("""
 				select count(user) from User user
-				  where user.age = 18
-				\s""");
+				  where user.age = 18""");
 	}
 
 	@Test // DATAJPA-1061
