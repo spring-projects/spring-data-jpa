@@ -31,11 +31,5 @@ import org.springframework.data.repository.CrudRepository;
 @NoRepositoryBean
 public interface CustomGenericRepository<T, ID extends Serializable> extends JpaRepository<T, ID> {
 
-	/**
-	 * Custom sample method.
-	 *
-	 * @param id
-	 * @return
-	 */
 	T customMethod(ID id);
 }

@@ -33,9 +33,6 @@ public class Child {
 	@ManyToMany(mappedBy = "children")
 	Set<Parent> parents = new HashSet<>();
 
-	/**
-	 * @param parent
-	 */
 	public Child add(Parent parent) {
 
 		this.parents.add(parent);

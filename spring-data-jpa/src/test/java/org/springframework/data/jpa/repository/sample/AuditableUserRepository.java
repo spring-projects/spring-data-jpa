@@ -30,12 +30,6 @@ import org.springframework.data.jpa.repository.Query;
  */
 public interface AuditableUserRepository extends JpaRepository<AuditableUser, Integer> {
 
-	/**
-	 * Returns all users with the given firstname.
-	 *
-	 * @param firstname
-	 * @return all users with the given firstname.
-	 */
 	List<AuditableUser> findByFirstname(final String firstname);
 
 	@Modifying

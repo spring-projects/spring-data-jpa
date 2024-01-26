@@ -40,9 +40,6 @@ public interface RedeclaringRepositoryMethodsRepository extends CrudRepository<U
 
 	/**
 	 * Should only find users with the firstname 'Oliver'.
-	 *
-	 * @param page
-	 * @return
 	 */
 	@Query("SELECT u FROM User u where u.firstname = 'Oliver'")
 	Page<User> findAll(Pageable page);

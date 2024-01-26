@@ -34,11 +34,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
  */
 public class CustomGenericJpaRepositoryFactory extends JpaRepositoryFactory {
 
-	/**
-	 * @param entityManager
-	 */
 	public CustomGenericJpaRepositoryFactory(EntityManager entityManager) {
-
 		super(entityManager);
 	}
 
