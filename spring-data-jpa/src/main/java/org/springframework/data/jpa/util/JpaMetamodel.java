@@ -40,7 +40,6 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Mark Paluch
  * @author Sylvère Richard
- * @author Jinho Lee
  */
 public class JpaMetamodel {
 

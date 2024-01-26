@@ -31,7 +31,6 @@ import org.springframework.data.mapping.PropertyPath;
  * @author Jens Schauder
  * @author Petr Strnad
  * @author Greg Turnquist
- * @author Jinho Lee
  * @since 2.6
  */
 abstract class EntityGraphFactory {
