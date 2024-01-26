@@ -40,6 +40,7 @@ abstract class EntityGraphFactory {
 	/**
 	 * Create an {@link EntityGraph} from a collection of properties.
 	 *
+	 * @param entityManager
 	 * @param domainType
 	 * @param properties
 	 */

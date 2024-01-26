@@ -44,8 +44,6 @@ import org.springframework.util.Assert;
 public class JpaMetamodel {
 
 	private static final Map<Metamodel, JpaMetamodel> CACHE = new ConcurrentHashMap<>(4);
-	private static final Set<PersistenceType> ENTITY_OR_MAPPED_SUPERCLASS = EnumSet.of(PersistenceType.ENTITY,
-			PersistenceType.MAPPED_SUPERCLASS);
 
 	private final Metamodel metamodel;
 
