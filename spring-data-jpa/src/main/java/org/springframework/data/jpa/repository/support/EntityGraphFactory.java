@@ -31,6 +31,7 @@ import org.springframework.data.mapping.PropertyPath;
  * @author Jens Schauder
  * @author Petr Strnad
  * @author Greg Turnquist
+ * @author Jinho Lee
  * @since 2.6
  */
 abstract class EntityGraphFactory {
@@ -40,6 +41,7 @@ abstract class EntityGraphFactory {
 	/**
 	 * Create an {@link EntityGraph} from a collection of properties.
 	 *
+	 * @param entityManager
 	 * @param domainType
 	 * @param properties
 	 */

@@ -26,12 +26,13 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
  * Sample custom repository base class implementing common custom functionality for all derived repository instances.
  *
  * @author Oliver Gierke
+ * @author Jinho Lee
  */
 public class CustomGenericJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
 		CustomGenericRepository<T, ID> {
 
 	/**
-	 * @param domainClass
+	 * @param metadata
 	 * @param entityManager
 	 */
 	public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata, EntityManager entityManager) {
