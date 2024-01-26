@@ -37,8 +37,6 @@ class EqlQueryRendererTests {
 
 	/**
 	 * Parse the query using {@link EqlParser} then run it through the query-preserving {@link EqlQueryRenderer}.
-	 *
-	 * @param query
 	 */
 	private static String parseWithoutChanges(String query) {
 

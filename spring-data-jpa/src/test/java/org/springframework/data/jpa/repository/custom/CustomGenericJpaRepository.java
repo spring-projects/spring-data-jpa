@@ -30,18 +30,12 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 public class CustomGenericJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
 		CustomGenericRepository<T, ID> {
 
-	/**
-	 * @param metadata
-	 * @param entityManager
-	 */
 	public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata, EntityManager entityManager) {
-
 		super(metadata, entityManager);
 	}
 
 	@Override
 	public T customMethod(ID id) {
-
 		throw new UnsupportedOperationException("Forced exception for testing purposes.");
 	}
 }

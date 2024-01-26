@@ -31,8 +31,6 @@ public interface UserRepositoryCustom {
 
 	/**
 	 * Some custom method to implement.
-	 *
-	 * @param user
 	 */
 	void someCustomMethod(User user);
 }

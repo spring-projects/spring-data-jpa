@@ -47,12 +47,6 @@ public class HidingClassLoader extends ShadowingClassLoader {
 		this.hidden = hidden;
 	}
 
-	/**
-	 * Creates a new {@link HidingClassLoader} with the packages of the given classes hidden.
-	 *
-	 * @param packages must not be {@literal null}.
-	 * @return
-	 */
 	public static HidingClassLoader hide(Class<?>... packages) {
 
 		Assert.notNull(packages, "Packages must not be null");
@@ -62,12 +56,6 @@ public class HidingClassLoader extends ShadowingClassLoader {
 				.collect(Collectors.toList()));
 	}
 
-	/**
-	 * Creates a new {@link HidingClassLoader} with the packages of the given classes hidden.
-	 *
-	 * @param packages must not be {@literal null}.
-	 * @return
-	 */
 	public static HidingClassLoader hidePackages(String... packages) {
 
 		Assert.notNull(packages, "Packages must not be null");

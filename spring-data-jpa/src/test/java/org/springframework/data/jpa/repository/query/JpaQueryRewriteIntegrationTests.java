@@ -205,9 +205,6 @@ class JpaQueryRewriteIntegrationTests {
 
 	/**
 	 * One query rewriter function to rule them all!
-	 *
-	 * @param query
-	 * @param sort
 	 */
 	private static String replaceAlias(String query, Sort sort) {
 

@@ -38,8 +38,6 @@ class JpqlQueryRendererTests {
 
 	/**
 	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
-	 *
-	 * @param query
 	 */
 	private static String parseWithoutChanges(String query) {
 

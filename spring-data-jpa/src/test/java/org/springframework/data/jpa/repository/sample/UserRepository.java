@@ -69,22 +69,19 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * Retrieve users by their lastname. The finder {@literal User.findByLastname} is declared in
 	 * {@literal META-INF/orm.xml} .
-	 *
-	 * @param lastname
-	 * @return all users with the given lastname
 	 */
 	@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 	List<User> findByLastname(String lastname);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#findById(java.io.Serializable)} to change transaction configuration.
+	 * Redeclaration of {@link CrudRepository#findById(java.lang.Object)} to change transaction configuration.
 	 */
 	@Transactional
 	@Override
 	java.util.Optional<User> findById(Integer primaryKey);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#deleteById(java.io.Serializable)}. to make sure the transaction
+	 * Redeclaration of {@link CrudRepository#deleteById(java.lang.Object)}. to make sure the transaction
 	 * configuration of the original method is considered if the redeclaration does not carry a {@link Transactional}
 	 * annotation.
 	 */
@@ -94,9 +91,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	/**
 	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at
 	 * {@code User}.
-	 *
-	 * @param emailAddress
-	 * @return the user with the given email address
 	 */
 	User findByEmailAddress(String emailAddress);
 
@@ -105,29 +99,17 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	/**
 	 * Retrieves users by the given email and lastname. Acts as a dummy method declaration to test finder query creation.
-	 *
-	 * @param emailAddress
-	 * @param lastname
-	 * @return the user with the given email address and lastname
 	 */
 	User findByEmailAddressAndLastname(String emailAddress, String lastname);
 
 	/**
 	 * Retrieves users by email address and lastname or firstname. Acts as a dummy method declaration to test finder query
 	 * creation.
-	 *
-	 * @param emailAddress
-	 * @param lastname
-	 * @param username
-	 * @return the users with the given email address and lastname or the given firstname
 	 */
 	List<User> findByEmailAddressAndLastnameOrFirstname(String emailAddress, String lastname, String username);
 
 	/**
 	 * Retrieves a user by its username using the query annotated to the method.
-	 *
-	 * @param emailAddress
-	 * @return
 	 */
 	@Query("select u from User u where u.emailAddress = ?1")
 	@Transactional(readOnly = true)
@@ -135,20 +117,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	/**
 	 * Method to directly create query from and adding a {@link Pageable} parameter to be regarded on query execution.
-	 *
-	 * @param pageable
-	 * @param lastname
-	 * @return
 	 */
 	Page<User> findByLastname(Pageable pageable, String lastname);
 
 	/**
 	 * Method to directly create query from and adding a {@link Pageable} parameter to be regarded on query execution.
 	 * Just returns the queried {@link Page}'s contents.
-	 *
-	 * @param firstname
-	 * @param pageable
-	 * @return
 	 */
 	List<User> findByFirstname(String firstname, Pageable pageable);
 
@@ -175,8 +149,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	/**
 	 * Manipulating query to set all {@link User}'s names to the given one.
-	 *
-	 * @param lastname
 	 */
 	@Modifying
 	@Query("update User u set u.lastname = ?1")
@@ -187,10 +159,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	/**
 	 * Method where parameters will be applied by name. Note that the order of the parameters is then not crucial anymore.
-	 *
-	 * @param foo
-	 * @param bar
-	 * @return
 	 */
 	@Query("select u from User u where u.lastname = :lastname or u.firstname = :firstname")
 	List<User> findByLastnameOrFirstname(@Param("firstname") String foo, @Param("lastname") String bar);
@@ -200,10 +168,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	/**
 	 * Method to check query creation and named parameter usage go well hand in hand.
-	 *
-	 * @param lastname
-	 * @param firstname
-	 * @return
 	 */
 	List<User> findByFirstnameOrLastname(@Param("lastname") String lastname, @Param("firstname") String firstname);
 

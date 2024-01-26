@@ -168,10 +168,6 @@ class Jpa21UtilsTests {
 
 	/**
 	 * Lookup the {@link AttributeNode} with given {@literal nodeName} in the root of the given {@literal graph}.
-	 *
-	 * @param nodeName
-	 * @param graph
-	 * @return
 	 */
 	static @Nullable AttributeNode<?> findNode(String nodeName, @Nullable EntityGraph<?> graph) {
 
@@ -184,10 +180,6 @@ class Jpa21UtilsTests {
 
 	/**
 	 * Lookup the {@link AttributeNode} with given {@literal nodeName} in the {@link List} of given {@literal nodes}.
-	 *
-	 * @param nodeName
-	 * @param nodes
-	 * @return
 	 */
 	@Nullable
 	static AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
@@ -208,10 +200,6 @@ class Jpa21UtilsTests {
 	/**
 	 * Lookup the {@link AttributeNode} with given {@literal nodeName} in the first {@link Subgraph} of the given
 	 * {@literal node}.
-	 *
-	 * @param attributeName
-	 * @param node
-	 * @return
 	 */
 	@Nullable
 	static AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
