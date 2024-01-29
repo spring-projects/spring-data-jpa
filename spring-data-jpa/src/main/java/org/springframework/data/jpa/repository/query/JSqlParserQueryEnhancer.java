@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
+ * @author Christoph Strobl
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -140,7 +141,6 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		selectBody.getOrderByElements().addAll(orderByElements);
 
 		return selectStatement.toString();
-
 	}
 
 	/**
@@ -380,7 +380,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		if (StringUtils.hasText(countProjection)) {
 
 			Function jSqlCount = getJSqlCount(Collections.singletonList(countProjection), false);
-			selectBody.setSelectItems(Collections.singletonList(new SelectItem(jSqlCount)));
+			selectBody.setSelectItems(Collections.singletonList(SelectItem.from(jSqlCount)));
 			return selectBody.toString();
 		}
 
@@ -388,26 +388,10 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		selectBody.setDistinct(null); // reset possible distinct
 
 		String tableAlias = detectAlias(selectBody);
+		String countProperty = countPropertyNameForSelection(selectBody.getSelectItems(), distinct, tableAlias);
 
-		// is never null
-		List<SelectItem<?>> selectItems = selectBody.getSelectItems();
-
-		if (onlyASingleColumnProjection(selectItems)) {
-
-			SelectItem<?> singleProjection = (SelectItem<?>) selectItems.get(0);
-
-			Column column = (Column) singleProjection.getExpression();
-			String countProp = column.getFullyQualifiedName();
-
-			Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
-			selectBody.setSelectItems(Collections.singletonList(new SelectItem<>(jSqlCount)));
-			return selectBody.toString();
-		}
-
-		String countProp = query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
-
-		Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
-		selectBody.setSelectItems(Collections.singletonList(new SelectItem(jSqlCount)));
+		Function jSqlCount = getJSqlCount(Collections.singletonList(countProperty), distinct);
+		selectBody.setSelectItems(Collections.singletonList(SelectItem.from(jSqlCount)));
 
 		return selectBody.toString();
 	}
@@ -485,7 +469,29 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		// this is unfortunately the only way to check without any hacky & hard string regex magic
 		return projection.size() == 1 && projection.get(0) instanceof SelectItem<?>
-				&& (((SelectItem<?>) projection.get(0)).getExpression()) instanceof Column;
+				&& ((projection.get(0)).getExpression()) instanceof Column;
+	}
+
+	/**
+	 * Get the count property if present in {@link SelectItem slected items}, {@literal *} or {@literal 1} for native ones
+	 * and {@literal *} or the given {@literal tableAlias}.
+	 *
+	 * @param selectItems items from the select.
+	 * @param distinct indicator if query for distinct values.
+	 * @param tableAlias the table alias which can be {@literal null}.
+	 * @return
+	 */
+	private String countPropertyNameForSelection(List<SelectItem<?>> selectItems, boolean distinct,
+			@Nullable String tableAlias) {
+
+		if (onlyASingleColumnProjection(selectItems)) {
+
+			SelectItem<?> singleProjection = selectItems.get(0);
+			Column column = (Column) singleProjection.getExpression();
+			return column.getFullyQualifiedName();
+		}
+
+		return query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
 	}
 
 	@Override
