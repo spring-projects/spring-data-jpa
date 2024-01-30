@@ -40,9 +40,11 @@ abstract class EntityGraphFactory {
 	/**
 	 * Create an {@link EntityGraph} from a collection of properties.
 	 *
-	 * @param entityManager
-	 * @param domainType
-	 * @param properties
+	 * @param entityManager the {@link EntityManager} used to {@link EntityManager#createEntityGraph(String) create} the
+	 *          {@link EntityGraph}.
+	 * @param domainType the type to create the {@link EntityGraph} for.
+	 * @param properties the properties to add {@link EntityGraph#addAttributeNodes(String...) nodes} and
+	 *          {@link EntityGraph#addSubgraph(String) subgraphs} for.
 	 */
 	public static <T> EntityGraph<T> create(EntityManager entityManager, Class<T> domainType, Set<String> properties) {
 
