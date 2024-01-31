@@ -937,8 +937,8 @@ class QueryUtilsUnitTests {
 	}
 
 	@Test // GH-3324
-	void createCountQueryForSimpleQuery(){
-		String originalQuery = "select * from User";
-		assertCountQuery(originalQuery,"select count(*) from User");
+	void createCountQueryForSimpleQuery() {
+		assertCountQuery("select * from User","select count(*) from User");
+		assertCountQuery("select * from User u","select count(u) from User u");
 	}
 }
