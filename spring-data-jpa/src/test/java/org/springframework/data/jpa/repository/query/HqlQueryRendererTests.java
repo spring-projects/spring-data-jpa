@@ -1633,4 +1633,9 @@ class HqlQueryRendererTests {
 				group by extract(epoch from departureTime)
 				""");
 	}
+
+	@Test
+	void queryWithSignedNumericLiteralShouldWork() {
+		assertQuery("select -1");
+	}
 }
