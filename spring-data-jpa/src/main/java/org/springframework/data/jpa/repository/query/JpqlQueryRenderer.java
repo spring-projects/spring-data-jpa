@@ -1468,7 +1468,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.op != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op, false));
 		}
 		tokens.addAll(visit(ctx.arithmetic_primary()));
 
@@ -1699,6 +1699,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.LENGTH(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
+			NOSPACE(tokens);
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LOCATE() != null) {
 

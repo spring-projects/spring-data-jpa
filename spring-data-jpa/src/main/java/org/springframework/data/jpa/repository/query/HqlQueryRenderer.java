@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
@@ -1325,7 +1326,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.add(new JpaQueryParsingToken(ctx.op));
+		tokens.add(new JpaQueryParsingToken(ctx.op, false));
 		tokens.addAll(visit(ctx.expression()));
 
 		return tokens;
