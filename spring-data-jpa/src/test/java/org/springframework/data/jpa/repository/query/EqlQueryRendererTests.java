@@ -22,6 +22,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests built around examples of EQL found in the JPA spec
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.Test;
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 class EqlQueryRendererTests {
 
@@ -991,5 +994,28 @@ class EqlQueryRendererTests {
 	@Test // GH-3143
 	void powerShouldBeLegalInAQuery() {
 		assertQuery("select e.power.id from MyEntity e");
+	}
+
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select 1 from User u",
+			"select -1 from User u",
+			"select +1 from User u",
+			"select +1*-100 from User u",
+			"select count(u)*-0.7f from User u",
+			"select count(oi) + (-100) as perc from StockOrderItem oi",
+			"select p from Payment p where length(p.cardNumber) between +16 and -20"
+	})
+	void signedLiteralShouldWork(String query) {
+		assertQuery(query);
+	}
+
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select -count(u) from User u",
+			"select +1*(-count(u)) from User u"
+	})
+	void signedExpressionsShouldWork(String query) {
+		assertQuery(query);
 	}
 }
