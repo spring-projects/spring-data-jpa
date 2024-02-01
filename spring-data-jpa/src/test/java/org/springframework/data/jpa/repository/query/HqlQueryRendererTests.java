@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -1647,6 +1648,15 @@ class HqlQueryRendererTests {
 			"select p from Payment p where length(p.cardNumber) between +16 and -20"
 	})
 	void signedLiteralShouldWork(String query) {
+		assertQuery(query);
+	}
+
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select -count(u) from User u",
+			"select +1*(-count(u)) from User u"
+	})
+	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
 	}
 }
