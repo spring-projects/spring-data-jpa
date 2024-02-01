@@ -22,6 +22,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests built around examples of HQL found in
@@ -1636,8 +1638,17 @@ class HqlQueryRendererTests {
 				""");
 	}
 
-	@Test
-	void queryWithSignedNumericLiteralShouldWork() {
-		assertQuery("select -1");
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select 1 from User",
+			"select -1 from User",
+			"select +1 from User",
+			"select +1*-100 from User",
+			"select count(u)*-0.7f from User u",
+			"select count(oi) + (-100) as perc from StockOrderItem oi",
+			"select p from Payment p where length(p.cardNumber) between +16 and -20"
+	})
+	void signedLiteralShouldWork(String query) {
+		assertQuery(query);
 	}
 }
