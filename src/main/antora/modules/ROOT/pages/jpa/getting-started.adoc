@@ -22,7 +22,7 @@ class Person {
   private Long id;
   private String name;
 
-  // getters and setters ommited for brevity
+  // getters and setters omitted for brevity
 }
 
 interface PersonRepository extends Repository<Person, Long> {
