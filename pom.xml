@@ -39,6 +39,7 @@
 		<postgresql>42.6.0</postgresql>
 		<springdata.commons>3.3.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
+		<querydsl>6.0</querydsl>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 

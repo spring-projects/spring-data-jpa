@@ -68,10 +68,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.querydsl</groupId>
+			<groupId>io.github.openfeign.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
 			<version>${querydsl}</version>
-			<classifier>jakarta</classifier>
 			<optional>true</optional>
 		</dependency>
 

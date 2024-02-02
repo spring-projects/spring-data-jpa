@@ -192,17 +192,15 @@
 
 		<!-- QueryDsl -->
 		<dependency>
-			<groupId>com.querydsl</groupId>
+			<groupId>io.github.openfeign.querydsl</groupId>
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl}</version>
-			<classifier>jakarta</classifier>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>com.querydsl</groupId>
+			<groupId>io.github.openfeign.querydsl</groupId>
 			<artifactId>querydsl-jpa</artifactId>
-			<classifier>jakarta</classifier>
 			<version>${querydsl}</version>
 			<optional>true</optional>
 		</dependency>
@@ -343,10 +341,10 @@
 					<proc>only</proc>
 					<annotationProcessorPaths>
 						<path>
-							<groupId>com.querydsl</groupId>
+							<groupId>io.github.openfeign.querydsl</groupId>
 							<artifactId>querydsl-apt</artifactId>
 							<version>${querydsl}</version>
-							<classifier>jakarta</classifier>
+							<classifier>jpa</classifier>
 						</path>
 						<path>
 							<groupId>org.hibernate.orm</groupId>
