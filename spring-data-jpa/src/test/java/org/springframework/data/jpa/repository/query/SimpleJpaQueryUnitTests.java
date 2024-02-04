@@ -44,6 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.sample.UserRepository;
@@ -69,6 +70,7 @@ import org.springframework.lang.Nullable;
  * @author Krzysztof Krason
  * @author Erik Pellizzon
  * @author Christoph Strobl
+ * @author Danny van den Elshout
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -149,6 +151,26 @@ class SimpleJpaQueryUnitTests {
 	void discoversNativeQuery() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
+		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
+				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
+				EVALUATION_CONTEXT_PROVIDER);
+
+		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
+
+		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
+		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
+
+		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
+
+		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
+	}
+
+	@Test // GH-3155
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	void discoversNativeQueryFromNativeQueryInterface() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("findByLastnameNativeAnnotation", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
 				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
@@ -300,6 +322,9 @@ class SimpleJpaQueryUnitTests {
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname);
+
+		@NativeQuery(value = "SELECT u FROM User u WHERE u.lastname = ?1")
+		List<User> findByLastnameNativeAnnotation(String lastname);
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname, Sort sort);
