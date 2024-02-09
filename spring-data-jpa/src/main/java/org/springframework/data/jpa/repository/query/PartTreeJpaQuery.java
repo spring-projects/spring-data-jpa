@@ -166,10 +166,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		JpaParameter parameter = parameters.getBindableParameter(index);
 
-		if (expectsCollection(type) && !parameterIsCollectionLike(parameter)) {
-			throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "Collection", parameter));
-		} else if (!expectsCollection(type) && !parameterIsScalarLike(parameter)) {
-			throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "scalar", parameter));
+		if (expectsCollection(type)) {
+			if (!parameterIsCollectionLike(parameter)) {
+				throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "Collection", parameter));
+			}
+		} else {
+			if (!part.getProperty().isCollection() && !parameterIsScalarLike(parameter)) {
+				throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "scalar", parameter));
+			}
 		}
 	}
 
@@ -319,7 +323,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				returnedType = processor.getReturnedType();
 			}
 
-			if (accessor != null && accessor.getScrollPosition()instanceof KeysetScrollPosition keyset) {
+			if (accessor != null && accessor.getScrollPosition() instanceof KeysetScrollPosition keyset) {
 				return new JpaKeysetScrollQueryCreator(tree, returnedType, builder, provider, entityInformation, keyset);
 			}
 
