@@ -30,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.Version;
 import org.junit.jupiter.api.BeforeEach;
@@ -228,6 +229,13 @@ class PartTreeJpaQueryIntegrationTests {
 				.withMessageContaining("UserRepository"); // the repository
 	}
 
+	@Test // GH-3356
+	void allowsCollectionArgForCollectionProperty() throws Exception {
+
+		new PartTreeJpaQuery(getQueryMethod("findByAttributes", Set.class), entityManager);
+		new PartTreeJpaQuery(getQueryMethod("findByAttributes", String[].class), entityManager);
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -297,6 +305,10 @@ class PartTreeJpaQueryIntegrationTests {
 
 		// Wrong property name
 		User findByNoSuchProperty(String x);
+
+		List<User> findByAttributes(Set<String> attributes);
+
+		List<User> findByAttributes(String... attributes);
 	}
 
 }
