@@ -80,11 +80,10 @@ interface DeclaredQuery {
 	 * expected from the original query, either derived from the query wrapped by this instance or from the information
 	 * passed as arguments.
 	 *
-	 * @param countQuery an optional query string to be used if present.
 	 * @param countQueryProjection an optional return type for the query.
 	 * @return a new {@literal DeclaredQuery} instance.
 	 */
-	DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection);
+	DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection);
 
 	/**
 	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
