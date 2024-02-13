@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -80,16 +81,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		this.countQuery = Lazy.of(() -> {
 
-			if(StringUtils.hasText(countQueryString)) {
+			if (StringUtils.hasText(countQueryString)) {
 
 				return new ExpressionBasedStringQuery(countQueryString, method.getEntityInformation(), parser,
 						method.isNativeQuery());
 			}
-			return query.deriveCountQuery(null, method.getCountQueryProjection());
+
+			return query.deriveCountQuery(method.getCountQueryProjection());
 		});
 
 		this.countParameterBinder = Lazy.of(() -> {
-			return this.createCountBinder(this.countQuery.get());
+			return this.createBinder(this.countQuery.get());
 		});
 
 		this.parser = parser;
@@ -118,13 +120,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	@Override
 	protected ParameterBinder createBinder() {
-
-		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
-				evaluationContextProvider);
+		return createBinder(query);
 	}
 
-	protected ParameterBinder createCountBinder(DeclaredQuery countQuery) {
-		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), countQuery, parser, evaluationContextProvider);
+	protected ParameterBinder createBinder(DeclaredQuery query) {
+		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
+				evaluationContextProvider);
 	}
 
 	@Override
