@@ -54,7 +54,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	private final QueryRewriter queryRewriter;
-	private ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16, this::applySorting);
+	private final QuerySortRewriter querySortRewriter;
 	private final Lazy<ParameterBinder> countParameterBinder;
 
 	/**
@@ -102,6 +102,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.parser = parser;
 		this.queryRewriter = queryRewriter;
 
+		JpaParameters parameters = method.getParameters();
+		if (parameters.hasPageableParameter() || parameters.hasSortParameter()) {
+			this.querySortRewriter = new CachingQuerySortRewriter();
+		} else {
+			this.querySortRewriter = NoOpQuerySortRewriter.INSTANCE;
+		}
+
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
 				"JDBC style parameters (?) are not supported for JPA queries");
 	}
@@ -110,7 +117,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		Sort sort = accessor.getSort();
-		String sortedQueryString = applySortingIfNecessary(query, sort);
+		String sortedQueryString = querySortRewriter.getSorted(query, sort);
 
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
@@ -121,10 +128,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
-	}
-
-	protected String applySorting(DeclaredQuery query, Sort sort) {
-		return queryCache.get(new CachableQuery(query, sort));
 	}
 
 	@Override
@@ -210,12 +213,46 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				cachableQuery.getAlias());
 	}
 
-	private String applySortingIfNecessary(DeclaredQuery query, Sort sort) {
+	/**
+	 * Query Sort Rewriter interface.
+	 */
+	interface QuerySortRewriter {
+		String getSorted(DeclaredQuery query, Sort sort);
+	}
 
-		if (sort.isUnsorted()) {
+	/**
+	 * No-op query rewriter.
+	 */
+	enum NoOpQuerySortRewriter implements QuerySortRewriter {
+		INSTANCE;
+
+		public String getSorted(DeclaredQuery query, Sort sort) {
+
+			if (sort.isSorted()) {
+				throw new UnsupportedOperationException("NoOpQueryCache does not support sorting");
+			}
+
 			return query.getQueryString();
 		}
-		return applySorting(query, sort);
+	}
+
+	/**
+	 * Caching variant of {@link QuerySortRewriter}.
+	 */
+	class CachingQuerySortRewriter implements QuerySortRewriter {
+
+		private final ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16,
+				AbstractStringBasedJpaQuery.this::applySorting);
+
+		@Override
+		public String getSorted(DeclaredQuery query, Sort sort) {
+
+			if (sort.isUnsorted()) {
+				return query.getQueryString();
+			}
+
+			return queryCache.get(new CachableQuery(query, sort));
+		}
 	}
 
 	/**
@@ -227,7 +264,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	static class CachableQuery {
 
-		private DeclaredQuery declaredQuery;
+		private final DeclaredQuery declaredQuery;
 		private final String queryString;
 		private final Sort sort;
 
@@ -246,6 +283,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return sort;
 		}
 
+		@Nullable
 		String getAlias() {
 			return declaredQuery.getAlias();
 		}
