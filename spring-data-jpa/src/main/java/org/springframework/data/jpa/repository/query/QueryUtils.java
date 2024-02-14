@@ -39,7 +39,16 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -568,7 +577,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null} or empty.
 	 * @return Guaranteed to be not {@literal null}.
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
+	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
@@ -582,7 +591,7 @@ public abstract class QueryUtils {
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
+	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {

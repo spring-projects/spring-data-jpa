@@ -49,9 +49,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * Unit tests for {@link AbstractStringBasedJpaQuery}.
+ *
  * @author Christoph Strobl
  */
-public class AbstractStringBasedJpaQueryUnitTests {
+class AbstractStringBasedJpaQueryUnitTests {
 
 	@Test // GH-3310
 	void shouldNotAttemptToAppendSortIfNoSortArgumentPresent() {
