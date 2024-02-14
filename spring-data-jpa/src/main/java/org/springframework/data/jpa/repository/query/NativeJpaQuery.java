@@ -83,7 +83,7 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			return result;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) 
 				? Tuple.class
 				: result;
 	}
