@@ -171,9 +171,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		if (method.isModifyingQuery()) {
 			return new ModifyingExecution(method, em);
-		} else {
-			return new SingleEntityExecution();
 		}
+		return new SingleEntityExecution();
 	}
 
 	/**
