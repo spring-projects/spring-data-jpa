@@ -72,7 +72,6 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
-	@SuppressWarnings("deprecation")
 	StringQuery(String query, boolean isNative) {
 
 		Assert.hasText(query, "Query must not be null or empty");
@@ -109,11 +108,17 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQuery, @Nullable String countQueryProjection) {
+	public DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection) {
 
-		return DeclaredQuery.of( //
-				countQuery != null ? countQuery : this.queryEnhancer.createCountQueryFor(countQueryProjection), //
+		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
 				this.isNative);
+
+		if (this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
+			stringQuery.getParameterBindings().clear();
+			stringQuery.getParameterBindings().addAll(this.bindings);
+		}
+
+		return stringQuery;
 	}
 
 	@Override
@@ -278,7 +283,6 @@ class StringQuery implements DeclaredQuery {
 				if ("".equals(parameterIndexString)) {
 					parameterIndex = expressionParameterIndex;
 				}
-
 
 				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {

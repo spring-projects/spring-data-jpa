@@ -28,10 +28,12 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,6 +56,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.Nullable;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.
@@ -66,6 +69,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  * @author Greg Turnquist
  * @author Krzysztof Krason
  * @author Erik Pellizzon
+ * @author Christoph Strobl
  * @author Danny van den Elshout
  */
 @ExtendWith(MockitoExtension.class)
@@ -239,6 +243,23 @@ class SimpleJpaQueryUnitTests {
 		verify(em).createNativeQuery(anyString());
 	}
 
+	@Test // GH-3293
+	void allowsCountQueryUsingParametersNotInOriginalQuery() throws Exception {
+
+		when(em.createNativeQuery(anyString())).thenReturn(query);
+
+		AbstractJpaQuery jpaQuery = createJpaQuery(
+				SampleRepository.class.getMethod("findAllWithBindingsOnlyInCountQuery", String.class, Pageable.class), Optional.empty());
+
+		jpaQuery.doCreateCountQuery(new JpaParametersParameterAccessor(jpaQuery.getQueryMethod().getParameters(),
+				new Object[]{"data", PageRequest.of(0, 10)}));
+
+		ArgumentCaptor<String> queryStringCaptor = ArgumentCaptor.forClass(String.class);
+		verify(em).createQuery(queryStringCaptor.capture(), eq(Long.class));
+
+		assertThat(queryStringCaptor.getValue()).startsWith("select count(u.id) from User u where u.name =");
+	}
+
 	@Test // DATAJPA-885
 	void projectsWithManuallyDeclaredQuery() throws Exception {
 
@@ -282,10 +303,19 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
+		return createJpaQuery(method, null);
+	}
+
+	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString, @Nullable String countQueryString) {
+
+		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryString, countQueryString,
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER);
+	}
+
+	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryMethod.getAnnotatedQuery(), null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER);
+		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(), countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
 	}
 
 	interface SampleRepository {
@@ -319,6 +349,10 @@ class SimpleJpaQueryUnitTests {
 
 		@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
 		List<User> findAllWithExpressionInCountQuery(Pageable pageable);
+
+
+		@Query(value = "select u from User u", countQuery = "select count(u.id) from #{#entityName} u where u.name = :#{#arg0}")
+		List<User> findAllWithBindingsOnlyInCountQuery(String arg0, Pageable pageable);
 
 	}
 

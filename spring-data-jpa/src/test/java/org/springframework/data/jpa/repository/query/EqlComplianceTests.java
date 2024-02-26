@@ -401,4 +401,17 @@ class EqlComplianceTests {
 		assertQuery("SELECT b FROM Bundle b WHERE coalesce(b.deleted, false) AND b.latestImport = true");
 		assertQuery("SELECT b FROM Bundle b WHERE NOT coalesce(b.deleted, false) AND b.latestImport = true");
 	}
+
+	@Test // GH-3314
+	void isNullAndIsNotNull() {
+
+		assertQuery("SELECT e FROM Employee e WHERE (e.active = null OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active = NULL OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active IS null OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NULL OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active != null OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active != NULL OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT null OR e.active = true)");
+		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT NULL OR e.active = true)");
+	}
 }
