@@ -32,6 +32,7 @@
 		<eclipselink-next>4.0.2</eclipselink-next>
 		<hibernate>6.4.4.Final</hibernate>
 		<hibernate-64-next-snapshots>6.4.5-SNAPSHOT</hibernate-64-next-snapshots>
+		<hibernate-62>6.2.22.Final</hibernate-62>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
 		<jsqlparser>4.5</jsqlparser>
@@ -67,6 +68,18 @@
 					</releases>
 				</repository>
 			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-62</id>
+			<properties>
+				<hibernate>${hibernate-62}</hibernate>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>jakarta.persistence</groupId>
+					<artifactId>jakarta.persistence-api</artifactId>
+				</dependency>
+			</dependencies>
 		</profile>
 		<profile>
 			<id>all-dbs</id>
