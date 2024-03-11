@@ -29,6 +29,7 @@ import jakarta.persistence.criteria.Fetch;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
 import jakarta.persistence.metamodel.Bindable;
@@ -824,44 +825,17 @@ public abstract class QueryUtils {
 	private static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
 			boolean hasRequiredOuterJoin) {
 
-		String segment = property.getSegment();
-
 		// already inner joined so outer join is useless
-		if (isAlreadyInnerJoined(from, segment))
+		if (isAlreadyInnerJoined(from, property.getSegment())) {
 			return false;
+		}
 
-		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
-
-		// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
-		// regardless of which join operation is specified next
-		// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-		// still occurs as of 2.7
-		ManagedType<?> managedType = null;
-		if (model instanceof ManagedType) {
-			managedType = (ManagedType<?>) model;
-		} else if (model instanceof SingularAttribute
-				&& ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
-			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
-		}
-		if (managedType != null) {
-			try {
-				propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
-			} catch (IllegalArgumentException ex) {
-				// ManagedType may be erased type for some vendor if the attribute is declared as generic
-				// see: https://hibernate.atlassian.net/browse/HHH-16144
-				// see: https://github.com/hibernate/hibernate-orm/pull/7630
-				// see: https://github.com/jakartaee/persistence/issues/562
-				propertyPathModel = from.get(segment).getModel();
-			}
-		} else {
-			propertyPathModel = from.get(segment).getModel();
-		}
+		ManagedType<?> managedType = getManagedTypeForModel(model);
+		Bindable<?> propertyPathModel = getModelForPath(property, managedType, from);
 
 		// is the attribute of Collection type?
 		boolean isPluralAttribute = model instanceof PluralAttribute;
-
-		boolean isLeafProperty = !property.hasNext();
 
 		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
@@ -883,6 +857,7 @@ public abstract class QueryUtils {
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
+		boolean isLeafProperty = !property.hasNext();
 		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
@@ -971,5 +946,58 @@ public abstract class QueryUtils {
 		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
 			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
+	}
+
+	/**
+	 * Get the {@link Bindable model} that corresponds to the given path utilizing the given {@link ManagedType} if
+	 * present or resolving the model from the {@link Path#getModel() path} by creating it via {@link From#get(String)} in
+	 * case where the type signature may be erased by some vendors if the attribute contains generics.
+	 *
+	 * @param path the current {@link PropertyPath} segment.
+	 * @param managedType primary source for the resulting {@link Bindable}. Can be {@literal null}.
+	 * @param fallback must not be {@literal null}.
+	 * @return the corresponding {@link Bindable} of {@literal null}.
+	 * @see <a href=
+	 *      "https://hibernate.atlassian.net/browse/HHH-16144">https://hibernate.atlassian.net/browse/HHH-16144</a>
+	 * @see <a href=
+	 *      "https://github.com/jakartaee/persistence/issues/562">https://github.com/jakartaee/persistence/issues/562</a>
+	 */
+	@Nullable
+	private static Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
+			Path<?> fallback) {
+
+		String segment = path.getSegment();
+		if (managedType != null) {
+			try {
+				return (Bindable<?>) managedType.getAttribute(segment);
+			} catch (IllegalArgumentException ex) {
+				// ManagedType may be erased for some vendor if the attribute is declared as generic
+			}
+		}
+
+		return fallback.get(segment).getModel();
+	}
+
+	/**
+	 * Required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join regardless of which
+	 * join operation is specified next
+	 *
+	 * @see <a href=
+	 *      "https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892">https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892</a>
+	 * @param model
+	 * @return
+	 */
+	@Nullable
+	private static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
+
+		if (model instanceof ManagedType<?> managedType) {
+			return managedType;
+		}
+
+		if (!(model instanceof SingularAttribute<?, ?> singularAttribute)) {
+			return null;
+		}
+
+		return singularAttribute.getType() instanceof ManagedType<?> managedType ? managedType : null;
 	}
 }
