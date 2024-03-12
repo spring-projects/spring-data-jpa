@@ -35,6 +35,7 @@
 		<hibernate-62>6.2.22.Final</hibernate-62>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
+		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
 		<jsqlparser>4.5</jsqlparser>
 		<mysql-connector-java>8.0.33</mysql-connector-java>
 		<postgresql>42.6.0</postgresql>
@@ -74,12 +75,6 @@
 			<properties>
 				<hibernate>${hibernate-62}</hibernate>
 			</properties>
-			<dependencies>
-				<dependency>
-					<groupId>jakarta.persistence</groupId>
-					<artifactId>jakarta.persistence-api</artifactId>
-				</dependency>
-			</dependencies>
 		</profile>
 		<profile>
 			<id>all-dbs</id>
