@@ -345,6 +345,11 @@
 							<artifactId>hibernate-jpamodelgen</artifactId>
 							<version>${hibernate}</version>
 						</path>
+						<path>
+							<groupId>jakarta.persistence</groupId>
+							<artifactId>jakarta.persistence-api</artifactId>
+							<version>${jakarta-persistence-api}</version>
+						</path>
 					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
