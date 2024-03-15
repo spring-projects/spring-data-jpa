@@ -25,12 +25,16 @@ import org.springframework.data.annotation.QueryAnnotation;
 
 /**
  * Annotation to declare finder queries directly on repository methods.
+ * <p>
+ * When using a native query {@link NativeQuery @NativeQuery} variant is available.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Greg Turnquist
+ * @author Danny van den Elshout
  * @see Modifying
+ * @see NativeQuery
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.ANNOTATION_TYPE })
