@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Jens Schauder
+ * @author Aleksei Elin
  * @since 1.6
  */
 public class Jpa21Utils {
@@ -86,8 +87,8 @@ public class Jpa21Utils {
 	/**
 	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
 	 *
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
-	 *      Specfication 3.7.4 - Use of Entity Graphs in find and query operations P.117</a>
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a2814">Jakarta
+	 *      Persistence Specfication - Use of Entity Graphs in find and query operations</a>
 	 * @param em must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
 	 * @param entityType must not be {@literal null}.

@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Ernst-Jan van der Laan
  * @author Krzysztof Krason
+ * @author Aleksei Elin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)
@@ -62,8 +63,8 @@ class RepositoryWithCompositeKeyTests {
 	@Autowired EntityManager em;
 
 	/**
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.0
-	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 *      Persistence Specification: Derived Identities, Example 2</a>
 	 */
 	@Test // DATAJPA-269
 	void shouldSupportSavingEntitiesWithCompositeKeyClassesWithIdClassAndDerivedIdentities() {
@@ -88,8 +89,8 @@ class RepositoryWithCompositeKeyTests {
 	}
 
 	/**
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.0
-	 *      Specification 2.4.1.3 Derived Identities Example 3</a>
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 *      Persistence Specification: Derived Identities, Example 3</a>
 	 */
 	@Test // DATAJPA-269
 	void shouldSupportSavingEntitiesWithCompositeKeyClassesWithEmbeddedIdsAndDerivedIdentities() {

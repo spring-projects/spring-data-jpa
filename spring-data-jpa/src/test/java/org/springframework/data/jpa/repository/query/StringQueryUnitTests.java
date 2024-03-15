@@ -40,6 +40,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Andriy Redko
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Aleksei Elin
  */
 class StringQueryUnitTests {
 
@@ -456,8 +457,8 @@ class StringQueryUnitTests {
 	}
 
 	/**
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">JPA 2.1
-	 *      specification, section 4.8</a>
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a5438">Jakarta
+	 *      Persistence Specification: SELECT clause</a>
 	 */
 	@Test // DATAJPA-886
 	void detectsConstructorExpressionForDefaultConstructor() {
