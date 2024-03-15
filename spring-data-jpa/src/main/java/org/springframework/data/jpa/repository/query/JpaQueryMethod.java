@@ -63,13 +63,15 @@ import org.springframework.util.StringUtils;
  * @author Сергей Цыпанов
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Aleksei Elin
  */
 public class JpaQueryMethod extends QueryMethod {
 
 	/**
 	 * @see <a href=
-	 *      "https://download.oracle.com/otn-pub/jcp/persistence-2.0-fr-eval-oth-JSpec/persistence-2_0-final-spec.pdf">JPA
-	 *      2.0 Specification 2.2 Persistent Fields and Properties Page 23 - Top paragraph.</a>
+	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#persistent-fields-and-properties">Jakarta
+	 *      Persistence Specification: Persistent Fields and Properties - Paragraph
+	 *      starting with "Collection-valued persistent...".</a>
 	 */
 	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
 	private static final StoredProcedureAttributeSource storedProcedureAttributeSource = StoredProcedureAttributeSource.INSTANCE;
