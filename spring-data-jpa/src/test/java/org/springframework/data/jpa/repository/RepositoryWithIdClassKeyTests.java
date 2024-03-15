@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Aleksei Elin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = RepositoryWithIdClassKeyTests.TestConfig.class)
@@ -61,8 +62,8 @@ class RepositoryWithIdClassKeyTests {
 	@Autowired private ItemSiteRepository itemSiteRepository;
 
 	/**
-	 * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
-	 *      Specification 2.4.1.3 Derived Identities Example 2</a>
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 *      Persistence Specification: 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-413
 	void shouldSaveAndLoadEntitiesWithDerivedIdentities() {

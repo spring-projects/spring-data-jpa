@@ -26,8 +26,9 @@ import java.util.Objects;
 
 /**
  * @author Mark Paluch
- * @see <a href="download.oracle.com/otn-pub/jcp/persistence-2_1-fr-eval-spec/JavaPersistence.pdf">Final JPA 2.1
- *      Specification 2.4.1.3 Derived Identities Example 2</a>
+ * @author Aleksei Elin
+ * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta Persistence
+ *      Specification: Derived Identities, Example 2</a>
  */
 @Entity
 @Table
