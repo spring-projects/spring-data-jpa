@@ -16,7 +16,9 @@
 package org.springframework.data.jpa.repository.support;
 
 import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,8 +33,11 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +50,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Unit tests for {@link SimpleJpaRepository}.
@@ -54,6 +60,7 @@ import org.springframework.data.repository.CrudRepository;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -215,5 +222,21 @@ class SimpleJpaRepositoryUnitTests {
 		repo.findAll(where(null), PageRequest.of(2, 1));
 
 		verify(metadata).getQueryHintsForCount();
+	}
+
+	@Test // GH-3188
+	void checkTransactionalAnnotation() {
+		Stream.of(SimpleJpaRepository.class.getDeclaredMethods()).filter(method -> Modifier.isPublic(method.getModifiers()) &&
+						(method.getName().startsWith("delete") || method.getName().startsWith("save"))).forEach(
+				method -> {
+					if (!method.isAnnotationPresent(Transactional.class)) {
+						fail("Method [" + method + "] should be annotated with @Transactional");
+					}
+					Transactional transactional = method.getAnnotation(Transactional.class);
+					if (transactional.readOnly()) {
+						fail("Method [" + method + "] should not be annotated with @Transactional(readOnly = true)");
+					}
+				}
+		);
 	}
 }

@@ -468,6 +468,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
+	@Transactional
 	public long delete(Specification<T> spec) {
 
 		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
