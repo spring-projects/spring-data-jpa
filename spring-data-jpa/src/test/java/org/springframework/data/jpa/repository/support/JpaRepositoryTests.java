@@ -16,6 +16,9 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
@@ -32,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
@@ -65,6 +69,8 @@ class JpaRepositoryTests {
 
 	@PersistenceContext EntityManager em;
 
+	private EntityManager spiedEntityManager;
+
 	private JpaRepository<SampleEntity, SampleEntityPK> repository;
 	private CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
 	private JpaRepository<VersionedUser, Long> versionedUserRepository;
@@ -72,7 +78,8 @@ class JpaRepositoryTests {
 
 	@BeforeEach
 	void setUp() {
-		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
+		spiedEntityManager = Mockito.spy(em);
+		repository = new JpaRepositoryFactory(spiedEntityManager).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
 		versionedUserRepository = new JpaRepositoryFactory(em).getRepository(VersionedUserRepository.class);
 		jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
@@ -217,6 +224,18 @@ class JpaRepositoryTests {
 		});
 
 		jdbcOperations.update("delete from VersionedUser", Map.of());
+	}
+
+	@Test //GH-3401
+	void deleteNonVersionedEntityShouldNotInvokeMerge() {
+		SampleEntity entity = new SampleEntity("one", "eins");
+		repository.save(entity);
+		repository.flush();
+		em.detach(entity);
+
+		reset(spiedEntityManager);
+		repository.delete(entity);
+		then(spiedEntityManager).should(never()).merge(entity);
 	}
 
 	private interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {

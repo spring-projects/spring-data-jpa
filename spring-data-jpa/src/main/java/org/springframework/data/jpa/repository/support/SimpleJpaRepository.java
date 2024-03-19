@@ -195,7 +195,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+		if (entityInformation.getVersionAttribute().isPresent()) {
+			// call merge() to raise ObjectOptimisticLockingFailureException if entity is stale
+			entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+		}
+		else {
+			entityManager.remove(existing);
+		}
 	}
 
 	@Override
