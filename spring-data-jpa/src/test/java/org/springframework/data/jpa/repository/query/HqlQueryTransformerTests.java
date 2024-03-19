@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 class HqlQueryTransformerTests {
 
@@ -1029,6 +1030,17 @@ class HqlQueryTransformerTests {
 		assertThat(createQueryFor("SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id",
 				Sort.by(Sort.Order.desc("t3.testDuplicateColumnName")))).isEqualToIgnoringWhitespace(
 						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
+	}
+
+	@Test // GH-3269
+	void createsCountQueryUsingAliasCorrectly() {
+
+		assertCountQuery("select distinct 1 as x from Employee","select count(distinct 1) from Employee AS __");
+		assertCountQuery("SELECT DISTINCT abc AS x FROM T","SELECT count(DISTINCT abc) FROM T AS __");
+		assertCountQuery("select distinct a as x, b as y from Employee","select count(distinct a , b) from Employee AS __");
+		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n","select count(distinct sum(amount)) from Employee AS __ GROUP BY n");
+		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n","select count(distinct a, b, sum(amount) , d) from Employee AS __ GROUP BY n");
+		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n","select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
