@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.domain;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -77,7 +76,7 @@ public interface Specification<T> extends Serializable {
 	 * @return The conjunction of the specifications
 	 * @since 2.0
 	 */
-	default Specification<T> and(@Nullable Specification<T> other) {
+	default <U extends T> Specification<U> and(@Nullable Specification<? super U> other) {
 		return SpecificationComposition.composed(this, other, CriteriaBuilder::and);
 	}
 
@@ -88,7 +87,7 @@ public interface Specification<T> extends Serializable {
 	 * @return The disjunction of the specifications
 	 * @since 2.0
 	 */
-	default Specification<T> or(@Nullable Specification<T> other) {
+	default <U extends T> Specification<U> or(@Nullable Specification<? super U> other) {
 		return SpecificationComposition.composed(this, other, CriteriaBuilder::or);
 	}
 
@@ -102,7 +101,7 @@ public interface Specification<T> extends Serializable {
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+	Predicate toPredicate(Root<? extends T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 	/**
 	 * Applies an AND operation to all the given {@link Specification}s.

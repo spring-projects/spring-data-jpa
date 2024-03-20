@@ -217,7 +217,7 @@ class SpecificationUnitTests implements Serializable {
 	static class SerializableSpecification implements Serializable, Specification<Object> {
 
 		@Override
-		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		public Predicate toPredicate(Root<?> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return null;
 		}
 	}

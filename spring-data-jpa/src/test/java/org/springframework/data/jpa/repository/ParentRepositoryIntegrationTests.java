@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -67,7 +67,7 @@ class ParentRepositoryIntegrationTests {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			@Override
-			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+			public Predicate toPredicate(Root<? extends Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				Path<Set<Child>> childrenPath = root.get("children");
 				query.distinct(true);
 				return cb.isNotEmpty(childrenPath);
@@ -88,7 +88,7 @@ class ParentRepositoryIntegrationTests {
 
 		Page<Parent> page = repository.findAll(new Specification<Parent>() {
 			@Override
-			public Predicate toPredicate(Root<Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+			public Predicate toPredicate(Root<? extends Parent> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 				root.join("children");
 				// we are interesting in distinct items, especially when join presents in query
 				query.distinct(true);

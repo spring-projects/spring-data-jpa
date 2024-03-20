@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.domain;
 
-import java.io.Serializable;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
+import java.io.Serializable;
 
 import org.springframework.lang.Nullable;
 
@@ -40,7 +40,7 @@ class SpecificationComposition {
 		Predicate combine(CriteriaBuilder builder, @Nullable Predicate lhs, @Nullable Predicate rhs);
 	}
 
-	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
+	static <T> Specification<T> composed(@Nullable Specification<? super T> lhs, @Nullable Specification<? super T> rhs,
 			Combiner combiner) {
 
 		return (root, query, builder) -> {
@@ -57,8 +57,8 @@ class SpecificationComposition {
 	}
 
 	@Nullable
-	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root, CriteriaQuery<?> query,
-			CriteriaBuilder builder) {
+	private static <T> Predicate toPredicate(@Nullable Specification<? super T> specification, Root<? extends T> root,
+			CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
 }

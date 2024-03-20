@@ -93,7 +93,7 @@ public class QueryByExamplePredicateBuilder {
 	 * @return {@literal null} indicates no constraints
 	 */
 	@Nullable
-	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
+	public static <T> Predicate getPredicate(Root<? extends T> root, CriteriaBuilder cb, Example<T> example,
 			EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null");

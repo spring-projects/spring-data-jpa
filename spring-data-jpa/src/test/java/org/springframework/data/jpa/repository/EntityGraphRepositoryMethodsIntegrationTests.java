@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assumptions.assumeThat;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.currentEntityManagerIsAJpa21EntityManager;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assumptions.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Persistence;
@@ -37,7 +37,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
@@ -192,7 +191,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 		em.clear();
 
 		Page<User> page = repository.findAll( //
-				(Specification<User>) this::firstNameIsNotNull, //
+				this::firstNameIsNotNull, //
 				PageRequest.of(0, 100) //
 		);
 
@@ -285,7 +284,8 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 		softly.assertAll();
 	}
 
-	private Predicate firstNameIsNotNull(Root<User> root, CriteriaQuery<?> __, CriteriaBuilder criteriaBuilder) {
+	private Predicate firstNameIsNotNull(Root<? extends User> root, CriteriaQuery<?> __,
+			CriteriaBuilder criteriaBuilder) {
 		return criteriaBuilder.isNotNull(root.get(User_.firstname));
 	}
 
