@@ -47,7 +47,7 @@ import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
- * to find the domain class' id field.
+ * to find the domain class' id and version field.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -189,6 +190,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public SingularAttribute<? super T, ?> getIdAttribute() {
 		return idMetadata.getSimpleIdAttribute();
+	}
+
+	@Override
+	public Optional<SingularAttribute<? super T, ?>> getVersionAttribute() {
+		return versionAttribute;
 	}
 
 	@Override
