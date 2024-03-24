@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,6 +177,17 @@ class QueryEnhancerUnitTests {
 		String query = getEnhancer(originalQuery).applySorting(sort, "p");
 
 		assertThat(query).endsWithIgnoringCase("ORDER BY p.firstname, p.lastname asc");
+	}
+
+	@Test // GH-3263
+	void preserveSourceQueryWhenAddingSort() {
+
+		StringQuery query = new StringQuery("WITH all_projects AS (SELECT * FROM projects) SELECT * FROM all_projects p",
+				true);
+
+		assertThat(getEnhancer(query).applySorting(Sort.by("name"), "p")) //
+				.startsWithIgnoringCase(query.getQueryString())
+				.endsWithIgnoringCase("ORDER BY p.name ASC");
 	}
 
 	@Test // GH-2812

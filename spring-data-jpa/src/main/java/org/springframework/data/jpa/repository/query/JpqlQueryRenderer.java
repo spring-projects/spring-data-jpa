@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -722,6 +723,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.addAll(visit(ctx.aggregate_expression()));
 		} else if (ctx.identification_variable() != null) {
 			tokens.addAll(visit(ctx.identification_variable()));
+		} else if (ctx.literal() != null) {
+			tokens.addAll(visit(ctx.literal()));
 		}
 
 		return tokens;
@@ -1466,7 +1469,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.op != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.op));
+			tokens.add(new JpaQueryParsingToken(ctx.op, false));
 		}
 		tokens.addAll(visit(ctx.arithmetic_primary()));
 
@@ -1697,6 +1700,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.LENGTH(), false));
 			tokens.add(TOKEN_OPEN_PAREN);
 			tokens.addAll(visit(ctx.string_expression(0)));
+			NOSPACE(tokens);
 			tokens.add(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LOCATE() != null) {
 
@@ -2152,10 +2156,14 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		if (ctx.STRINGLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
+		} else if (ctx.JAVASTRINGLITERAL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.JAVASTRINGLITERAL()));
 		} else if (ctx.INTLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
+		} else if(ctx.LONGLITERAL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else if (ctx.boolean_literal() != null) {
 			tokens.addAll(visit(ctx.boolean_literal()));
 		} else if (ctx.entity_type_literal() != null) {
@@ -2216,6 +2224,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
+		} else if(ctx.LONGLITERAL() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else {
 			return List.of();
 		}

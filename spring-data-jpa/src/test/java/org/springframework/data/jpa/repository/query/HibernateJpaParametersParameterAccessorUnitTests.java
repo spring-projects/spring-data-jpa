@@ -7,9 +7,9 @@ import java.lang.reflect.Method;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.query.HibernateJpaParametersParameterAccessor;
-import org.springframework.data.jpa.repository.query.JpaParameters;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,7 +48,7 @@ class HibernateJpaParametersParameterAccessorUnitTests {
 	private void parametersCanGetAccessesOutsideTransaction() throws NoSuchMethodException {
 
 		Method method = EntityManager.class.getMethod("flush");
-		JpaParameters parameters = new JpaParameters(method);
+		JpaParameters parameters = new JpaParameters(ParametersSource.of(method));
 		HibernateJpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters,
 				new Object[] {}, em);
 		Assertions.assertEquals(0, accessor.getValues().length);

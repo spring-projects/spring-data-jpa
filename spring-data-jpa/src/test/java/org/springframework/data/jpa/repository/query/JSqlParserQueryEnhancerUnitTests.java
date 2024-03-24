@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.data.domain.Sort;
  * @author Mark Paluch
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
+ * @author Christoph Strobl
  */
 public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
@@ -48,6 +49,8 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assumeThat(query).as("JSQLParser does not support simple JPQL syntax").doesNotStartWithIgnoringCase("FROM");
 
 		assumeThat(query).as("JSQLParser does not support constructor JPQL syntax").doesNotContain(" new ");
+
+		assumeThat(query).as("JSQLParser does not support MOD JPQL syntax").doesNotContain("MOD(");
 
 		super.shouldDeriveJpqlCountQuery(query, expected);
 	}
@@ -159,7 +162,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16)))\n"
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))) "
 						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
@@ -182,7 +185,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
 		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))),test2 AS (VALUES (1, 2, 3))\n"
+				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))), test2 AS (VALUES (1, 2, 3)) "
 						+ "SELECT count(1) FROM sample_data AS a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();

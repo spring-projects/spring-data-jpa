@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,12 @@ abstract class QueryEnhancerTckTests {
 
 				Arguments.of( //
 						"select distinct m.genre from Media m where m.user = ?1 order by m.genre asc", //
-						"select count(distinct m.genre) from Media m where m.user = ?1"));
+						"select count(distinct m.genre) from Media m where m.user = ?1"),
+
+				Arguments.of( //
+						"select u from User u where MOD(u.age, 10L) = 2", //
+						"select count(u) from User u where MOD(u.age, 10L) = 2")
+				);
 	}
 
 	@ParameterizedTest // GH-2511, GH-2773

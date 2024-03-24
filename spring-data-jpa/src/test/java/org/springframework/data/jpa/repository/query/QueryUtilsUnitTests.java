@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Chris Fraser
  * @author Michał Pachucki
  * @author Erik Pellizzon
+ * @author Pranav HS
+ * @author Eduard Dudar
  */
 class QueryUtilsUnitTests {
 
@@ -583,8 +585,19 @@ class QueryUtilsUnitTests {
 				  order by user.name
 				\s""")).isEqualTo("""
 				select count(user) from User user
+				  where user.age = 18""");
+	}
+
+	@Test // GH-3329
+	void createCountQuerySupportsNewLineCharacters() {
+		assertThat(createCountQueryFor("""
+				select * from User user
 				  where user.age = 18
-				\s""");
+				  order by user.name,
+						   user.age DESC
+				\s""")).isEqualTo("""
+				select count(user) from User user
+				  where user.age = 18""");
 	}
 
 	@Test // GH-2341
@@ -605,8 +618,7 @@ class QueryUtilsUnitTests {
 				user.name
 				\s""")).isEqualTo("""
 				select count(user) from User user
-				  where user.age = 18
-				\s""");
+				  where user.age = 18""");
 	}
 
 	@Test // DATAJPA-1061
@@ -933,5 +945,11 @@ class QueryUtilsUnitTests {
 				) gp on gp.specialist_id = s.id
 				where name like :name
 				""", arg))).containsExactly("points");
+	}
+
+	@Test // GH-3324
+	void createCountQueryForSimpleQuery() {
+		assertCountQuery("select * from User","select count(*) from User");
+		assertCountQuery("select * from User u","select count(u) from User u");
 	}
 }

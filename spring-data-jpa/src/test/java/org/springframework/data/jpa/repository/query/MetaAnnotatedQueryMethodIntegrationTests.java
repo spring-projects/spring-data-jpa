@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.RoleRepositoryWithMeta;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.util.Streamable;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.orm.jpa.JpaDialect;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -79,12 +80,15 @@ class MetaAnnotatedQueryMethodIntegrationTests {
 
 		testAppender = new ListAppender<>();
 		testAppender.start();
+
+		testLogger.setAdditive(false);
 		testLogger.setLevel(Level.DEBUG);
 		testLogger.addAppender(testAppender);
 	}
 
 	@AfterEach
 	void clearUp() {
+		testLogger.setAdditive(true);
 		testLogger.setLevel(Level.ERROR);
 		testLogger.detachAppender(testAppender);
 	}

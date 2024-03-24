@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import jakarta.persistence.criteria.Fetch;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
 import jakarta.persistence.metamodel.Bindable;
@@ -39,7 +40,16 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -81,6 +91,9 @@ import org.springframework.util.StringUtils;
  * @author Vladislav Yukharin
  * @author Chris Fraser
  * @author Donghun Shin
+ * @author Pranav HS
+ * @author Eduard Dudar
+ * @author Yanming Zhou
  */
 public abstract class QueryUtils {
 
@@ -101,7 +114,7 @@ public abstract class QueryUtils {
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
 	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
-	private static final String ORDER_BY_PART = "(?iu)\\s+order\\s+by\\s+.*";
+	private static final Pattern ORDER_BY_PART = Pattern.compile("(?iu)\\s+order\\s+by\\s+.*", CASE_INSENSITIVE | DOTALL);
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
@@ -156,7 +169,7 @@ public abstract class QueryUtils {
 		builder.append("\\s*");
 		builder.append("(select\\s+((distinct)?((?s).+?)?)\\s+)?(from\\s+");
 		builder.append(IDENTIFIER);
-		builder.append("(?:\\s+as)?\\s+)");
+		builder.append("(?:\\s+as)?\\s*)");
 		builder.append(IDENTIFIER_GROUP);
 		builder.append("(.*)");
 
@@ -566,7 +579,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null} or empty.
 	 * @return Guaranteed to be not {@literal null}.
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
+	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
@@ -580,7 +593,7 @@ public abstract class QueryUtils {
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String, String)} instead.
+	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
@@ -623,7 +636,7 @@ public abstract class QueryUtils {
 			} else {
 
 				String alias = QueryUtils.detectAlias(originalQuery);
-				if (("*".equals(variable) && alias != null)) {
+				if ("*".equals(variable) && alias != null) {
 					replacement = alias;
 				}
 			}
@@ -633,7 +646,7 @@ public abstract class QueryUtils {
 			countQuery = matcher.replaceFirst(String.format(COUNT_REPLACEMENT_TEMPLATE, countProjection));
 		}
 
-		return countQuery.replaceFirst(ORDER_BY_PART, "");
+		return ORDER_BY_PART.matcher(countQuery).replaceFirst("");
 	}
 
 	/**
@@ -812,36 +825,17 @@ public abstract class QueryUtils {
 	private static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
 			boolean hasRequiredOuterJoin) {
 
-		String segment = property.getSegment();
-
 		// already inner joined so outer join is useless
-		if (isAlreadyInnerJoined(from, segment))
+		if (isAlreadyInnerJoined(from, property.getSegment())) {
 			return false;
+		}
 
-		Bindable<?> propertyPathModel;
 		Bindable<?> model = from.getModel();
-
-		// required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join
-		// regardless of which join operation is specified next
-		// see: https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892
-		// still occurs as of 2.7
-		ManagedType<?> managedType = null;
-		if (model instanceof ManagedType) {
-			managedType = (ManagedType<?>) model;
-		} else if (model instanceof SingularAttribute
-				&& ((SingularAttribute<?, ?>) model).getType() instanceof ManagedType) {
-			managedType = (ManagedType<?>) ((SingularAttribute<?, ?>) model).getType();
-		}
-		if (managedType != null) {
-			propertyPathModel = (Bindable<?>) managedType.getAttribute(segment);
-		} else {
-			propertyPathModel = from.get(segment).getModel();
-		}
+		ManagedType<?> managedType = getManagedTypeForModel(model);
+		Bindable<?> propertyPathModel = getModelForPath(property, managedType, from);
 
 		// is the attribute of Collection type?
 		boolean isPluralAttribute = model instanceof PluralAttribute;
-
-		boolean isLeafProperty = !property.hasNext();
 
 		if (propertyPathModel == null && isPluralAttribute) {
 			return true;
@@ -863,6 +857,7 @@ public abstract class QueryUtils {
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
+		boolean isLeafProperty = !property.hasNext();
 		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
@@ -951,5 +946,58 @@ public abstract class QueryUtils {
 		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
 			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
+	}
+
+	/**
+	 * Get the {@link Bindable model} that corresponds to the given path utilizing the given {@link ManagedType} if
+	 * present or resolving the model from the {@link Path#getModel() path} by creating it via {@link From#get(String)} in
+	 * case where the type signature may be erased by some vendors if the attribute contains generics.
+	 *
+	 * @param path the current {@link PropertyPath} segment.
+	 * @param managedType primary source for the resulting {@link Bindable}. Can be {@literal null}.
+	 * @param fallback must not be {@literal null}.
+	 * @return the corresponding {@link Bindable} of {@literal null}.
+	 * @see <a href=
+	 *      "https://hibernate.atlassian.net/browse/HHH-16144">https://hibernate.atlassian.net/browse/HHH-16144</a>
+	 * @see <a href=
+	 *      "https://github.com/jakartaee/persistence/issues/562">https://github.com/jakartaee/persistence/issues/562</a>
+	 */
+	@Nullable
+	private static Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
+			Path<?> fallback) {
+
+		String segment = path.getSegment();
+		if (managedType != null) {
+			try {
+				return (Bindable<?>) managedType.getAttribute(segment);
+			} catch (IllegalArgumentException ex) {
+				// ManagedType may be erased for some vendor if the attribute is declared as generic
+			}
+		}
+
+		return fallback.get(segment).getModel();
+	}
+
+	/**
+	 * Required for EclipseLink: we try to avoid using from.get as EclipseLink produces an inner join regardless of which
+	 * join operation is specified next
+	 *
+	 * @see <a href=
+	 *      "https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892">https://bugs.eclipse.org/bugs/show_bug.cgi?id=413892</a>
+	 * @param model
+	 * @return
+	 */
+	@Nullable
+	private static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
+
+		if (model instanceof ManagedType<?> managedType) {
+			return managedType;
+		}
+
+		if (!(model instanceof SingularAttribute<?, ?> singularAttribute)) {
+			return null;
+		}
+
+		return singularAttribute.getType() instanceof ManagedType<?> managedType ? managedType : null;
 	}
 }

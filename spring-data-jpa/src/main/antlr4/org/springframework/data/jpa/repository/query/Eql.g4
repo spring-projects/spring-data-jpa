@@ -23,6 +23,7 @@ grammar Eql;
  * * https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.2
  */
 }
@@ -361,7 +362,7 @@ like_expression
     ;
 
 null_comparison_expression
-    : (single_valued_path_expression | input_parameter | nullif_expression) IS (NOT)? NULL
+    : (single_valued_path_expression | input_parameter | nullif_expression) ((IS (NOT)?) | (op=(EQUAL | NOT_EQUAL))) NULL
     ;
 
 empty_collection_comparison_expression
@@ -509,7 +510,7 @@ functions_returning_numerics
     | LN '(' arithmetic_expression ')'
     | SIGN '(' arithmetic_expression ')'
     | SQRT '(' arithmetic_expression ')'
-    | MOD '(' arithmetic_expression '/' arithmetic_expression ')'
+    | MOD '(' arithmetic_expression ',' arithmetic_expression ')'
     | POWER '(' arithmetic_expression ',' arithmetic_expression ')'
     | ROUND '(' arithmetic_expression ',' arithmetic_expression ')'
     | SIZE '(' collection_valued_path_expression ')'

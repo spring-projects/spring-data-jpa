@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2023 the original author or authors.
+ * Copyright 2017-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.repository.query.DefaultParameters;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -51,7 +52,7 @@ class ParameterExpressionProviderTests {
 	void createsParameterExpressionWithMostConcreteType() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByIdGreaterThan", int.class);
-		Parameters<?, ?> parameters = new DefaultParameters(method);
+		Parameters<?, ?> parameters = new DefaultParameters(ParametersSource.of(method));
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(parameters, new Object[] { 1 });
 		Part part = new Part("IdGreaterThan", User.class);
 

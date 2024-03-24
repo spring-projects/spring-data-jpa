@@ -63,3 +63,5 @@ The following table shows the various `StringMatcher` options that you can use a
 | `LOWER(firstname) like '%' + LOWER(?0) + '%'`
 
 |===
+
+NOTE: Regex-matching is not supported by JPA.

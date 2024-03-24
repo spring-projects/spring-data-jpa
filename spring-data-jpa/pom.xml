@@ -6,7 +6,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>3.2.0-SNAPSHOT</version>
+	<version>3.3.0-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-jpa-parent</artifactId>
-		<version>3.2.0-SNAPSHOT</version>
+		<version>3.3.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -77,13 +77,6 @@
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>
 			<version>${antlr}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.aspectj</groupId>
-			<artifactId>aspectjweaver</artifactId>
-			<version>${aspectj}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -330,30 +323,34 @@
 						<phase>generate-sources</phase>
 						<configuration>
 							<visitor>true</visitor>
+							<sourceDirectory>${project.basedir}/src/main/antlr4</sourceDirectory>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 
 			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<version>1.4.1</version>
-				<executions>
-					<execution>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-					</execution>
-				</executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<includes>
-						<include>target/generated-sources/antlr4/**/*.java</include>
-					</includes>
-					<variableTokenValueMap>
-						public class=class,public interface=interface
-					</variableTokenValueMap>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>com.querydsl</groupId>
+							<artifactId>querydsl-apt</artifactId>
+							<version>${querydsl}</version>
+							<classifier>jakarta</classifier>
+						</path>
+						<path>
+							<groupId>org.hibernate.orm</groupId>
+							<artifactId>hibernate-jpamodelgen</artifactId>
+							<version>${hibernate}</version>
+						</path>
+						<path>
+							<groupId>jakarta.persistence</groupId>
+							<artifactId>jakarta.persistence-api</artifactId>
+							<version>${jakarta-persistence-api}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
@@ -364,43 +361,39 @@
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
-						<artifactId>aspectjrt</artifactId>
-						<version>${aspectj}</version>
-					</dependency>
-					<dependency>
-						<groupId>org.aspectj</groupId>
 						<artifactId>aspectjtools</artifactId>
 						<version>${aspectj}</version>
 					</dependency>
 				</dependencies>
 				<executions>
 					<execution>
+						<id>aspectj-compile</id>
 						<goals>
 							<goal>compile</goal>
 						</goals>
 						<phase>process-classes</phase>
 					</execution>
+					<execution>
+						<id>aspectj-test-compile</id>
+						<goals>
+							<goal>test-compile</goal>
+						</goals>
+						<phase>process-test-classes</phase>
+					</execution>
 				</executions>
 				<configuration>
+					<!-- Annotation processing is done by Maven Compiler (hard to configure for AJ Maven) -->
+					<proc>none</proc>
+					<!-- Generate metadata for reflection on method parameters -->
+					<parameters>true</parameters>
 					<verbose>true</verbose>
-					<!--
-						To workaround:
-
-						- https://issues.apache.org/jira/browse/MCOMPILER-205
-						- https://issues.apache.org/jira/browse/MCOMPILER-209
-						- https://github.com/mojohaus/aspectj-maven-plugin/issues/15
-
-					-->
-					<forceAjcCompile>true</forceAjcCompile>
+					<showWeaveInfo>true</showWeaveInfo>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
 							<artifactId>spring-aspects</artifactId>
 						</aspectLibrary>
 					</aspectLibraries>
-					<includes>
-						<include>**/domain/support/AuditingEntityListener.java</include>
-					</includes>
 					<complianceLevel>${source.level}</complianceLevel>
 					<source>${source.level}</source>
 					<target>${source.level}</target>

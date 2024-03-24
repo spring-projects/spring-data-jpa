@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa-parent</artifactId>
-	<version>3.2.0-SNAPSHOT</version>
+	<version>3.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data JPA Parent</name>
@@ -23,21 +23,23 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.2.0-SNAPSHOT</version>
+		<version>3.3.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
-		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
-		<eclipselink>3.0.3</eclipselink>
+		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
+		<eclipselink>3.0.4</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
-		<hibernate>6.3.1.Final</hibernate>
-		<hibernate-next-snapshots>6.3.2-SNAPSHOT</hibernate-next-snapshots>
+		<hibernate>6.4.4.Final</hibernate>
+		<hibernate-64-next-snapshots>6.4.5-SNAPSHOT</hibernate-64-next-snapshots>
+		<hibernate-62>6.2.22.Final</hibernate-62>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
-		<jsqlparser>4.5</jsqlparser>
+		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
+		<jsqlparser>4.8</jsqlparser>
 		<mysql-connector-java>8.0.33</mysql-connector-java>
 		<postgresql>42.6.0</postgresql>
-		<springdata.commons>3.2.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>3.3.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
@@ -55,9 +57,9 @@
 
 	<profiles>
 		<profile>
-			<id>hibernate-63-next</id>
+			<id>hibernate-64-next</id>
 			<properties>
-				<hibernate>${hibernate-next-snapshots}</hibernate>
+				<hibernate>${hibernate-64-next-snapshots}</hibernate>
 			</properties>
 			<repositories>
 				<repository>
@@ -68,6 +70,12 @@
 					</releases>
 				</repository>
 			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-62</id>
+			<properties>
+				<hibernate>${hibernate-62}</hibernate>
+			</properties>
 		</profile>
 		<profile>
 			<id>all-dbs</id>

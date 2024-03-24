@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	/**
 	 * Returns whether the named query with the given name exists.
 	 *
-	 * @param em        must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 * @param queryName must not be {@literal null}.
 	 */
 	static boolean hasNamedQuery(EntityManager em, String queryName) {
@@ -127,7 +127,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * Looks up a named query for the given {@link org.springframework.data.repository.query.QueryMethod}.
 	 *
 	 * @param method must not be {@literal null}.
-	 * @param em     must not be {@literal null}.
+	 * @param em must not be {@literal null}.
 	 */
 	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
@@ -190,7 +190,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.deriveCountQuery(null, countProjection).getQueryString();
+			String countQueryString = declaredQuery.deriveCountQuery(countProjection).getQueryString();
 			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -38,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
@@ -75,6 +71,7 @@ class NamedQueryUnitTests {
 
 		method = SampleRepository.class.getMethod("foo", Pageable.class);
 		when(metadata.getDomainType()).thenReturn((Class) String.class);
+		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(String.class));
 		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) String.class);
 		when(metadata.getReturnType(any(Method.class)))
 				.thenAnswer(invocation -> TypeInformation.fromReturnTypeOf(invocation.getArgument(0)));

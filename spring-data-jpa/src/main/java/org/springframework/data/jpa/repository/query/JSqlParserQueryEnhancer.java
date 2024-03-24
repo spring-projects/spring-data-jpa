@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,10 @@ import net.sf.jsqlparser.statement.merge.Merge;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SetOperationList;
-import net.sf.jsqlparser.statement.select.WithItem;
+import net.sf.jsqlparser.statement.select.Values;
 import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +56,8 @@ import org.springframework.util.StringUtils;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Geoffrey Deremetz
+ * @author Yanming Zhou
+ * @author Christoph Strobl
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -120,13 +119,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Select selectStatement = parseSelectStatement(queryString);
 
-		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+		if (selectStatement instanceof SetOperationList setOperationList) {
 			return applySortingToSetOperationList(setOperationList, sort);
-		} else if (!(selectStatement.getSelectBody() instanceof PlainSelect)) {
-			return queryString;
 		}
 
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
+		if (!(selectStatement instanceof PlainSelect selectBody)) {
+			return queryString;
+		}
 
 		Set<String> joinAliases = getJoinAliases(selectBody);
 		Set<String> selectionAliases = getSelectionAliases(selectBody);
@@ -141,8 +140,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		selectBody.getOrderByElements().addAll(orderByElements);
 
-		return selectBody.toString();
-
+		return selectStatement.toString();
 	}
 
 	/**
@@ -155,7 +153,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private String applySortingToSetOperationList(SetOperationList setOperationListStatement, Sort sort) {
 
 		// special case: ValuesStatements are detected as nested OperationListStatements
-		if (setOperationListStatement.getSelects().stream().anyMatch(ValuesStatement.class::isInstance)) {
+		if (setOperationListStatement.getSelects().stream().anyMatch(Values.class::isInstance)) {
 			return setOperationListStatement.toString();
 		}
 
@@ -185,8 +183,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		return selectBody.getSelectItems().stream() //
-				.filter(SelectExpressionItem.class::isInstance) //
-				.map(item -> ((SelectExpressionItem) item).getAlias()) //
+				.filter(SelectItem.class::isInstance) //
+				.map(item -> ((SelectItem) item).getAlias()) //
 				.filter(Objects::nonNull) //
 				.map(Alias::getName) //
 				.collect(Collectors.toSet());
@@ -203,9 +201,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return new HashSet<>();
 		}
 
-		Select selectStatement = (Select) statement;
-		PlainSelect selectBody = (PlainSelect) selectStatement.getSelectBody();
-		return this.getSelectionAliases(selectBody);
+		return this.getSelectionAliases((PlainSelect) statement);
 	}
 
 	/**
@@ -221,7 +217,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		Select selectStatement = (Select) statement;
-		if (selectStatement.getSelectBody()instanceof PlainSelect selectBody) {
+		if (selectStatement instanceof PlainSelect selectBody) {
 			return getJoinAliases(selectBody);
 		}
 
@@ -319,7 +315,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			 * ValuesStatement has no alias
 			 * SetOperation can have multiple alias for each operation item
 			 */
-			if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
+			if (!(selectStatement instanceof PlainSelect selectBody)) {
 				return null;
 			}
 
@@ -374,7 +370,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
-		if (!(selectStatement.getSelectBody()instanceof PlainSelect selectBody)) {
+		if (!(selectStatement instanceof PlainSelect selectBody)) {
 			return this.query.getQueryString();
 		}
 
@@ -384,7 +380,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		if (StringUtils.hasText(countProjection)) {
 
 			Function jSqlCount = getJSqlCount(Collections.singletonList(countProjection), false);
-			selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
+			selectBody.setSelectItems(Collections.singletonList(SelectItem.from(jSqlCount)));
 			return selectBody.toString();
 		}
 
@@ -392,36 +388,12 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		selectBody.setDistinct(null); // reset possible distinct
 
 		String tableAlias = detectAlias(selectBody);
+		String countProperty = countPropertyNameForSelection(selectBody.getSelectItems(), distinct, tableAlias);
 
-		// is never null
-		List<SelectItem> selectItems = selectBody.getSelectItems();
+		Function jSqlCount = getJSqlCount(Collections.singletonList(countProperty), distinct);
+		selectBody.setSelectItems(Collections.singletonList(SelectItem.from(jSqlCount)));
 
-		if (onlyASingleColumnProjection(selectItems)) {
-
-			SelectExpressionItem singleProjection = (SelectExpressionItem) selectItems.get(0);
-
-			Column column = (Column) singleProjection.getExpression();
-			String countProp = column.getFullyQualifiedName();
-
-			Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
-			selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
-			return selectBody.toString();
-		}
-
-		String countProp = query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
-
-		Function jSqlCount = getJSqlCount(Collections.singletonList(countProp), distinct);
-		selectBody.setSelectItems(Collections.singletonList(new SelectExpressionItem(jSqlCount)));
-
-		if (CollectionUtils.isEmpty(selectStatement.getWithItemsList())) {
-			return selectBody.toString();
-		}
-
-		String withStatements = selectStatement.getWithItemsList().stream() //
-				.map(WithItem::toString) //
-				.collect(Collectors.joining(","));
-
-		return "with " + withStatements + "\n" + selectBody;
+		return selectBody.toString();
 	}
 
 	@Override
@@ -435,13 +407,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Select selectStatement = (Select) statement;
 
-		if (selectStatement.getSelectBody() instanceof ValuesStatement) {
+		if (selectStatement instanceof Values) {
 			return "";
 		}
 
-		SelectBody selectBody = selectStatement.getSelectBody();
+		Select selectBody = selectStatement;
 
-		if (selectStatement.getSelectBody()instanceof SetOperationList setOperationList) {
+		if (selectStatement instanceof SetOperationList setOperationList) {
 
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);
@@ -493,11 +465,33 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param projection the projection to analyse
 	 * @return <code>true</code> when the projection only contains a single column definition otherwise <code>false</code>
 	 */
-	private boolean onlyASingleColumnProjection(List<SelectItem> projection) {
+	private boolean onlyASingleColumnProjection(List<SelectItem<?>> projection) {
 
 		// this is unfortunately the only way to check without any hacky & hard string regex magic
-		return projection.size() == 1 && projection.get(0) instanceof SelectExpressionItem
-				&& (((SelectExpressionItem) projection.get(0)).getExpression()) instanceof Column;
+		return projection.size() == 1 && projection.get(0) instanceof SelectItem<?>
+				&& ((projection.get(0)).getExpression()) instanceof Column;
+	}
+
+	/**
+	 * Get the count property if present in {@link SelectItem slected items}, {@literal *} or {@literal 1} for native ones
+	 * and {@literal *} or the given {@literal tableAlias}.
+	 *
+	 * @param selectItems items from the select.
+	 * @param distinct indicator if query for distinct values.
+	 * @param tableAlias the table alias which can be {@literal null}.
+	 * @return
+	 */
+	private String countPropertyNameForSelection(List<SelectItem<?>> selectItems, boolean distinct,
+			@Nullable String tableAlias) {
+
+		if (onlyASingleColumnProjection(selectItems)) {
+
+			SelectItem<?> singleProjection = selectItems.get(0);
+			Column column = (Column) singleProjection.getExpression();
+			return column.getFullyQualifiedName();
+		}
+
+		return query.isNativeQuery() ? (distinct ? "*" : "1") : tableAlias == null ? "*" : tableAlias;
 	}
 
 	@Override

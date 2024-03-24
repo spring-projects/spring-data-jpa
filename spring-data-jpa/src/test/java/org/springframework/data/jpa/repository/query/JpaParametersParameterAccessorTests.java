@@ -15,8 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -42,7 +43,7 @@ class JpaParametersParameterAccessorTests {
 
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
-		JpaParameters parameters = new JpaParameters(withNativeQuery);
+		JpaParameters parameters = new JpaParameters(ParametersSource.of(withNativeQuery));
 		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(parameters, values);
 
 		bind(parameters, accessor);
@@ -55,7 +56,7 @@ class JpaParametersParameterAccessorTests {
 
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
 		Object[] values = { null };
-		JpaParameters parameters = new JpaParameters(withNativeQuery);
+		JpaParameters parameters = new JpaParameters(ParametersSource.of(withNativeQuery));
 		JpaParametersParameterAccessor accessor = new HibernateJpaParametersParameterAccessor(parameters, values, em);
 
 		bind(parameters, accessor);

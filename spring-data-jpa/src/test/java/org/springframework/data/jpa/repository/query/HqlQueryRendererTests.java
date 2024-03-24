@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 the original author or authors.
+ * Copyright 2022-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Tests built around examples of HQL found in
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -39,8 +42,6 @@ class HqlQueryRendererTests {
 
 	/**
 	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
-	 *
-	 * @param query
 	 */
 	private static String parseWithoutChanges(String query) {
 
@@ -1604,5 +1605,58 @@ class HqlQueryRendererTests {
 	@Test // GH-3143
 	void powerShouldBeLegalInAQuery() {
 		assertQuery("select e.power.id from MyEntity e");
+	}
+
+	@Test // GH-3219
+	void extractFunctionShouldSupportAdditionalExtensions() {
+
+		assertQuery("""
+				select extract(day of week from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(day of week from departureTime)
+				""");
+		assertQuery("""
+				select extract(day of month from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(day of month from departureTime)
+				""");
+		assertQuery("""
+				select extract(week of year from departureTime) AS day, sum(duration) as duration from JourneyEntity
+				group by extract(week of year from departureTime)
+				""");
+
+		assertQuery("""
+				select extract(date from departureTime) AS date
+				group by extract(date from departureTime)
+				""");
+		assertQuery("""
+				select extract(time from departureTime) AS time
+				group by extract(time from departureTime)
+				""");
+		assertQuery("""
+				select extract(epoch from departureTime) AS epoch
+				group by extract(epoch from departureTime)
+				""");
+	}
+
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select 1 from User",
+			"select -1 from User",
+			"select +1 from User",
+			"select +1*-100 from User",
+			"select count(u)*-0.7f from User u",
+			"select count(oi) + (-100) as perc from StockOrderItem oi",
+			"select p from Payment p where length(p.cardNumber) between +16 and -20"
+	})
+	void signedLiteralShouldWork(String query) {
+		assertQuery(query);
+	}
+
+	@ParameterizedTest // GH-3342
+	@ValueSource(strings = {
+			"select -count(u) from User u",
+			"select +1*(-count(u)) from User u"
+	})
+	void signedExpressionsShouldWork(String query) {
+		assertQuery(query);
 	}
 }

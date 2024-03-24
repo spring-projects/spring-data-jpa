@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,33 +57,19 @@ public class AuditableUser extends AbstractAuditable<AuditableUser, Integer> {
 		this.firstname = firstname;
 	}
 
-	/**
-	 * Returns the firstname.
-	 *
-	 * @return the firstname
-	 */
 	public String getFirstname() {
-
 		return firstname;
 	}
 
-	/**
-	 * Sets the firstname.
-	 *
-	 * @param firstname the firstname to set
-	 */
 	public void setFirstname(final String firstname) {
-
 		this.firstname = firstname;
 	}
 
 	public void addRole(AuditableRole role) {
-
 		this.roles.add(role);
 	}
 
 	public Set<AuditableRole> getRoles() {
-
 		return roles;
 	}
 }

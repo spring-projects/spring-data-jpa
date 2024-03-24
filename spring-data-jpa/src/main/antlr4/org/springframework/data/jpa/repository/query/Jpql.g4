@@ -23,6 +23,7 @@ grammar Jpql;
  *
  * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#bnf
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.1
  */
 }
@@ -203,6 +204,7 @@ constructor_item
     | scalar_expression
     | aggregate_expression
     | identification_variable
+    | literal
     ;
 
 aggregate_expression
@@ -619,8 +621,10 @@ constructor_name
 
 literal
     : STRINGLITERAL
+    | JAVASTRINGLITERAL
     | INTLITERAL
     | FLOATLITERAL
+    | LONGLITERAL
     | boolean_literal
     | entity_type_literal
     ;
@@ -650,6 +654,7 @@ escape_character
 numeric_literal
     : INTLITERAL
     | FLOATLITERAL
+    | LONGLITERAL
     ;
 
 boolean_literal
@@ -849,9 +854,10 @@ WHERE                       : W H E R E;
 EQUAL                       : '=' ;
 NOT_EQUAL                   : '<>' | '!=' ;
 
-
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
 STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
-FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E '0' .. '9')* ;
+JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
+FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;
+LONGLITERAL                  : ('0' .. '9')+L ;

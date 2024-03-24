@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2023 the original author or authors.
+ * Copyright 2013-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,30 +33,18 @@ public class VersionedUser {
 	@Version
 	private Long version;
 
-	/**
-	 * @return the id
-	 */
 	public Long getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-	/**
-	 * @return the version
-	 */
 	public Long getVersion() {
 		return version;
 	}
 
-	/**
-	 * @param version the version to set
-	 */
 	public void setVersion(Long version) {
 		this.version = version;
 	}

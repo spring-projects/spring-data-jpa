@@ -1,5 +1,5 @@
 /*
- * Copyright 2008-2023 the original author or authors.
+ * Copyright 2008-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,18 +30,12 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 public class CustomGenericJpaRepository<T, ID extends Serializable> extends SimpleJpaRepository<T, ID> implements
 		CustomGenericRepository<T, ID> {
 
-	/**
-	 * @param domainClass
-	 * @param entityManager
-	 */
 	public CustomGenericJpaRepository(JpaEntityInformation<T, ID> metadata, EntityManager entityManager) {
-
 		super(metadata, entityManager);
 	}
 
 	@Override
 	public T customMethod(ID id) {
-
 		throw new UnsupportedOperationException("Forced exception for testing purposes.");
 	}
 }

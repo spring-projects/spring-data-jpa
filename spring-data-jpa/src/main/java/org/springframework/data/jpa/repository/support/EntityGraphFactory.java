@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2023 the original author or authors.
+ * Copyright 2021-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,11 @@ abstract class EntityGraphFactory {
 	/**
 	 * Create an {@link EntityGraph} from a collection of properties.
 	 *
-	 * @param domainType
-	 * @param properties
+	 * @param entityManager the {@link EntityManager} used to {@link EntityManager#createEntityGraph(String) create} the
+	 *          {@link EntityGraph}.
+	 * @param domainType the type to create the {@link EntityGraph} for.
+	 * @param properties the properties to add {@link EntityGraph#addAttributeNodes(String...) nodes} and
+	 *          {@link EntityGraph#addSubgraph(String) subgraphs} for.
 	 */
 	public static <T> EntityGraph<T> create(EntityManager entityManager, Class<T> domainType, Set<String> properties) {
 

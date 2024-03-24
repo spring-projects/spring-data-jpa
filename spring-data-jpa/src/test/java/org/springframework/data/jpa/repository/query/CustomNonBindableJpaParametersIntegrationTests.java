@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 the original author or authors.
+ * Copyright 2019-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.ParametersSource;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -70,8 +72,8 @@ class CustomNonBindableJpaParametersIntegrationTests {
 
 		private final MethodParameter parameter;
 
-		NonBindableAwareJpaParameter(MethodParameter parameter) {
-			super(parameter);
+		NonBindableAwareJpaParameter(MethodParameter parameter, TypeInformation<?> domainType) {
+			super(parameter, domainType);
 			this.parameter = parameter;
 		}
 
@@ -83,14 +85,11 @@ class CustomNonBindableJpaParametersIntegrationTests {
 
 	private static class NonBindableAwareJpaParameters extends JpaParameters {
 
-		NonBindableAwareJpaParameters(Method method) {
-			super(method);
+		NonBindableAwareJpaParameters(ParametersSource parametersSource) {
+			super(parametersSource,
+					param -> new NonBindableAwareJpaParameter(param, parametersSource.getDomainTypeInformation()));
 		}
 
-		@Override
-		protected JpaParameter createParameter(MethodParameter parameter) {
-			return new NonBindableAwareJpaParameter(parameter);
-		}
 	}
 
 	private static class NonBindableAwareJpaQueryMethod extends JpaQueryMethod {
@@ -101,8 +100,8 @@ class CustomNonBindableJpaParametersIntegrationTests {
 		}
 
 		@Override
-		protected JpaParameters createParameters(Method method) {
-			return new NonBindableAwareJpaParameters(method);
+		protected JpaParameters createParameters(ParametersSource source) {
+			return new NonBindableAwareJpaParameters(source);
 		}
 	}
 
