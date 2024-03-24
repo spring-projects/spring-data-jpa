@@ -43,7 +43,7 @@ public class Meta {
 		}
 	}
 
-	private Map<String, Object> values = Collections.emptyMap();
+	private Map<String, Object> values = new LinkedHashMap<>(2);
 
 	public Meta() {}
 
@@ -99,10 +99,6 @@ public class Meta {
 	void setValue(String key, @Nullable Object value) {
 
 		Assert.hasText(key, "Meta key must not be 'null' or blank");
-
-		if (values == Collections.EMPTY_MAP) {
-			values = new LinkedHashMap<>(2);
-		}
 
 		if (value == null || (value instanceof String stringValue && !StringUtils.hasText(stringValue))) {
 			this.values.remove(key);
