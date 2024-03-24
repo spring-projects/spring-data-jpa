@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
  * @author Greg Turnquist
  * @since 2.7.0
  */
-public final class JSqlParserUtils {
+public abstract class JSqlParserUtils {
 
-	private JSqlParserUtils() {}
+	private JSqlParserUtils() {
+		throw new IllegalStateException("Cannot instantiate a utility class!");
+	}
 
 	/**
 	 * Generates a count function call, based on the {@code countFields}.
@@ -49,7 +51,7 @@ public final class JSqlParserUtils {
 				.map(Column::new) //
 				.collect(Collectors.toList());
 
-		ExpressionList countExpression = new ExpressionList(countColumns);
+		ExpressionList<Expression> countExpression = new ExpressionList<>(countColumns);
 
 		return new Function() //
 				.withName("count") //
@@ -66,7 +68,7 @@ public final class JSqlParserUtils {
 	public static Function getJSqlLower(String column) {
 
 		List<Expression> expressions = Collections.singletonList(new Column(column));
-		ExpressionList lowerParamExpression = new ExpressionList(expressions);
+		ExpressionList<Expression> lowerParamExpression = new ExpressionList<>(expressions);
 
 		return new Function() //
 				.withName("lower") //
