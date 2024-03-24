@@ -24,7 +24,7 @@ import org.springframework.data.domain.Pageable;
  * @author Greg Turnquist
  * @since 3.0
  */
-public final class PageableUtils {
+public abstract class PageableUtils {
 
 	private PageableUtils() {
 		throw new IllegalStateException("Cannot instantiate a utility class!");
