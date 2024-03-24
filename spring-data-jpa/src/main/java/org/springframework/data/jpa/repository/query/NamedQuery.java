@@ -107,9 +107,8 @@ final class NamedQuery extends AbstractJpaQuery {
 		 * See DATAJPA-617, we have to use a dedicated em for the lookups to avoid a
 		 * potential rollback of the running tx.
 		 */
-		EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager();
 
-		try {
+		try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager()) {
 			lookupEm.createNamedQuery(queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
@@ -118,8 +117,6 @@ final class NamedQuery extends AbstractJpaQuery {
 				LOG.debug(String.format("Did not find named query %s", queryName));
 			}
 			return false;
-		} finally {
-			lookupEm.close();
 		}
 	}
 
