@@ -126,8 +126,8 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 		doReturn(expressionMock).when(cb).literal(any(Boolean.class));
 		doReturn(truePredicate).when(cb).isTrue(eq(expressionMock));
-		doReturn(andPredicate).when(cb).and(ArgumentMatchers.any());
-		doReturn(orPredicate).when(cb).or(ArgumentMatchers.any());
+		doReturn(andPredicate).when(cb).and(ArgumentMatchers.<Predicate[]> any());
+		doReturn(orPredicate).when(cb).or(ArgumentMatchers.<Predicate[]> any());
 	}
 
 	@Test // DATAJPA-218

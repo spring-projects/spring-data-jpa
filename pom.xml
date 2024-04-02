@@ -98,6 +98,7 @@
 			<id>hibernate-70-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-70-snapshots}</hibernate>
+				<jakarta-persistence-api>3.2.0-M2</jakarta-persistence-api>
 			</properties>
 			<repositories>
 				<repository>
