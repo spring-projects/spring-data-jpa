@@ -65,9 +65,8 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 
 		if (Persistable.class.isAssignableFrom(domainClass)) {
 			return new JpaPersistableEntityInformation(domainClass, metamodel, persistenceUnitUtil);
-		} else {
-			return new JpaMetamodelEntityInformation(domainClass, metamodel, persistenceUnitUtil);
 		}
+		return new JpaMetamodelEntityInformation(domainClass, metamodel, persistenceUnitUtil);
 	}
 
 	@Override
