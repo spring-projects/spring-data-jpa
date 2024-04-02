@@ -44,9 +44,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return visit(ctx.update_statement());
 		} else if (ctx.delete_statement() != null) {
 			return visit(ctx.delete_statement());
-		} else {
-			return List.of();
 		}
+		return List.of();
 	}
 
 	@Override
