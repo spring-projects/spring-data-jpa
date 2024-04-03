@@ -1430,7 +1430,7 @@ class UserRepositoryTests {
 		assertThat(previousWindow.hasNext()).isFalse();
 	}
 
-	@Test // GH-3015
+	@Test // GH-3015, GH-3407
 	void shouldApplyOffsetScrollPosition() {
 
 		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
@@ -1441,7 +1441,7 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
 
 		Window<User> atOffset3 = repository.findByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc("J",
-				ScrollPosition.offset(3));
+				ScrollPosition.offset(2));
 
 		assertThat(atOffset3).containsExactly(john2);
 	}

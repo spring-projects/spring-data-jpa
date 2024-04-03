@@ -196,7 +196,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			select = (AbstractJPAQuery<?, ?>) querydsl.applySorting(sort, select);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
-				select.offset(offset.getOffset());
+				if(!offset.isInitial()) {
+					select.offset(offset.getOffset() + 1);
+				}
 			}
 
 			return select.createQuery();

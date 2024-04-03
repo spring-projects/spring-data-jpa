@@ -512,7 +512,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			TypedQuery<T> query = getQuery(specToUse, domainClass, sort);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
-				query.setFirstResult(Math.toIntExact(offset.getOffset()));
+				if(!offset.isInitial()) {
+					query.setFirstResult(Math.toIntExact(offset.getOffset()) + 1);
+				}
 			}
 
 			return query;
