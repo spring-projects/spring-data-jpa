@@ -226,18 +226,29 @@ class UserRepositoryFinderTests {
 		assertThat(slice.hasNext()).isFalse();
 	}
 
-	@Test // DATAJPA-94
+	@Test // GH-3077, GH-3409
 	void executesQueryWithLimitAndScrollPosition() {
 
 		Window<User> first = userRepository.findByLastnameOrderByFirstname(Limit.of(1), //
-				ScrollPosition.offset(), //
+				ScrollPosition.offset(), // initial position no offset
 				"Matthews" //
 		);
 
 		Window<User> next = userRepository.findByLastnameOrderByFirstname(Limit.of(1), //
-				ScrollPosition.offset(1), //
+				ScrollPosition.offset(0), // first position, offset = 1
 				"Matthews" //
 		);
+
+		assertThat(first).containsExactly(dave);
+		assertThat(next).containsExactly(oliver);
+	}
+
+	@Test // GH-3409
+	void executesWindowQueryWithPageable() {
+
+		Window<User> first = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(0,1));
+
+		Window<User> next = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(1,1));
 
 		assertThat(first).containsExactly(dave);
 		assertThat(next).containsExactly(oliver);
