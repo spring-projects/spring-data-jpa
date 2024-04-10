@@ -71,7 +71,7 @@ public class ScrollDelegate<T> {
 		}
 
 		if (scrollPosition instanceof OffsetScrollPosition offset) {
-			return createWindow(result, limit, OffsetScrollPosition.positionFunction(offset.isInitial() ? 0 : offset.getOffset()));
+			return createWindow(result, limit, offset.positionFunction());
 		}
 
 		throw new UnsupportedOperationException("ScrollPosition " + scrollPosition + " not supported");
