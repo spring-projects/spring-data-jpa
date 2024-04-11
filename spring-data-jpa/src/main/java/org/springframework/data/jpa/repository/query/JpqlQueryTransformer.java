@@ -161,12 +161,14 @@ class JpqlQueryTransformer extends JpqlQueryRenderer {
 
 				if (ctx.DISTINCT() != null) {
 
-					if (selectItemTokens.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
+					List<JpaQueryParsingToken> countSelection = QueryTransformers.filterCountSelection(selectItemTokens);
+
+					if (countSelection.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
 						// constructor
 						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
-						tokens.addAll(selectItemTokens);
+						tokens.addAll(countSelection);
 					}
 				} else {
 					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
