@@ -358,7 +358,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 				if (ctx.DISTINCT() != null) {
 
-					List<JpaQueryParsingToken> countSelection = getCountSelection(selectionListTokens);
+					List<JpaQueryParsingToken> countSelection = QueryTransformers.filterCountSelection(selectionListTokens);
 
 					if (countSelection.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
@@ -398,18 +398,4 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		return new ArrayList<>();
 	}
 
-	private static List<JpaQueryParsingToken> getCountSelection(List<JpaQueryParsingToken> selectionListTokens) {
-
-		List<JpaQueryParsingToken> target = new ArrayList<>(selectionListTokens.size());
-		for (int i = 0; i < selectionListTokens.size(); i++) {
-			JpaQueryParsingToken token = selectionListTokens.get(i);
-			if (token.isA(TOKEN_AS)) {
-				i++;
-				continue;
-			}
-			target.add(token);
-		}
-		selectionListTokens = target;
-		return selectionListTokens;
-	}
 }

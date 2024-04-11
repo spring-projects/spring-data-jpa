@@ -131,6 +131,12 @@ class JpaQueryParsingToken {
 		return this.space;
 	}
 
+	/**
+	 * Compare whether the given {@link JpaQueryParsingToken token} is equal to the one held by this instance.
+	 *
+	 * @param token must not be {@literal null}.
+	 * @return {@literal true} if both tokens are equals (using case-insensitive comparison).
+	 */
 	boolean isA(JpaQueryParsingToken token) {
 		return token.getToken().equalsIgnoreCase(this.getToken());
 	}
