@@ -679,6 +679,20 @@ class JpqlQueryTransformerTests {
 						.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
 
+	@Test // GH-3269
+	void createsCountQueryUsingAliasCorrectly() {
+
+		assertCountQuery("select distinct 1 as x from Employee e", "select count(distinct 1) from Employee e");
+		assertCountQuery("SELECT DISTINCT abc AS x FROM T t", "SELECT count(DISTINCT abc) FROM T t");
+		assertCountQuery("select distinct a as x, b as y from Employee e", "select count(distinct a , b) from Employee e");
+		assertCountQuery("select distinct sum(amount) as x from Employee e GROUP BY n",
+				"select count(distinct sum(amount)) from Employee e GROUP BY n");
+		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee e GROUP BY n",
+				"select count(distinct a, b, sum(amount) , d) from Employee e GROUP BY n");
+		assertCountQuery("select distinct a, count(b) as c from Employee e GROUP BY n",
+				"select count(distinct a, count(b)) from Employee e GROUP BY n");
+	}
+
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045
 	void orderByShouldWorkWithSubSelectStatements() {
 
