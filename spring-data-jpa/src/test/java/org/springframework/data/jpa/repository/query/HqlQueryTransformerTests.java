@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -24,11 +26,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 /**
  * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
@@ -1058,6 +1062,40 @@ class HqlQueryTransformerTests {
 		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n","select count(distinct sum(amount)) from Employee AS __ GROUP BY n");
 		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n","select count(distinct a, b, sum(amount), d) from Employee AS __ GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n","select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
+	}
+
+	@Test // GH-3427
+	void sortShouldBeAppendedWithSpacingInCaseOfSetOperator() {
+
+        String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
+		String target = createQueryFor(source, Sort.by("Type").ascending());
+		
+		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+	}
+
+	@ParameterizedTest // GH-3427
+	@ValueSource(strings = {"", "res"})
+	void sortShouldBeAppendedToSubSelectWithSetOperatorInSubselect(String alias) {
+
+		String prefix = StringUtils.hasText(alias) ? (alias + ".") : "";
+		String source = "SELECT %sname FROM (SELECT c.name as name FROM Category c UNION SELECT t.name as name FROM Tag t)".formatted(prefix);
+		if(StringUtils.hasText(alias)) {
+			source = source + " %s".formatted(alias);
+		}
+
+		String target = createQueryFor(source, Sort.by("name").ascending());
+
+		assertThat(target).contains(" UNION SELECT ").doesNotContainPattern(Pattern.compile(".*\\SUNION"));
+		assertThat(target).endsWith("order by %sname asc".formatted(prefix)).satisfies(it -> {
+			Pattern pattern = Pattern.compile("order by %sname".formatted(prefix));
+			Matcher matcher = pattern.matcher(target);
+			int count = 0;
+			while(matcher.find()) {
+				count++;
+			}
+			assertThat(count).describedAs("Found order by clause more than once in: \n%s", it).isOne();
+		});
+
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {
