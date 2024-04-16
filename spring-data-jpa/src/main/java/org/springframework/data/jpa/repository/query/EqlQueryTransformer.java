@@ -24,6 +24,7 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed EQL query.
@@ -105,27 +106,39 @@ class EqlQueryTransformer extends EqlQueryRenderer {
 
 		if (!countQuery) {
 
-			if (ctx.orderby_clause() != null) {
-				tokens.addAll(visit(ctx.orderby_clause()));
+			doVisitOrderBy(tokens, ctx, ObjectUtils.isEmpty(ctx.setOperator()) ? this.sort : Sort.unsorted());
+
+			for (int i = 0; i < ctx.setOperator().size(); i++) {
+
+				tokens.addAll(visit(ctx.setOperator(i)));
+				tokens.addAll(visit(ctx.select_statement(i)));
 			}
 
-			if (sort.isSorted()) {
-
-				if (ctx.orderby_clause() != null) {
-
-					NOSPACE(tokens);
-					tokens.add(TOKEN_COMMA);
-				} else {
-
-					SPACE(tokens);
-					tokens.add(TOKEN_ORDER_BY);
-				}
-
-				tokens.addAll(transformerSupport.generateOrderByArguments(primaryFromAlias, sort));
-			}
 		}
 
 		return tokens;
+	}
+
+	private void doVisitOrderBy(List<JpaQueryParsingToken> tokens, EqlParser.Select_statementContext ctx, Sort sort) {
+
+		if (ctx.orderby_clause() != null) {
+			tokens.addAll(visit(ctx.orderby_clause()));
+		}
+
+		if (sort.isSorted()) {
+
+			if (ctx.orderby_clause() != null) {
+
+				NOSPACE(tokens);
+				tokens.add(TOKEN_COMMA);
+			} else {
+
+				SPACE(tokens);
+				tokens.add(TOKEN_ORDER_BY);
+			}
+
+			tokens.addAll(transformerSupport.generateOrderByArguments(primaryFromAlias, sort));
+		}
 	}
 
 	@Override

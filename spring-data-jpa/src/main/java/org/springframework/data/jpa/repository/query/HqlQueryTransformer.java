@@ -26,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.HqlParser.SelectionContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query.
@@ -105,8 +106,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		}
 	}
 
-	@Override
-	public List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
+	private List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx, Sort sort) {
 
 		List<JpaQueryParsingToken> tokens = newArrayList();
 
@@ -188,6 +188,40 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
+
+		if (ObjectUtils.isEmpty(ctx.setOperator())) {
+			return super.visitQueryExpression(ctx);
+		}
+
+		List<JpaQueryParsingToken> builder = new ArrayList<>();
+		if (ctx.withClause() != null) {
+			builder.addAll(visit(ctx.withClause()));
+		}
+
+		List<HqlParser.OrderedQueryContext> orderedQueries = ctx.orderedQuery();
+		for (int i = 0; i < orderedQueries.size(); i++) {
+
+			if (i != 0) {
+				builder.addAll(visit(ctx.setOperator(i - 1)));
+			}
+
+			if (i == orderedQueries.size() - 1) {
+				builder.addAll(visitOrderedQuery(ctx.orderedQuery(i), this.sort));
+			} else {
+				builder.addAll(visitOrderedQuery(ctx.orderedQuery(i), Sort.unsorted()));
+			}
+		}
+
+		return builder;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
+		return visitOrderedQuery(ctx, this.sort);
 	}
 
 	@Override
@@ -325,7 +359,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 		List<JpaQueryParsingToken> tokens = super.visitVariable(ctx);
 
-		if (ctx.identifier() != null) {
+		if (ctx.identifier() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
 			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
 		}
 
@@ -335,7 +369,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public List<JpaQueryParsingToken> visitSelection(SelectionContext ctx) {
 
-		if(!countQuery || isSubquery(ctx)) {
+		if (!countQuery || isSubquery(ctx)) {
 			return super.visitSelection(ctx);
 		}
 
