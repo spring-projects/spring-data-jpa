@@ -759,6 +759,15 @@ class EqlQueryTransformerTests {
 				""");
 	}
 
+	@Test // GH-3427
+	void sortShouldBeAppendedToFullSelectOnlyInCaseOfSetOperator() {
+
+		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
+		String target = createQueryFor(source, Sort.by("Type").ascending());
+
+		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+	}
+
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
 
 		return Stream.of( //
