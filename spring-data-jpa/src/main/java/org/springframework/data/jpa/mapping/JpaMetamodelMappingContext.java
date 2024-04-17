@@ -183,9 +183,11 @@ public class JpaMetamodelMappingContext
 				// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
 				// returns for entities, embeddables and managed superclasses.
 				
-				for (ManagedType<?> managedType : currentModel.getManagedTypes()) {
-					if (type.equals(managedType.getJavaType())) {
-						return currentModel;
+				if (currentModel != null) {
+					for (ManagedType<?> managedType : currentModel.getManagedTypes()) {
+						if (type.equals(managedType.getJavaType())) {
+							return currentModel;
+						}
 					}
 				}
 			}
