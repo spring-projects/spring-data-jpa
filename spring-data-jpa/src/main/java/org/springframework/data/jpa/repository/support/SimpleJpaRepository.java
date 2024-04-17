@@ -61,6 +61,8 @@ import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpe
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
@@ -524,8 +526,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
-		FetchableFluentQuery<T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
-				scrollDelegate, this::count, this::exists, this.entityManager);
+		FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
+				scrollDelegate, this::count, this::exists, this.entityManager, getProjectionFactory());
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
@@ -901,6 +903,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
 			consumer.accept(provider.getCommentHintKey(), provider.getCommentHintValue(this.metadata.getComment()));
 		}
+	}
+
+	private ProjectionFactory getProjectionFactory() {
+
+		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
+		if(metadata == null || metadata.getProjectionFactory() == null) {
+			return new SpelAwareProxyProjectionFactory();
+		}
+
+		return metadata.getProjectionFactory();
 	}
 
 	/**

@@ -88,6 +88,11 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 			return factory.getObject();
 		}
 
+		@Bean
+		public GreetingsFrom greetingsFrom() {
+			return new GreetingsFrom();
+		}
+
 		private NamedQueries namedQueries() throws IOException {
 
 			PropertiesFactoryBean factory = new PropertiesFactoryBean();

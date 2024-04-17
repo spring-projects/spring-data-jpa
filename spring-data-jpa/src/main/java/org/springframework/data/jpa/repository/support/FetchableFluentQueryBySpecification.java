@@ -36,6 +36,7 @@ import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.jpa.support.PageableUtils;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
@@ -47,6 +48,7 @@ import org.springframework.util.Assert;
  * @param <S> Domain type
  * @param <R> Result type
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.0
  */
 class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
@@ -59,20 +61,21 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	private final Function<Specification<S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
 
-	public FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
-			Function<Sort, TypedQuery<S>> finder, SpecificationScrollDelegate<S> scrollDelegate,
-			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
-			EntityManager entityManager) {
+	FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Function<Sort, TypedQuery<S>> finder,
+			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
+			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager,
+			ProjectionFactory projectionFactory) {
 		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scrollDelegate,
-				countOperation, existsOperation, entityManager);
+				countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
 			Sort sort, int limit, Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
 			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
-			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager) {
+			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager,
+			ProjectionFactory projectionFactory) {
 
-		super(resultType, sort, limit, properties, entityType);
+		super(resultType, sort, limit, properties, entityType, projectionFactory);
 		this.spec = spec;
 		this.finder = finder;
 		this.scroll = scrollDelegate;
@@ -87,7 +90,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		Assert.notNull(sort, "Sort must not be null");
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, countOperation, existsOperation, entityManager);
+				properties, finder, scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
 	}
 
 	@Override
@@ -96,7 +99,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		Assert.isTrue(limit >= 0, "Limit must not be negative");
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, countOperation, existsOperation, entityManager);
+				properties, finder, scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
 	}
 
 	@Override
@@ -108,14 +111,14 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		}
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
-				scroll, countOperation, existsOperation, entityManager);
+				scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
 	}
 
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
-				scroll, countOperation, existsOperation, entityManager);
+				scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
 	}
 
 	@Override

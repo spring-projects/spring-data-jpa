@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.lang.Nullable;
 
 /**
@@ -85,4 +86,11 @@ public interface CrudMethodMetadata {
 	 * @since 1.9
 	 */
 	Method getMethod();
+
+	/**
+	 * @return the {@link ProjectionFactory} to use or {@literal null} if not present.
+	 * @since ??
+	 */
+	@Nullable
+	ProjectionFactory getProjectionFactory();
 }

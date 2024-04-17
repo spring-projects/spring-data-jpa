@@ -43,4 +43,6 @@
 	
 	<bean class="org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor" />
 
+	<bean class="org.springframework.data.jpa.repository.GreetingsFrom" name="greetingsFrom" />
+
 </beans>

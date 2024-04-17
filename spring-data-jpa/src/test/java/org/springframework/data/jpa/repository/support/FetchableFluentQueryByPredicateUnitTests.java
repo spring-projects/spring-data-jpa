@@ -35,7 +35,7 @@ class FetchableFluentQueryByPredicateUnitTests {
 		Sort s1 = Sort.by(Order.by("s1"));
 		Sort s2 = Sort.by(Order.by("s2"));
 		FetchableFluentQueryByPredicate f = new FetchableFluentQueryByPredicate(null, null, null, null, null, null, null,
-				null);
+				null, null);
 		f = (FetchableFluentQueryByPredicate) f.sortBy(s1).sortBy(s2);
 		assertThat(f.sort).isEqualTo(s1.and(s2));
 	}

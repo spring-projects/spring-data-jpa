@@ -100,7 +100,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
+		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor(() -> getProjectionFactory());
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 		this.queryRewriterProvider = QueryRewriterProvider.simple();
