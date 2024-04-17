@@ -36,9 +36,12 @@ import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryS
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.PredicateScrollDelegate;
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
@@ -223,7 +226,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 				pagedFinder, //
 				this::count, //
 				this::exists, //
-				entityManager //
+				entityManager, //
+				getProjectionFactory()
 		);
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
@@ -251,7 +255,6 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 		AbstractJPAQuery<?, ?> query = doCreateQuery(getQueryHints().withFetchGraphs(entityManager), predicate);
 		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
-
 		if (metadata == null) {
 			return query;
 		}
@@ -329,6 +332,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 	 */
 	private List<T> executeSorted(JPQLQuery<T> query, Sort sort) {
 		return querydsl.applySorting(sort, query).fetch();
+	}
+
+	private ProjectionFactory getProjectionFactory() {
+
+		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
+		if(metadata == null || metadata.getProjectionFactory() == null) {
+			return new SpelAwareProxyProjectionFactory();
+		}
+
+		return metadata.getProjectionFactory();
 	}
 
 	class QuerydslQueryStrategy implements QueryStrategy<Expression<?>, BooleanExpression> {

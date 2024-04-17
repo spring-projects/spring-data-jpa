@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -38,6 +39,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
 import org.springframework.lang.Nullable;
@@ -61,6 +63,11 @@ import org.springframework.util.ReflectionUtils;
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
 	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private final Supplier<ProjectionFactory> projectionFactorySupplier;
+
+	CrudMethodMetadataPostProcessor(Supplier<ProjectionFactory> projectionFactorySupplier) {
+		this.projectionFactorySupplier = projectionFactorySupplier;
+	}
 
 	@Override
 	public void setBeanClassLoader(ClassLoader classLoader) {
@@ -69,7 +76,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	@Override
 	public void postProcess(ProxyFactory factory, RepositoryInformation repositoryInformation) {
-		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(repositoryInformation));
+		factory
+				.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(repositoryInformation, projectionFactorySupplier));
 	}
 
 	/**
@@ -101,11 +109,14 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 		private final ConcurrentMap<Method, CrudMethodMetadata> metadataCache = new ConcurrentHashMap<>();
 		private final Set<Method> implementations = new HashSet<>();
+		private final Supplier<ProjectionFactory> projectionFactory;
 
-		CrudMethodMetadataPopulatingMethodInterceptor(RepositoryInformation repositoryInformation) {
+		CrudMethodMetadataPopulatingMethodInterceptor(RepositoryInformation repositoryInformation,
+				Supplier<ProjectionFactory> projectionFactory) {
 
 			ReflectionUtils.doWithMethods(repositoryInformation.getRepositoryInterface(), implementations::add,
 					method -> !repositoryInformation.isQueryMethod(method));
+			this.projectionFactory = projectionFactory;
 		}
 
 		/**
@@ -150,7 +161,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 				if (methodMetadata == null) {
 
-					methodMetadata = new DefaultCrudMethodMetadata(method);
+					methodMetadata = new DefaultCrudMethodMetadata(method, projectionFactory.get());
 					CrudMethodMetadata tmp = metadataCache.putIfAbsent(method, methodMetadata);
 
 					if (tmp != null) {
@@ -185,15 +196,17 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		private final @Nullable String comment;
 		private final Optional<EntityGraph> entityGraph;
 		private final Method method;
+		private ProjectionFactory projectionFactory;
 
 		/**
 		 * Creates a new {@link DefaultCrudMethodMetadata} for the given {@link Method}.
 		 *
 		 * @param method must not be {@literal null}.
 		 */
-		DefaultCrudMethodMetadata(Method method) {
+		DefaultCrudMethodMetadata(Method method, ProjectionFactory projectionFactory) {
 
 			Assert.notNull(method, "Method must not be null");
+			this.projectionFactory = projectionFactory;
 
 			this.lockModeType = findLockModeType(method);
 			this.queryHints = findQueryHints(method, it -> true);
@@ -273,6 +286,11 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		@Override
 		public Method getMethod() {
 			return method;
+		}
+
+		@Override
+		public ProjectionFactory getProjectionFactory() {
+			return projectionFactory;
 		}
 	}
 

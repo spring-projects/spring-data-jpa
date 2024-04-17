@@ -51,6 +51,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -67,6 +68,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -2437,6 +2439,24 @@ class UserRepositoryTests {
 				.containsExactlyInAnyOrder(firstUser.getFirstname(), thirdUser.getFirstname(), fourthUser.getFirstname());
 	}
 
+	@Test // GH-3410
+	void findByFluentExampleWithInterfaceBasedProjectionUsingSpEL() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("v");
+
+		List<UserProjectionUsingSpEL> users = repository.findBy(
+			of(prototype,
+				matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+					GenericPropertyMatcher::contains)), //
+			q -> q.as(UserProjectionUsingSpEL.class).all());
+
+		assertThat(users).extracting(UserProjectionUsingSpEL::hello)
+			.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
+	}
+
 	@Test // GH-2294
 	void findByFluentExampleWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {
 
@@ -3363,5 +3383,11 @@ class UserRepositoryTests {
 
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
+	}
+
+	private interface UserProjectionUsingSpEL {
+
+		@Value("#{@greetingsFrom.groot(target.firstname)}")
+		String hello();
 	}
 }
