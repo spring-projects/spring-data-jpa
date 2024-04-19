@@ -41,7 +41,6 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.lang.Nullable;
@@ -74,14 +73,15 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Greg Turnquist
  * @author Yanming Zhou
  */
-public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T> {
+public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T>, JpaRepositoryConfigurationAware {
 
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityPath<T> path;
 	private final Querydsl querydsl;
 	private final QuerydslQueryStrategy scrollQueryAdapter;
 	private final EntityManager entityManager;
-	private final CrudMethodMetadata metadata;
+	private @Nullable CrudMethodMetadata metadata;
+	private @Nullable ProjectionFactory projectionFactory;
 
 	/**
 	 * Creates a new {@link QuerydslJpaPredicateExecutor} from the given domain class and {@link EntityManager} and uses
@@ -101,6 +101,16 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		this.querydsl = new Querydsl(entityManager, new PathBuilder<T>(path.getType(), path.getMetadata()));
 		this.entityManager = entityManager;
 		this.scrollQueryAdapter = new QuerydslQueryStrategy();
+	}
+
+	@Override
+	public void setRepositoryMethodMetadata(CrudMethodMetadata metadata) {
+		this.metadata = metadata;
+	}
+
+	@Override
+	public void setProjectionFactory(ProjectionFactory projectionFactory) {
+		this.projectionFactory = projectionFactory;
 	}
 
 	@Override
@@ -199,7 +209,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			select = (AbstractJPAQuery<?, ?>) querydsl.applySorting(sort, select);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
-				if(!offset.isInitial()) {
+				if (!offset.isInitial()) {
 					select.offset(offset.getOffset() + 1);
 				}
 			}
@@ -227,8 +237,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 				this::count, //
 				this::exists, //
 				entityManager, //
-				getProjectionFactory()
-		);
+				getProjectionFactory());
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
@@ -336,12 +345,11 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 	private ProjectionFactory getProjectionFactory() {
 
-		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
-		if(metadata == null || metadata.getProjectionFactory() == null) {
-			return new SpelAwareProxyProjectionFactory();
+		if (projectionFactory == null) {
+			projectionFactory = new SpelAwareProxyProjectionFactory();
 		}
 
-		return metadata.getProjectionFactory();
+		return projectionFactory;
 	}
 
 	class QuerydslQueryStrategy implements QueryStrategy<Expression<?>, BooleanExpression> {

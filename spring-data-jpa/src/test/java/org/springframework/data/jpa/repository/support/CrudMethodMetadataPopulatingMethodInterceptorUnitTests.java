@@ -18,9 +18,9 @@ package org.springframework.data.jpa.repository.support;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.lang.reflect.Method;
-
 import jakarta.persistence.LockModeType;
+
+import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
@@ -34,7 +34,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor.CrudMethodMetadataPopulatingMethodInterceptor;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -57,7 +56,7 @@ class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 
 		ProxyFactory factory = new ProxyFactory(new Object());
 		factory.addInterface(Sample.class);
-		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(information, SpelAwareProxyProjectionFactory::new));
+		factory.addAdvice(new CrudMethodMetadataPopulatingMethodInterceptor(information));
 		factory.addAdvice(new MethodInterceptor() {
 
 			@Override
@@ -79,7 +78,7 @@ class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 		when(information.getRepositoryInterface()).thenReturn((Class) Sample.class);
 
 		CrudMethodMetadataPopulatingMethodInterceptor interceptor = new CrudMethodMetadataPopulatingMethodInterceptor(
-				information, () -> new SpelAwareProxyProjectionFactory());
+				information);
 		interceptor.invoke(invocation);
 
 		assertThat(TransactionSynchronizationManager.getResource(method)).isNull();
@@ -89,7 +88,7 @@ class CrudMethodMetadataPopulatingMethodInterceptorUnitTests {
 	@SuppressWarnings("unchecked")
 	void looksUpCrudMethodMetadataForEveryInvocation() {
 
-		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor(() -> new SpelAwareProxyProjectionFactory()).getCrudMethodMetadata();
+		CrudMethodMetadata metadata = new CrudMethodMetadataPostProcessor().getCrudMethodMetadata();
 		when(information.isQueryMethod(any())).thenReturn(false);
 		when(information.getRepositoryInterface()).thenReturn((Class) Sample.class);
 
