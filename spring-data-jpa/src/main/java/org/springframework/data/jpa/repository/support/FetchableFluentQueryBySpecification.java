@@ -90,7 +90,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		Assert.notNull(sort, "Sort must not be null");
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
+				properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -99,7 +99,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		Assert.isTrue(limit >= 0, "Limit must not be negative");
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
+				properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -111,14 +111,14 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		}
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
-				scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
+				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
 	public FetchableFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
-				scroll, countOperation, existsOperation, entityManager, getProjectionFactory());
+				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override

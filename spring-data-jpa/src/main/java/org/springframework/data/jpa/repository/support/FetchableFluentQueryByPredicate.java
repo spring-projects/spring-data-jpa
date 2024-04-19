@@ -96,8 +96,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		Assert.notNull(sort, "Sort must not be null");
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, pagedFinder, countOperation, existsOperation, entityManager,
-				getProjectionFactory());
+				properties, finder, scroll, pagedFinder, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -106,7 +105,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		Assert.isTrue(limit >= 0, "Limit must not be negative");
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit, properties, finder,
-				scroll, pagedFinder, countOperation, existsOperation, entityManager, getProjectionFactory());
+				scroll, pagedFinder, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -119,7 +118,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		}
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit, properties, finder,
-				scroll, pagedFinder, countOperation, existsOperation, entityManager, getProjectionFactory());
+				scroll, pagedFinder, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -127,7 +126,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		return new FetchableFluentQueryByPredicate<>(predicate, entityType, resultType, sort, limit,
 				mergeProperties(properties), finder, scroll, pagedFinder, countOperation, existsOperation, entityManager,
-				getProjectionFactory());
+				projectionFactory);
 	}
 
 	@Override

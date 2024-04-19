@@ -83,6 +83,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
+	private final CrudMethodMetadata crudMethodMetadata;
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
@@ -100,7 +101,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 		this.entityManager = entityManager;
 		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
-		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor(() -> getProjectionFactory());
+		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 		this.queryRewriterProvider = QueryRewriterProvider.simple();
@@ -116,6 +117,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		if (extractor.equals(PersistenceProvider.ECLIPSELINK)) {
 			addQueryCreationListener(new EclipseLinkProjectionQueryCreationListener(entityManager));
 		}
+
+		this.crudMethodMetadata = crudMethodMetadataPostProcessor.getCrudMethodMetadata();
 	}
 
 	@Override
@@ -192,11 +195,12 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected final JpaRepositoryImplementation<?, ?> getTargetRepository(RepositoryInformation information) {
 
 		JpaRepositoryImplementation<?, ?> repository = getTargetRepository(information, entityManager);
-		repository.setRepositoryMethodMetadata(crudMethodMetadataPostProcessor.getCrudMethodMetadata());
-		repository.setEscapeCharacter(escapeCharacter);
+
+		invokeAwareMethods(repository);
 
 		return repository;
 	}
+
 
 	/**
 	 * Callback to create a {@link JpaRepository} instance with the given {@link EntityManager}
@@ -250,7 +254,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
 		return getRepositoryFragments(metadata, entityManager, entityPathResolver,
-				crudMethodMetadataPostProcessor.getCrudMethodMetadata());
+				this.crudMethodMetadata);
 	}
 
 	/**
@@ -279,11 +283,21 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 						"Cannot combine Querydsl and reactive repository support in a single interface");
 			}
 
-			return RepositoryFragments.just(new QuerydslJpaPredicateExecutor<>(getEntityInformation(metadata.getDomainType()),
-					entityManager, resolver, crudMethodMetadata));
+			QuerydslJpaPredicateExecutor<?> querydslJpaPredicateExecutor = new QuerydslJpaPredicateExecutor<>(
+					getEntityInformation(metadata.getDomainType()), entityManager, resolver, crudMethodMetadata);
+			invokeAwareMethods(querydslJpaPredicateExecutor);
+
+			return RepositoryFragments.just(querydslJpaPredicateExecutor);
 		}
 
 		return RepositoryFragments.empty();
+	}
+
+	private void invokeAwareMethods(JpaRepositoryConfigurationAware repository) {
+
+		repository.setRepositoryMethodMetadata(crudMethodMetadata);
+		repository.setEscapeCharacter(escapeCharacter);
+		repository.setProjectionFactory(getProjectionFactory());
 	}
 
 	private static boolean isTransactionNeeded(Class<?> repositoryClass) {

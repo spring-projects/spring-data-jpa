@@ -27,7 +27,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.ProjectionFactory;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.lang.Nullable;
 
 /**
@@ -47,8 +46,7 @@ abstract class FluentQuerySupport<S, R> {
 	protected final int limit;
 	protected final Set<String> properties;
 	protected final Class<S> entityType;
-
-	private final ProjectionFactory projectionFactory;
+	protected final ProjectionFactory projectionFactory;
 
 	FluentQuerySupport(Class<R> resultType, Sort sort, int limit, @Nullable Collection<String> properties,
 		Class<S> entityType, ProjectionFactory projectionFactory) {
@@ -65,10 +63,6 @@ abstract class FluentQuerySupport<S, R> {
 
 		this.entityType = entityType;
 		this.projectionFactory = projectionFactory;
-	}
-
-	ProjectionFactory getProjectionFactory() {
-		return projectionFactory;
 	}
 
 	final Collection<String> mergeProperties(Collection<String> additionalProperties) {

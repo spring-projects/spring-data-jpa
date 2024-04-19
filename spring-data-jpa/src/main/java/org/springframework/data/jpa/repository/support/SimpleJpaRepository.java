@@ -105,6 +105,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final PersistenceProvider provider;
 
 	private @Nullable CrudMethodMetadata metadata;
+	private @Nullable ProjectionFactory projectionFactory;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
@@ -137,16 +138,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
 	 *
-	 * @param crudMethodMetadata
+	 * @param metadata
 	 */
 	@Override
-	public void setRepositoryMethodMetadata(CrudMethodMetadata crudMethodMetadata) {
-		this.metadata = crudMethodMetadata;
+	public void setRepositoryMethodMetadata(CrudMethodMetadata metadata) {
+		this.metadata = metadata;
 	}
 
 	@Override
 	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
 		this.escapeCharacter = escapeCharacter;
+	}
+
+	@Override
+	public void setProjectionFactory(ProjectionFactory projectionFactory) {
+		this.projectionFactory = projectionFactory;
 	}
 
 	@Nullable
@@ -907,12 +913,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	private ProjectionFactory getProjectionFactory() {
 
-		CrudMethodMetadata metadata = getRepositoryMethodMetadata();
-		if(metadata == null || metadata.getProjectionFactory() == null) {
-			return new SpelAwareProxyProjectionFactory();
+		if (projectionFactory == null) {
+			projectionFactory = new SpelAwareProxyProjectionFactory();
 		}
 
-		return metadata.getProjectionFactory();
+		return projectionFactory;
 	}
 
 	/**
