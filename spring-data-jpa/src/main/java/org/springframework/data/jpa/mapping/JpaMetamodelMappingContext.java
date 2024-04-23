@@ -136,7 +136,7 @@ public class JpaMetamodelMappingContext
 
 			JpaMetamodel metamodel = getMetamodel(type);
 
-			Assert.notNull(metamodel, String.format("Required JpaMetamodel not found for %s", type));
+			Assert.notNull(metamodel, () -> String.format("Required JpaMetamodel not found for %s", type));
 			
 			return metamodel;
 		}
