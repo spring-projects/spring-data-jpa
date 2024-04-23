@@ -79,10 +79,8 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		super.verify();
 
 		JpaPersistentProperty versionProperty = getVersionProperty();
-
-		if (versionProperty != null && versionProperty.isAnnotationPresent(Version.class)) {
-			throw new IllegalArgumentException(String.format(INVALID_VERSION_ANNOTATION, versionProperty));
-		}
+		Assert.state(versionProperty != null && versionProperty.isAnnotationPresent(Version.class),
+				() -> String.format(INVALID_VERSION_ANNOTATION, versionProperty));
 	}
 
 	JpaMetamodel getMetamodel() {
