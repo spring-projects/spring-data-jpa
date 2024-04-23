@@ -15,11 +15,11 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import java.util.Set;
-import java.util.function.Predicate;
-
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
+
+import java.util.Set;
+import java.util.function.Predicate;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -137,7 +137,7 @@ public class JpaMetamodelMappingContext
 			JpaMetamodel metamodel = getMetamodel(type);
 
 			Assert.notNull(metamodel, () -> String.format("Required JpaMetamodel not found for %s", type));
-			
+
 			return metamodel;
 		}
 
