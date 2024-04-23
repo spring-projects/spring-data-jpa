@@ -347,11 +347,9 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String query = getAnnotatedQuery();
 
-		if (query != null) {
-			return query;
-		}
-
-		throw new IllegalStateException(String.format("No annotated query found for query method %s", getName()));
+		Assert.notNull(query, () -> String.format("No annotated query found for query method %s", getName()));
+		
+		return query;
 	}
 
 	/**
