@@ -61,17 +61,12 @@ public class DefaultJpaContext implements JpaContext {
 
 		Assert.notNull(type, "Type must not be null");
 
-		if (!entityManagers.containsKey(type)) {
-			throw new IllegalArgumentException(String.format("%s is not a managed type", type));
-		}
+		Assert.isTrue(entityManagers.containsKey(type), () -> String.format("%s is not a managed type", type));
 
 		List<EntityManager> candidates = this.entityManagers.get(type);
 
-		if (candidates.size() == 1) {
-			return candidates.get(0);
-		}
-
-		throw new IllegalArgumentException(
-				String.format("%s managed by more than one EntityManagers: %s", type.getName(), candidates));
+		Assert.isTrue(candidates.size() == 1, () -> String.format("%s managed by more than one EntityManagers: %s", type.getName(), candidates));
+		
+		return candidates.get(0);
 	}
 }
