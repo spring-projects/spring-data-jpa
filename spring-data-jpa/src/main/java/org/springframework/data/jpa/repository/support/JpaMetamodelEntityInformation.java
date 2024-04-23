@@ -81,16 +81,13 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
-		if (type == null) {
-			throw new IllegalArgumentException("The given domain class can not be found in the given Metamodel");
-		}
+		Assert.notNull(type, "The given domain class can not be found in the given Metamodel");
 
 		this.entityName = type instanceof EntityType ? ((EntityType<?>) type).getName() : null;
 
-		if (!(type instanceof IdentifiableType<T> identifiableType)) {
-			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
-		}
+		Assert.isTrue(type instanceof IdentifiableType<T>, "The given domain class does not contain an id attribute");
 
+		IdentifiableType<T> identifiableType = (IdentifiableType<T>) type;
 		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 
