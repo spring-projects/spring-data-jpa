@@ -296,9 +296,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			// lazy initialization of idType field with tolerable benign data-race
 			this.idType = tryExtractIdTypeWithFallbackToIdTypeLookup();
 
-			if (this.idType == null) {
-				throw new IllegalStateException("Cannot resolve Id type from " + type);
-			}
+			Assert.notNull(this.idType, () -> String.format("Cannot resolve Id type from %s", type));
 
 			return this.idType;
 		}
