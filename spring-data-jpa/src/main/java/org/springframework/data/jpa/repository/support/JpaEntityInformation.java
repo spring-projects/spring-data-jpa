@@ -23,6 +23,7 @@ import java.util.Map;
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Extension of {@link EntityInformation} to capture additional JPA specific information about entities.
@@ -50,12 +51,9 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 		SingularAttribute<? super T, ?> id = getIdAttribute();
 
-		if (id != null) {
-			return id;
-		}
-
-		throw new IllegalArgumentException(
-				String.format("Could not obtain required identifier attribute for type %s", getEntityName()));
+		Assert.notNull(id, () -> String.format("Could not obtain required identifier attribute for type %s", getEntityName()));
+		
+		return id;
 	}
 
 	/**
