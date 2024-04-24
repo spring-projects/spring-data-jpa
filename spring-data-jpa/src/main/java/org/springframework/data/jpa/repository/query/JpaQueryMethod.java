@@ -145,7 +145,7 @@ public class JpaQueryMethod extends QueryMethod {
 		this.annotationCache = new ConcurrentReferenceHashMap<>();
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
-				String.format("Modifying method must not contain %s", Parameters.TYPES));
+				() -> String.format("Modifying method must not contain %s", Parameters.TYPES));
 		assertParameterNamesInAnnotatedQuery();
 	}
 
