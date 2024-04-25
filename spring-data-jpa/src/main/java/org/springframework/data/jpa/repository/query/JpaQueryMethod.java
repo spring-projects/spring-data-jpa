@@ -70,8 +70,8 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * @see <a href=
 	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#persistent-fields-and-properties">Jakarta
-	 *      Persistence Specification: Persistent Fields and Properties - Paragraph
-	 *      starting with "Collection-valued persistent...".</a>
+	 *      Persistence Specification: Persistent Fields and Properties - Paragraph starting with
+	 *      "Collection-valued persistent...".</a>
 	 */
 	private static final Set<Class<?>> NATIVE_ARRAY_TYPES;
 	private static final StoredProcedureAttributeSource storedProcedureAttributeSource = StoredProcedureAttributeSource.INSTANCE;
