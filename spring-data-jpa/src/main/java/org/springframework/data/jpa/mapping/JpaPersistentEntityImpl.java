@@ -79,7 +79,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		super.verify();
 
 		JpaPersistentProperty versionProperty = getVersionProperty();
-		Assert.state(versionProperty != null && versionProperty.isAnnotationPresent(Version.class),
+		Assert.state(versionProperty == null || !versionProperty.isAnnotationPresent(Version.class),
 				() -> String.format(INVALID_VERSION_ANNOTATION, versionProperty));
 	}
 
