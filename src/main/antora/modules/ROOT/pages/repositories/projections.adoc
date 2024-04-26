@@ -15,3 +15,28 @@ include::{commons}@data-commons::page$repositories/projections-interface.adoc[le
 include::{commons}@data-commons::page$repositories/projections-class.adoc[leveloffset=1]
 
 
+
+[NOTE]
+====
+Some JPA providers may require additional hints when working with <<projections.dtos,Class-based projections>> especially when using those directly with method derived queries.
+If you are facing errors like `JpaSystemException: Specified result type did not match Query selection type` make sure to provide a constructor hint via `@PersistenceCreator` to be passed on, as outlined below:
+
+[source,java]
+----
+public class NamesOnly {
+
+    private final String firstname;
+    private final String lastname;
+
+    protected NamesOnly() { }
+
+    @PersistenceCreator
+    public NamesOnly(String firstname, String lastname) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
+
+    // ...
+}
+----
+====
