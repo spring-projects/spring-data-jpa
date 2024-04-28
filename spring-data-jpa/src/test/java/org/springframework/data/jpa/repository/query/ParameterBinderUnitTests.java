@@ -39,6 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Temporal;
@@ -53,6 +54,7 @@ import org.springframework.data.repository.query.ParametersSource;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -85,6 +87,8 @@ class ParameterBinderUnitTests {
 		User valid(@Param("username") String username);
 
 		User validWithPageable(@Param("username") String username, Pageable pageable);
+
+		User validWithLimit(@Param("username") String username, Limit limit);
 
 		User validWithSort(@Param("username") String username, Sort sort);
 
@@ -120,6 +124,40 @@ class ParameterBinderUnitTests {
 		Object[] values = { "foo", null };
 		bind(validWithPageable, values);
 		verify(query).setParameter(eq(1), eq("foo"));
+	}
+
+	@Test
+	void bindAndPrepareWorksWithPageable() throws Exception {
+
+		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
+
+		Object[] values = { "foo", Pageable.ofSize(10).withPage(3) };
+		bindAndPrepare(validWithPageable, values);
+		verify(query).setParameter(eq(1), eq("foo"));
+		verify(query).setFirstResult(eq(30));
+		verify(query).setMaxResults(eq(10));
+	}
+
+	@Test
+	void bindWorksWithNullForLimit() throws Exception {
+
+		Method validWithLimit = SampleRepository.class.getMethod("validWithLimit", String.class, Limit.class);
+
+		Object[] values = { "foo", null };
+		bind(validWithLimit, values);
+		verify(query).setParameter(eq(1), eq("foo"));
+	}
+
+	@Test
+	void bindAndPrepareWorksWithLimit() throws Exception {
+
+		Method validWithLimit = SampleRepository.class.getMethod("validWithLimit", String.class, Limit.class);
+
+		Object[] values = { "foo", Limit.of(10) };
+		bindAndPrepare(validWithLimit, values);
+		verify(query).setParameter(eq(1), eq("foo"));
+		verify(query).setMaxResults(eq(10));
+		verify(query, never()).setFirstResult(anyInt());
 	}
 
 	@Test
@@ -234,6 +272,11 @@ class ParameterBinderUnitTests {
 	private void bind(Method method, JpaParameters parameters, Object[] values) {
 		ParameterBinderFactory.createBinder(parameters).bind(QueryParameterSetter.BindableQuery.from(query),
 				getAccessor(method, values), QueryParameterSetter.ErrorHandling.STRICT);
+	}
+
+	private void bindAndPrepare(Method method, Object[] values) {
+		ParameterBinderFactory.createBinder(createParameters(method)).bindAndPrepare(query,
+				new QueryParameterSetter.QueryMetadata(query), getAccessor(method, values));
 	}
 
 	private JpaParametersParameterAccessor getAccessor(Method method, Object... values) {
