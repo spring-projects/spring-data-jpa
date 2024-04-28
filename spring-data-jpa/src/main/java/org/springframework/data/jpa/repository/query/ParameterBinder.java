@@ -30,6 +30,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Jens Schauder
+ * @author Yanming Zhou
  */
 public class ParameterBinder {
 
@@ -101,7 +102,11 @@ public class ParameterBinder {
 			return query;
 		}
 
-		query.setFirstResult(PageableUtils.getOffsetAsInteger(accessor.getPageable()));
+		// see #3242
+		if (!parameters.hasLimitParameter()) {
+			// offset is meaningless if Limit parameter present
+			query.setFirstResult(PageableUtils.getOffsetAsInteger(accessor.getPageable()));
+		}
 		query.setMaxResults(accessor.getPageable().getPageSize());
 
 		return query;
