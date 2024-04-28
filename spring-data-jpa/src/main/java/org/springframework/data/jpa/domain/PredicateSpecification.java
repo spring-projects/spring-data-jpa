@@ -40,6 +40,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 4.0
  */
+@FunctionalInterface
 public interface PredicateSpecification<T> extends Serializable {
 
 	/**

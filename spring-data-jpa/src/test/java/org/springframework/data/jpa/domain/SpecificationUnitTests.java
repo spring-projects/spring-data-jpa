@@ -44,10 +44,9 @@ import org.mockito.quality.Strictness;
  * @author Mark Paluch
  * @author Daniel Shuy
  */
-@SuppressWarnings("serial")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class SpecificationUnitTests implements Serializable {
+class SpecificationUnitTests {
 
 	private Specification<Object> spec;
 	@Mock(serializable = true) Root<Object> root;
@@ -88,7 +87,7 @@ class SpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
@@ -103,7 +102,7 @@ class SpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
