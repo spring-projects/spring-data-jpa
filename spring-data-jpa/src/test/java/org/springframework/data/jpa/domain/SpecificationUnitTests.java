@@ -88,7 +88,7 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({ "unchecked", "deprecation" })
+		@SuppressWarnings({ "unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
@@ -103,7 +103,7 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({ "unchecked", "deprecation" })
+		@SuppressWarnings({ "unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
