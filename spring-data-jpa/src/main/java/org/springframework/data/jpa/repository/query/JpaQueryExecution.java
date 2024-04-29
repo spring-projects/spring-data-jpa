@@ -24,7 +24,9 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.LongSupplier;
 
+import org.hibernate.query.SelectionQuery;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -57,6 +59,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jens Schauder
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public abstract class JpaQueryExecution {
 
@@ -195,14 +198,30 @@ public abstract class JpaQueryExecution {
 	 */
 	static class PagedExecution extends JpaQueryExecution {
 
+		private final EntityManager em;
+
+		public PagedExecution(EntityManager em) {
+
+			Assert.notNull(em, "The EntityManager must not be null");
+			this.em = em;
+		}
+
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Object doExecute(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
 
 			Query query = repositoryQuery.createQuery(accessor);
 
-			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(),
-					() -> count(repositoryQuery, accessor));
+			LongSupplier count = () -> {
+				boolean userDefinedCountQuery = (repositoryQuery instanceof AbstractStringBasedJpaQuery);
+				if (!userDefinedCountQuery && PersistenceProvider.fromEntityManager(em) == PersistenceProvider.HIBERNATE) {
+					// Hibernate introduce SelectionQuery::getResultCount since 6.5.0
+					return ((SelectionQuery<?>) query).getResultCount();
+				}
+				return count(repositoryQuery, accessor);
+			};
+
+			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(), count);
 		}
 
 		private long count(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {

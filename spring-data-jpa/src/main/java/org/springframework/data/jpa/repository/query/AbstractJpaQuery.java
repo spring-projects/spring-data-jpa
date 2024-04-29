@@ -62,6 +62,7 @@ import org.springframework.util.Assert;
  * @author Сергей Цыпанов
  * @author Wonchul Heo
  * @author Julia Lee
+ * @author Yanming Zhou
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -99,7 +100,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			} else if (method.isSliceQuery()) {
 				return new SlicedExecution();
 			} else if (method.isPageQuery()) {
-				return new PagedExecution();
+				return new PagedExecution(em);
 			} else if (method.isModifyingQuery()) {
 				return null;
 			} else {
