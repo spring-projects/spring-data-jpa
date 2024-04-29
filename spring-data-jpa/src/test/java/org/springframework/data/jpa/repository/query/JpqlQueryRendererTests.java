@@ -18,11 +18,15 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
+import java.util.stream.Stream;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -54,6 +58,10 @@ class JpqlQueryRendererTests {
 		JpqlParser.StartContext parsedQuery = parser.start();
 
 		return render(new JpqlQueryRenderer().visit(parsedQuery));
+	}
+
+	public static Stream<Arguments> reservedWords() {
+		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
 	}
 
 	private void assertQuery(String query) {
@@ -1014,4 +1022,14 @@ class JpqlQueryRendererTests {
 	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
 	}
+
+	@ParameterizedTest // GH-3451
+	@MethodSource({"reservedWords"})
+	void entityNameWithPackageContainingReservedWord(String reservedWord) {
+
+		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
+		assertQuery(source);
+	}
+
+
 }

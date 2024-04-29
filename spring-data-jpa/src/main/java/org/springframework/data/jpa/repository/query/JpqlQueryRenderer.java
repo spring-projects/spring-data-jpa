@@ -20,6 +20,8 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
+
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
@@ -2142,7 +2144,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.addAll(visit(ctx.state_field_path_expression()));
+		tokens.addAll(visit(ctx.entity_name()));
 		NOSPACE(tokens);
 
 		return tokens;
@@ -2295,8 +2297,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		ctx.identification_variable().forEach(identificationVariableContext -> {
-			tokens.addAll(visit(identificationVariableContext));
+		ctx.reserved_word().forEach(ctx2 -> {
+			tokens.addAll(visitReserved_word(ctx2));
 			NOSPACE(tokens);
 			tokens.add(TOKEN_DOT);
 		});
@@ -2342,6 +2344,17 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else if (ctx.input_parameter() != null) {
 			return visit(ctx.input_parameter());
+		} else {
+			return List.of();
+		}
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitReserved_word(Reserved_wordContext ctx) {
+		if (ctx.IDENTIFICATION_VARIABLE() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
+		} else if (ctx.f != null) {
+			return List.of(new JpaQueryParsingToken(ctx.f));
 		} else {
 			return List.of();
 		}
