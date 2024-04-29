@@ -18,11 +18,15 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
+import java.util.stream.Stream;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -51,6 +55,10 @@ class EqlQueryRendererTests {
 		EqlParser.StartContext parsedQuery = parser.start();
 
 		return render(new EqlQueryRenderer().visit(parsedQuery));
+	}
+
+	static Stream<Arguments> reservedWords() {
+		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
 	}
 
 	private void assertQuery(String query) {
@@ -995,25 +1003,25 @@ class EqlQueryRendererTests {
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = {
-			"select 1 from User u",
-			"select -1 from User u",
-			"select +1 from User u",
-			"select +1*-100 from User u",
-			"select count(u)*-0.7f from User u",
+	@ValueSource(strings = { "select 1 from User u", "select -1 from User u", "select +1 from User u",
+			"select +1*-100 from User u", "select count(u)*-0.7f from User u",
 			"select count(oi) + (-100) as perc from StockOrderItem oi",
-			"select p from Payment p where length(p.cardNumber) between +16 and -20"
-	})
+			"select p from Payment p where length(p.cardNumber) between +16 and -20" })
 	void signedLiteralShouldWork(String query) {
 		assertQuery(query);
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = {
-			"select -count(u) from User u",
-			"select +1*(-count(u)) from User u"
-	})
+	@ValueSource(strings = { "select -count(u) from User u", "select +1*(-count(u)) from User u" })
 	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
+	}
+
+	@ParameterizedTest // GH-3451
+	@MethodSource("reservedWords")
+	void entityNameWithPackageContainingReservedWord(String reservedWord) {
+
+		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
+		assertQuery(source);
 	}
 }
