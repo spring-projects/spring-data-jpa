@@ -61,7 +61,7 @@ class HqlQueryRendererTests {
 		return render(new HqlQueryRenderer().visit(parsedQuery));
 	}
 
-	public static Stream<Arguments> reservedWords() {
+	static Stream<Arguments> reservedWords() {
 		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
 	}
 
@@ -1648,30 +1648,22 @@ class HqlQueryRendererTests {
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = {
-			"select 1 from User",
-			"select -1 from User",
-			"select +1 from User",
-			"select +1*-100 from User",
-			"select count(u)*-0.7f from User u",
-			"select count(oi) + (-100) as perc from StockOrderItem oi",
-			"select p from Payment p where length(p.cardNumber) between +16 and -20"
-	})
+	@ValueSource(
+			strings = { "select 1 from User", "select -1 from User", "select +1 from User", "select +1*-100 from User",
+					"select count(u)*-0.7f from User u", "select count(oi) + (-100) as perc from StockOrderItem oi",
+					"select p from Payment p where length(p.cardNumber) between +16 and -20" })
 	void signedLiteralShouldWork(String query) {
 		assertQuery(query);
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = {
-			"select -count(u) from User u",
-			"select +1*(-count(u)) from User u"
-	})
+	@ValueSource(strings = { "select -count(u) from User u", "select +1*(-count(u)) from User u" })
 	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
 	}
 
 	@ParameterizedTest // GH-3451
-	@MethodSource({"reservedWords"})
+	@MethodSource("reservedWords")
 	void entityNameWithPackageContainingReservedWord(String reservedWord) {
 
 		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
