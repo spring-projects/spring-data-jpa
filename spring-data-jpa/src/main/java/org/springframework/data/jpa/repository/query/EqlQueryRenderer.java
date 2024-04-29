@@ -2331,7 +2331,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		tokens.addAll(visit(ctx.state_field_path_expression()));
+		tokens.addAll(visit(ctx.entity_name()));
 		NOSPACE(tokens);
 
 		return tokens;
@@ -2492,8 +2492,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		ctx.identification_variable().forEach(identificationVariableContext -> {
-			tokens.addAll(visit(identificationVariableContext));
+		ctx.reserved_word().forEach(identificationVariableContext -> {
+			tokens.addAll(visitReserved_word(identificationVariableContext));
 			NOSPACE(tokens);
 			tokens.add(TOKEN_DOT);
 		});
@@ -2539,6 +2539,17 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
 		} else if (ctx.input_parameter() != null) {
 			return visit(ctx.input_parameter());
+		} else {
+			return List.of();
+		}
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitReserved_word(EqlParser.Reserved_wordContext ctx) {
+		if (ctx.IDENTIFICATION_VARIABLE() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
+		} else if (ctx.f != null) {
+			return List.of(new JpaQueryParsingToken(ctx.f));
 		} else {
 			return List.of();
 		}
