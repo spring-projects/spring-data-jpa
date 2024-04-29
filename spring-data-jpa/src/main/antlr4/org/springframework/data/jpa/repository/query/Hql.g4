@@ -737,6 +737,7 @@ reservedWord
 	| EXCEPT
 	| EXCLUDE
 	| EXISTS
+	| EXP
 	| EXTRACT
 	| FETCH
 	| FILTER
