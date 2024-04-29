@@ -616,7 +616,7 @@ identification_variable
     ;
 
 constructor_name
-    : state_field_path_expression
+    : entity_name
     ;
 
 literal
@@ -696,7 +696,7 @@ collection_value_field
     ;
 
 entity_name
-    : identification_variable ('.' identification_variable)* // Hibernate sometimes expands the entity name to FQDN when using named queries
+    : reserved_word ('.' reserved_word)* // Hibernate sometimes expands the entity name to FQDN when using named queries
     ;
 
 result_variable
@@ -724,6 +724,90 @@ character_valued_input_parameter
     | input_parameter
     ;
 
+reserved_word
+    : IDENTIFICATION_VARIABLE
+     | f=(ABS
+       |ALL
+       |AND
+       |ANY
+       |AS
+       |ASC
+       |AVG
+       |BETWEEN
+       |BOTH
+       |BY
+       |CASE
+       |CEILING
+       |COALESCE
+       |CONCAT
+       |COUNT
+       |CURRENT_DATE
+       |CURRENT_TIME
+       |CURRENT_TIMESTAMP
+       |DATE
+       |DATETIME
+       |DELETE
+       |DESC
+       |DISTINCT
+       |END
+       |ELSE
+       |EMPTY
+       |ENTRY
+       |ESCAPE
+       |EXISTS
+       |EXP
+       |EXTRACT
+       |FALSE
+       |FETCH
+       |FLOOR
+       |FUNCTION
+       |IN
+       |INDEX
+       |INNER
+       |IS
+       |KEY
+       |LEFT
+       |LENGTH
+       |LIKE
+       |LN
+       |LOCAL
+       |LOCATE
+       |LOWER
+       |MAX
+       |MEMBER
+       |MIN
+       |MOD
+       |NEW
+       |NOT
+       |NULL
+       |NULLIF
+       |OBJECT
+       |OF
+       |ON
+       |OR
+       |ORDER
+       |OUTER
+       |POWER
+       |ROUND
+       |SELECT
+       |SET
+       |SIGN
+       |SIZE
+       |SOME
+       |SQRT
+       |SUBSTRING
+       |SUM
+       |THEN
+       |TIME
+       |TRAILING
+       |TREAT
+       |TRIM
+       |TRUE
+       |TYPE
+       |UPDATE
+       |UPPER
+       |VALUE)
+       ;
 /*
     Lexer rules
  */
