@@ -67,7 +67,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * @author Greg Turnquist
  * @author Yanming Zhou
  */
-@DisabledOnHibernate61 // GH-2903
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
@@ -150,12 +149,29 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
+	@Test // 3460
+	void testPositionalInOutParameter() {
+
+		Object[] results = repository.positionalInOut(1, 2);
+
+		assertThat(results).containsExactly( //
+				2, //
+				3);
+	}
+
 	@Entity
 	@NamedStoredProcedureQuery( //
 			name = "get_employees_postgres", //
 			procedureName = "get_employees", //
 			parameters = { @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }, //
 			resultClasses = Employee.class)
+	@NamedStoredProcedureQuery( //
+			name = "positional_inout", //
+			procedureName = "positional_inout_parameter_issue3460", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+							@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+							@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) }, //
+			resultClasses = Employee.class)	
 	public static class Employee {
 
 		@Id
@@ -234,6 +250,9 @@ class PostgresStoredProcedureIntegrationTests {
 
 		@Procedure(name = "get_employees_postgres", refCursor = true)
 		List<Employee> entityListFromNamedProcedure();
+
+		@Procedure(name = "positional_inout")
+		Object[] positionalInOut(Integer in, Integer inout);
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
