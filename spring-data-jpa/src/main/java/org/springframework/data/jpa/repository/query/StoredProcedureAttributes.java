@@ -87,7 +87,7 @@ class StoredProcedureAttributes {
 
 	private ProcedureParameter getParameterWithCompletedName(ProcedureParameter parameter, int i) {
 
-		return new ProcedureParameter(completeOutputParameterName(i, parameter.getName()), parameter.getMode(),
+		return new ProcedureParameter(completeOutputParameterName(i, parameter.getName()), i+1, parameter.getMode(),
 				parameter.getType());
 	}
 

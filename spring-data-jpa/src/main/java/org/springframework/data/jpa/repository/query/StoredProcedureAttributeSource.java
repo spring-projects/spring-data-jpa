@@ -119,10 +119,7 @@ enum StoredProcedureAttributeSource {
 		} else {
 
 			// try to discover the output parameter
-			outputParameters = extractOutputParametersFrom(namedStoredProc).stream() //
-					.map(namedParameter -> new ProcedureParameter(namedParameter.name(), namedParameter.mode(),
-							namedParameter.type())) //
-					.collect(Collectors.toList());
+			outputParameters = extractOutputParametersFrom(namedStoredProc);
 		}
 
 		return new StoredProcedureAttributes(namedStoredProc.name(), outputParameters, true);
@@ -137,33 +134,36 @@ enum StoredProcedureAttributeSource {
 	 */
 	private ProcedureParameter createOutputProcedureParameterFrom(Method method, Procedure procedure) {
 
-		return new ProcedureParameter(procedure.outputParameterName(),
+		return new ProcedureParameter(procedure.outputParameterName(), 1,
 				procedure.refCursor() ? ParameterMode.REF_CURSOR : ParameterMode.OUT, method.getReturnType());
 	}
 
 	/**
 	 * Translate all the {@Link NamedStoredProcedureQuery} parameters into a {@link List} of
-	 * {@link StoredProcedureParameter}s.
+	 * {@link ProcedureParameter}s.
 	 *
 	 * @param namedStoredProc
 	 * @return
 	 */
-	private List<StoredProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {
+	private List<ProcedureParameter> extractOutputParametersFrom(NamedStoredProcedureQuery namedStoredProc) {
 
-		List<StoredProcedureParameter> outputParameters = new ArrayList<>();
+		List<ProcedureParameter> outputParameters = new ArrayList<>();
 
+		int position = 1;
 		for (StoredProcedureParameter param : namedStoredProc.parameters()) {
 
 			switch (param.mode()) {
 				case OUT:
 				case INOUT:
 				case REF_CURSOR:
-					outputParameters.add(param);
+					outputParameters.add(new ProcedureParameter(param.name(), position, param.mode(), param.type()));
 					break;
 				case IN:
 				default:
-					continue;
+					// not an output parameter
 			}
+
+			position++;
 		}
 
 		return outputParameters;

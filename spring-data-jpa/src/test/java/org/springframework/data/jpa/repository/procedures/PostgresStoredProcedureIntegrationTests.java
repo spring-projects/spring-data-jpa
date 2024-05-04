@@ -28,6 +28,7 @@ import jakarta.persistence.StoredProcedureParameter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -152,11 +153,11 @@ class PostgresStoredProcedureIntegrationTests {
 	@Test // 3460
 	void testPositionalInOutParameter() {
 
-		Object[] results = repository.positionalInOut(1, 2);
+		Map results = repository.positionalInOut(1, 2);
 
-		assertThat(results).containsExactly( //
-				2, //
-				3);
+		// TODO: Check result format
+		assertThat(results.get("2")).isEqualTo(2);
+		assertThat(results.get("3")).isEqualTo(3);
 	}
 
 	@Entity
@@ -252,7 +253,7 @@ class PostgresStoredProcedureIntegrationTests {
 		List<Employee> entityListFromNamedProcedure();
 
 		@Procedure(name = "positional_inout")
-		Object[] positionalInOut(Integer in, Integer inout);
+		Map positionalInOut(Integer in, Integer inout);
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
