@@ -28,22 +28,29 @@ import org.springframework.lang.Nullable;
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Thorben Janssen
  */
 class ProcedureParameter {
 
 	private final String name;
+	private final int position;
 	private final ParameterMode mode;
 	private final Class<?> type;
 
-	ProcedureParameter(@Nullable String name, ParameterMode mode, Class<?> type) {
+	ProcedureParameter(@Nullable String name, int position, ParameterMode mode, Class<?> type) {
 
 		this.name = name;
+		this.position = position;
 		this.mode = mode;
 		this.type = type;
 	}
 
 	public String getName() {
 		return name;
+	}
+
+	public int getPosition() {
+		return position;
 	}
 
 	public ParameterMode getMode() {
@@ -76,6 +83,6 @@ class ProcedureParameter {
 
 	@Override
 	public String toString() {
-		return "ProcedureParameter{" + "name='" + name + '\'' + ", mode=" + mode + ", type=" + type + '}';
+		return "ProcedureParameter{" + "name='" + name + '\'' + ", position=" + position + ", mode=" + mode + ", type=" + type + '}';
 	}
 }

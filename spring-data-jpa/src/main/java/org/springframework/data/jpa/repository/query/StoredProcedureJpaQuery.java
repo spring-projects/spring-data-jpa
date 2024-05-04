@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jeff Sheets
  * @author JyotirmoyVS
+ * @author Thorben Janssen
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {
@@ -119,15 +120,15 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 		List<ProcedureParameter> outputParameters = procedureAttributes.getOutputProcedureParameters();
 
 		if (outputParameters.size() == 1) {
-			return extractOutputParameterValue(outputParameters.get(0), 0, storedProcedureQuery);
+			return extractOutputParameterValue(outputParameters.get(0), storedProcedureQuery);
 		}
 
 		Map<String, Object> outputValues = new HashMap<>();
 
-		for (int i = 0; i < outputParameters.size(); i++) {
-			ProcedureParameter outputParameter = outputParameters.get(i);
-			outputValues.put(outputParameter.getName(),
-					extractOutputParameterValue(outputParameter, i, storedProcedureQuery));
+		for (ProcedureParameter outputParameter : outputParameters) {
+			outputValues.put(
+					!outputParameter.getName().isEmpty() ? outputParameter.getName() : outputParameter.getPosition() + "",
+					extractOutputParameterValue(outputParameter, storedProcedureQuery));
 		}
 
 		return outputValues;
@@ -136,14 +137,12 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return The value of an output parameter either by name or by index.
 	 */
-	private Object extractOutputParameterValue(ProcedureParameter outputParameter, Integer index,
+	private Object extractOutputParameterValue(ProcedureParameter outputParameter,
 			StoredProcedureQuery storedProcedureQuery) {
-
-		JpaParameters methodParameters = getQueryMethod().getParameters();
 
 		return useNamedParameters && StringUtils.hasText(outputParameter.getName())
 				? storedProcedureQuery.getOutputParameterValue(outputParameter.getName())
-				: storedProcedureQuery.getOutputParameterValue(methodParameters.getNumberOfParameters() + index + 1);
+				: storedProcedureQuery.getOutputParameterValue(outputParameter.getPosition());
 	}
 
 	/**
@@ -236,7 +235,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	}
 
 	/**
-	 *
 	 * @return true if the stored procedure will use a ResultSet to return data and not output parameters
 	 */
 	private boolean isResultSetProcedure() {

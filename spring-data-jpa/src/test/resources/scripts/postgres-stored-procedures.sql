@@ -34,3 +34,21 @@ BEGIN
     OPEN ref FOR SELECT * FROM employee WHERE employee.ID = 3;
 END;
 $BODY$;;
+
+CREATE OR REPLACE PROCEDURE get_employees_count(OUT results integer)
+    LANGUAGE 'plpgsql'
+AS
+$BODY$
+BEGIN
+    results = (SELECT COUNT(*) FROM employee);
+END;
+$BODY$;;
+
+CREATE OR REPLACE PROCEDURE positional_inout_parameter_issue3460(IN inParam integer, INOUT inoutParam integer, OUT outParam integer)
+    LANGUAGE 'plpgsql'
+AS
+$BODY$
+BEGIN
+    outParam = 3;
+END;
+$BODY$;;

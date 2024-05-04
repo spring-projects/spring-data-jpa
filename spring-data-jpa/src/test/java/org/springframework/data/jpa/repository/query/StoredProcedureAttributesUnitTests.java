@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Thorben Janssen
  */
 class StoredProcedureAttributesUnitTests {
 
@@ -34,7 +35,7 @@ class StoredProcedureAttributesUnitTests {
 	void usesSyntheticOutputParameterNameForAdhocProcedureWithoutOutputName() {
 
 		StoredProcedureAttributes attributes = new StoredProcedureAttributes("procedure",
-				new ProcedureParameter(null, ParameterMode.OUT, Long.class));
+				new ProcedureParameter(null, 1, ParameterMode.OUT, Long.class));
 		assertThat(attributes.getOutputProcedureParameters().get(0).getName()).isEqualTo(SYNTHETIC_OUTPUT_PARAMETER_NAME);
 	}
 }
