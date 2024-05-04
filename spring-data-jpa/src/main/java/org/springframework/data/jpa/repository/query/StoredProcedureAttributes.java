@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Jeff Sheets
  * @author Jens Schauder
  * @author Gabriel Basilio
+ * @author Thorben Janssen
  * @since 1.6
  */
 class StoredProcedureAttributes {
@@ -87,7 +88,7 @@ class StoredProcedureAttributes {
 
 	private ProcedureParameter getParameterWithCompletedName(ProcedureParameter parameter, int i) {
 
-		return new ProcedureParameter(completeOutputParameterName(i, parameter.getName()), parameter.getMode(),
+		return new ProcedureParameter(completeOutputParameterName(i, parameter.getName()), parameter.getPosition(), parameter.getMode(),
 				parameter.getType());
 	}
 

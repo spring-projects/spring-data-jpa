@@ -16,7 +16,7 @@
 
 package org.springframework.data.jpa.repository.procedures;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManagerFactory;
@@ -28,6 +28,7 @@ import jakarta.persistence.StoredProcedureParameter;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -45,7 +46,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.data.jpa.util.DisabledOnHibernate61;
 import org.springframework.data.jpa.util.DisabledOnHibernate62;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -66,8 +66,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * @author Gabriel Basilio
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Thorben Janssen
  */
-@DisabledOnHibernate61 // GH-2903
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
@@ -150,11 +150,27 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
+	@Test // 3460
+	void testPositionalInOutParameter() {
+
+		Map results = repository.positionalInOut(1, 2);
+
+		assertThat(results.get("2")).isEqualTo(2);
+		assertThat(results.get("3")).isEqualTo(3);
+	}
+
 	@Entity
 	@NamedStoredProcedureQuery( //
 			name = "get_employees_postgres", //
 			procedureName = "get_employees", //
 			parameters = { @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }, //
+			resultClasses = Employee.class)
+	@NamedStoredProcedureQuery( //
+			name = "positional_inout", //
+			procedureName = "positional_inout_parameter_issue3460", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) }, //
 			resultClasses = Employee.class)
 	public static class Employee {
 
@@ -234,6 +250,9 @@ class PostgresStoredProcedureIntegrationTests {
 
 		@Procedure(name = "get_employees_postgres", refCursor = true)
 		List<Employee> entityListFromNamedProcedure();
+
+		@Procedure(name = "positional_inout")
+		Map positionalInOut(Integer in, Integer inout);
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
