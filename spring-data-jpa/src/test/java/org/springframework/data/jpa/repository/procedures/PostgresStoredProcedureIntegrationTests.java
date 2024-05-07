@@ -66,6 +66,7 @@ import jakarta.persistence.StoredProcedureParameter;
  * @author Gabriel Basilio
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Thorben Janssen
  */
 @Transactional
 @ExtendWith(SpringExtension.class)

@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Jeff Sheets
  * @author Jens Schauder
  * @author Gabriel Basilio
+ * @author Thorben Janssen
  * @since 1.6
  */
 class StoredProcedureAttributes {

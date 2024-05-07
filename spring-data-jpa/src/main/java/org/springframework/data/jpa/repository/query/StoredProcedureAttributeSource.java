@@ -43,6 +43,7 @@ import jakarta.persistence.StoredProcedureParameter;
  * @author Jeff Sheets
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Thorben Janssen
  * @since 1.6
  */
 enum StoredProcedureAttributeSource {

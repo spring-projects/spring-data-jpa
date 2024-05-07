@@ -43,6 +43,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Jeff Sheets
  * @author JyotirmoyVS
+ * @author Thorben Janssen
  * @since 1.6
  */
 class StoredProcedureJpaQuery extends AbstractJpaQuery {

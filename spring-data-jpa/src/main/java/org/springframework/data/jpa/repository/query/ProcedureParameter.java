@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Thorben Janssen
  */
 class ProcedureParameter {
 

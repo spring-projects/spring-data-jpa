@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Thorben Janssen
  */
 class StoredProcedureAttributesUnitTests {
 
