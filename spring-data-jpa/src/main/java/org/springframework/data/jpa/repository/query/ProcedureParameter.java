@@ -82,6 +82,6 @@ class ProcedureParameter {
 
 	@Override
 	public String toString() {
-		return "ProcedureParameter{" + "name='" + name + '\'' + ", mode=" + mode + ", type=" + type + '}';
+		return "ProcedureParameter{" + "name='" + name + '\'' + ", position=" + position + ", mode=" + mode + ", type=" + type + '}';
 	}
 }

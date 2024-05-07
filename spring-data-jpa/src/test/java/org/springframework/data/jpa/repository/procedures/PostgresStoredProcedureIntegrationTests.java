@@ -16,15 +16,7 @@
 
 package org.springframework.data.jpa.repository.procedures;
 
-import static org.assertj.core.api.Assertions.*;
-
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.NamedStoredProcedureQuery;
-import jakarta.persistence.ParameterMode;
-import jakarta.persistence.StoredProcedureParameter;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -46,7 +38,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.data.jpa.util.DisabledOnHibernate61;
 import org.springframework.data.jpa.util.DisabledOnHibernate62;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
@@ -60,6 +51,14 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureParameter;
 
 /**
  * Testcase to verify {@link org.springframework.jdbc.object.StoredProcedure}s work with Postgres.
@@ -155,7 +154,6 @@ class PostgresStoredProcedureIntegrationTests {
 
 		Map results = repository.positionalInOut(1, 2);
 
-		// TODO: Check result format
 		assertThat(results.get("2")).isEqualTo(2);
 		assertThat(results.get("3")).isEqualTo(3);
 	}
