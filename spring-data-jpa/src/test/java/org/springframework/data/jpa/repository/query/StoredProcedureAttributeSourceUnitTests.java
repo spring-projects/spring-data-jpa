@@ -15,21 +15,29 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
+import jakarta.persistence.NamedStoredProcedureQuery;
+import jakarta.persistence.ParameterMode;
+import jakarta.persistence.StoredProcedureParameter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.ParameterMode;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -58,14 +66,14 @@ import org.springframework.util.ReflectionUtils;
 class StoredProcedureAttributeSourceUnitTests {
 
 	private StoredProcedureAttributeSource creator;
-	@Mock JpaEntityMetadata<User> entityMetadata;
+	@Mock JpaEntityMetadata<?> entityMetadata;
 
 	@BeforeEach
 	void setup() {
 
 		creator = StoredProcedureAttributeSource.INSTANCE;
 
-		when(entityMetadata.getJavaType()).thenReturn(User.class);
+		doReturn(User.class).when(entityMetadata).getJavaType();
 		when(entityMetadata.getEntityName()).thenReturn("User");
 	}
 
@@ -325,6 +333,34 @@ class StoredProcedureAttributeSourceUnitTests {
 		assertThat(outputParameter.getName()).isEqualTo("dummies");
 	}
 
+	@ParameterizedTest // GH-3463
+	@ValueSource(
+			strings = { "inInOut", "inoutInOut", "inoutOut", "outInIn", "inInInoutOut", "inInoutInOut", "inInoutInoutOut" })
+	void storedProcedureParameterInoutAndOutParameterPositionDetection(String methodName) {
+
+		String[] paramPattern = methodName.split("(?=[A-Z])");
+		Class<?>[] methodArgs = new Class<?>[paramPattern.length - 1];
+		Arrays.fill(methodArgs, Integer.class);
+
+		List<Integer> expectedOut = new ArrayList<>(2);
+		int position = 0;
+		for (String s : paramPattern) {
+			position++;
+			switch (s.toLowerCase()) {
+				case "inout", "out" -> expectedOut.add(position);
+			}
+		}
+
+		doReturn(InOut.class).when(entityMetadata).getJavaType();
+		when(entityMetadata.getEntityName()).thenReturn("InOut");
+
+		StoredProcedureAttributes attr = creator.createFrom(method(methodName, methodArgs), entityMetadata);
+		assertThat(attr.getOutputProcedureParameters()).extracting(ProcedureParameter::getPosition) //
+				.withFailMessage("Expecting method %s to have %s out parameters at positions %s but was %s.", methodName,
+						expectedOut.size(), expectedOut, attr.getOutputProcedureParameters()) //
+				.isEqualTo(expectedOut);
+	}
+
 	private static Method method(String name, Class<?>... paramTypes) {
 		return ReflectionUtils.findMethod(DummyRepository.class, name, paramTypes);
 	}
@@ -410,6 +446,27 @@ class StoredProcedureAttributeSourceUnitTests {
 
 		@Procedure(value = "1_input_1_resultset", outputParameterName = "dummies", refCursor = true) // DATAJPA-1657
 		List<Dummy> entityListFromResultSetWithInputAndNamedOutputAndCursor(Integer arg);
+
+		@Procedure(name = "InOut.in_in_out")
+		Map<Object, Object> inInOut(Integer in1, Integer in2);
+
+		@Procedure(name = "InOut.inout_in_out")
+		Map<Object, Object> inoutInOut(Integer inout1, Integer in2);
+
+		@Procedure(name = "InOut.inout_out")
+		Map<Object, Object> inoutOut(Integer inout1);
+
+		@Procedure(name = "InOut.out_in_in")
+		Map<Object, Object> outInIn(Integer in1, Integer in2);
+
+		@Procedure(name = "InOut.in_in_inout_out")
+		Map<Object, Object> inInInoutOut(Integer in1, Integer in2, Integer inout);
+
+		@Procedure(name = "InOut.in_inout_in_out")
+		Map<Object, Object> inInoutInOut(Integer in1, Integer inout, Integer in2);
+
+		@Procedure(name = "InOut.in_inout_inout_out")
+		Map<Object, Object> inInoutInoutOut(Integer in1, Integer inout1, Integer inout2);
 	}
 
 	@SuppressWarnings("unused")
@@ -428,5 +485,53 @@ class StoredProcedureAttributeSourceUnitTests {
 
 		@AliasFor(annotation = Procedure.class, attribute = "outputParameterName")
 		String outParamName() default "";
+	}
+
+	@NamedStoredProcedureQuery( //
+			name = "InOut.in_in_out", //
+			procedureName = "positional_in_in_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.inout_in_out", //
+			procedureName = "positional_inout_in_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.inout_out", //
+			procedureName = "positional_inout_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.out_in_in", //
+			procedureName = "positional_out_in_in", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.in_in_inout_out", //
+			procedureName = "positional_in_in_inout_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.in_inout_in_out", //
+			procedureName = "positional_in_inout_in_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "InOut.in_inout_inout_out", //
+			procedureName = "positional_in_inout_inout_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.INOUT, type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, type = Integer.class) })
+	private static class InOut {
+		@Id private Long id;
 	}
 }

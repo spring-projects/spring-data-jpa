@@ -16,9 +16,9 @@
 
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Objects;
-
 import jakarta.persistence.ParameterMode;
+
+import java.util.Objects;
 
 import org.springframework.lang.Nullable;
 
@@ -32,7 +32,7 @@ import org.springframework.lang.Nullable;
  */
 class ProcedureParameter {
 
-	private final String name;
+	@Nullable private final String name;
 	private final int position;
 	private final ParameterMode mode;
 	private final Class<?> type;
@@ -45,19 +45,28 @@ class ProcedureParameter {
 		this.type = type;
 	}
 
-	public String getName() {
+	/**
+	 * @return the parameter name. Can be {@literal null}.
+	 */
+	@Nullable
+	String getName() {
 		return name;
 	}
 
-	public int getPosition() {
+	/**
+	 * @return the {@code one} based parameter position as listed in
+	 *         {@link jakarta.persistence.NamedStoredProcedureQuery#parameters()}
+	 * @since 3.2.6
+	 */
+	int getPosition() {
 		return position;
 	}
 
-	public ParameterMode getMode() {
+	ParameterMode getMode() {
 		return mode;
 	}
 
-	public Class<?> getType() {
+	Class<?> getType() {
 		return type;
 	}
 
@@ -83,6 +92,7 @@ class ProcedureParameter {
 
 	@Override
 	public String toString() {
-		return "ProcedureParameter{" + "name='" + name + '\'' + ", position=" + position + ", mode=" + mode + ", type=" + type + '}';
+		return "ProcedureParameter{" + "name='" + name + '\'' + ", position=" + position + ", mode=" + mode + ", type="
+				+ type + '}';
 	}
 }
