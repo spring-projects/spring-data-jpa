@@ -123,12 +123,12 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 			return extractOutputParameterValue(outputParameters.get(0), storedProcedureQuery);
 		}
 
-		Map<String, Object> outputValues = new HashMap<>();
-
+		Map<String, Object> outputValues = new HashMap<>(outputParameters.size());
 		for (ProcedureParameter outputParameter : outputParameters) {
-			outputValues.put(
-					!outputParameter.getName().isEmpty() ? outputParameter.getName() : outputParameter.getPosition() + "",
-					extractOutputParameterValue(outputParameter, storedProcedureQuery));
+
+			String param = StringUtils.hasText(outputParameter.getName()) ? outputParameter.getName()
+					: Integer.toString(outputParameter.getPosition());
+			outputValues.put(param, extractOutputParameterValue(outputParameter, storedProcedureQuery));
 		}
 
 		return outputValues;
