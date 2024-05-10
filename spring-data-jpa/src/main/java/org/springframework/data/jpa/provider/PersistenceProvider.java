@@ -36,8 +36,6 @@ import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
-import org.springframework.data.jpa.repository.query.JpaParameters;
-import org.springframework.data.jpa.repository.query.JpaParametersParameterAccessor;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;

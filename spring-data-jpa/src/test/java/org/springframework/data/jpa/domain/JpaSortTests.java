@@ -26,8 +26,6 @@ import jakarta.persistence.metamodel.PluralAttribute;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.jpa.domain.JpaSort.*;
 import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;

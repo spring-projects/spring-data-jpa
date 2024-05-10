@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityGraph;

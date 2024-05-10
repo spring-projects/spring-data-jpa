@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 

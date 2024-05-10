@@ -45,7 +45,6 @@ import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.RoleRepositoryWithMeta;
 import org.springframework.data.repository.query.FluentQuery;
-import org.springframework.data.util.Streamable;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.orm.jpa.JpaDialect;
 import org.springframework.orm.jpa.JpaTransactionManager;
