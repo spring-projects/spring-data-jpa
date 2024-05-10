@@ -431,7 +431,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return new PageImpl<>(findAll());
 		}
 
-		return findAll((Specification<T>) null, pageable);
+		return findAll((root, query, criteriaBuilder) -> null, pageable);
 	}
 
 	@Override
@@ -483,7 +483,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
 
 		if (spec != null) {
-			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), null, builder);
+			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), builder.createQuery(getDomainClass()), builder);
 
 			if (predicate != null) {
 				delete.where(predicate);
