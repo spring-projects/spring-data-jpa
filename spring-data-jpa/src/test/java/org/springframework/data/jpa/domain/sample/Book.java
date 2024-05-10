@@ -18,7 +18,6 @@ package org.springframework.data.jpa.domain.sample;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import org.springframework.data.jpa.domain.AbstractPersistable;
 
 /**
  * @author Yanming Zhou

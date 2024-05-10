@@ -18,9 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.TemporalType.*;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.any;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Parameter;

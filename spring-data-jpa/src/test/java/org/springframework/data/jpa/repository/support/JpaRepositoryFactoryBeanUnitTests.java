@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.io.Serializable;
