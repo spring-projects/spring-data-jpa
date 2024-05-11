@@ -41,7 +41,14 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
 public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	/**
+	 * Clear the persistence context.
+	 * @see EntityManager#clear()
+	 */
+	void clear();
+
+	/**
 	 * Flushes all pending changes to the database.
+	 *  @see EntityManager#flush()
 	 */
 	void flush();
 

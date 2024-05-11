@@ -667,6 +667,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
+	@Override
+	public void clear() {
+		entityManager.clear();
+	}
+
 	@Transactional
 	@Override
 	public void flush() {
