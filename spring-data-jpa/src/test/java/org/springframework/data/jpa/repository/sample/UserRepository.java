@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
+ * @author Yanming Zhou
  */
 public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
 		UserRepositoryCustom, ListQuerydslPredicateExecutor<User> {
@@ -555,7 +556,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	NameOnly findByNativeQuery(Integer id);
 
 	// DATAJPA-1248
-	@Query(value = "SELECT emailaddress FROM SD_User WHERE id = ?1", nativeQuery = true)
+	@Query(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1", nativeQuery = true)
 	EmailOnly findEmailOnlyByNativeQuery(Integer id);
 
 	// DATAJPA-1235
@@ -721,6 +722,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	interface EmailOnly {
 		String getEmailAddress();
+
+		String getSecondaryEmailAddress();
 	}
 
 	interface IdOnly {

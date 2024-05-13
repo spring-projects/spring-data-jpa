@@ -33,6 +33,7 @@ import java.util.Set;
  * @author Jeff Sheets
  * @author JyotirmoyVS
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @Entity
 @NamedEntityGraphs({ @NamedEntityGraph(name = "User.overview", attributeNodes = { @NamedAttributeNode("roles") }),
@@ -100,6 +101,8 @@ public class User {
 	@Temporal(TemporalType.TIMESTAMP) private Date createdAt;
 
 	@Column(nullable = false, unique = true) private String emailAddress;
+
+	@Column(name = "secondary_email_address") private String secondaryEmailAddress;
 
 	@ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }) private Set<User> colleagues;
 
@@ -171,6 +174,14 @@ public class User {
 	public void setEmailAddress(String emailAddress) {
 
 		this.emailAddress = emailAddress;
+	}
+
+	public String getSecondaryEmailAddress() {
+		return secondaryEmailAddress;
+	}
+
+	public void setSecondaryEmailAddress(String secondaryEmailAddress) {
+		this.secondaryEmailAddress = secondaryEmailAddress;
 	}
 
 	public void setActive(boolean active) {
