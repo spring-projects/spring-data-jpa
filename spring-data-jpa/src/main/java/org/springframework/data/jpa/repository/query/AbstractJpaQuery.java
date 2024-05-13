@@ -47,6 +47,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -62,6 +63,7 @@ import org.springframework.util.Assert;
  * @author Сергей Цыпанов
  * @author Wonchul Heo
  * @author Julia Lee
+ * @author Yanming Zhou
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -149,7 +151,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Object result = execution.execute(this, accessor);
 
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
-		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType()));
+		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType(), method.isNativeQuery()));
 	}
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
@@ -304,6 +306,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		private final ReturnedType type;
 
+		private final boolean nativeQuery;
+
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
 		 *
@@ -311,9 +315,21 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 */
 		public TupleConverter(ReturnedType type) {
 
+			this(type, false);
+		}
+
+		/**
+		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
+		 *
+		 * @param type must not be {@literal null}.
+		 * @param nativeQuery is this converter for native query?
+		 */
+		public TupleConverter(ReturnedType type, boolean nativeQuery) {
+
 			Assert.notNull(type, "Returned type must not be null");
 
 			this.type = type;
+			this.nativeQuery = nativeQuery;
 		}
 
 		@Override
@@ -334,7 +350,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
-			return new TupleBackedMap(tuple);
+			return new TupleBackedMap(nativeQuery ? new NativeTupleWrapper(tuple) : tuple);
 		}
 
 		/**
@@ -449,6 +465,78 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 						.map(e -> new HashMap.SimpleEntry<String, Object>(e.getAlias(), tuple.get(e))) //
 						.collect(Collectors.toSet());
 			}
+		}
+	}
+
+	private static class NativeTupleWrapper implements Tuple {
+
+		private final Tuple underlying;
+
+		NativeTupleWrapper(Tuple underlying) {
+			this.underlying = underlying;
+		}
+
+		String fallback(String alias) {
+			return JdbcUtils.convertPropertyNameToUnderscoreName(alias);
+		}
+
+		@Override
+		public <X> X get(TupleElement<X> tupleElement) {
+			try {
+				return underlying.get(tupleElement);
+			} catch (IllegalArgumentException original) {
+				try {
+					return underlying.get(fallback(tupleElement.getAlias()), tupleElement.getJavaType());
+				} catch (IllegalArgumentException ignored) {
+					throw original;
+				}
+			}
+		}
+
+		@Override
+		public <X> X get(String s, Class<X> aClass) {
+			try {
+				return underlying.get(s, aClass);
+			} catch (IllegalArgumentException original) {
+				try {
+					return underlying.get(fallback(s), aClass);
+				} catch (IllegalArgumentException ignored) {
+					throw original;
+				}
+			}
+		}
+
+		@Override
+		public Object get(String s) {
+			try {
+				return underlying.get(s);
+			} catch (IllegalArgumentException original) {
+				try {
+					return underlying.get(fallback(s));
+				} catch (IllegalArgumentException ignored) {
+					throw original;
+				}
+			}
+		}
+
+		@Override
+		public <X> X get(int i, Class<X> aClass) {
+			return underlying.get(i, aClass);
+		}
+
+		@Override
+		public Object get(int i) {
+			return underlying.get(i);
+		}
+
+		@Override
+		public Object[] toArray() {
+			return underlying.toArray();
+		}
+
+		@Override
+		public List<TupleElement<?>> getElements() {
+			return underlying.getElements();
 		}
 	}
 }

@@ -95,6 +95,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Simon Paradies
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2967,6 +2968,24 @@ class UserRepositoryTests {
 		assertThat(emailAddress) //
 				.isEqualTo(user.getEmailAddress()) //
 				.as("ensuring email is actually not null") //
+				.isNotNull();
+	}
+
+	@Test // DATAJPA-3462
+	void supportsProjectionsWithNativeQueriesAndUnderscoresColumnNameToCamelCaseProperty() {
+
+		User user = new User();
+		user.setEmailAddress("primary@something");
+		user.setSecondaryEmailAddress("secondary@something");
+		em.persist(user);
+
+		UserRepository.EmailOnly result = repository.findEmailOnlyByNativeQuery(user.getId());
+
+		String secondaryEmailAddress = result.getSecondaryEmailAddress();
+
+		assertThat(secondaryEmailAddress) //
+				.isEqualTo(user.getSecondaryEmailAddress()) //
+				.as("ensuring secondary email is actually not null") //
 				.isNotNull();
 	}
 
