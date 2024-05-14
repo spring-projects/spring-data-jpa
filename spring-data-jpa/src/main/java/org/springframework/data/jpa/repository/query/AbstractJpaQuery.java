@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.springframework.core.convert.converter.Converter;
@@ -151,7 +152,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		Object result = execution.execute(this, accessor);
 
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
-		return withDynamicProjection.processResult(result, new TupleConverter(withDynamicProjection.getReturnedType(), method.isNativeQuery()));
+		return withDynamicProjection.processResult(result,
+				new TupleConverter(withDynamicProjection.getReturnedType(), method.isNativeQuery()));
 	}
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
@@ -306,7 +308,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		private final ReturnedType type;
 
-		private final boolean nativeQuery;
+		private final UnaryOperator<Tuple> tupleWrapper;
 
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
@@ -314,7 +316,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 * @param type must not be {@literal null}.
 		 */
 		public TupleConverter(ReturnedType type) {
-
 			this(type, false);
 		}
 
@@ -322,14 +323,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
 		 *
 		 * @param type must not be {@literal null}.
-		 * @param nativeQuery is this converter for native query?
+		 * @param nativeQuery whether the actual query is a native one to attempt camelCase property names to snake_case
+		 *          column names translation in case the exact column name is not found using the requested property name.
 		 */
 		public TupleConverter(ReturnedType type, boolean nativeQuery) {
 
 			Assert.notNull(type, "Returned type must not be null");
 
 			this.type = type;
-			this.nativeQuery = nativeQuery;
+			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
 		}
 
 		@Override
@@ -350,7 +352,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
-			return new TupleBackedMap(nativeQuery ? new NativeTupleWrapper(tuple) : tuple);
+			return new TupleBackedMap(tupleWrapper.apply(tuple));
 		}
 
 		/**
@@ -468,39 +470,29 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		}
 	}
 
-	private static class NativeTupleWrapper implements Tuple {
+	private static class FallbackTupleWrapper implements Tuple {
 
-		private final Tuple underlying;
+		private final Tuple delegate;
+		private final UnaryOperator<String> fallbackNameTransformer = JdbcUtils::convertPropertyNameToUnderscoreName;
 
-		NativeTupleWrapper(Tuple underlying) {
-			this.underlying = underlying;
-		}
-
-		String fallback(String alias) {
-			return JdbcUtils.convertPropertyNameToUnderscoreName(alias);
+		FallbackTupleWrapper(Tuple delegate) {
+			this.delegate = delegate;
 		}
 
 		@Override
 		public <X> X get(TupleElement<X> tupleElement) {
-			try {
-				return underlying.get(tupleElement);
-			} catch (IllegalArgumentException original) {
-				try {
-					return underlying.get(fallback(tupleElement.getAlias()), tupleElement.getJavaType());
-				} catch (IllegalArgumentException ignored) {
-					throw original;
-				}
-			}
+			return get(tupleElement.getAlias(), tupleElement.getJavaType());
 		}
 
 		@Override
-		public <X> X get(String s, Class<X> aClass) {
+		public <X> X get(String s, Class<X> type) {
 			try {
-				return underlying.get(s, aClass);
+				return delegate.get(s, type);
 			} catch (IllegalArgumentException original) {
 				try {
-					return underlying.get(fallback(s), aClass);
-				} catch (IllegalArgumentException ignored) {
+					return delegate.get(fallbackNameTransformer.apply(s), type);
+				} catch (IllegalArgumentException next) {
+					original.addSuppressed(next);
 					throw original;
 				}
 			}
@@ -509,11 +501,12 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		@Override
 		public Object get(String s) {
 			try {
-				return underlying.get(s);
+				return delegate.get(s);
 			} catch (IllegalArgumentException original) {
 				try {
-					return underlying.get(fallback(s));
-				} catch (IllegalArgumentException ignored) {
+					return delegate.get(fallbackNameTransformer.apply(s));
+				} catch (IllegalArgumentException next) {
+					original.addSuppressed(next);
 					throw original;
 				}
 			}
@@ -521,22 +514,22 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		@Override
 		public <X> X get(int i, Class<X> aClass) {
-			return underlying.get(i, aClass);
+			return delegate.get(i, aClass);
 		}
 
 		@Override
 		public Object get(int i) {
-			return underlying.get(i);
+			return delegate.get(i);
 		}
 
 		@Override
 		public Object[] toArray() {
-			return underlying.toArray();
+			return delegate.toArray();
 		}
 
 		@Override
 		public List<TupleElement<?>> getElements() {
-			return underlying.getElements();
+			return delegate.getElements();
 		}
 	}
 }

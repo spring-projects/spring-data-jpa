@@ -50,6 +50,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -68,7 +69,6 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
-import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -2971,7 +2971,7 @@ class UserRepositoryTests {
 				.isNotNull();
 	}
 
-	@Test // DATAJPA-3462
+	@Test // GH-3462
 	void supportsProjectionsWithNativeQueriesAndUnderscoresColumnNameToCamelCaseProperty() {
 
 		User user = new User();
