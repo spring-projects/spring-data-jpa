@@ -59,6 +59,12 @@
 
 	<profiles>
 		<profile>
+			<id>benchmark</id>
+			<modules>
+				<module>spring-data-jpa-performance</module>
+			</modules>
+		</profile>
+		<profile>
 			<id>hibernate-62</id>
 			<properties>
 				<hibernate>${hibernate-62}</hibernate>
