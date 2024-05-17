@@ -29,7 +29,7 @@
 	<properties>
 		<antlr>4.10.1</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.4</eclipselink>
-		<hibernate>6.2.24.Final</hibernate>
+		<hibernate>6.2.25.Final</hibernate>
 		<hibernate-64>6.4.4.Final</hibernate-64>
 		<hibernate-64-snapshots>6.4.5-SNAPSHOT</hibernate-64-snapshots>
 		<hibernate-65>6.5.0.CR1</hibernate-65>
