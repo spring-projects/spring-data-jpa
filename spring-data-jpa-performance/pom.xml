@@ -19,9 +19,9 @@
     <dependencies>
 
         <dependency>
-            <groupId>${groupId}</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>spring-data-jpa</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

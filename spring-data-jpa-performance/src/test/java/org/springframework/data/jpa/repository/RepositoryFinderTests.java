@@ -31,12 +31,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 import org.springframework.data.jpa.model.IPersonProjection;
 import org.springframework.data.jpa.model.Person;
@@ -48,8 +50,10 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  */
 @Microbenchmark
-@Warmup(time = 5, iterations = 3)
-@Measurement(time = 5)
+@Fork(1)
+@Warmup(time = 2, iterations = 3)
+@Measurement(time = 2)
+@Timeout(time = 2)
 public class RepositoryFinderTests {
 
 	@State(Scope.Benchmark)
