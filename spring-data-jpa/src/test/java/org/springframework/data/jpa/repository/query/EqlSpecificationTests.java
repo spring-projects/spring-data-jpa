@@ -16,7 +16,10 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -32,13 +35,38 @@ class EqlSpecificationTests {
 
 	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
 
+	private static String parseWithoutChanges(String query) {
+
+		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
+		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
+
+		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
+
+		EqlParser.StartContext parsedQuery = parser.start();
+
+		return render(new EqlQueryRenderer().visit(parsedQuery));
+	}
+
+	private void assertQuery(String query) {
+
+		String slimmedDownQuery = reduceWhitespace(query);
+		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
+	}
+
+	private String reduceWhitespace(String original) {
+
+		return original //
+				.replaceAll("[ \\t\\n]{1,}", " ") //
+				.trim();
+	}
+
 	/**
 	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
 	 */
 	@Test
 	void joinExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order AS o JOIN o.lineItems AS l
 				WHERE l.shipped = FALSE
@@ -52,7 +80,7 @@ class EqlSpecificationTests {
 	@Test
 	void joinExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l JOIN l.product p
 				WHERE p.productType = 'office_supplies'
@@ -65,12 +93,12 @@ class EqlSpecificationTests {
 	@Test
 	void rangeVariableDeclarations() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o1
 				FROM Order o1, Order o2
 				WHERE o1.quantity > o2.quantity AND
 				 o2.customer.lastname = 'Smith' AND
-				 o2.customer.firstname= 'John'
+				 o2.customer.firstname = 'John'
 				""");
 	}
 
@@ -80,7 +108,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionsExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT i.name, VALUE(p)
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -93,7 +121,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionsExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT i.name, p
 				FROM Item i JOIN i.photos p
 				WHERE KEY(p) LIKE '%egret'
@@ -106,7 +134,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionsExample3() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo.phones p
 				""");
@@ -118,7 +146,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionsExample4() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE e.contactInfo.address.zipcode = '95054'
@@ -128,7 +156,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionSyntaxExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT l.product
 				FROM Order AS o JOIN o.lineItems l
 				""");
@@ -137,7 +165,7 @@ class EqlSpecificationTests {
 	@Test
 	void joinsExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
 				""");
 	}
@@ -145,7 +173,7 @@ class EqlSpecificationTests {
 	@Test
 	void joinsExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -153,7 +181,7 @@ class EqlSpecificationTests {
 	@Test
 	void joinsInnerExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
 				""");
 	}
@@ -161,7 +189,7 @@ class EqlSpecificationTests {
 	@Test
 	void joinsInExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
 				""");
 	}
@@ -169,7 +197,7 @@ class EqlSpecificationTests {
 	@Test
 	void doubleJoinExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT p.vendor
 				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
 				WHERE c.address.zipcode = '95054'
@@ -179,7 +207,7 @@ class EqlSpecificationTests {
 	@Test
 	void leftJoinExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				GROUP BY s.name
@@ -189,7 +217,7 @@ class EqlSpecificationTests {
 	@Test
 	void leftJoinOnExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				    ON p.status = 'inStock'
@@ -200,7 +228,7 @@ class EqlSpecificationTests {
 	@Test
 	void leftJoinWhereExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
 				WHERE p.status = 'inStock'
@@ -211,7 +239,7 @@ class EqlSpecificationTests {
 	@Test
 	void leftJoinFetchExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT d
 				FROM Department d LEFT JOIN FETCH d.employees
 				WHERE d.deptno = 1
@@ -221,7 +249,7 @@ class EqlSpecificationTests {
 	@Test
 	void collectionMemberExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.productType = 'office_supplies'
@@ -231,7 +259,7 @@ class EqlSpecificationTests {
 	@Test
 	void collectionMemberInExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
@@ -241,7 +269,7 @@ class EqlSpecificationTests {
 	@Test
 	void fromClauseExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order AS o JOIN o.lineItems l JOIN l.product p
 				""");
@@ -250,7 +278,7 @@ class EqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
 				    """);
@@ -259,7 +287,7 @@ class EqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
 				    """);
@@ -272,7 +300,7 @@ class EqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
 	void fromClauseDowncastingExample3_SPEC_BUG() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -283,7 +311,7 @@ class EqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample3fixed() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -294,7 +322,7 @@ class EqlSpecificationTests {
 	@Test
 	void fromClauseDowncastingExample4() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
@@ -304,7 +332,7 @@ class EqlSpecificationTests {
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.status = :stat
@@ -314,7 +342,7 @@ class EqlSpecificationTests {
 	@Test
 	void betweenExpressionsExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT t
 				FROM CreditCard c JOIN c.transactionHistory t
 				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
@@ -324,7 +352,7 @@ class EqlSpecificationTests {
 	@Test
 	void isEmptyExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -334,7 +362,7 @@ class EqlSpecificationTests {
 	@Test
 	void memberOfExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT p
 				FROM Person p
 				WHERE 'Joe' MEMBER OF p.nicknames
@@ -344,11 +372,10 @@ class EqlSpecificationTests {
 	@Test
 	void existsSubSelectExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (
-				    SELECT spouseEmp
+				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				        WHERE spouseEmp = emp.spouse)
 				""");
@@ -357,11 +384,10 @@ class EqlSpecificationTests {
 	@Test
 	void allExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT emp
 				FROM Employee emp
-				WHERE emp.salary > ALL (
-				    SELECT m.salary
+				WHERE emp.salary > ALL (SELECT m.salary
 				    FROM Manager m
 				    WHERE m.department = emp.department)
 				    """);
@@ -370,11 +396,10 @@ class EqlSpecificationTests {
 	@Test
 	void existsSubSelectExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
-				WHERE EXISTS (
-				    SELECT spouseEmp
+				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
 				    """);
@@ -383,7 +408,7 @@ class EqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
@@ -393,18 +418,17 @@ class EqlSpecificationTests {
 	@Test
 	void subselectNumericComparisonExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (
-				    SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
+				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed) / 2.0 FROM Customer c)
 				""");
 	}
 
 	@Test
 	void indexExample() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT w.name
 				FROM Course c JOIN c.studentWaitlist w
 				WHERE c.name = 'Calculus'
@@ -419,7 +443,7 @@ class EqlSpecificationTests {
 	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
 	void functionInvocationExample_SPEC_BUG() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
@@ -429,7 +453,7 @@ class EqlSpecificationTests {
 	@Test
 	void functionInvocationExampleWithCorrection() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
@@ -439,7 +463,7 @@ class EqlSpecificationTests {
 	@Test
 	void updateCaseExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
@@ -452,7 +476,7 @@ class EqlSpecificationTests {
 	@Test
 	void updateCaseExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
 				    CASE e.rating WHEN 1 THEN e.salary * 1.1
@@ -465,7 +489,7 @@ class EqlSpecificationTests {
 	@Test
 	void selectCaseExample1() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e.name,
 				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
 				                 WHEN Contractor THEN 'Contractor'
@@ -480,7 +504,7 @@ class EqlSpecificationTests {
 	@Test
 	void selectCaseExample2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e.name,
 				       f.name,
 				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
@@ -495,7 +519,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e
 				 FROM Employee e
 				 WHERE TYPE(e) IN (Exempt, Contractor)
@@ -505,7 +529,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest2() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e
 				    FROM Employee e
 				    WHERE TYPE(e) IN (:empType1, :empType2)
@@ -515,7 +539,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest3() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN :empTypes
@@ -525,7 +549,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest4() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT TYPE(e)
 				FROM Employee e
 				WHERE TYPE(e) <> Exempt
@@ -535,7 +559,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest5() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
 				FROM Customer c
 				GROUP BY c.status
@@ -546,7 +570,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest6() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c.country, COUNT(c)
 				FROM Customer c
 				GROUP BY c.country
@@ -557,7 +581,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest7() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c, COUNT(o)
 				FROM Customer c JOIN c.orders o
 				GROUP BY c
@@ -568,7 +592,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest8() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c.id, c.status
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -578,7 +602,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest9() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT v.location.street, KEY(i).title, VALUE(i)
 				FROM VideoStore v JOIN v.videoInventory i
 				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
@@ -588,7 +612,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest10() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o.lineItems FROM Order AS o
 				""");
 	}
@@ -596,7 +620,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest11() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT c, COUNT(l) AS itemCount
 				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
 				WHERE c.address.state = 'CA'
@@ -608,7 +632,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest12() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
 				FROM Customer c JOIN c.orders o
 				WHERE o.count > 100
@@ -618,7 +642,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest13() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT e.address AS addr
 				FROM Employee e
 				""");
@@ -627,7 +651,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest14() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT AVG(o.quantity) FROM Order o
 				""");
 	}
@@ -635,7 +659,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest15() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT SUM(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -645,7 +669,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest16() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT COUNT(o) FROM Order o
 				""");
 	}
@@ -653,7 +677,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest17() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT COUNT(l.price)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -663,7 +687,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest18() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT COUNT(l)
 				FROM Order o JOIN o.lineItems l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
@@ -673,7 +697,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest19() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -684,7 +708,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest20() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o.quantity, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -695,8 +719,8 @@ class EqlSpecificationTests {
 	@Test
 	void theRest21() {
 
-		EqlQueryParser.parseQuery("""
-				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
+		assertQuery("""
+				SELECT o.quantity, o.cost * 1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
 				ORDER BY o.quantity, taxedCost, a.zipcode
@@ -706,7 +730,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest22() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT AVG(o.quantity) as q, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA'
@@ -718,7 +742,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest23() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT p.product_name
 				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -733,7 +757,7 @@ class EqlSpecificationTests {
 	void theRest24() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
-			EqlQueryParser.parseQuery("""
+			assertQuery("""
 					SELECT p.product_name
 					FROM Order o, IN(o.lineItems) l JOIN o.customer c
 					WHERE c.lastname = 'Smith' AND c.firstname = 'John'
@@ -745,7 +769,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest25() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -755,7 +779,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest26() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -766,7 +790,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest27() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				UPDATE Customer c
 				SET c.status = 'outstanding'
 				WHERE c.balance < 10000
@@ -776,7 +800,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest28() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				UPDATE Employee e
 				SET e.address.building = 22
 				WHERE e.address.building = 14
@@ -788,7 +812,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest29() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				""");
@@ -797,7 +821,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest30() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress.state = 'CA'
@@ -807,7 +831,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest31() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o.shippingAddress.state
 				FROM Order o
 				""");
@@ -816,7 +840,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest32() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				""");
@@ -825,7 +849,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest33() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS NOT EMPTY
@@ -835,7 +859,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest34() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.lineItems IS EMPTY
@@ -845,7 +869,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest35() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.shipped = FALSE
@@ -855,7 +879,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest36() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE
@@ -868,7 +892,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest37() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT o
 				FROM Order o
 				WHERE o.shippingAddress <> o.billingAddress
@@ -878,7 +902,7 @@ class EqlSpecificationTests {
 	@Test
 	void theRest38() {
 
-		EqlQueryParser.parseQuery("""
+		assertQuery("""
 				SELECT DISTINCT o
 				FROM Order o JOIN o.lineItems l
 				WHERE l.product.name = ?1

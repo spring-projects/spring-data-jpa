@@ -60,8 +60,6 @@ class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
-	private final @Nullable String alias;
-	private final boolean hasConstructorExpression;
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
@@ -87,8 +85,22 @@ class StringQuery implements DeclaredQuery {
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 
 		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
-		this.alias = this.queryEnhancer.detectAlias();
-		this.hasConstructorExpression = this.queryEnhancer.hasConstructorExpression();
+	}
+
+	// TODO: Conflict with eager JpaQueryMethod.assertParameterNamesInAnnotatedQuery validation that attempts parsing
+	// without pre-processing the query leaving #{#entityName} substitution to a later time.
+	public static boolean hasNamedParameter(String query) {
+
+		if (ObjectUtils.isEmpty(query)) {
+			return false;
+		}
+
+		List<ParameterBinding> parameterBindings = new ArrayList<>();
+		Metadata queryMeta = new Metadata();
+		ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
+				parameterBindings, queryMeta);
+
+		return parameterBindings.stream().anyMatch(b -> b.getIdentifier().hasName());
 	}
 
 	/**
@@ -134,17 +146,17 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	@Nullable
 	public String getAlias() {
-		return alias;
+		return queryEnhancer.detectAlias();
 	}
 
 	@Override
 	public boolean hasConstructorExpression() {
-		return hasConstructorExpression;
+		return queryEnhancer.hasConstructorExpression();
 	}
 
 	@Override
 	public boolean isDefaultProjection() {
-		return getProjection().equalsIgnoreCase(alias);
+		return getProjection().equalsIgnoreCase(getAlias());
 	}
 
 	@Override
@@ -221,7 +233,7 @@ class StringQuery implements DeclaredQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		private String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
+		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
 				List<ParameterBinding> bindings, Metadata queryMeta) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
@@ -447,7 +459,7 @@ class StringQuery implements DeclaredQuery {
 		}
 	}
 
-	private static class Metadata {
+	static class Metadata {
 		private boolean usesJdbcStyleParameters = false;
 	}
 

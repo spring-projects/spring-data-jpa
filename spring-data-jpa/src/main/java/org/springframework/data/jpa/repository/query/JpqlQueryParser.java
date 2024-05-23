@@ -15,120 +15,29 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-
 /**
- * Implements the {@code JPQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
- * {@link JpqlParser} and {@link JpqlQueryTransformer}.
+ * Implements the {@code JPQL} parsing operations of a {@link JpaQueryParser} using the ANTLR-generated
+ * {@link JpqlParser} and {@link JpqlSortedQueryTransformer}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
  * @since 3.1
  */
-class JpqlQueryParser extends JpaQueryParserSupport {
+class JpqlQueryParser extends JpaQueryParser {
 
-	JpqlQueryParser(String query) {
-		super(query);
+	private JpqlQueryParser(String query) {
+		super(parse(query, JpqlLexer::new, JpqlParser::new, JpqlParser::start), new JpqlQueryIntrospector(),
+				JpqlSortedQueryTransformer::new, JpqlCountQueryTransformer::new);
 	}
 
 	/**
-	 * Convenience method to parse a JPQL query. Will throw a {@link BadJpqlGrammarException} if the query is invalid.
+	 * Parse a JPQL query.
 	 *
 	 * @param query
-	 * @return a parsed query, ready for postprocessing
+	 * @return the query parser.
+	 * @throws BadJpqlGrammarException
 	 */
-	public static ParserRuleContext parseQuery(String query) {
-
-		JpqlLexer lexer = new JpqlLexer(CharStreams.fromString(query));
-		JpqlParser parser = new JpqlParser(new CommonTokenStream(lexer));
-
-		configureParser(query, lexer, parser);
-
-		return parser.start();
-	}
-
-
-	/**
-	 * Parse the query using {@link #parseQuery(String)}.
-	 *
-	 * @return a parsed query
-	 */
-	@Override
-	protected ParserRuleContext parse(String query) {
-		return parseQuery(query);
-	}
-
-	/**
-	 * Use the {@link JpqlQueryTransformer} to transform the original query into a query with the {@link Sort} applied.
-	 *
-	 * @param parsedQuery
-	 * @param sort can be {@literal null}
-	 * @return list of {@link JpaQueryParsingToken}s
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort) {
-		return new JpqlQueryTransformer(sort).visit(parsedQuery);
-	}
-
-	/**
-	 * Use the {@link JpqlQueryTransformer} to transform the original query into a count query.
-	 *
-	 * @param parsedQuery
-	 * @param countProjection
-	 * @return list of {@link JpaQueryParsingToken}s
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
-			@Nullable String countProjection) {
-		return new JpqlQueryTransformer(true, countProjection).visit(parsedQuery);
-	}
-
-	/**
-	 * Run the parsed query through {@link JpqlQueryTransformer} to find the primary FROM clause's alias.
-	 *
-	 * @param parsedQuery
-	 * @return can be {@literal null}
-	 */
-	@Override
-	protected String doFindAlias(ParserRuleContext parsedQuery) {
-
-		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.getAlias();
-	}
-
-	/**
-	 * Use {@link JpqlQueryTransformer} to find the projection of the query.
-	 *
-	 * @param parsedQuery
-	 * @return
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
-
-		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.getProjection();
-	}
-
-	/**
-	 * Use {@link JpqlQueryTransformer} to detect if the query uses a {@code new com.example.Dto()} DTO constructor in the
-	 * primary select clause.
-	 *
-	 * @param parsedQuery
-	 * @return Guaranteed to be {@literal true} or {@literal false}.
-	 */
-	@Override
-	protected boolean doCheckForConstructor(ParserRuleContext parsedQuery) {
-
-		JpqlQueryTransformer transformVisitor = new JpqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.hasConstructorExpression();
+	public static JpqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
+		return new JpqlQueryParser(query);
 	}
 }

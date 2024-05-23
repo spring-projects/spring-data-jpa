@@ -436,7 +436,7 @@ class JpqlQueryRendererTests {
 		assertQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
+				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed) / 2.0 FROM Customer c)
 				""");
 	}
 
@@ -481,9 +481,9 @@ class JpqlQueryRendererTests {
 		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE WHEN e.rating = 1 THEN e.salary*1.1
-				         WHEN e.rating = 2 THEN e.salary*1.05
-				         ELSE e.salary*1.01
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				         ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -494,9 +494,9 @@ class JpqlQueryRendererTests {
 		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE e.rating WHEN 1 THEN e.salary*1.1
-				                  WHEN 2 THEN e.salary*1.05
-				                  ELSE e.salary*1.01
+				    CASE e.rating WHEN 1 THEN e.salary * 1.1
+				                  WHEN 2 THEN e.salary * 1.05
+				                  ELSE e.salary * 1.01
 				    END
 				    """);
 	}
@@ -735,7 +735,7 @@ class JpqlQueryRendererTests {
 	void orderByThatMatchesAllSelectAliasesShouldWork() {
 
 		assertQuery("""
-				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
+				SELECT o.quantity, o.cost * 1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
 				ORDER BY o.quantity, taxedCost, a.zipcode
@@ -1012,15 +1012,15 @@ class JpqlQueryRendererTests {
 
 	@ParameterizedTest // GH-3342
 	@ValueSource(strings = { "select 1 as value from User u", "select -1 as value from User u",
-			"select +1 as value from User u", "select +1*-100 as value from User u",
-			"select count(u)*-0.7f as value from User u", "select count(oi) + (-100) as perc from StockOrderItem oi",
+			"select +1 as value from User u", "select +1 * -100 as value from User u",
+			"select count(u) * -0.7f as value from User u", "select count(oi) + (-100) as perc from StockOrderItem oi",
 			"select p from Payment p where length(p.cardNumber) between +16 and -20" })
 	void signedLiteralShouldWork(String query) {
 		assertQuery(query);
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = { "select -count(u) from User u", "select +1*(-count(u)) from User u" })
+	@ValueSource(strings = { "select -count(u) from User u", "select +1 * (-count(u)) from User u" })
 	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
 	}

@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.model.IPersonProjection;
 import org.springframework.data.jpa.model.Person;
 import org.springframework.data.repository.ListCrudRepository;
@@ -32,6 +33,9 @@ public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 
     @Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
     List<Person> findAllWithAnnotatedQueryByFirstname(String firstname);
+
+		@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+		List<Person> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort);
 
     @Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
     List<Person> findAllWithNativeQueryByFirstname(String firstname);

@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -450,7 +451,7 @@ class StringQueryUnitTests {
 
 		assertThat(
 				new StringQuery("select  new  com.example.Dto(a.foo, a.bar)  from A a", false).hasConstructorExpression())
-						.isTrue();
+				.isTrue();
 		assertThat(new StringQuery("select new com.example.Dto (a.foo, a.bar) from A a", false).hasConstructorExpression())
 				.isTrue();
 		assertThat(new StringQuery("select a from A a", true).hasConstructorExpression()).isFalse();
@@ -490,8 +491,10 @@ class StringQueryUnitTests {
 		checkProjection("select something from Entity something", "something", "single expression", false);
 		checkProjection("select x, y, z from Entity something", "x, y, z", "tuple", false);
 
-		checkProjection("sect x, y, z from Entity something", "", "missing select", false);
-		checkProjection("select x, y, z fron Entity something", "", "missing from", false);
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> checkProjection("sect x, y, z from Entity something", "", "missing select", false));
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> checkProjection("select x, y, z fron Entity something", "", "missing from", false));
 	}
 
 	void checkProjection(String query, String expected, String description, boolean nativeQuery) {
@@ -615,9 +618,9 @@ class StringQueryUnitTests {
 
 			assertThat(new StringQuery(testQuery, false) //
 					.usesJdbcStyleParameters()) //
-							.describedAs(testQuery) //
-							.describedAs(testQuery) //
-							.isFalse();
+					.describedAs(testQuery) //
+					.describedAs(testQuery) //
+					.isFalse();
 		}
 	}
 
@@ -716,7 +719,11 @@ class StringQueryUnitTests {
 
 	private void checkHasNamedParameter(String query, boolean expected, String label, boolean nativeQuery) {
 
-		assertThat(new StringQuery(query, nativeQuery).hasNamedParameter()) //
+		List<ParameterBinding> bindings = new ArrayList<>();
+		StringQuery.ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
+				bindings, new StringQuery.Metadata());
+
+		assertThat(bindings.stream().anyMatch(it -> it.getIdentifier().hasName())) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //
 				.isEqualTo(expected);
 	}

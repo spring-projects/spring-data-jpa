@@ -197,10 +197,10 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e.salary - 1000 FROM Employee e");
 		assertQuery("SELECT e.salary + 1000 FROM Employee e");
-		assertQuery("SELECT e.salary*2 FROM Employee e");
-		assertQuery("SELECT e.salary*2.0 FROM Employee e");
-		assertQuery("SELECT e.salary/2 FROM Employee e");
-		assertQuery("SELECT e.salary/2.0 FROM Employee e");
+		assertQuery("SELECT e.salary * 2 FROM Employee e");
+		assertQuery("SELECT e.salary * 2.0 FROM Employee e");
+		assertQuery("SELECT e.salary / 2 FROM Employee e");
+		assertQuery("SELECT e.salary / 2.0 FROM Employee e");
 		assertQuery("SELECT ABS(e.salary - e.manager.salary) FROM Employee e");
 		assertQuery(
 				"select e from Employee e where case e.firstName when 'Bob' then 'Robert' when 'Jill' then 'Gillian' else '' end = 'Robert'");
@@ -233,10 +233,10 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e WHERE e.salary - 1000 > 0");
 		assertQuery("SELECT e FROM Employee e WHERE e.salary + 1000 > 0");
-		assertQuery("SELECT e FROM Employee e WHERE e.salary*2 > 0");
-		assertQuery("SELECT e FROM Employee e WHERE e.salary*2.0 > 0.0");
-		assertQuery("SELECT e FROM Employee e WHERE e.salary/2 > 0");
-		assertQuery("SELECT e FROM Employee e WHERE e.salary/2.0 > 0.0");
+		assertQuery("SELECT e FROM Employee e WHERE e.salary * 2 > 0");
+		assertQuery("SELECT e FROM Employee e WHERE e.salary * 2.0 > 0.0");
+		assertQuery("SELECT e FROM Employee e WHERE e.salary / 2 > 0");
+		assertQuery("SELECT e FROM Employee e WHERE e.salary / 2.0 > 0.0");
 		assertQuery("SELECT e FROM Employee e WHERE ABS(e.salary - e.manager.salary) > 0");
 		assertQuery("SELECT e FROM Employee e WHERE COALESCE(e.salary, 0) > 0");
 		assertQuery("SELECT e FROM Employee e WHERE CONCAT(e.firstName, ' ', e.lastName) = 'Bilbo'");
@@ -261,10 +261,10 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e ORDER BY e.salary - 1000");
 		assertQuery("SELECT e FROM Employee e ORDER BY e.salary + 1000");
-		assertQuery("SELECT e FROM Employee e ORDER BY e.salary*2");
-		assertQuery("SELECT e FROM Employee e ORDER BY e.salary*2.0");
-		assertQuery("SELECT e FROM Employee e ORDER BY e.salary/2");
-		assertQuery("SELECT e FROM Employee e ORDER BY e.salary/2.0");
+		assertQuery("SELECT e FROM Employee e ORDER BY e.salary * 2");
+		assertQuery("SELECT e FROM Employee e ORDER BY e.salary * 2.0");
+		assertQuery("SELECT e FROM Employee e ORDER BY e.salary / 2");
+		assertQuery("SELECT e FROM Employee e ORDER BY e.salary / 2.0");
 		assertQuery("SELECT e FROM Employee e ORDER BY ABS(e.salary - e.manager.salary)");
 		assertQuery("SELECT e FROM Employee e ORDER BY COALESCE(e.salary, 0)");
 		assertQuery("SELECT e FROM Employee e ORDER BY CONCAT(e.firstName, ' ', e.lastName)");
@@ -290,10 +290,10 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary - 1000");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary + 1000");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary*2");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary*2.0");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary/2");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary/2.0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary * 2");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary * 2.0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary / 2");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary / 2.0");
 		assertQuery("SELECT e FROM Employee e GROUP BY ABS(e.salary - e.manager.salary)");
 		assertQuery("SELECT e FROM Employee e GROUP BY COALESCE(e.salary, 0)");
 		assertQuery("SELECT e FROM Employee e GROUP BY CONCAT(e.firstName, ' ', e.lastName)");
@@ -319,10 +319,10 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary - 1000 > 0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary + 1000 > 0");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary*2 > 0");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary*2.0 > 0.0");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary/2 > 0");
-		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary/2.0 > 0.0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary * 2 > 0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary * 2.0 > 0.0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary / 2 > 0");
+		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING e.salary / 2.0 > 0.0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING ABS(e.salary - e.manager.salary) > 0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING COALESCE(e.salary, 0) > 0");
 		assertQuery("SELECT e FROM Employee e GROUP BY e.salary HAVING CONCAT(e.firstName, ' ', e.lastName) = 'Bilbo'");

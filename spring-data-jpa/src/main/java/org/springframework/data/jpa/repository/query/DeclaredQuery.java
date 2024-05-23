@@ -40,6 +40,15 @@ interface DeclaredQuery {
 		return ObjectUtils.isEmpty(query) ? EmptyDeclaredQuery.EMPTY_QUERY : new StringQuery(query, nativeQuery);
 	}
 
+	static boolean hasNamedParameter(String query) {
+
+		if (ObjectUtils.isEmpty(query)) {
+			return false;
+		}
+
+		return StringQuery.hasNamedParameter(query);
+	}
+
 	/**
 	 * @return whether the underlying query has at least one named parameter.
 	 */

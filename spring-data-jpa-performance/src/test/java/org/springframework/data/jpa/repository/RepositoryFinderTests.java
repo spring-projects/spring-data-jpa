@@ -40,6 +40,8 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.model.IPersonProjection;
 import org.springframework.data.jpa.model.Person;
 import org.springframework.data.jpa.model.Profile;
@@ -151,9 +153,15 @@ public class RepositoryFinderTests {
 		return parameters.repositoryProxy.findAllAndProjectToInterfaceByFirstname("first");
 	}
 
+
 	@Benchmark
 	public List<Person> stringBasedQuery(BenchmarkParameters parameters) {
 		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname("first");
+	}
+
+	@Benchmark
+	public List<Person> stringBasedQueryDynamicSort(BenchmarkParameters parameters) {
+		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname("first", Sort.by("firstname"));
 	}
 
 	@Benchmark

@@ -15,118 +15,30 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-
 /**
- * Implements the {@code EQL} parsing operations of a {@link JpaQueryParserSupport} using the ANTLR-generated
- * {@link EqlParser} and {@link EqlQueryTransformer}.
+ * Implements the {@code EQL} parsing operations of a {@link JpaQueryParser} using the ANTLR-generated
+ * {@link EqlParser}.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.2
  */
-class EqlQueryParser extends JpaQueryParserSupport {
+class EqlQueryParser extends JpaQueryParser {
 
-	EqlQueryParser(String query) {
-		super(query);
+	private EqlQueryParser(String query) {
+		super(parse(query, EqlLexer::new, EqlParser::new, EqlParser::start), new EqlQueryIntrospector(),
+				EqlSortedQueryTransformer::new, EqlCountQueryTransformer::new);
 	}
 
 	/**
-	 * Convenience method to parse a EQL query. Will throw a {@link BadJpqlGrammarException} if the query is invalid.
+	 * Parse a EQL query.
 	 *
 	 * @param query
-	 * @return a parsed query, ready for postprocessing
+	 * @return the query parser.
+	 * @throws BadJpqlGrammarException
 	 */
-	public static ParserRuleContext parseQuery(String query) {
-
-		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
-		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
-
-		configureParser(query, lexer, parser);
-
-		return parser.start();
+	public static EqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
+		return new EqlQueryParser(query);
 	}
 
-	/**
-	 * Parse the query using {@link #parseQuery(String)}.
-	 *
-	 * @return a parsed query
-	 */
-	@Override
-	protected ParserRuleContext parse(String query) {
-		return parseQuery(query);
-	}
-
-	/**
-	 * Use the {@link EqlQueryTransformer} to transform the original query into a query with the {@link Sort} applied.
-	 *
-	 * @param parsedQuery
-	 * @param sort can be {@literal null}
-	 * @return list of {@link JpaQueryParsingToken}s
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> applySort(ParserRuleContext parsedQuery, Sort sort) {
-		return new EqlQueryTransformer(sort).visit(parsedQuery);
-	}
-
-	/**
-	 * Use the {@link EqlQueryTransformer} to transform the original query into a count query.
-	 *
-	 * @param parsedQuery
-	 * @param countProjection
-	 * @return list of {@link JpaQueryParsingToken}s
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> doCreateCountQuery(ParserRuleContext parsedQuery,
-			@Nullable String countProjection) {
-		return new EqlQueryTransformer(true, countProjection).visit(parsedQuery);
-	}
-
-	/**
-	 * Run the parsed query through {@link EqlQueryTransformer} to find the primary FROM clause's alias.
-	 *
-	 * @param parsedQuery
-	 * @return can be {@literal null}
-	 */
-	@Override
-	protected String doFindAlias(ParserRuleContext parsedQuery) {
-
-		EqlQueryTransformer transformVisitor = new EqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.getAlias();
-	}
-
-	/**
-	 * Use {@link EqlQueryTransformer} to find the projection of the query.
-	 *
-	 * @param parsedQuery
-	 * @return
-	 */
-	@Override
-	protected List<JpaQueryParsingToken> doFindProjection(ParserRuleContext parsedQuery) {
-
-		EqlQueryTransformer transformVisitor = new EqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.getProjection();
-	}
-
-	/**
-	 * Use {@link EqlQueryTransformer} to detect if the query uses a {@code new com.example.Dto()} DTO constructor in the
-	 * primary select clause.
-	 *
-	 * @param parsedQuery
-	 * @return Guaranteed to be {@literal true} or {@literal false}.
-	 */
-	@Override
-	protected boolean doCheckForConstructor(ParserRuleContext parsedQuery) {
-
-		EqlQueryTransformer transformVisitor = new EqlQueryTransformer();
-		transformVisitor.visit(parsedQuery);
-		return transformVisitor.hasConstructorExpression();
-	}
 }

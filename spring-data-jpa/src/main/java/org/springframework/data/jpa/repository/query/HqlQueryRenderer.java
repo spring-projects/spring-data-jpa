@@ -20,6 +20,11 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import java.util.ArrayList;
 import java.util.List;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
  *
@@ -27,16 +32,34 @@ import java.util.List;
  * @author Christoph Strobl
  * @since 3.1
  */
-@SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
-class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
+@SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
+class HqlQueryRenderer extends HqlBaseVisitor<QueryRendererBuilder> {
+
+	/**
+	 * Is this select clause a {@literal subquery}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSubquery(ParserRuleContext ctx) {
+
+		if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
+			return true;
+		} else if (ctx instanceof HqlParser.SelectStatementContext) {
+			return false;
+		} else if (ctx instanceof HqlParser.InsertStatementContext) {
+			return false;
+		} else {
+			return isSubquery(ctx.getParent());
+		}
+	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitStart(HqlParser.StartContext ctx) {
+	public QueryRendererBuilder visitStart(HqlParser.StartContext ctx) {
 		return visit(ctx.ql_statement());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitQl_statement(HqlParser.Ql_statementContext ctx) {
+	public QueryRendererBuilder visitQl_statement(HqlParser.Ql_statementContext ctx) {
 
 		if (ctx.selectStatement() != null) {
 			return visit(ctx.selectStatement());
@@ -47,311 +70,271 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		} else if (ctx.insertStatement() != null) {
 			return visit(ctx.insertStatement());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelectStatement(HqlParser.SelectStatementContext ctx) {
+	public QueryRendererBuilder visitSelectStatement(HqlParser.SelectStatementContext ctx) {
 		return visit(ctx.queryExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
+	public QueryRendererBuilder visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.withClause() != null) {
-			tokens.addAll(visit(ctx.withClause()));
+			builder.appendExpression(visit(ctx.withClause()));
 		}
 
-		tokens.addAll(visit(ctx.orderedQuery(0)));
+		builder.append(visit(ctx.orderedQuery(0)));
 
 		for (int i = 1; i < ctx.orderedQuery().size(); i++) {
 
-			tokens.addAll(visit(ctx.setOperator(i - 1)));
-			tokens.addAll(visit(ctx.orderedQuery(i)));
+			builder.append(visit(ctx.setOperator(i - 1)));
+			builder.append(visit(ctx.orderedQuery(i)));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitWithClause(HqlParser.WithClauseContext ctx) {
+	public QueryRendererBuilder visitWithClause(HqlParser.WithClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRendererBuilder.from(TOKEN_WITH);
+		builder.append(QueryRendererBuilder.concatExpressions(ctx.cte(), this::visit, TOKEN_COMMA));
 
-		tokens.add(TOKEN_WITH);
-
-		ctx.cte().forEach(cteContext -> {
-
-			tokens.addAll(visit(cteContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCte(HqlParser.CteContext ctx) {
+	public QueryRendererBuilder visitCte(HqlParser.CteContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.identifier()));
-		tokens.add(TOKEN_AS);
-		NOSPACE(tokens);
+		builder.appendExpression(visit(ctx.identifier()));
+		builder.append(TOKEN_AS);
 
 		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
-		}
-		if (ctx.MATERIALIZED() != null) {
-			tokens.add(TOKEN_MATERIALIZED);
+			builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 		}
 
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.queryExpression()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		if (ctx.MATERIALIZED() != null) {
+			builder.append(TOKEN_MATERIALIZED);
+		}
+
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.queryExpression()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.searchClause() != null) {
-			tokens.addAll(visit(ctx.searchClause()));
-		}
-		if (ctx.cycleClause() != null) {
-			tokens.addAll(visit(ctx.cycleClause()));
+			builder.appendExpression(visit(ctx.searchClause()));
 		}
 
-		return tokens;
+		if (ctx.cycleClause() != null) {
+			builder.appendExpression(visit(ctx.cycleClause()));
+		}
+
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSearchClause(HqlParser.SearchClauseContext ctx) {
+	public QueryRendererBuilder visitSearchClause(HqlParser.SearchClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.SEARCH().getText()));
+		builder.append(JpaQueryParsingToken.expression(ctx.SEARCH()));
 
 		if (ctx.BREADTH() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.BREADTH().getText()));
+			builder.append(JpaQueryParsingToken.expression(ctx.BREADTH()));
 		} else if (ctx.DEPTH() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.DEPTH().getText()));
+			builder.append(JpaQueryParsingToken.expression(ctx.DEPTH()));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.FIRST().getText()));
-		tokens.add(new JpaQueryParsingToken(ctx.BY().getText()));
-		tokens.addAll(visit(ctx.searchSpecifications()));
-		tokens.add(new JpaQueryParsingToken(ctx.SET().getText()));
-		tokens.addAll(visit(ctx.identifier()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FIRST()));
+		builder.append(JpaQueryParsingToken.expression(ctx.BY()));
+		builder.append(visit(ctx.searchSpecifications()));
+		builder.append(JpaQueryParsingToken.expression(ctx.SET()));
+		builder.append(visit(ctx.identifier()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSearchSpecifications(HqlParser.SearchSpecificationsContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.searchSpecification().forEach(searchSpecificationContext -> {
-
-			tokens.addAll(visit(searchSpecificationContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitSearchSpecifications(HqlParser.SearchSpecificationsContext ctx) {
+		return QueryRendererBuilder.concat(ctx.searchSpecification(), this::visit, TOKEN_COMMA);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSearchSpecification(HqlParser.SearchSpecificationContext ctx) {
+	public QueryRendererBuilder visitSearchSpecification(HqlParser.SearchSpecificationContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.identifier()));
+		builder.append(visit(ctx.identifier()));
 
 		if (ctx.sortDirection() != null) {
-			tokens.addAll(visit(ctx.sortDirection()));
+			builder.append(visit(ctx.sortDirection()));
 		}
 
 		if (ctx.nullsPrecedence() != null) {
-			tokens.addAll(visit(ctx.nullsPrecedence()));
+			builder.append(visit(ctx.nullsPrecedence()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCycleClause(HqlParser.CycleClauseContext ctx) {
+	public QueryRendererBuilder visitCycleClause(HqlParser.CycleClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CYCLE().getText()));
-		tokens.addAll(visit(ctx.cteAttributes()));
-		tokens.add(new JpaQueryParsingToken(ctx.SET().getText()));
-		tokens.addAll(visit(ctx.identifier(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.CYCLE().getText()));
+		builder.append(visit(ctx.cteAttributes()));
+		builder.append(JpaQueryParsingToken.expression(ctx.SET().getText()));
+		builder.append(visit(ctx.identifier(0)));
 
 		if (ctx.TO() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.TO().getText()));
-			tokens.addAll(visit(ctx.literal(0)));
-			tokens.add(new JpaQueryParsingToken(ctx.DEFAULT().getText()));
-			tokens.addAll(visit(ctx.literal(1)));
+			builder.append(JpaQueryParsingToken.expression(ctx.TO().getText()));
+			builder.append(visit(ctx.literal(0)));
+			builder.append(JpaQueryParsingToken.expression(ctx.DEFAULT().getText()));
+			builder.append(visit(ctx.literal(1)));
 		}
 
 		if (ctx.USING() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.USING().getText()));
-			tokens.addAll(visit(ctx.identifier(1)));
+			builder.append(JpaQueryParsingToken.expression(ctx.USING().getText()));
+			builder.append(visit(ctx.identifier(1)));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCteAttributes(HqlParser.CteAttributesContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.identifier().forEach(identifierContext -> {
-
-			tokens.addAll(visit(identifierContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitCteAttributes(HqlParser.CteAttributesContext ctx) {
+		return QueryRendererBuilder.concat(ctx.identifier(), this::visit, TOKEN_COMMA);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
+	public QueryRendererBuilder visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.query() != null) {
-			tokens.addAll(visit(ctx.query()));
+			builder.append(visit(ctx.query()));
 		} else if (ctx.queryExpression() != null) {
 
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.queryExpression()));
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.queryExpression()));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
 		if (ctx.queryOrder() != null) {
-			tokens.addAll(visit(ctx.queryOrder()));
+			builder.append(visit(ctx.queryOrder()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelectQuery(HqlParser.SelectQueryContext ctx) {
+	public QueryRendererBuilder visitSelectQuery(HqlParser.SelectQueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.selectClause() != null) {
-			tokens.addAll(visit(ctx.selectClause()));
+			builder.appendExpression(visit(ctx.selectClause()));
 		}
 
 		if (ctx.fromClause() != null) {
-			tokens.addAll(visit(ctx.fromClause()));
+			builder.appendExpression(visit(ctx.fromClause()));
 		}
 
 		if (ctx.whereClause() != null) {
-			tokens.addAll(visit(ctx.whereClause()));
+			builder.appendExpression(visit(ctx.whereClause()));
 		}
 
 		if (ctx.groupByClause() != null) {
-			tokens.addAll(visit(ctx.groupByClause()));
+			builder.appendExpression(visit(ctx.groupByClause()));
 		}
 
 		if (ctx.havingClause() != null) {
-			tokens.addAll(visit(ctx.havingClause()));
+			builder.appendExpression(visit(ctx.havingClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFromQuery(HqlParser.FromQueryContext ctx) {
+	public QueryRendererBuilder visitFromQuery(HqlParser.FromQueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.fromClause()));
+		builder.append(visit(ctx.fromClause()));
 
 		if (ctx.whereClause() != null) {
-			tokens.addAll(visit(ctx.whereClause()));
+			builder.append(visit(ctx.whereClause()));
 		}
 
 		if (ctx.groupByClause() != null) {
-			tokens.addAll(visit(ctx.groupByClause()));
+			builder.append(visit(ctx.groupByClause()));
 		}
 
 		if (ctx.havingClause() != null) {
-			tokens.addAll(visit(ctx.havingClause()));
+			builder.append(visit(ctx.havingClause()));
 		}
 
 		if (ctx.selectClause() != null) {
-			tokens.addAll(visit(ctx.selectClause()));
+			builder.append(visit(ctx.selectClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitQueryOrder(HqlParser.QueryOrderContext ctx) {
+	public QueryRendererBuilder visitQueryOrder(HqlParser.QueryOrderContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.orderByClause()));
+		builder.appendExpression(visit(ctx.orderByClause()));
 
 		if (ctx.limitClause() != null) {
-			SPACE(tokens);
-			tokens.addAll(visit(ctx.limitClause()));
+			builder.appendExpression(visit(ctx.limitClause()));
 		}
 		if (ctx.offsetClause() != null) {
-			tokens.addAll(visit(ctx.offsetClause()));
+			builder.appendExpression(visit(ctx.offsetClause()));
 		}
 		if (ctx.fetchClause() != null) {
-			tokens.addAll(visit(ctx.fetchClause()));
+			builder.appendExpression(visit(ctx.fetchClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFromClause(HqlParser.FromClauseContext ctx) {
+	public QueryRendererBuilder visitFromClause(HqlParser.FromClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		// TODO: Read up on Framework's LeastRecentlyUsedCache
-		tokens.add(new JpaQueryParsingToken(ctx.FROM()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FROM()));
+		builder.appendExpression(QueryRendererBuilder.concat(ctx.entityWithJoins(), this::visit, TOKEN_COMMA));
 
-		ctx.entityWithJoins().forEach(entityWithJoinsContext -> {
-			tokens.addAll(visit(entityWithJoinsContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-		SPACE(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitEntityWithJoins(HqlParser.EntityWithJoinsContext ctx) {
+	public QueryRendererBuilder visitEntityWithJoins(HqlParser.EntityWithJoinsContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.fromRoot()));
-		SPACE(tokens);
+		builder.appendExpression(visit(ctx.fromRoot()));
+		builder.appendInline(QueryRendererBuilder.concatExpressions(ctx.joinSpecifier(), this::visit, TOKEN_NONE));
 
-		ctx.joinSpecifier().forEach(joinSpecifierContext -> {
-			tokens.addAll(visit(joinSpecifierContext));
-		});
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoinSpecifier(HqlParser.JoinSpecifierContext ctx) {
+	public QueryRendererBuilder visitJoinSpecifier(HqlParser.JoinSpecifierContext ctx) {
 
 		if (ctx.join() != null) {
 			return visit(ctx.join());
@@ -360,474 +343,442 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		} else if (ctx.jpaCollectionJoin() != null) {
 			return visit(ctx.jpaCollectionJoin());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFromRoot(HqlParser.FromRootContext ctx) {
+	public QueryRendererBuilder visitFromRoot(HqlParser.FromRootContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.entityName() != null) {
 
-			tokens.addAll(visit(ctx.entityName()));
+			builder.appendExpression(visit(ctx.entityName()));
 
 			if (ctx.variable() != null) {
-				tokens.addAll(visit(ctx.variable()));
+				builder.appendExpression(visit(ctx.variable()));
 			}
-			NOSPACE(tokens);
+
 		} else if (ctx.subquery() != null) {
 
 			if (ctx.LATERAL() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.LATERAL()));
+				builder.append(JpaQueryParsingToken.expression(ctx.LATERAL()));
 			}
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.subquery()));
-			tokens.add(TOKEN_CLOSE_PAREN);
+
+			QueryRendererBuilder nested = QueryRenderer.builder();
+
+			nested.append(TOKEN_OPEN_PAREN);
+			nested.appendInline(visit(ctx.subquery()));
+			nested.append(TOKEN_CLOSE_PAREN);
+
+			builder.appendExpression(nested);
 
 			if (ctx.variable() != null) {
-				tokens.addAll(visit(ctx.variable()));
+				builder.appendExpression(visit(ctx.variable()));
 			}
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoin(HqlParser.JoinContext ctx) {
+	public QueryRendererBuilder visitJoin(HqlParser.JoinContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.joinType()));
-		tokens.add(new JpaQueryParsingToken(ctx.JOIN()));
+		builder.append(visit(ctx.joinType()));
+		builder.append(JpaQueryParsingToken.expression(ctx.JOIN()));
 
 		if (ctx.FETCH() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FETCH()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FETCH()));
 		}
 
-		tokens.addAll(visit(ctx.joinTarget()));
+		builder.append(visit(ctx.joinTarget()));
 
 		if (ctx.joinRestriction() != null) {
-			tokens.addAll(visit(ctx.joinRestriction()));
+			builder.appendExpression(visit(ctx.joinRestriction()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoinPath(HqlParser.JoinPathContext ctx) {
+	public QueryRendererBuilder visitJoinPath(HqlParser.JoinPathContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.path()));
+		builder.appendExpression(visit(ctx.path()));
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
+	public QueryRendererBuilder visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.LATERAL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LATERAL()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LATERAL()));
 		}
 
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.subquery()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.subquery()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
+	public QueryRendererBuilder visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.UPDATE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.UPDATE()));
 
 		if (ctx.VERSIONED() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.VERSIONED()));
+			builder.append(JpaQueryParsingToken.expression(ctx.VERSIONED()));
 		}
 
-		tokens.addAll(visit(ctx.targetEntity()));
-		tokens.addAll(visit(ctx.setClause()));
+		builder.appendExpression(visit(ctx.targetEntity()));
+		builder.appendExpression(visit(ctx.setClause()));
 
 		if (ctx.whereClause() != null) {
-			tokens.addAll(visit(ctx.whereClause()));
+			builder.appendExpression(visit(ctx.whereClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTargetEntity(HqlParser.TargetEntityContext ctx) {
+	public QueryRendererBuilder visitTargetEntity(HqlParser.TargetEntityContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.entityName()));
+		builder.appendExpression(visit(ctx.entityName()));
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSetClause(HqlParser.SetClauseContext ctx) {
+	public QueryRendererBuilder visitSetClause(HqlParser.SetClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.SET()));
-
-		ctx.assignment().forEach(assignmentContext -> {
-			tokens.addAll(visit(assignmentContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+		builder.append(JpaQueryParsingToken.expression(ctx.SET()));
+		return builder.append(QueryRendererBuilder.concat(ctx.assignment(), this::visit, TOKEN_COMMA));
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAssignment(HqlParser.AssignmentContext ctx) {
+	public QueryRendererBuilder visitAssignment(HqlParser.AssignmentContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.simplePath()));
-		tokens.add(TOKEN_EQUALS);
-		tokens.addAll(visit(ctx.expressionOrPredicate()));
+		builder.append(visit(ctx.simplePath()));
+		builder.append(TOKEN_EQUALS);
+		builder.append(visit(ctx.expressionOrPredicate()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
+	public QueryRendererBuilder visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.DELETE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.DELETE()));
 
 		if (ctx.FROM() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FROM()));
 		}
 
-		tokens.addAll(visit(ctx.targetEntity()));
+		builder.append(visit(ctx.targetEntity()));
 
 		if (ctx.whereClause() != null) {
-			tokens.addAll(visit(ctx.whereClause()));
+			builder.append(visit(ctx.whereClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInsertStatement(HqlParser.InsertStatementContext ctx) {
+	public QueryRendererBuilder visitInsertStatement(HqlParser.InsertStatementContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.INSERT()));
+		builder.append(JpaQueryParsingToken.expression(ctx.INSERT()));
 
 		if (ctx.INTO() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.INTO()));
+			builder.append(JpaQueryParsingToken.expression(ctx.INTO()));
 		}
 
-		tokens.addAll(visit(ctx.targetEntity()));
-		tokens.addAll(visit(ctx.targetFields()));
+		builder.appendExpression(visit(ctx.targetEntity()));
+		builder.appendExpression(visit(ctx.targetFields()));
 
 		if (ctx.queryExpression() != null) {
-			tokens.addAll(visit(ctx.queryExpression()));
+			builder.appendExpression(visit(ctx.queryExpression()));
 		} else if (ctx.valuesList() != null) {
-			tokens.addAll(visit(ctx.valuesList()));
+			builder.appendExpression(visit(ctx.valuesList()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTargetFields(HqlParser.TargetFieldsContext ctx) {
+	public QueryRendererBuilder visitTargetFields(HqlParser.TargetFieldsContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(QueryRendererBuilder.concat(ctx.simplePath(), this::visit, TOKEN_COMMA));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		ctx.simplePath().forEach(simplePathContext -> {
-			tokens.addAll(visit(simplePathContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		tokens.add(TOKEN_CLOSE_PAREN);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitValuesList(HqlParser.ValuesListContext ctx) {
+	public QueryRendererBuilder visitValuesList(HqlParser.ValuesListContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.VALUES()));
+		builder.append(JpaQueryParsingToken.expression(ctx.VALUES()));
+		builder.append(QueryRendererBuilder.concat(ctx.values(), this::visit, TOKEN_COMMA));
 
-		ctx.values().forEach(valuesContext -> {
-			tokens.addAll(visit(valuesContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitValues(HqlParser.ValuesContext ctx) {
+	public QueryRendererBuilder visitValues(HqlParser.ValuesContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(QueryRendererBuilder.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		ctx.expression().forEach(expressionContext -> {
-			tokens.addAll(visit(expressionContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		tokens.add(TOKEN_CLOSE_PAREN);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInstantiation(HqlParser.InstantiationContext ctx) {
+	public QueryRendererBuilder visitInstantiation(HqlParser.InstantiationContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.NEW()));
-		tokens.addAll(visit(ctx.instantiationTarget()));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.instantiationArguments()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.expression(ctx.NEW()));
+		builder.append(visit(ctx.instantiationTarget()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.instantiationArguments()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAlias(HqlParser.AliasContext ctx) {
+	public QueryRendererBuilder visitAlias(HqlParser.AliasContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.AS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.AS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.AS()));
 		}
 
-		tokens.addAll(visit(ctx.identifier()));
+		builder.append(visit(ctx.identifier()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGroupedItem(HqlParser.GroupedItemContext ctx) {
+	public QueryRendererBuilder visitGroupedItem(HqlParser.GroupedItemContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.INTEGER_LITERAL()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSortedItem(HqlParser.SortedItemContext ctx) {
+	public QueryRendererBuilder visitSortedItem(HqlParser.SortedItemContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.sortExpression()));
+		builder.appendExpression(visit(ctx.sortExpression()));
 
 		if (ctx.sortDirection() != null) {
-			tokens.addAll(visit(ctx.sortDirection()));
+			builder.append(visit(ctx.sortDirection()));
 		}
 
 		if (ctx.nullsPrecedence() != null) {
-			tokens.addAll(visit(ctx.nullsPrecedence()));
+			builder.appendExpression(visit(ctx.nullsPrecedence()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSortExpression(HqlParser.SortExpressionContext ctx) {
+	public QueryRendererBuilder visitSortExpression(HqlParser.SortExpressionContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.INTEGER_LITERAL()));
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSortDirection(HqlParser.SortDirectionContext ctx) {
+	public QueryRendererBuilder visitSortDirection(HqlParser.SortDirectionContext ctx) {
 
 		if (ctx.ASC() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.ASC()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.ASC()));
 		} else if (ctx.DESC() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.DESC()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.DESC()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNullsPrecedence(HqlParser.NullsPrecedenceContext ctx) {
+	public QueryRendererBuilder visitNullsPrecedence(HqlParser.NullsPrecedenceContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.NULLS()));
+		builder.append(JpaQueryParsingToken.expression(ctx.NULLS()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FIRST()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FIRST()));
 		} else if (ctx.LAST() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LAST()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LAST()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitLimitClause(HqlParser.LimitClauseContext ctx) {
+	public QueryRendererBuilder visitLimitClause(HqlParser.LimitClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.LIMIT()));
-		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
+		builder.append(JpaQueryParsingToken.expression(ctx.LIMIT()));
+		builder.append(visit(ctx.parameterOrIntegerLiteral()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitOffsetClause(HqlParser.OffsetClauseContext ctx) {
+	public QueryRendererBuilder visitOffsetClause(HqlParser.OffsetClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.OFFSET()));
-		tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
+		builder.append(JpaQueryParsingToken.expression(ctx.OFFSET()));
+		builder.append(visit(ctx.parameterOrIntegerLiteral()));
 
 		if (ctx.ROW() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ROW()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ROW()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ROWS()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFetchClause(HqlParser.FetchClauseContext ctx) {
+	public QueryRendererBuilder visitFetchClause(HqlParser.FetchClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.FETCH()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FETCH()));
 
 		if (ctx.FIRST() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FIRST()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FIRST()));
 		} else if (ctx.NEXT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NEXT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.NEXT()));
 		}
 
 		if (ctx.parameterOrIntegerLiteral() != null) {
-			tokens.addAll(visit(ctx.parameterOrIntegerLiteral()));
+			builder.append(visit(ctx.parameterOrIntegerLiteral()));
 		} else if (ctx.parameterOrNumberLiteral() != null) {
-
-			tokens.addAll(visit(ctx.parameterOrNumberLiteral()));
-			tokens.add(TOKEN_PERCENT);
+			builder.append(visit(ctx.parameterOrNumberLiteral()));
 		}
 
 		if (ctx.ROW() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ROW()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ROW()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ROWS()));
 		}
 
 		if (ctx.ONLY() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ONLY()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ONLY()));
 		} else if (ctx.WITH() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.WITH()));
-			tokens.add(new JpaQueryParsingToken(ctx.TIES()));
+			builder.append(JpaQueryParsingToken.expression(ctx.WITH()));
+			builder.append(JpaQueryParsingToken.expression(ctx.TIES()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSubquery(HqlParser.SubqueryContext ctx) {
+	public QueryRendererBuilder visitSubquery(HqlParser.SubqueryContext ctx) {
 		return visit(ctx.queryExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelectClause(HqlParser.SelectClauseContext ctx) {
+	public QueryRendererBuilder visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
+		builder.append(JpaQueryParsingToken.expression(ctx.SELECT()));
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
 		}
 
-		tokens.addAll(visit(ctx.selectionList()));
+		builder.appendExpression(visit(ctx.selectionList()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelectionList(HqlParser.SelectionListContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.selection().forEach(selectionContext -> {
-			tokens.addAll(visit(selectionContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-		SPACE(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitSelectionList(HqlParser.SelectionListContext ctx) {
+		return QueryRendererBuilder.concat(ctx.selection(), this::visit, TOKEN_COMMA);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelection(HqlParser.SelectionContext ctx) {
+	public QueryRendererBuilder visitSelection(HqlParser.SelectionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.selectExpression()));
+		builder.append(visit(ctx.selectExpression()));
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSelectExpression(HqlParser.SelectExpressionContext ctx) {
+	public QueryRendererBuilder visitSelectExpression(HqlParser.SelectExpressionContext ctx) {
 
 		if (ctx.instantiation() != null) {
 			return visit(ctx.instantiation());
@@ -838,209 +789,187 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		} else if (ctx.expressionOrPredicate() != null) {
 			return visit(ctx.expressionOrPredicate());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitMapEntrySelection(HqlParser.MapEntrySelectionContext ctx) {
+	public QueryRendererBuilder visitMapEntrySelection(HqlParser.MapEntrySelectionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.ENTRY()));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.path()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.expression(ctx.ENTRY()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJpaSelectObjectSyntax(HqlParser.JpaSelectObjectSyntaxContext ctx) {
+	public QueryRendererBuilder visitJpaSelectObjectSyntax(HqlParser.JpaSelectObjectSyntaxContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.OBJECT(), false));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.identifier()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.token(ctx.OBJECT()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.identifier()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitWhereClause(HqlParser.WhereClauseContext ctx) {
+	public QueryRendererBuilder visitWhereClause(HqlParser.WhereClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.WHERE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.WHERE()));
+		builder.append(QueryRendererBuilder.concatExpressions(ctx.predicate(), this::visit, TOKEN_COMMA));
 
-		ctx.predicate().forEach(predicateContext -> {
-			tokens.addAll(visit(predicateContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoinType(HqlParser.JoinTypeContext ctx) {
+	public QueryRendererBuilder visitJoinType(HqlParser.JoinTypeContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.INNER() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.INNER()));
+			builder.append(JpaQueryParsingToken.expression(ctx.INNER()));
 		}
 		if (ctx.LEFT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LEFT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LEFT()));
 		}
 		if (ctx.RIGHT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.RIGHT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.RIGHT()));
 		}
 		if (ctx.FULL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FULL()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FULL()));
 		}
 		if (ctx.OUTER() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.OUTER()));
+			builder.append(JpaQueryParsingToken.expression(ctx.OUTER()));
 		}
 		if (ctx.CROSS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.CROSS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.CROSS()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCrossJoin(HqlParser.CrossJoinContext ctx) {
+	public QueryRendererBuilder visitCrossJoin(HqlParser.CrossJoinContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CROSS()));
-		tokens.add(new JpaQueryParsingToken(ctx.JOIN()));
-		tokens.addAll(visit(ctx.entityName()));
+		builder.append(JpaQueryParsingToken.expression(ctx.CROSS()));
+		builder.append(JpaQueryParsingToken.expression(ctx.JOIN()));
+		builder.appendExpression(visit(ctx.entityName()));
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJoinRestriction(HqlParser.JoinRestrictionContext ctx) {
+	public QueryRendererBuilder visitJoinRestriction(HqlParser.JoinRestrictionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.ON() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ON()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ON()));
 		} else if (ctx.WITH() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.WITH()));
+			builder.append(JpaQueryParsingToken.expression(ctx.WITH()));
 		}
 
-		tokens.addAll(visit(ctx.predicate()));
+		builder.appendExpression(visit(ctx.predicate()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitJpaCollectionJoin(HqlParser.JpaCollectionJoinContext ctx) {
+	public QueryRendererBuilder visitJpaCollectionJoin(HqlParser.JpaCollectionJoinContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_COMMA);
-		tokens.add(new JpaQueryParsingToken(ctx.IN(), false));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.path()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_COMMA);
+		builder.append(JpaQueryParsingToken.token(ctx.IN()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGroupByClause(HqlParser.GroupByClauseContext ctx) {
+	public QueryRendererBuilder visitGroupByClause(HqlParser.GroupByClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
-		tokens.add(new JpaQueryParsingToken(ctx.BY()));
+		builder.append(JpaQueryParsingToken.expression(ctx.GROUP()));
+		builder.append(JpaQueryParsingToken.expression(ctx.BY()));
+		builder.append(QueryRendererBuilder.concat(ctx.groupedItem(), this::visit, TOKEN_COMMA));
 
-		ctx.groupedItem().forEach(groupedItemContext -> {
-			tokens.addAll(visit(groupedItemContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-		SPACE(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitOrderByClause(HqlParser.OrderByClauseContext ctx) {
+	public QueryRendererBuilder visitOrderByClause(HqlParser.OrderByClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.ORDER()));
-		tokens.add(new JpaQueryParsingToken(ctx.BY()));
+		builder.append(JpaQueryParsingToken.expression(ctx.ORDER()));
+		builder.append(JpaQueryParsingToken.expression(ctx.BY()));
 
-		ctx.sortedItem().forEach(sortedItemContext -> {
-			tokens.addAll(visit(sortedItemContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
+		QueryRendererBuilder concat = QueryRendererBuilder.concat(ctx.sortedItem(), this::visit, TOKEN_COMMA);
 
-		return tokens;
+		builder.appendExpression(concat);
+
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitHavingClause(HqlParser.HavingClauseContext ctx) {
+	public QueryRendererBuilder visitHavingClause(HqlParser.HavingClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.HAVING()));
+		builder.append(JpaQueryParsingToken.expression(ctx.HAVING()));
+		builder.appendExpression(QueryRendererBuilder.concat(ctx.predicate(), this::visit, TOKEN_COMMA));
 
-		ctx.predicate().forEach(predicateContext -> {
-			tokens.addAll(visit(predicateContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSetOperator(HqlParser.SetOperatorContext ctx) {
+	public QueryRendererBuilder visitSetOperator(HqlParser.SetOperatorContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.UNION() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.UNION()));
+			builder.append(JpaQueryParsingToken.expression(ctx.UNION()));
 		} else if (ctx.INTERSECT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.INTERSECT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.INTERSECT()));
 		} else if (ctx.EXCEPT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.EXCEPT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.EXCEPT()));
 		}
 
 		if (ctx.ALL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ALL()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ALL()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitLiteral(HqlParser.LiteralContext ctx) {
+	public QueryRendererBuilder visitLiteral(HqlParser.LiteralContext ctx) {
 
 		if (ctx.NULL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.NULL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.NULL()));
 		} else if (ctx.booleanLiteral() != null) {
 			return visit(ctx.booleanLiteral());
 		} else if (ctx.stringLiteral() != null) {
@@ -1052,1516 +981,1460 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		} else if (ctx.binaryLiteral() != null) {
 			return visit(ctx.binaryLiteral());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
+	public QueryRendererBuilder visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.TRUE()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.TRUE()));
 		} else if (ctx.FALSE() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.FALSE()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.FALSE()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitStringLiteral(HqlParser.StringLiteralContext ctx) {
+	public QueryRendererBuilder visitStringLiteral(HqlParser.StringLiteralContext ctx) {
 
 		if (ctx.STRINGLITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.STRINGLITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.STRINGLITERAL()));
 		} else if (ctx.CHARACTER() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.CHARACTER()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
+	public QueryRendererBuilder visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
 
 		if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.INTEGER_LITERAL()));
 		} else if (ctx.FLOAT_LITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.FLOAT_LITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.FLOAT_LITERAL()));
 		} else if (ctx.HEXLITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.HEXLITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.HEXLITERAL()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
+	public QueryRendererBuilder visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.LOCAL_DATE() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_DATE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LOCAL_DATE()));
 		} else if (ctx.LOCAL_TIME() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_TIME()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LOCAL_TIME()));
 		} else if (ctx.LOCAL_DATETIME() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LOCAL_DATETIME()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LOCAL_DATETIME()));
 		} else if (ctx.CURRENT_DATE() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_DATE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.CURRENT_DATE()));
 		} else if (ctx.CURRENT_TIME() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIME()));
+			builder.append(JpaQueryParsingToken.expression(ctx.CURRENT_TIME()));
 		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.CURRENT_TIMESTAMP()));
+			builder.append(JpaQueryParsingToken.expression(ctx.CURRENT_TIMESTAMP()));
 		} else if (ctx.OFFSET_DATETIME() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.OFFSET_DATETIME()));
+			builder.append(JpaQueryParsingToken.expression(ctx.OFFSET_DATETIME()));
 		} else {
 
 			if (ctx.LOCAL() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.LOCAL()));
+				builder.append(JpaQueryParsingToken.expression(ctx.LOCAL()));
 			} else if (ctx.CURRENT() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
+				builder.append(JpaQueryParsingToken.expression(ctx.CURRENT()));
 			} else if (ctx.OFFSET() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.OFFSET()));
+				builder.append(JpaQueryParsingToken.expression(ctx.OFFSET()));
 			}
 
 			if (ctx.DATE() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.DATE()));
+				builder.append(JpaQueryParsingToken.expression(ctx.DATE()));
 			} else if (ctx.TIME() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.TIME()));
+				builder.append(JpaQueryParsingToken.expression(ctx.TIME()));
 			} else if (ctx.DATETIME() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.DATETIME()));
+				builder.append(JpaQueryParsingToken.expression(ctx.DATETIME()));
 			}
 
 			if (ctx.INSTANT() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.INSTANT()));
+				builder.append(JpaQueryParsingToken.expression(ctx.INSTANT()));
 			}
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDatetimeField(HqlParser.DatetimeFieldContext ctx) {
+	public QueryRendererBuilder visitDatetimeField(HqlParser.DatetimeFieldContext ctx) {
 
 		if (ctx.YEAR() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.YEAR()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.YEAR()));
 		} else if (ctx.MONTH() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.MONTH()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.MONTH()));
 		} else if (ctx.DAY() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.DAY()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.DAY()));
 		} else if (ctx.WEEK() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.WEEK()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.WEEK()));
 		} else if (ctx.QUARTER() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.QUARTER()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.QUARTER()));
 		} else if (ctx.HOUR() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.HOUR()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.HOUR()));
 		} else if (ctx.MINUTE() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.MINUTE()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.MINUTE()));
 		} else if (ctx.SECOND() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.SECOND()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.SECOND()));
 		} else if (ctx.NANOSECOND() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.NANOSECOND()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.NANOSECOND()));
 		} else if (ctx.EPOCH() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.EPOCH()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.EPOCH()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitBinaryLiteral(HqlParser.BinaryLiteralContext ctx) {
+	public QueryRendererBuilder visitBinaryLiteral(HqlParser.BinaryLiteralContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.BINARY_LITERAL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.BINARY_LITERAL()));
+			builder.append(JpaQueryParsingToken.expression(ctx.BINARY_LITERAL()));
 		} else if (ctx.HEXLITERAL() != null) {
 
-			tokens.add(TOKEN_OPEN_BRACE);
-			ctx.HEXLITERAL().forEach(terminalNode -> {
-				tokens.add(new JpaQueryParsingToken(terminalNode));
-				NOSPACE(tokens);
-				tokens.add(TOKEN_COMMA);
-			});
-			CLIP(tokens);
-			tokens.add(TOKEN_CLOSE_BRACE);
+			builder.append(TOKEN_OPEN_BRACE);
+
+			builder.append(QueryRendererBuilder.concat(ctx.HEXLITERAL(), it -> {
+				return QueryRendererBuilder.from(JpaQueryParsingToken.token(it));
+			}, TOKEN_COMMA));
+
+			builder.append(TOKEN_CLOSE_BRACE);
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitPlainPrimaryExpression(HqlParser.PlainPrimaryExpressionContext ctx) {
+	public QueryRendererBuilder visitPlainPrimaryExpression(HqlParser.PlainPrimaryExpressionContext ctx) {
 		return visit(ctx.primaryExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
+	public QueryRendererBuilder visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(QueryRendererBuilder.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
-			tokens.addAll(visit(expressionOrPredicateContext));
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		tokens.add(TOKEN_CLOSE_PAREN);
-
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitHqlConcatenationExpression(HqlParser.HqlConcatenationExpressionContext ctx) {
+	public QueryRendererBuilder visitHqlConcatenationExpression(HqlParser.HqlConcatenationExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(TOKEN_DOUBLE_PIPE);
-		tokens.addAll(visit(ctx.expression(1)));
+		builder.appendInline(visit(ctx.expression(0)));
+		builder.append(TOKEN_DOUBLE_PIPE);
+		builder.append(visit(ctx.expression(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDayOfWeekExpression(HqlParser.DayOfWeekExpressionContext ctx) {
+	public QueryRendererBuilder visitDayOfWeekExpression(HqlParser.DayOfWeekExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.DAY()));
-		tokens.add(new JpaQueryParsingToken(ctx.OF()));
-		tokens.add(new JpaQueryParsingToken(ctx.WEEK()));
+		builder.append(JpaQueryParsingToken.expression(ctx.DAY()));
+		builder.append(JpaQueryParsingToken.expression(ctx.OF()));
+		builder.append(JpaQueryParsingToken.expression(ctx.WEEK()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDayOfMonthExpression(HqlParser.DayOfMonthExpressionContext ctx) {
+	public QueryRendererBuilder visitDayOfMonthExpression(HqlParser.DayOfMonthExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.DAY()));
-		tokens.add(new JpaQueryParsingToken(ctx.OF()));
-		tokens.add(new JpaQueryParsingToken(ctx.MONTH()));
+		builder.append(JpaQueryParsingToken.expression(ctx.DAY()));
+		builder.append(JpaQueryParsingToken.expression(ctx.OF()));
+		builder.append(JpaQueryParsingToken.expression(ctx.MONTH()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitWeekOfYearExpression(HqlParser.WeekOfYearExpressionContext ctx) {
+	public QueryRendererBuilder visitWeekOfYearExpression(HqlParser.WeekOfYearExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.WEEK()));
-		tokens.add(new JpaQueryParsingToken(ctx.OF()));
-		tokens.add(new JpaQueryParsingToken(ctx.YEAR()));
+		builder.append(JpaQueryParsingToken.expression(ctx.WEEK()));
+		builder.append(JpaQueryParsingToken.expression(ctx.OF()));
+		builder.append(JpaQueryParsingToken.expression(ctx.YEAR()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
+	public QueryRendererBuilder visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.expression()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.expression()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAdditionExpression(HqlParser.AdditionExpressionContext ctx) {
+	public QueryRendererBuilder visitAdditionExpression(HqlParser.AdditionExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.op));
-		tokens.addAll(visit(ctx.expression(1)));
+		builder.appendInline(visit(ctx.expression(0)));
+		builder.append(JpaQueryParsingToken.ventilated(ctx.op));
+		builder.appendInline(visit(ctx.expression(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSignedNumericLiteral(HqlParser.SignedNumericLiteralContext ctx) {
+	public QueryRendererBuilder visitSignedNumericLiteral(HqlParser.SignedNumericLiteralContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.op, false));
-		tokens.addAll(visit(ctx.numericLiteral()));
+		builder.append(JpaQueryParsingToken.token(ctx.op));
+		builder.append(visit(ctx.numericLiteral()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitMultiplicationExpression(HqlParser.MultiplicationExpressionContext ctx) {
+	public QueryRendererBuilder visitMultiplicationExpression(HqlParser.MultiplicationExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
-		NOSPACE(tokens);
-		tokens.add(new JpaQueryParsingToken(ctx.op, false));
-		tokens.addAll(visit(ctx.expression(1)));
+		builder.appendExpression(visit(ctx.expression(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.op));
+		builder.appendExpression(visit(ctx.expression(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSubqueryExpression(HqlParser.SubqueryExpressionContext ctx) {
+	public QueryRendererBuilder visitSubqueryExpression(HqlParser.SubqueryExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.subquery()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.subquery()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSignedExpression(HqlParser.SignedExpressionContext ctx) {
+	public QueryRendererBuilder visitSignedExpression(HqlParser.SignedExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.op, false));
-		tokens.addAll(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.token(ctx.op));
+		builder.appendInline(visit(ctx.expression()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitToDurationExpression(HqlParser.ToDurationExpressionContext ctx) {
+	public QueryRendererBuilder visitToDurationExpression(HqlParser.ToDurationExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.addAll(visit(ctx.datetimeField()));
+		builder.append(visit(ctx.expression()));
+		builder.append(visit(ctx.datetimeField()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFromDurationExpression(HqlParser.FromDurationExpressionContext ctx) {
+	public QueryRendererBuilder visitFromDurationExpression(HqlParser.FromDurationExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.BY()));
-		tokens.addAll(visit(ctx.datetimeField()));
+		builder.append(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.BY()));
+		builder.append(visit(ctx.datetimeField()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCaseExpression(HqlParser.CaseExpressionContext ctx) {
+	public QueryRendererBuilder visitCaseExpression(HqlParser.CaseExpressionContext ctx) {
 		return visit(ctx.caseList());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitLiteralExpression(HqlParser.LiteralExpressionContext ctx) {
+	public QueryRendererBuilder visitLiteralExpression(HqlParser.LiteralExpressionContext ctx) {
 		return visit(ctx.literal());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitParameterExpression(HqlParser.ParameterExpressionContext ctx) {
+	public QueryRendererBuilder visitParameterExpression(HqlParser.ParameterExpressionContext ctx) {
 		return visit(ctx.parameter());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
+	public QueryRendererBuilder visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
 		return visit(ctx.function());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGeneralPathExpression(HqlParser.GeneralPathExpressionContext ctx) {
+	public QueryRendererBuilder visitGeneralPathExpression(HqlParser.GeneralPathExpressionContext ctx) {
 		return visit(ctx.generalPathFragment());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitIdentificationVariable(HqlParser.IdentificationVariableContext ctx) {
+	public QueryRendererBuilder visitIdentificationVariable(HqlParser.IdentificationVariableContext ctx) {
 
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.simplePath() != null) {
 			return visit(ctx.simplePath());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitPath(HqlParser.PathContext ctx) {
+	public QueryRendererBuilder visitPath(HqlParser.PathContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.treatedPath() != null) {
 
-			tokens.addAll(visit(ctx.treatedPath()));
+			builder.append(visit(ctx.treatedPath()));
 
 			if (ctx.pathContinutation() != null) {
-				NOSPACE(tokens);
-				tokens.addAll(visit(ctx.pathContinutation()));
+				builder.append(visit(ctx.pathContinutation()));
 			}
 		} else if (ctx.generalPathFragment() != null) {
-			tokens.addAll(visit(ctx.generalPathFragment()));
+			builder.append(visit(ctx.generalPathFragment()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGeneralPathFragment(HqlParser.GeneralPathFragmentContext ctx) {
+	public QueryRendererBuilder visitGeneralPathFragment(HqlParser.GeneralPathFragmentContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.simplePath()));
+		builder.append(visit(ctx.simplePath()));
 
 		if (ctx.indexedPathAccessFragment() != null) {
-			tokens.addAll(visit(ctx.indexedPathAccessFragment()));
+			builder.append(visit(ctx.indexedPathAccessFragment()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
+	public QueryRendererBuilder visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_SQUARE_BRACKET);
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(TOKEN_CLOSE_SQUARE_BRACKET);
+		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
+		builder.appendInline(visit(ctx.expression()));
+		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
 
 		if (ctx.generalPathFragment() != null) {
 
-			tokens.add(TOKEN_DOT);
-			tokens.addAll(visit(ctx.generalPathFragment()));
+			builder.append(TOKEN_DOT);
+			builder.append(visit(ctx.generalPathFragment()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSimplePath(HqlParser.SimplePathContext ctx) {
+	public QueryRendererBuilder visitSimplePath(HqlParser.SimplePathContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.identifier()));
-		NOSPACE(tokens);
+		builder.append(visit(ctx.identifier()));
 
-		ctx.simplePathElement().forEach(simplePathElementContext -> {
-			tokens.addAll(visit(simplePathElementContext));
-			NOSPACE(tokens);
-		});
-		SPACE(tokens);
+		if (!ctx.simplePathElement().isEmpty()) {
+			builder.append(TOKEN_DOT);
+		}
 
-		return tokens;
+		builder.append(QueryRendererBuilder.concat(ctx.simplePathElement(), this::visit, TOKEN_DOT));
+
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSimplePathElement(HqlParser.SimplePathElementContext ctx) {
+	public QueryRendererBuilder visitSimplePathElement(HqlParser.SimplePathElementContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_DOT);
-		tokens.addAll(visit(ctx.identifier()));
+		builder.append(visit(ctx.identifier()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCaseList(HqlParser.CaseListContext ctx) {
+	public QueryRendererBuilder visitCaseList(HqlParser.CaseListContext ctx) {
 
 		if (ctx.simpleCaseExpression() != null) {
 			return visit(ctx.simpleCaseExpression());
 		} else if (ctx.searchedCaseExpression() != null) {
 			return visit(ctx.searchedCaseExpression());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
+	public QueryRendererBuilder visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
-		tokens.addAll(visit(ctx.expressionOrPredicate(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.CASE()));
+		builder.append(visit(ctx.expressionOrPredicate(0)));
 
 		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
-			tokens.addAll(visit(caseWhenExpressionClauseContext));
+			builder.append(visit(caseWhenExpressionClauseContext));
 		});
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
-			tokens.addAll(visit(ctx.expressionOrPredicate(1)));
+			builder.append(JpaQueryParsingToken.expression(ctx.ELSE()));
+			builder.append(visit(ctx.expressionOrPredicate(1)));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.END()));
+		builder.append(JpaQueryParsingToken.expression(ctx.END()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
+	public QueryRendererBuilder visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CASE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.CASE()));
 
-		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
-			tokens.addAll(visit(caseWhenPredicateClauseContext));
-		});
+		builder.append(QueryRendererBuilder.concatExpressions(ctx.caseWhenPredicateClause(), this::visit, TOKEN_NONE));
 
 		if (ctx.ELSE() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.ELSE()));
-			tokens.addAll(visit(ctx.expressionOrPredicate()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ELSE()));
+			builder.appendExpression(visit(ctx.expressionOrPredicate()));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.END()));
+		builder.append(JpaQueryParsingToken.expression(ctx.END()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCaseWhenExpressionClause(HqlParser.CaseWhenExpressionClauseContext ctx) {
+	public QueryRendererBuilder visitCaseWhenExpressionClause(HqlParser.CaseWhenExpressionClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
-		tokens.addAll(visit(ctx.expressionOrPredicate()));
+		builder.append(JpaQueryParsingToken.expression(ctx.WHEN()));
+		builder.appendExpression(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.THEN()));
+		builder.appendExpression(visit(ctx.expressionOrPredicate()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCaseWhenPredicateClause(HqlParser.CaseWhenPredicateClauseContext ctx) {
+	public QueryRendererBuilder visitCaseWhenPredicateClause(HqlParser.CaseWhenPredicateClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.WHEN()));
-		tokens.addAll(visit(ctx.predicate()));
-		tokens.add(new JpaQueryParsingToken(ctx.THEN()));
-		tokens.addAll(visit(ctx.expressionOrPredicate()));
+		builder.append(JpaQueryParsingToken.expression(ctx.WHEN()));
+		builder.appendExpression(visit(ctx.predicate()));
+		builder.append(JpaQueryParsingToken.expression(ctx.THEN()));
+		builder.appendExpression(visit(ctx.expressionOrPredicate()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGenericFunction(HqlParser.GenericFunctionContext ctx) {
+	public QueryRendererBuilder visitGenericFunction(HqlParser.GenericFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder nested = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.functionName()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_OPEN_PAREN);
+		nested.append(visit(ctx.functionName()));
+		nested.append(TOKEN_OPEN_PAREN);
 
 		if (ctx.functionArguments() != null) {
-			tokens.addAll(visit(ctx.functionArguments()));
+			nested.appendInline(visit(ctx.functionArguments()));
 		} else if (ctx.ASTERISK() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ASTERISK()));
+			nested.append(JpaQueryParsingToken.token(ctx.ASTERISK()));
 		}
 
-		tokens.add(TOKEN_CLOSE_PAREN);
+		nested.append(TOKEN_CLOSE_PAREN);
+
+		builder.append(nested);
 
 		if (ctx.pathContinutation() != null) {
-			NOSPACE(tokens);
-			tokens.addAll(visit(ctx.pathContinutation()));
+			builder.appendInline(visit(ctx.pathContinutation()));
 		}
 
 		if (ctx.filterClause() != null) {
-			tokens.addAll(visit(ctx.filterClause()));
+			builder.appendExpression(visit(ctx.filterClause()));
 		}
 
 		if (ctx.withinGroup() != null) {
-			tokens.addAll(visit(ctx.withinGroup()));
+			builder.appendExpression(visit(ctx.withinGroup()));
 		}
 
 		if (ctx.overClause() != null) {
-			tokens.addAll(visit(ctx.overClause()));
+			builder.appendExpression(visit(ctx.overClause()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFunctionWithSubquery(HqlParser.FunctionWithSubqueryContext ctx) {
+	public QueryRendererBuilder visitFunctionWithSubquery(HqlParser.FunctionWithSubqueryContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.functionName()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.subquery()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.appendExpression(visit(ctx.functionName()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.subquery()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCastFunctionInvocation(HqlParser.CastFunctionInvocationContext ctx) {
+	public QueryRendererBuilder visitCastFunctionInvocation(HqlParser.CastFunctionInvocationContext ctx) {
 		return visit(ctx.castFunction());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExtractFunctionInvocation(HqlParser.ExtractFunctionInvocationContext ctx) {
+	public QueryRendererBuilder visitExtractFunctionInvocation(HqlParser.ExtractFunctionInvocationContext ctx) {
 		return visit(ctx.extractFunction());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTrimFunctionInvocation(HqlParser.TrimFunctionInvocationContext ctx) {
+	public QueryRendererBuilder visitTrimFunctionInvocation(HqlParser.TrimFunctionInvocationContext ctx) {
 		return visit(ctx.trimFunction());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitEveryFunctionInvocation(HqlParser.EveryFunctionInvocationContext ctx) {
+	public QueryRendererBuilder visitEveryFunctionInvocation(HqlParser.EveryFunctionInvocationContext ctx) {
 		return visit(ctx.everyFunction());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAnyFunctionInvocation(HqlParser.AnyFunctionInvocationContext ctx) {
+	public QueryRendererBuilder visitAnyFunctionInvocation(HqlParser.AnyFunctionInvocationContext ctx) {
 		return visit(ctx.anyFunction());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTreatedPathInvocation(HqlParser.TreatedPathInvocationContext ctx) {
+	public QueryRendererBuilder visitTreatedPathInvocation(HqlParser.TreatedPathInvocationContext ctx) {
 		return visit(ctx.treatedPath());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFunctionArguments(HqlParser.FunctionArgumentsContext ctx) {
+	public QueryRendererBuilder visitFunctionArguments(HqlParser.FunctionArgumentsContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.DISTINCT() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
 		}
 
-		ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
-			tokens.addAll(visit(expressionOrPredicateContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
+		builder.append(QueryRendererBuilder.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFilterClause(HqlParser.FilterClauseContext ctx) {
+	public QueryRendererBuilder visitFilterClause(HqlParser.FilterClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.FILTER()));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.whereClause()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.expression(ctx.FILTER()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.whereClause()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitWithinGroup(HqlParser.WithinGroupContext ctx) {
+	public QueryRendererBuilder visitWithinGroup(HqlParser.WithinGroupContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.WITHIN()));
-		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.orderByClause()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.expression(ctx.WITHIN()));
+		builder.append(JpaQueryParsingToken.expression(ctx.GROUP()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.orderByClause()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitOverClause(HqlParser.OverClauseContext ctx) {
+	public QueryRendererBuilder visitOverClause(HqlParser.OverClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(JpaQueryParsingToken.expression(ctx.OVER()));
 
-		tokens.add(new JpaQueryParsingToken(ctx.OVER()));
-		tokens.add(TOKEN_OPEN_PAREN);
+		QueryRendererBuilder nested = QueryRenderer.builder();
+		nested.append(TOKEN_OPEN_PAREN);
+
+		List<ParseTree> trees = new ArrayList<>();
 
 		if (ctx.partitionClause() != null) {
-			tokens.addAll(visit(ctx.partitionClause()));
+			trees.add(ctx.partitionClause());
 		}
 
 		if (ctx.orderByClause() != null) {
-			tokens.addAll(visit(ctx.orderByClause()));
-			SPACE(tokens);
+			trees.add(ctx.orderByClause());
 		}
 
 		if (ctx.frameClause() != null) {
-			tokens.addAll(visit(ctx.frameClause()));
+			trees.add(ctx.frameClause());
 		}
 
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		nested.appendInline(QueryRendererBuilder.concatExpressions(trees, this::visit, TOKEN_NONE));
+		nested.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		builder.appendInline(nested);
+
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitPartitionClause(HqlParser.PartitionClauseContext ctx) {
+	public QueryRendererBuilder visitPartitionClause(HqlParser.PartitionClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.PARTITION()));
-		tokens.add(new JpaQueryParsingToken(ctx.BY()));
+		builder.append(JpaQueryParsingToken.expression(ctx.PARTITION()));
+		builder.append(JpaQueryParsingToken.expression(ctx.BY()));
 
-		ctx.expression().forEach(expressionContext -> {
-			tokens.addAll(visit(expressionContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-		SPACE(tokens);
+		builder.append(QueryRendererBuilder.concat(ctx.expression(), this::visit, TOKEN_COMMA));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFrameClause(HqlParser.FrameClauseContext ctx) {
+	public QueryRendererBuilder visitFrameClause(HqlParser.FrameClauseContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.RANGE() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.RANGE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.RANGE()));
 		} else if (ctx.ROWS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ROWS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ROWS()));
 		} else if (ctx.GROUPS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.GROUPS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.GROUPS()));
 		}
 
 		if (ctx.BETWEEN() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
+			builder.append(JpaQueryParsingToken.expression(ctx.BETWEEN()));
 		}
 
-		tokens.addAll(visit(ctx.frameStart()));
+		builder.appendExpression(visit(ctx.frameStart()));
 
 		if (ctx.AND() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.AND()));
-			tokens.addAll(visit(ctx.frameEnd()));
+			builder.append(JpaQueryParsingToken.expression(ctx.AND()));
+			builder.appendExpression(visit(ctx.frameEnd()));
 		}
 
 		if (ctx.frameExclusion() != null) {
-			tokens.addAll(visit(ctx.frameExclusion()));
+			builder.appendExpression(visit(ctx.frameExclusion()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitUnboundedPrecedingFrameStart(
-			HqlParser.UnboundedPrecedingFrameStartContext ctx) {
+	public QueryRendererBuilder visitUnboundedPrecedingFrameStart(HqlParser.UnboundedPrecedingFrameStartContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.UNBOUNDED()));
-		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
+		builder.append(JpaQueryParsingToken.expression(ctx.UNBOUNDED()));
+		builder.append(JpaQueryParsingToken.expression(ctx.PRECEDING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionPrecedingFrameStart(
-			HqlParser.ExpressionPrecedingFrameStartContext ctx) {
+	public QueryRendererBuilder visitExpressionPrecedingFrameStart(HqlParser.ExpressionPrecedingFrameStartContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
+		builder.append(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.PRECEDING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCurrentRowFrameStart(HqlParser.CurrentRowFrameStartContext ctx) {
+	public QueryRendererBuilder visitCurrentRowFrameStart(HqlParser.CurrentRowFrameStartContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
-		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
+		builder.append(JpaQueryParsingToken.expression(ctx.CURRENT()));
+		builder.append(JpaQueryParsingToken.expression(ctx.ROW()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionFollowingFrameStart(
-			HqlParser.ExpressionFollowingFrameStartContext ctx) {
+	public QueryRendererBuilder visitExpressionFollowingFrameStart(HqlParser.ExpressionFollowingFrameStartContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
+		builder.append(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FOLLOWING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCurrentRowFrameExclusion(HqlParser.CurrentRowFrameExclusionContext ctx) {
+	public QueryRendererBuilder visitCurrentRowFrameExclusion(HqlParser.CurrentRowFrameExclusionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
-		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
+		builder.append(JpaQueryParsingToken.expression(ctx.EXCLUDE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.CURRENT()));
+		builder.append(JpaQueryParsingToken.expression(ctx.ROW()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGroupFrameExclusion(HqlParser.GroupFrameExclusionContext ctx) {
+	public QueryRendererBuilder visitGroupFrameExclusion(HqlParser.GroupFrameExclusionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new JpaQueryParsingToken(ctx.GROUP()));
+		builder.append(JpaQueryParsingToken.expression(ctx.EXCLUDE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.GROUP()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTiesFrameExclusion(HqlParser.TiesFrameExclusionContext ctx) {
+	public QueryRendererBuilder visitTiesFrameExclusion(HqlParser.TiesFrameExclusionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new JpaQueryParsingToken(ctx.TIES()));
+		builder.append(JpaQueryParsingToken.expression(ctx.EXCLUDE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.TIES()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNoOthersFrameExclusion(HqlParser.NoOthersFrameExclusionContext ctx) {
+	public QueryRendererBuilder visitNoOthersFrameExclusion(HqlParser.NoOthersFrameExclusionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.EXCLUDE()));
-		tokens.add(new JpaQueryParsingToken(ctx.NO()));
-		tokens.add(new JpaQueryParsingToken(ctx.OTHERS()));
+		builder.append(JpaQueryParsingToken.expression(ctx.EXCLUDE()));
+		builder.append(JpaQueryParsingToken.expression(ctx.NO()));
+		builder.append(JpaQueryParsingToken.expression(ctx.OTHERS()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionPrecedingFrameEnd(HqlParser.ExpressionPrecedingFrameEndContext ctx) {
+	public QueryRendererBuilder visitExpressionPrecedingFrameEnd(HqlParser.ExpressionPrecedingFrameEndContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.PRECEDING()));
+		builder.appendExpression(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.PRECEDING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCurrentRowFrameEnd(HqlParser.CurrentRowFrameEndContext ctx) {
+	public QueryRendererBuilder visitCurrentRowFrameEnd(HqlParser.CurrentRowFrameEndContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CURRENT()));
-		tokens.add(new JpaQueryParsingToken(ctx.ROW()));
+		builder.append(JpaQueryParsingToken.expression(ctx.CURRENT()));
+		builder.append(JpaQueryParsingToken.expression(ctx.ROW()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionFollowingFrameEnd(HqlParser.ExpressionFollowingFrameEndContext ctx) {
+	public QueryRendererBuilder visitExpressionFollowingFrameEnd(HqlParser.ExpressionFollowingFrameEndContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
+		builder.appendExpression(visit(ctx.expression()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FOLLOWING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitUnboundedFollowingFrameEnd(HqlParser.UnboundedFollowingFrameEndContext ctx) {
+	public QueryRendererBuilder visitUnboundedFollowingFrameEnd(HqlParser.UnboundedFollowingFrameEndContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.UNBOUNDED()));
-		tokens.add(new JpaQueryParsingToken(ctx.FOLLOWING()));
+		builder.append(JpaQueryParsingToken.expression(ctx.UNBOUNDED()));
+		builder.append(JpaQueryParsingToken.expression(ctx.FOLLOWING()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCastFunction(HqlParser.CastFunctionContext ctx) {
+	public QueryRendererBuilder visitCastFunction(HqlParser.CastFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.CAST(), false));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(new JpaQueryParsingToken(ctx.AS()));
-		tokens.addAll(visit(ctx.castTarget()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.token(ctx.CAST()));
 
-		return tokens;
+		builder.append(TOKEN_OPEN_PAREN);
+
+		QueryRendererBuilder nested = QueryRenderer.builder();
+		nested.appendExpression(visit(ctx.expression()));
+		nested.append(JpaQueryParsingToken.expression(ctx.AS()));
+		nested.appendExpression(visit(ctx.castTarget()));
+
+		builder.appendInline(nested);
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCastTarget(HqlParser.CastTargetContext ctx) {
+	public QueryRendererBuilder visitCastTarget(HqlParser.CastTargetContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.castTargetType()));
+		builder.append(visit(ctx.castTargetType()));
 
 		if (ctx.INTEGER_LITERAL() != null && !ctx.INTEGER_LITERAL().isEmpty()) {
 
-			tokens.add(TOKEN_OPEN_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
 
+			List<JpaQueryParsingToken> tokens = new ArrayList<>();
 			ctx.INTEGER_LITERAL().forEach(terminalNode -> {
 
-				tokens.add(new JpaQueryParsingToken(terminalNode));
-				tokens.add(TOKEN_COMMA);
-			});
-			CLIP(tokens);
-			NOSPACE(tokens);
+				if (!tokens.isEmpty()) {
+					tokens.add(TOKEN_COMMA);
+				}
+				tokens.add(JpaQueryParsingToken.expression(terminalNode));
 
-			tokens.add(TOKEN_CLOSE_PAREN);
+			});
+
+			builder.append(tokens);
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCastTargetType(HqlParser.CastTargetTypeContext ctx) {
-		return List.of(new JpaQueryParsingToken(ctx.fullTargetName));
+	public QueryRendererBuilder visitCastTargetType(HqlParser.CastTargetTypeContext ctx) {
+		return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.fullTargetName));
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExtractFunction(HqlParser.ExtractFunctionContext ctx) {
+	public QueryRendererBuilder visitExtractFunction(HqlParser.ExtractFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.EXTRACT() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.EXTRACT(), false));
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.expression(0)));
-			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
-			tokens.addAll(visit(ctx.expression(1)));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(JpaQueryParsingToken.token(ctx.EXTRACT()));
+			builder.append(TOKEN_OPEN_PAREN);
+
+			QueryRendererBuilder nested = QueryRenderer.builder();
+
+			nested.appendExpression(visit(ctx.expression(0)));
+			nested.append(JpaQueryParsingToken.expression(ctx.FROM()));
+			nested.append(visit(ctx.expression(1)));
+
+			builder.appendInline(nested);
+			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.dateTimeFunction() != null) {
 
-			tokens.addAll(visit(ctx.dateTimeFunction()));
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.expression(0)));
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(visit(ctx.dateTimeFunction()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.expression(0)));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTrimFunction(HqlParser.TrimFunctionContext ctx) {
+	public QueryRendererBuilder visitTrimFunction(HqlParser.TrimFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.TRIM()));
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(JpaQueryParsingToken.token(ctx.TRIM()));
+		builder.append(TOKEN_OPEN_PAREN);
 
 		if (ctx.LEADING() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LEADING()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LEADING()));
 		} else if (ctx.TRAILING() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.TRAILING()));
+			builder.append(JpaQueryParsingToken.expression(ctx.TRAILING()));
 		} else if (ctx.BOTH() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.BOTH()));
+			builder.append(JpaQueryParsingToken.expression(ctx.BOTH()));
 		}
 
 		if (ctx.stringLiteral() != null) {
-			tokens.addAll(visit(ctx.stringLiteral()));
+			builder.append(visit(ctx.stringLiteral()));
 		}
 
 		if (ctx.FROM() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FROM()));
 		}
 
-		tokens.addAll(visit(ctx.expression()));
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.appendInline(visit(ctx.expression()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDateTimeFunction(HqlParser.DateTimeFunctionContext ctx) {
-		return List.of(new JpaQueryParsingToken(ctx.d));
+	public QueryRendererBuilder visitDateTimeFunction(HqlParser.DateTimeFunctionContext ctx) {
+		return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.d));
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitEveryFunction(HqlParser.EveryFunctionContext ctx) {
+	public QueryRendererBuilder visitEveryFunction(HqlParser.EveryFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.every));
+		builder.append(JpaQueryParsingToken.expression(ctx.every));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ELEMENTS()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
+			builder.append(JpaQueryParsingToken.expression(ctx.INDICES()));
 		}
 
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
 
 		if (ctx.predicate() != null) {
-			tokens.addAll(visit(ctx.predicate()));
+			builder.append(visit(ctx.predicate()));
 		} else if (ctx.subquery() != null) {
-			tokens.addAll(visit(ctx.subquery()));
+			builder.append(visit(ctx.subquery()));
 		} else if (ctx.simplePath() != null) {
-			tokens.addAll(visit(ctx.simplePath()));
+			builder.append(visit(ctx.simplePath()));
 		}
 
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAnyFunction(HqlParser.AnyFunctionContext ctx) {
+	public QueryRendererBuilder visitAnyFunction(HqlParser.AnyFunctionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.any));
+		builder.append(JpaQueryParsingToken.expression(ctx.any));
 
 		if (ctx.ELEMENTS() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ELEMENTS()));
 		} else if (ctx.INDICES() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
+			builder.append(JpaQueryParsingToken.expression(ctx.INDICES()));
 		}
 
-		tokens.add(TOKEN_OPEN_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
 
 		if (ctx.predicate() != null) {
-			tokens.addAll(visit(ctx.predicate()));
+			builder.append(visit(ctx.predicate()));
 		} else if (ctx.subquery() != null) {
-			tokens.addAll(visit(ctx.subquery()));
+			builder.append(visit(ctx.subquery()));
 		} else if (ctx.simplePath() != null) {
-			tokens.addAll(visit(ctx.simplePath()));
+			builder.append(visit(ctx.simplePath()));
 		}
 
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitTreatedPath(HqlParser.TreatedPathContext ctx) {
+	public QueryRendererBuilder visitTreatedPath(HqlParser.TreatedPathContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(new JpaQueryParsingToken(ctx.TREAT(), false));
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.path()));
-		tokens.add(new JpaQueryParsingToken(ctx.AS()));
-		tokens.addAll(visit(ctx.simplePath()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(JpaQueryParsingToken.token(ctx.TREAT()));
+		builder.append(TOKEN_OPEN_PAREN);
+
+		QueryRendererBuilder nested = QueryRenderer.builder();
+		nested.appendExpression(visit(ctx.path()));
+		nested.append(JpaQueryParsingToken.expression(ctx.AS()));
+		nested.append(visit(ctx.simplePath()));
+
+		builder.appendInline(nested);
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.pathContinutation() != null) {
-			NOSPACE(tokens);
-			tokens.addAll(visit(ctx.pathContinutation()));
+			builder.append(visit(ctx.pathContinutation()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitPathContinutation(HqlParser.PathContinutationContext ctx) {
+	public QueryRendererBuilder visitPathContinutation(HqlParser.PathContinutationContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_DOT);
-		tokens.addAll(visit(ctx.simplePath()));
+		builder.append(TOKEN_DOT);
+		builder.append(visit(ctx.simplePath()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
+	public QueryRendererBuilder visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
 		return visit(ctx.dealingWithNullExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
+	public QueryRendererBuilder visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 		return visit(ctx.betweenExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitOrPredicate(HqlParser.OrPredicateContext ctx) {
+	public QueryRendererBuilder visitOrPredicate(HqlParser.OrPredicateContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.OR()));
-		tokens.addAll(visit(ctx.predicate(1)));
+		builder.appendExpression(visit(ctx.predicate(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.OR()));
+		builder.appendExpression(visit(ctx.predicate(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitRelationalPredicate(HqlParser.RelationalPredicateContext ctx) {
+	public QueryRendererBuilder visitRelationalPredicate(HqlParser.RelationalPredicateContext ctx) {
 		return visit(ctx.relationalExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
+	public QueryRendererBuilder visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 		return visit(ctx.existsExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
+	public QueryRendererBuilder visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
 		return visit(ctx.collectionExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitAndPredicate(HqlParser.AndPredicateContext ctx) {
+	public QueryRendererBuilder visitAndPredicate(HqlParser.AndPredicateContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.predicate(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.AND()));
-		tokens.addAll(visit(ctx.predicate(1)));
+		builder.appendExpression(visit(ctx.predicate(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.AND()));
+		builder.appendExpression(visit(ctx.predicate(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
+	public QueryRendererBuilder visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_OPEN_PAREN);
-		tokens.addAll(visit(ctx.predicate()));
-		NOSPACE(tokens);
-		tokens.add(TOKEN_CLOSE_PAREN);
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.predicate()));
+		builder.append(TOKEN_CLOSE_PAREN);
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
+	public QueryRendererBuilder visitLikePredicate(HqlParser.LikePredicateContext ctx) {
 		return visit(ctx.stringPatternMatching());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInPredicate(HqlParser.InPredicateContext ctx) {
+	public QueryRendererBuilder visitInPredicate(HqlParser.InPredicateContext ctx) {
 		return visit(ctx.inExpression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNotPredicate(HqlParser.NotPredicateContext ctx) {
+	public QueryRendererBuilder visitNotPredicate(HqlParser.NotPredicateContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.add(TOKEN_NOT);
-		tokens.addAll(visit(ctx.predicate()));
+		builder.append(TOKEN_NOT);
+		builder.append(visit(ctx.predicate()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionPredicate(HqlParser.ExpressionPredicateContext ctx) {
+	public QueryRendererBuilder visitExpressionPredicate(HqlParser.ExpressionPredicateContext ctx) {
 		return visit(ctx.expression());
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExpressionOrPredicate(HqlParser.ExpressionOrPredicateContext ctx) {
+	public QueryRendererBuilder visitExpressionOrPredicate(HqlParser.ExpressionOrPredicateContext ctx) {
 
 		if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else if (ctx.predicate() != null) {
 			return visit(ctx.predicate());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
+	public QueryRendererBuilder visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.op));
-		tokens.addAll(visit(ctx.expression(1)));
+		builder.appendInline(visit(ctx.expression(0)));
+		builder.append(JpaQueryParsingToken.ventilated(ctx.op));
+		builder.appendInline(visit(ctx.expression(1)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
+	public QueryRendererBuilder visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
+		builder.appendExpression(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
+			builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.BETWEEN()));
-		tokens.addAll(visit(ctx.expression(1)));
-		tokens.add(new JpaQueryParsingToken(ctx.AND()));
-		tokens.addAll(visit(ctx.expression(2)));
+		builder.append(JpaQueryParsingToken.expression(ctx.BETWEEN()));
+		builder.appendExpression(visit(ctx.expression(1)));
+		builder.append(JpaQueryParsingToken.expression(ctx.AND()));
+		builder.appendExpression(visit(ctx.expression(2)));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
+	public QueryRendererBuilder visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.IS()));
+		builder.appendExpression(visit(ctx.expression(0)));
+		builder.append(JpaQueryParsingToken.expression(ctx.IS()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
+			builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 		}
 
 		if (ctx.NULL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NULL()));
+			builder.append(JpaQueryParsingToken.expression(ctx.NULL()));
 		} else if (ctx.DISTINCT() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
-			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
-			tokens.addAll(visit(ctx.expression(1)));
+			builder.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
+			builder.append(JpaQueryParsingToken.expression(ctx.FROM()));
+			builder.appendExpression(visit(ctx.expression(1)));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
+	public QueryRendererBuilder visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression(0)));
+		builder.appendExpression(visit(ctx.expression(0)));
 
 		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
+			builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 		}
 
 		if (ctx.LIKE() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.LIKE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.LIKE()));
 		} else if (ctx.ILIKE() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.ILIKE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ILIKE()));
 		}
 
-		tokens.addAll(visit(ctx.expression(1)));
+		builder.appendExpression(visit(ctx.expression(1)));
 
 		if (ctx.ESCAPE() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.ESCAPE()));
+			builder.append(JpaQueryParsingToken.expression(ctx.ESCAPE()));
 
 			if (ctx.stringLiteral() != null) {
-				tokens.addAll(visit(ctx.stringLiteral()));
+				builder.appendExpression(visit(ctx.stringLiteral()));
 			} else if (ctx.parameter() != null) {
-				tokens.addAll(visit(ctx.parameter()));
+				builder.appendExpression(visit(ctx.parameter()));
 			}
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInExpression(HqlParser.InExpressionContext ctx) {
+	public QueryRendererBuilder visitInExpression(HqlParser.InExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
+		builder.appendExpression(visit(ctx.expression()));
 
 		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
+			builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 		}
 
-		tokens.add(new JpaQueryParsingToken(ctx.IN()));
-		tokens.addAll(visit(ctx.inList()));
+		builder.append(JpaQueryParsingToken.expression(ctx.IN()));
+		builder.appendExpression(visit(ctx.inList()));
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInList(HqlParser.InListContext ctx) {
+	public QueryRendererBuilder visitInList(HqlParser.InListContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.simplePath() != null) {
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
+				builder.append(JpaQueryParsingToken.expression(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
+				builder.append(JpaQueryParsingToken.expression(ctx.INDICES()));
 			}
 
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.simplePath()));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.simplePath()));
+			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.subquery() != null) {
 
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.subquery()));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.subquery()));
+			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.parameter() != null) {
-			tokens.addAll(visit(ctx.parameter()));
+			builder.append(visit(ctx.parameter()));
 		} else if (ctx.expressionOrPredicate() != null) {
 
-			tokens.add(TOKEN_OPEN_PAREN);
-
-			ctx.expressionOrPredicate().forEach(expressionOrPredicateContext -> {
-				tokens.addAll(visit(expressionOrPredicateContext));
-				NOSPACE(tokens);
-				tokens.add(TOKEN_COMMA);
-			});
-			CLIP(tokens);
-
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(QueryRendererBuilder.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
+	public QueryRendererBuilder visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.simplePath() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
+			builder.append(JpaQueryParsingToken.expression(ctx.EXISTS()));
 
 			if (ctx.ELEMENTS() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.ELEMENTS()));
+				builder.append(JpaQueryParsingToken.expression(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.INDICES()));
+				builder.append(JpaQueryParsingToken.expression(ctx.INDICES()));
 			}
 
-			tokens.add(TOKEN_OPEN_PAREN);
-			tokens.addAll(visit(ctx.simplePath()));
-			tokens.add(TOKEN_CLOSE_PAREN);
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.simplePath()));
+			builder.append(TOKEN_CLOSE_PAREN);
 
 		} else if (ctx.expression() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
-			tokens.addAll(visit(ctx.expression()));
+			builder.append(JpaQueryParsingToken.expression(ctx.EXISTS()));
+			builder.appendExpression(visit(ctx.expression()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
+	public QueryRendererBuilder visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		tokens.addAll(visit(ctx.expression()));
+		builder.appendExpression(visit(ctx.expression()));
 
 		if (ctx.IS() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.IS()));
+			builder.append(JpaQueryExpression.expression(ctx.IS()));
 
 			if (ctx.NOT() != null) {
-				tokens.add(TOKEN_NOT);
+				builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 			}
 
-			tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
+			builder.append(JpaQueryExpression.expression(ctx.EMPTY()));
 		} else if (ctx.MEMBER() != null) {
 
 			if (ctx.NOT() != null) {
-				tokens.add(TOKEN_NOT);
+				builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 			}
 
-			tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));
-			tokens.add(new JpaQueryParsingToken(ctx.OF()));
-			tokens.addAll(visit(ctx.path()));
+			builder.append(JpaQueryExpression.expression(ctx.MEMBER()));
+			builder.append(JpaQueryExpression.expression(ctx.OF()));
+			builder.append(visit(ctx.path()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
+	public QueryRendererBuilder visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
 
 		if (ctx.LIST() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.LIST()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.token(ctx.LIST()));
 		} else if (ctx.MAP() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.MAP()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.token(ctx.MAP()));
 		} else if (ctx.simplePath() != null) {
 
-			List<JpaQueryParsingToken> tokens = visit(ctx.simplePath());
-			NOSPACE(tokens);
-			return tokens;
+			return visit(ctx.simplePath());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInstantiationArguments(HqlParser.InstantiationArgumentsContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.instantiationArgument().forEach(instantiationArgumentContext -> {
-			tokens.addAll(visit(instantiationArgumentContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_COMMA);
-		});
-		CLIP(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitInstantiationArguments(HqlParser.InstantiationArgumentsContext ctx) {
+		return QueryRendererBuilder.concat(ctx.instantiationArgument(), this::visit, TOKEN_COMMA);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitInstantiationArgument(HqlParser.InstantiationArgumentContext ctx) {
+	public QueryRendererBuilder visitInstantiationArgument(HqlParser.InstantiationArgumentContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.expressionOrPredicate() != null) {
-			tokens.addAll(visit(ctx.expressionOrPredicate()));
+			builder.appendExpression(visit(ctx.expressionOrPredicate()));
 		} else if (ctx.instantiation() != null) {
-			tokens.addAll(visit(ctx.instantiation()));
+			builder.appendExpression(visit(ctx.instantiation()));
 		}
 
 		if (ctx.variable() != null) {
-			tokens.addAll(visit(ctx.variable()));
+			builder.append(visit(ctx.variable()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitParameterOrIntegerLiteral(HqlParser.ParameterOrIntegerLiteralContext ctx) {
+	public QueryRendererBuilder visitParameterOrIntegerLiteral(HqlParser.ParameterOrIntegerLiteralContext ctx) {
 
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.INTEGER_LITERAL()));
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitParameterOrNumberLiteral(HqlParser.ParameterOrNumberLiteralContext ctx) {
+	public QueryRendererBuilder visitParameterOrNumberLiteral(HqlParser.ParameterOrNumberLiteralContext ctx) {
 
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
 		} else if (ctx.numericLiteral() != null) {
 			return visit(ctx.numericLiteral());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitVariable(HqlParser.VariableContext ctx) {
+	public QueryRendererBuilder visitVariable(HqlParser.VariableContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.identifier() != null) {
 
-			tokens.add(new JpaQueryParsingToken(ctx.AS()));
-			tokens.addAll(visit(ctx.identifier()));
+			builder.append(JpaQueryParsingToken.expression(ctx.AS()));
+			builder.append(visit(ctx.identifier()));
 		} else if (ctx.reservedWord() != null) {
-			tokens.addAll(visit(ctx.reservedWord()));
+			builder.append(visit(ctx.reservedWord()));
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitParameter(HqlParser.ParameterContext ctx) {
+	public QueryRendererBuilder visitParameter(HqlParser.ParameterContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.prefix.getText().equals(":")) {
 
-			tokens.add(TOKEN_COLON);
-			tokens.addAll(visit(ctx.identifier()));
+			builder.append(TOKEN_COLON);
+			builder.append(visit(ctx.identifier()));
 		} else if (ctx.prefix.getText().equals("?")) {
 
-			tokens.add(TOKEN_QUESTION_MARK);
+			builder.append(TOKEN_QUESTION_MARK);
 
 			if (ctx.INTEGER_LITERAL() != null) {
-				tokens.add(new JpaQueryParsingToken(ctx.INTEGER_LITERAL()));
+				builder.append(JpaQueryParsingToken.expression(ctx.INTEGER_LITERAL()));
 			}
 		}
 
-		return tokens;
+		return builder;
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitEntityName(HqlParser.EntityNameContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.identifier().forEach(identifierContext -> {
-			tokens.addAll(visit(identifierContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_DOT);
-		});
-		CLIP(tokens);
-		SPACE(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitEntityName(HqlParser.EntityNameContext ctx) {
+		return QueryRendererBuilder.concat(ctx.identifier(), this::visit, TOKEN_DOT);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitIdentifier(HqlParser.IdentifierContext ctx) {
+	public QueryRendererBuilder visitIdentifier(HqlParser.IdentifierContext ctx) {
 
 		if (ctx.reservedWord() != null) {
 			return visit(ctx.reservedWord());
 		} else {
-			return List.of();
+			return QueryRenderer.builder();
 		}
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitCharacter(HqlParser.CharacterContext ctx) {
-		return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
+	public QueryRendererBuilder visitCharacter(HqlParser.CharacterContext ctx) {
+		return QueryRendererBuilder.from(JpaQueryParsingToken.expression(ctx.CHARACTER()));
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitFunctionName(HqlParser.FunctionNameContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		ctx.reservedWord().forEach(reservedWordContext -> {
-			tokens.addAll(visit(reservedWordContext));
-			NOSPACE(tokens);
-			tokens.add(TOKEN_DOT);
-		});
-		CLIP(tokens);
-
-		return tokens;
+	public QueryRendererBuilder visitFunctionName(HqlParser.FunctionNameContext ctx) {
+		return QueryRendererBuilder.concat(ctx.reservedWord(), this::visit, TOKEN_DOT);
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitReservedWord(HqlParser.ReservedWordContext ctx) {
+	public QueryRendererBuilder visitReservedWord(HqlParser.ReservedWordContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return List.of(new JpaQueryParsingToken(ctx.IDENTIFICATION_VARIABLE()));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.token(ctx.IDENTIFICATION_VARIABLE()));
 		} else {
-			return List.of(new JpaQueryParsingToken(ctx.f));
+			return QueryRendererBuilder.from(JpaQueryParsingToken.token(ctx.f));
 		}
 	}
 }

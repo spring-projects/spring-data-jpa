@@ -15,8 +15,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Transformational operations needed to support either {@link HqlQueryTransformer} or {@link JpqlQueryTransformer}.
- * 
+ * Transformational operations needed to support either {@link HqlSortedQueryTransformer} or
+ * {@link JpqlSortedQueryTransformer}.
+ *
  * @author Greg Turnquist
  * @author Donghun Shin
  * @since 3.1
@@ -29,11 +30,7 @@ class JpaQueryTransformerSupport {
 			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
 			+ "JpaSort.unsafe(…)";
 
-	private Set<String> projectionAliases;
-
-	JpaQueryTransformerSupport() {
-		this.projectionAliases = new HashSet<>();
-	}
+	private final Set<String> projectionAliases = new HashSet<>();
 
 	/**
 	 * Register an {@literal alias} so it can later be evaluated when applying {@link Sort}s.
@@ -47,12 +44,12 @@ class JpaQueryTransformerSupport {
 	/**
 	 * Using the primary {@literal FROM} clause's alias and a {@link Sort}, construct all the {@literal ORDER BY}
 	 * arguments.
-	 * 
+	 *
 	 * @param primaryFromAlias
 	 * @param sort
 	 * @return
 	 */
-	List<JpaQueryParsingToken> generateOrderByArguments(String primaryFromAlias, Sort sort) {
+	List<JpaQueryParsingToken> orderBy(String primaryFromAlias, Sort sort) {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
@@ -60,20 +57,27 @@ class JpaQueryTransformerSupport {
 
 			checkSortExpression(order);
 
-			if (order.isIgnoreCase()) {
-				tokens.add(TOKEN_LOWER_FUNC);
-			}
-
-			tokens.add(new JpaQueryParsingToken(() -> generateOrderByArgument(primaryFromAlias, order)));
+			StringBuilder builder = new StringBuilder();
 
 			if (order.isIgnoreCase()) {
-				NOSPACE(tokens);
-				tokens.add(TOKEN_CLOSE_PAREN);
+				builder.append(TOKEN_LOWER_FUNC.getToken());
 			}
-			tokens.add(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
-			tokens.add(TOKEN_COMMA);
+
+			builder.append(generateOrderByArgument(primaryFromAlias, order));
+
+			if (order.isIgnoreCase()) {
+				builder.append(TOKEN_CLOSE_PAREN);
+			}
+			builder.append(" ");
+
+			builder.append(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
+
+			if (!tokens.isEmpty()) {
+				tokens.add(TOKEN_COMMA);
+			}
+
+			tokens.add(JpaQueryParsingToken.token(builder.toString()));
 		});
-		CLIP(tokens);
 
 		return tokens;
 	}
@@ -98,7 +102,7 @@ class JpaQueryTransformerSupport {
 	/**
 	 * Using the {@code primaryFromAlias} and the {@link org.springframework.data.domain.Sort.Order}, construct a suitable
 	 * argument to be added to an {@literal ORDER BY} expression.
-	 * 
+	 *
 	 * @param primaryFromAlias
 	 * @param order
 	 * @return
@@ -120,7 +124,7 @@ class JpaQueryTransformerSupport {
 	 * @param primaryFromAlias
 	 * @return boolean whether or not to apply the primary FROM clause's alias as a prefix
 	 */
-	private boolean shouldPrefixWithAlias(Sort.Order order, String primaryFromAlias) {
+	private boolean shouldPrefixWithAlias(Sort.Order order, @Nullable String primaryFromAlias) {
 
 		// If there is no primary alias
 		if (ObjectUtils.isEmpty(primaryFromAlias)) {

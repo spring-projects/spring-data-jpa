@@ -77,7 +77,8 @@ final class NamedQuery extends AbstractJpaQuery {
 		Query query = em.createNamedQuery(queryName);
 		String queryString = extractor.extractQueryString(query);
 
-		this.declaredQuery = DeclaredQuery.of(queryString, false);
+		// TODO: Detect whether a named query is a named one.
+		this.declaredQuery = DeclaredQuery.of(queryString, query != null && query.toString().contains("NativeQuery"));
 
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();

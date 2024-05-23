@@ -295,7 +295,7 @@ class EqlQueryRendererTests {
 		assertQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
-				    """);
+				""");
 	}
 
 	@Test
@@ -304,7 +304,7 @@ class EqlQueryRendererTests {
 		assertQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
-				    """);
+				""");
 	}
 
 	/**
@@ -319,7 +319,7 @@ class EqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE "cost overrun"
-				    """);
+				""");
 	}
 
 	@Test
@@ -330,7 +330,7 @@ class EqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE 'cost overrun'
-				    """);
+				""");
 	}
 
 	@Test
@@ -340,7 +340,7 @@ class EqlQueryRendererTests {
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
-				    """);
+				""");
 	}
 
 	@Test
@@ -404,7 +404,7 @@ class EqlQueryRendererTests {
 				WHERE emp.salary > ALL (SELECT m.salary
 				FROM Manager m
 				WHERE m.department = emp.department)
-				    """);
+				""");
 	}
 
 	@Test
@@ -416,7 +416,7 @@ class EqlQueryRendererTests {
 				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
-				    """);
+				""");
 	}
 
 	@Test
@@ -435,7 +435,7 @@ class EqlQueryRendererTests {
 		assertQuery("""
 				SELECT goodCustomer
 				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed)/2.0 FROM Customer c)
+				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed) / 2.0 FROM Customer c)
 				""");
 	}
 
@@ -480,11 +480,11 @@ class EqlQueryRendererTests {
 		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE WHEN e.rating = 1 THEN e.salary*1.1
-				         WHEN e.rating = 2 THEN e.salary*1.05
-				         ELSE e.salary*1.01
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				         ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -493,11 +493,11 @@ class EqlQueryRendererTests {
 		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE e.rating WHEN 1 THEN e.salary*1.1
-				                  WHEN 2 THEN e.salary*1.05
-				                  ELSE e.salary*1.01
+				    CASE e.rating WHEN 1 THEN e.salary * 1.1
+				                  WHEN 2 THEN e.salary * 1.05
+				                  ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -537,7 +537,7 @@ class EqlQueryRendererTests {
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN (Exempt, Contractor)
-				 """);
+				""");
 	}
 
 	@Test
@@ -734,7 +734,7 @@ class EqlQueryRendererTests {
 	void orderByThatMatchesAllSelectAliasesShouldWork() {
 
 		assertQuery("""
-				SELECT o.quantity, o.cost*1.08 AS taxedCost, a.zipcode
+				SELECT o.quantity, o.cost * 1.08 AS taxedCost, a.zipcode
 				FROM Customer c JOIN c.orders o JOIN c.address a
 				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
 				ORDER BY o.quantity, taxedCost, a.zipcode
@@ -967,9 +967,24 @@ class EqlQueryRendererTests {
 		assertQuery("select e from Employee e where e.firstName != :name");
 	}
 
+	@Test
+	void regexShouldWork() {
+		assertQuery("select e from Employee e where e.lastName REGEXP '^Dr\\.*'");
+	}
+
 	@Test // GH-3092
 	void dateAndFromShouldBeValidNames() {
 		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
+	}
+
+	@Test
+	void betweenStrings() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date NOT BETWEEN 'a' AND 'b'");
+	}
+
+	@Test
+	void betweenDates() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
 	}
 
 	@Test // GH-3092
@@ -1004,7 +1019,7 @@ class EqlQueryRendererTests {
 
 	@ParameterizedTest // GH-3342
 	@ValueSource(strings = { "select 1 from User u", "select -1 from User u", "select +1 from User u",
-			"select +1*-100 from User u", "select count(u)*-0.7f from User u",
+			"select +1 * -100 from User u", "select count(u) * -0.7f from User u",
 			"select count(oi) + (-100) as perc from StockOrderItem oi",
 			"select p from Payment p where length(p.cardNumber) between +16 and -20" })
 	void signedLiteralShouldWork(String query) {
@@ -1012,7 +1027,7 @@ class EqlQueryRendererTests {
 	}
 
 	@ParameterizedTest // GH-3342
-	@ValueSource(strings = { "select -count(u) from User u", "select +1*(-count(u)) from User u" })
+	@ValueSource(strings = { "select -count(u) from User u", "select +1 * (-count(u)) from User u" })
 	void signedExpressionsShouldWork(String query) {
 		assertQuery(query);
 	}

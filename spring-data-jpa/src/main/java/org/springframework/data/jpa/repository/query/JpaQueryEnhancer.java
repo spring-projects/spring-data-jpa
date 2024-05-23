@@ -22,7 +22,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Implementation of {@link QueryEnhancer} to enhance JPA queries using a {@link JpaQueryParserSupport}.
+ * Implementation of {@link QueryEnhancer} to enhance JPA queries using a {@link JpaQueryParser}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
@@ -34,22 +34,22 @@ import org.springframework.util.Assert;
 class JpaQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
-	private final JpaQueryParserSupport queryParser;
+	private final JpaQueryParser queryParser;
 
 	/**
-	 * Initialize with an {@link JpaQueryParserSupport}.
+	 * Initialize with an {@link JpaQueryParser}.
 	 *
 	 * @param query
 	 * @param queryParser
 	 */
-	private JpaQueryEnhancer(DeclaredQuery query, JpaQueryParserSupport queryParser) {
+	private JpaQueryEnhancer(DeclaredQuery query, JpaQueryParser queryParser) {
 
 		this.query = query;
 		this.queryParser = queryParser;
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryParserSupport} for {@link DeclaredQuery} using JPQL grammar.
+	 * Factory method to create a {@link JpaQueryParser} for {@link DeclaredQuery} using JPQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using JPQL.
@@ -58,11 +58,11 @@ class JpaQueryEnhancer implements QueryEnhancer {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
-		return new JpaQueryEnhancer(query, new JpqlQueryParser(query.getQueryString()));
+		return new JpaQueryEnhancer(query, JpqlQueryParser.parseQuery(query.getQueryString()));
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryParserSupport} for {@link DeclaredQuery} using HQL grammar.
+	 * Factory method to create a {@link JpaQueryParser} for {@link DeclaredQuery} using HQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using HQL.
@@ -71,11 +71,11 @@ class JpaQueryEnhancer implements QueryEnhancer {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
-		return new JpaQueryEnhancer(query, new HqlQueryParser(query.getQueryString()));
+		return new JpaQueryEnhancer(query, HqlQueryParser.parseQuery(query.getQueryString()));
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryParserSupport} for {@link DeclaredQuery} using EQL grammar.
+	 * Factory method to create a {@link JpaQueryParser} for {@link DeclaredQuery} using EQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using EQL.
@@ -85,10 +85,10 @@ class JpaQueryEnhancer implements QueryEnhancer {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
-		return new JpaQueryEnhancer(query, new EqlQueryParser(query.getQueryString()));
+		return new JpaQueryEnhancer(query, EqlQueryParser.parseQuery(query.getQueryString()));
 	}
 
-	protected JpaQueryParserSupport getQueryParsingStrategy() {
+	protected JpaQueryParser getQueryParsingStrategy() {
 		return queryParser;
 	}
 
@@ -116,8 +116,8 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParserSupport}
-	 * can already find the alias when generating sorted and count queries, this is mainly to serve test cases.
+	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParser} can
+	 * already find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
 	public String detectAlias() {
@@ -155,16 +155,16 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Looks up the projection of the JPA query. Since the {@link JpaQueryParserSupport} can already find the projection
-	 * when generating sorted and count queries, this is mainly to serve test cases.
+	 * Looks up the projection of the JPA query. Since the {@link JpaQueryParser} can already find the projection when
+	 * generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
 	public String getProjection() {
-		return queryParser.projection();
+		return queryParser.getProjection();
 	}
 
 	/**
-	 * Since the {@link JpaQueryParserSupport} can already fully transform sorted and count queries by itself, this is a
+	 * Since the {@link JpaQueryParser} can already fully transform sorted and count queries by itself, this is a
 	 * placeholder method.
 	 *
 	 * @return empty set
@@ -175,7 +175,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Look up the {@link DeclaredQuery} from the {@link JpaQueryParserSupport}.
+	 * Look up the {@link DeclaredQuery} from the {@link JpaQueryParser}.
 	 */
 	@Override
 	public DeclaredQuery getQuery() {

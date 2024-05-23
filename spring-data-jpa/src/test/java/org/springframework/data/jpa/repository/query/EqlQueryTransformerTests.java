@@ -188,7 +188,7 @@ class EqlQueryTransformerTests {
 		assertThat(alias("select u from User u where not exists (select u2 from User u2)")).isEqualTo("u");
 		assertThat(alias(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
-						.isEqualTo("u");
+				.isEqualTo("u");
 	}
 
 	@Test // GH-2557
@@ -349,7 +349,7 @@ class EqlQueryTransformerTests {
 						from Bar lp join lp.investmentProduct ip
 						where (lp.toDate is null and lp.fromDate <= :now and lp.fromDate is not null) and lp.accountId = :accountId group by ip.id, ip.name, lp.accountId
 						order by ip.name ASC"""))
-						.isTrue();
+				.isTrue();
 	}
 
 	@Test // DATAJPA-938
@@ -441,7 +441,7 @@ class EqlQueryTransformerTests {
 		String query = "SELECT AVG(m.price) AS m.avg FROM Magazine m";
 		Sort sort = Sort.by("m.avg");
 
-		assertThatIllegalArgumentException().isThrownBy(() -> createQueryFor(query, sort));
+		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> createQueryFor(query, sort));
 	}
 
 	@Test // DATAJPA-965, DATAJPA-970, GH-2863
@@ -456,8 +456,10 @@ class EqlQueryTransformerTests {
 	@Test // DATAJPA-1506
 	void detectsAliasWithGroupAndOrderBy() {
 
-		assertThat(alias("select * from User group by name")).isNull();
-		assertThat(alias("select * from User order by name")).isNull();
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> alias("select * from User group by name"));
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> alias("select * from User order by name"));
 		assertThat(alias("select u from User u group by name")).isEqualTo("u");
 		assertThat(alias("select u from User u order by name")).isEqualTo("u");
 	}
@@ -559,8 +561,10 @@ class EqlQueryTransformerTests {
 	@Test
 	void detectsAliasWithGroupAndOrderByWithLineBreaks() {
 
-		assertThat(alias("select * from User group\nby name")).isNull();
-		assertThat(alias("select * from User order\nby name")).isNull();
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> alias("select * from User group\nby name"));
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> alias("select * from User order\nby name"));
 		assertThat(alias("select u from User u group\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User u order\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User\nu\norder \n by name")).isEqualTo("u");
@@ -583,7 +587,8 @@ class EqlQueryTransformerTests {
 		// This is not a required behavior, in fact the opposite is,
 		// but it documents a current limitation.
 		// to fix this without breaking findProjectionClauseWithIncludedFrom we need a more sophisticated parser.
-		assertThat(projection("select * from (select x from y)")).isNotEqualTo("*");
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> projection("select * from (select x from y)"));
 	}
 
 	@Test // DATAJPA-1696
@@ -620,11 +625,11 @@ class EqlQueryTransformerTests {
 
 		assertCountQuery("select distinct 1 as x from Employee e", "select count(distinct 1) from Employee e");
 		assertCountQuery("SELECT DISTINCT abc AS x FROM T t", "SELECT count(DISTINCT abc) FROM T t");
-		assertCountQuery("select distinct a as x, b as y from Employee e", "select count(distinct a , b) from Employee e");
+		assertCountQuery("select distinct a as x, b as y from Employee e", "select count(distinct a, b) from Employee e");
 		assertCountQuery("select distinct sum(amount) as x from Employee e GROUP BY n",
 				"select count(distinct sum(amount)) from Employee e GROUP BY n");
 		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee e GROUP BY n",
-				"select count(distinct a, b, sum(amount) , d) from Employee e GROUP BY n");
+				"select count(distinct a, b, sum(amount), d) from Employee e GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee e GROUP BY n",
 				"select count(distinct a, count(b)) from Employee e GROUP BY n");
 	}
@@ -660,14 +665,14 @@ class EqlQueryTransformerTests {
 
 		assertThat(
 				createCountQueryFor("SELECT t FROM mytable t WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'"))
-						.isEqualTo("SELECT count(t) FROM mytable t WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
+				.isEqualTo("SELECT count(t) FROM mytable t WHERE nr = :number AND kon = :kon AND datum >= '2019-01-01'");
 
 		assertThat(createCountQueryFor("select s FROM users_statuses s WHERE (user_created_at BETWEEN $1 AND $2)"))
 				.isEqualTo("select count(s) FROM users_statuses s WHERE (user_created_at BETWEEN $1 AND $2)");
 
 		assertThat(
 				createCountQueryFor("SELECT us FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)"))
-						.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+				.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
 
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045

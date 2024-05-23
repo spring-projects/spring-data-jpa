@@ -93,12 +93,8 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		Throwable reference = new RuntimeException();
-		when(em.createQuery(anyString())).thenThrow(reference);
-
-		assertThatExceptionOfType(IllegalArgumentException.class)
-				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
-				.withCause(reference);
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries));
 	}
 
 	@Test // DATAJPA-554
@@ -244,7 +240,7 @@ class JpaQueryLookupStrategyUnitTests {
 		@Query(value = "select foo from Foo foo", countName = "foo.count")
 		Page<User> findByStringQueryWithNamedCountQuery(String foo, Pageable pageable);
 
-		@Query(value = "something absurd", name = "my-query-name")
+		@Query(value = "select foo from Foo foo", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();
 
 		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? :param ")
