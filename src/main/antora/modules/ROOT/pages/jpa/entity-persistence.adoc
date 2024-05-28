@@ -3,12 +3,12 @@
 
 This section describes how to persist (save) entities with Spring Data JPA.
 
-[[jpa.entity-persistence.saving-entites]]
+[[jpa.entity-persistence.saving-entities]]
 == Saving Entities
 
 Saving an entity can be performed with the `CrudRepository.save(…)` method. It persists or merges the given entity by using the underlying JPA `EntityManager`. If the entity has not yet been persisted, Spring Data JPA saves the entity with a call to the `entityManager.persist(…)` method. Otherwise, it calls the `entityManager.merge(…)` method.
 
-[[jpa.entity-persistence.saving-entites.strategies]]
+[[jpa.entity-persistence.saving-entities.strategies]]
 === Entity State-detection Strategies
 Spring Data JPA offers the following strategies to detect whether an entity is new or not:
 

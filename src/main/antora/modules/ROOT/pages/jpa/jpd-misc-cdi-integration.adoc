@@ -46,7 +46,7 @@ class CdiConfig {
 
 In the preceding example, the container has to be capable of creating JPA `EntityManagers` itself. All the configuration does is re-export the JPA `EntityManager` as a CDI bean.
 
-The Spring Data JPA CDI extension picks up all available `EntityManager` instances as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Injected` property, as shown in the following example:
+The Spring Data JPA CDI extension picks up all available `EntityManager` instances as CDI beans and creates a proxy for a Spring Data repository whenever a bean of a repository type is requested by the container. Thus, obtaining an instance of a Spring Data repository is a matter of declaring an `@Inject` property, as shown in the following example:
 
 [source, java]
 ----

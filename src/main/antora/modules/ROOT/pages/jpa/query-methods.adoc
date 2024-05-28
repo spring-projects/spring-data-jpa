@@ -25,6 +25,7 @@ Generally, the query creation mechanism for JPA works as described in {spring-da
 
 .Query creation from method names
 ====
+[source, java]
 ----
 public interface UserRepository extends Repository<User, Long> {
 
@@ -52,7 +53,7 @@ The following table describes the keywords supported for JPA and what a method c
 |`After`|`findByStartDateAfter`|`… where x.startDate > ?1`
 |`Before`|`findByStartDateBefore`|`… where x.startDate < ?1`
 |`IsNull`, `Null`|`findByAge(Is)Null`|`… where x.age is null`
-|`IsNotNull`, `NotNull`|`findByAge(Is)NotNull`|`… where x.age not null`
+|`IsNotNull`, `NotNull`|`findByAge(Is)NotNull`|`… where x.age is not null`
 |`Like`|`findByFirstnameLike`|`… where x.firstname like ?1`
 |`NotLike`|`findByFirstnameNotLike`|`… where x.firstname not like ?1`
 |`StartingWith`|`findByFirstnameStartingWith`|`… where x.firstname like ?1` (parameter bound with appended `%`)
@@ -76,7 +77,7 @@ For example, `select distinct u from User u` will produce a complete different r
 In the first case, since you are including `User.id`, nothing will duplicated, hence you'll get the whole table, and it would be of `User` objects.
 
 However, that latter query would narrow the focus to just `User.lastname` and find all unique last names for that table.
-This would also yield a `List<String>` result set instead of a `List<User`> result set.
+This would also yield a `List<String>` result set instead of a `List<User>` result set.
 
 
 `countDistinctByLastname(String lastname)` can also produce unexpected results.
@@ -130,7 +131,7 @@ The query has a special name that is used to resolve it at runtime.
 
 [[jpa.query-methods.named-queries.declaring-interfaces]]
 === Declaring Interfaces
-To allow these named queries, specify the `UserRepositoryWithRewriter` as follows:
+To allow these named queries, specify the `UserRepository` as follows:
 
 .Query method declaration in UserRepository
 ====
