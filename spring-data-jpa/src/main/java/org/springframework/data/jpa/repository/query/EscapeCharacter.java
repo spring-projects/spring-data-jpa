@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,7 +30,7 @@ import org.springframework.lang.Nullable;
 public final class EscapeCharacter {
 
 	public static final EscapeCharacter DEFAULT = EscapeCharacter.of('\\');
-	private static final List<String> TO_REPLACE = Arrays.asList("_", "%");
+	private static final List<String> TO_REPLACE = List.of("_", "%");
 
 	private final char escapeCharacter;
 
