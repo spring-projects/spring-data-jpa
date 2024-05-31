@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -282,20 +283,6 @@ class JpaQueryMethodUnitTests {
 		assertThat(method.getNamedCountQueryName()).isEqualTo("HateoasAwareSpringDataWebConfiguration.bar.count");
 	}
 
-	@Test // DATAJPA-185
-	void rejectsInvalidNamedParameter() {
-
-		assertThatThrownBy(() -> getQueryMethod(InvalidRepository.class, "findByAnnotatedQuery", String.class))
-				.isInstanceOf(IllegalStateException.class)
-				// Parameter from query
-				.hasMessageContaining("foo")
-				// Parameter name from annotation
-				.hasMessageContaining("param")
-				// Method name
-				.hasMessageContaining("findByAnnotatedQuery");
-
-	}
-
 	@Test // DATAJPA-207
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void returnsTrueIfReturnTypeIsEntity() {
@@ -529,9 +516,6 @@ class JpaQueryMethodUnitTests {
 		@Modifying
 		void updateMethod(String firstname, Sort sort);
 
-		// Typo in named parameter
-		@Query("select u from User u where u.firstname = :foo")
-		List<User> findByAnnotatedQuery(@Param("param") String param);
 	}
 
 	interface ValidRepository extends Repository<User, Integer> {

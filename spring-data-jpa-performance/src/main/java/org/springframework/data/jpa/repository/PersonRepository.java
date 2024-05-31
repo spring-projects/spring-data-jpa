@@ -27,16 +27,16 @@ import org.springframework.data.repository.ListCrudRepository;
  */
 public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 
-    List<Person> findAllByFirstname(String firstname);
+	List<Person> findAllByFirstname(String firstname);
 
-    List<IPersonProjection> findAllAndProjectToInterfaceByFirstname(String firstname);
+	List<IPersonProjection> findAllAndProjectToInterfaceByFirstname(String firstname);
 
-    @Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
-    List<Person> findAllWithAnnotatedQueryByFirstname(String firstname);
+	@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	List<Person> findAllWithAnnotatedQueryByFirstname(String firstname);
 
-		@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
-		List<Person> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort);
+	@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	List<Person> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort);
 
-    @Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
-    List<Person> findAllWithNativeQueryByFirstname(String firstname);
+	@Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
+	List<Person> findAllWithNativeQueryByFirstname(String firstname);
 }

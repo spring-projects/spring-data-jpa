@@ -50,6 +50,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.util.TypeInformation;
@@ -328,6 +329,9 @@ class SimpleJpaQueryUnitTests {
 		@Query(value = "select u from User u", countQuery = "select count(u.id) from #{#entityName} u where u.name = :#{#arg0}")
 		List<User> findAllWithBindingsOnlyInCountQuery(String arg0, Pageable pageable);
 
+		// Typo in named parameter
+		@Query("select u from User u where u.firstname = :foo")
+		List<User> findByAnnotatedQuery(@Param("param") String param);
 	}
 
 	interface UserProjection {}

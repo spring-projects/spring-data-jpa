@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-class StringQuery implements DeclaredQuery {
+public class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -64,13 +64,14 @@ class StringQuery implements DeclaredQuery {
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
 	private final QueryEnhancer queryEnhancer;
+	private final boolean hasNamedParameters;
 
 	/**
 	 * Creates a new {@link StringQuery} from the given JPQL query.
 	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
-	StringQuery(String query, boolean isNative) {
+	public StringQuery(String query, boolean isNative) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
@@ -83,24 +84,17 @@ class StringQuery implements DeclaredQuery {
 				this.bindings, queryMeta);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-
 		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
-	}
 
-	// TODO: Conflict with eager JpaQueryMethod.assertParameterNamesInAnnotatedQuery validation that attempts parsing
-	// without pre-processing the query leaving #{#entityName} substitution to a later time.
-	public static boolean hasNamedParameter(String query) {
-
-		if (ObjectUtils.isEmpty(query)) {
-			return false;
+		boolean hasNamedParameters = false;
+		for (ParameterBinding parameterBinding : getParameterBindings()) {
+			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
+				hasNamedParameters = true;
+				break;
+			}
 		}
 
-		List<ParameterBinding> parameterBindings = new ArrayList<>();
-		Metadata queryMeta = new Metadata();
-		ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				parameterBindings, queryMeta);
-
-		return parameterBindings.stream().anyMatch(b -> b.getIdentifier().hasName());
+		this.hasNamedParameters = hasNamedParameters;
 	}
 
 	/**
@@ -161,7 +155,7 @@ class StringQuery implements DeclaredQuery {
 
 	@Override
 	public boolean hasNamedParameter() {
-		return bindings.stream().anyMatch(b -> b.getIdentifier().hasName());
+		return hasNamedParameters;
 	}
 
 	@Override
@@ -233,8 +227,8 @@ class StringQuery implements DeclaredQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query,
-				List<ParameterBinding> bindings, Metadata queryMeta) {
+		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query, List<ParameterBinding> bindings,
+				Metadata queryMeta) {
 
 			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
 			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;

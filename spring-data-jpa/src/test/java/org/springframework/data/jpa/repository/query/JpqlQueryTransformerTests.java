@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Verify that JPQL queries are properly transformed through the {@link JpaQueryEnhancer} and the
- * {@link JpqlQueryParser}.
+ * {@link JpaQueryEnhancer.JpqlQueryParser}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
@@ -736,7 +736,7 @@ class JpqlQueryTransformerTests {
 	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
 	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
 
-		JpqlQueryParser.parseQuery(String.format("""
+		JpaQueryEnhancer.JpqlQueryParser.parseQuery(String.format("""
 				select u
 				from UserAccountEntity u
 				join u.lossInspectorLimitConfiguration lil

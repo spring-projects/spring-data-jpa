@@ -294,6 +294,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryRendererBuilder> {
 	@Override
 	public QueryRendererBuilder visitQueryOrder(HqlParser.QueryOrderContext ctx) {
 
+		if (ctx.limitClause() == null && ctx.offsetClause() == null && ctx.fetchClause() == null) {
+			return visit(ctx.orderByClause());
+		}
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.orderByClause()));
@@ -406,13 +410,15 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryRendererBuilder> {
 	@Override
 	public QueryRendererBuilder visitJoinPath(HqlParser.JoinPathContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
+		HqlParser.VariableContext variable = ctx.variable();
 
-		builder.appendExpression(visit(ctx.path()));
-
-		if (ctx.variable() != null) {
-			builder.appendExpression(visit(ctx.variable()));
+		if (variable == null) {
+			return visit(ctx.path());
 		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.appendExpression(visit(ctx.path()));
+		builder.appendExpression(visit(variable));
 
 		return builder;
 	}
@@ -461,13 +467,15 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryRendererBuilder> {
 	@Override
 	public QueryRendererBuilder visitTargetEntity(HqlParser.TargetEntityContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
+		HqlParser.VariableContext variable = ctx.variable();
 
-		builder.appendExpression(visit(ctx.entityName()));
-
-		if (ctx.variable() != null) {
-			builder.appendExpression(visit(ctx.variable()));
+		if (variable == null) {
+			return visit(ctx.entityName());
 		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.appendExpression(visit(ctx.entityName()));
+		builder.appendExpression(visit(variable));
 
 		return builder;
 	}

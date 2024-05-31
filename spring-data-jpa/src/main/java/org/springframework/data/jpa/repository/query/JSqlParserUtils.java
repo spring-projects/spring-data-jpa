@@ -20,9 +20,9 @@ import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.schema.Column;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A utility class for JSqlParser.
@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @since 2.7.0
+ * @deprecated internal utility class.
  */
+@Deprecated
 public final class JSqlParserUtils {
 
 	private JSqlParserUtils() {}
@@ -42,12 +44,13 @@ public final class JSqlParserUtils {
 	 * @param distinct if it should be a distinct count
 	 * @return the generated count function call
 	 */
-	public static Function getJSqlCount(final List<String> countFields, final boolean distinct) {
+	public static Function getJSqlCount(List<String> countFields, boolean distinct) {
 
-		List<Expression> countColumns = countFields //
-				.stream() //
-				.map(Column::new) //
-				.collect(Collectors.toList());
+		List<Expression> countColumns = new ArrayList<>(countFields.size());
+		for (String countField : countFields) {
+			Column column = new Column(countField);
+			countColumns.add(column);
+		}
 
 		ExpressionList<Expression> countExpression = new ExpressionList<>(countColumns);
 

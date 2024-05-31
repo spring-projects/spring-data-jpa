@@ -29,9 +29,22 @@ import org.springframework.lang.Nullable;
 public class DefaultQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
+	private final boolean hasConstructorExpression;
+	private final String alias;
+	private final String projection;
+	private final Set<String> joinAliases;
 
 	public DefaultQueryEnhancer(DeclaredQuery query) {
 		this.query = query;
+		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.getQueryString());
+		this.alias = QueryUtils.detectAlias(query.getQueryString());
+		this.projection = QueryUtils.getProjection(this.query.getQueryString());
+		this.joinAliases = QueryUtils.getOuterJoinAliases(this.query.getQueryString());
+	}
+
+	@Override
+	public String applySorting(Sort sort) {
+		return QueryUtils.applySorting(this.query.getQueryString(), sort, this.alias);
 	}
 
 	@Override
@@ -40,23 +53,28 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String detectAlias() {
-		return QueryUtils.detectAlias(this.query.getQueryString());
-	}
-
-	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
 		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection, this.query.isNativeQuery());
 	}
 
 	@Override
+	public boolean hasConstructorExpression() {
+		return this.hasConstructorExpression;
+	}
+
+	@Override
+	public String detectAlias() {
+		return this.alias;
+	}
+
+	@Override
 	public String getProjection() {
-		return QueryUtils.getProjection(this.query.getQueryString());
+		return this.projection;
 	}
 
 	@Override
 	public Set<String> getJoinAliases() {
-		return QueryUtils.getOuterJoinAliases(this.query.getQueryString());
+		return this.joinAliases;
 	}
 
 	@Override

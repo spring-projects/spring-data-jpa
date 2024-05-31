@@ -42,6 +42,8 @@ import org.springframework.lang.Nullable;
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
+	private final boolean queryForEntity;
+
 	/**
 	 * Creates a new {@link NativeJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
 	 *
@@ -56,6 +58,8 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			SpelExpressionParser parser) {
 
 		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
+
+		this.queryForEntity = getQueryMethod().isQueryForEntity();
 
 		Parameters<?, ?> parameters = method.getParameters();
 
@@ -77,9 +81,9 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	@Nullable
 	private Class<?> getTypeToQueryFor(ReturnedType returnedType) {
 
-		Class<?> result = getQueryMethod().isQueryForEntity() ? returnedType.getDomainType() : null;
+		Class<?> result = queryForEntity ? returnedType.getDomainType() : null;
 
-		if (this.getQuery().hasConstructorExpression() || this.getQuery().isDefaultProjection()) {
+		if (getQuery().hasConstructorExpression() || getQuery().isDefaultProjection()) {
 			return result;
 		}
 

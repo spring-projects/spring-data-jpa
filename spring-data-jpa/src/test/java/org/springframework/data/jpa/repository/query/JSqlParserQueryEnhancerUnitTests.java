@@ -45,14 +45,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@ParameterizedTest // GH-2773
 	@MethodSource("jpqlCountQueries")
 	void shouldDeriveJpqlCountQuery(String query, String expected) {
-
-		assumeThat(query).as("JSQLParser does not support simple JPQL syntax").doesNotStartWithIgnoringCase("FROM");
-
-		assumeThat(query).as("JSQLParser does not support constructor JPQL syntax").doesNotContain(" new ");
-
-		assumeThat(query).as("JSQLParser does not support MOD JPQL syntax").doesNotContain("MOD(");
-
-		super.shouldDeriveJpqlCountQuery(query, expected);
+		assumeThat(query).as("JSQLParser does not support JPQL").isNull();
 	}
 
 	@Test

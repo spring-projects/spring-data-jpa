@@ -30,7 +30,8 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that EQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link EqlQueryParser}.
+ * Verify that EQL queries are properly transformed through the {@link JpaQueryEnhancer} and the
+ * {@link JpaQueryEnhancer.EqlQueryParser}.
  *
  * @author Greg Turnquist
  */
@@ -718,7 +719,7 @@ class EqlQueryTransformerTests {
 	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
 	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
 
-		EqlQueryParser.parseQuery(String.format("""
+		JpaQueryEnhancer.EqlQueryParser.parseQuery(String.format("""
 				select u
 				from UserAccountEntity u
 				join u.lossInspectorLimitConfiguration lil

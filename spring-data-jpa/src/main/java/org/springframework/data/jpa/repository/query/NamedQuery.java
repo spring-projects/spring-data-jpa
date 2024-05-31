@@ -28,6 +28,7 @@ import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 
 /**
@@ -50,7 +51,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final String countQueryName;
 	private final @Nullable String countProjection;
 	private final boolean namedCountQueryIsPresent;
-	private final DeclaredQuery declaredQuery;
+	private final Lazy<DeclaredQuery> declaredQuery;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache;
 
 	/**
@@ -75,11 +76,6 @@ final class NamedQuery extends AbstractJpaQuery {
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
 
 		Query query = em.createNamedQuery(queryName);
-		String queryString = extractor.extractQueryString(query);
-
-		// TODO: Detect whether a named query is a named one.
-		this.declaredQuery = DeclaredQuery.of(queryString, query != null && query.toString().contains("NativeQuery"));
-
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();
 
@@ -93,6 +89,10 @@ final class NamedQuery extends AbstractJpaQuery {
 					method));
 		}
 
+		String queryString = extractor.extractQueryString(query);
+
+		// TODO: Detect whether a named query is a native one.
+		this.declaredQuery = Lazy.of(() -> DeclaredQuery.of(queryString, query.toString().contains("NativeQuery")));
 		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
@@ -188,7 +188,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.deriveCountQuery(countProjection).getQueryString();
+			String countQueryString = declaredQuery.get().deriveCountQuery(countProjection).getQueryString();
 			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
@@ -220,7 +220,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			return type.isInterface() ? Tuple.class : null;
 		}
 
-		return declaredQuery.hasConstructorExpression() //
+		return declaredQuery.get().hasConstructorExpression() //
 				? null //
 				: super.getTypeToRead(returnedType);
 	}

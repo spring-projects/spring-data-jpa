@@ -39,7 +39,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
-import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
@@ -108,7 +107,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 * @param factory must not be {@literal null}
 	 * @param extractor must not be {@literal null}
 	 */
-	protected JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			QueryExtractor extractor) {
 
 		super(method, metadata, factory);
@@ -145,7 +144,6 @@ public class JpaQueryMethod extends QueryMethod {
 
 		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
 				() -> String.format("Modifying method must not contain %s", Parameters.TYPES));
-		assertParameterNamesInAnnotatedQuery();
 	}
 
 	private static Class<?> potentiallyUnwrapReturnTypeFor(RepositoryMetadata metadata, Method method) {
@@ -160,29 +158,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return returnType.getType();
 	}
 
-	private void assertParameterNamesInAnnotatedQuery() {
 
-		String annotatedQuery = getAnnotatedQuery();
-
-		if (!DeclaredQuery.hasNamedParameter(annotatedQuery)) {
-			return;
-		}
-
-		for (Parameter parameter : getParameters()) {
-
-			if (!parameter.isNamedParameter()) {
-				continue;
-			}
-
-			if (!StringUtils.hasText(annotatedQuery)
-					|| !annotatedQuery.contains(String.format(":%s", parameter.getName().get()))
-							&& !annotatedQuery.contains(String.format("#%s", parameter.getName().get()))) {
-				throw new IllegalStateException(
-						String.format("Using named parameters for method %s but parameter '%s' not found in annotated query '%s'",
-								method, parameter.getName(), annotatedQuery));
-			}
-		}
-	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })

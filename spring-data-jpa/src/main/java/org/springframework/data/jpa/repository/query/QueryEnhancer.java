@@ -30,23 +30,11 @@ import org.springframework.lang.Nullable;
 public interface QueryEnhancer {
 
 	/**
-	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
+	 * Returns whether the given JPQL query contains a constructor expression.
 	 *
-	 * @param sort the sort specification to apply.
-	 * @return the modified query string.
+	 * @return whether the given JPQL query contains a constructor expression.
 	 */
-	default String applySorting(Sort sort) {
-		return applySorting(sort, detectAlias());
-	}
-
-	/**
-	 * Adds {@literal order by} clause to the JPQL query.
-	 *
-	 * @param sort the sort specification to apply.
-	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
-	 * @return the modified query string.
-	 */
-	String applySorting(Sort sort, @Nullable String alias);
+	boolean hasConstructorExpression();
 
 	/**
 	 * Resolves the alias for the entity to be retrieved from the given JPA query.
@@ -55,6 +43,47 @@ public interface QueryEnhancer {
 	 */
 	@Nullable
 	String detectAlias();
+
+	/**
+	 * Returns the projection part of the query, i.e. everything between {@code select} and {@code from}.
+	 *
+	 * @return the projection part of the query.
+	 */
+	String getProjection();
+
+	/**
+	 * Returns the join aliases of the query.
+	 *
+	 * @return the join aliases of the query.
+	 */
+	@Deprecated(forRemoval = true)
+	Set<String> getJoinAliases();
+
+	/**
+	 * Gets the query we want to use for enhancements.
+	 *
+	 * @return non-null {@link DeclaredQuery} that wraps the query
+	 */
+	@Deprecated(forRemoval = true)
+	DeclaredQuery getQuery();
+
+	/**
+	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
+	 *
+	 * @param sort the sort specification to apply.
+	 * @return the modified query string.
+	 */
+	String applySorting(Sort sort);
+
+	/**
+	 * Adds {@literal order by} clause to the JPQL query.
+	 *
+	 * @param sort the sort specification to apply.
+	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
+	 * @return the modified query string.
+	 */
+	@Deprecated
+	String applySorting(Sort sort, @Nullable String alias);
 
 	/**
 	 * Creates a count projected query from the given original query.
@@ -72,29 +101,4 @@ public interface QueryEnhancer {
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 */
 	String createCountQueryFor(@Nullable String countProjection);
-
-	/**
-	 * Returns whether the given JPQL query contains a constructor expression.
-	 *
-	 * @return whether the given JPQL query contains a constructor expression.
-	 */
-	default boolean hasConstructorExpression() {
-		return QueryUtils.hasConstructorExpression(getQuery().getQueryString());
-	}
-
-	/**
-	 * Returns the projection part of the query, i.e. everything between {@code select} and {@code from}.
-	 *
-	 * @return the projection part of the query.
-	 */
-	String getProjection();
-
-	Set<String> getJoinAliases();
-
-	/**
-	 * Gets the query we want to use for enhancements.
-	 *
-	 * @return non-null {@link DeclaredQuery} that wraps the query
-	 */
-	DeclaredQuery getQuery();
 }

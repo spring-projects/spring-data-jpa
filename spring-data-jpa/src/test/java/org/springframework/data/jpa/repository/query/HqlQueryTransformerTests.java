@@ -31,7 +31,8 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 
 /**
- * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the {@link HqlQueryParser}.
+ * Verify that HQL queries are properly transformed through the {@link JpaQueryEnhancer} and the
+ * {@link JpaQueryEnhancer.HqlQueryParser}.
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
@@ -869,7 +870,7 @@ class HqlQueryTransformerTests {
 	@MethodSource("queriesWithReservedWordsAsIdentifiers") // GH-2864
 	void usingReservedWordAsRelationshipNameShouldWork(String relationshipName, String joinAlias) {
 
-		HqlQueryParser.parseQuery(String.format("""
+		JpaQueryEnhancer.HqlQueryParser.parseQuery(String.format("""
 				select u
 				from UserAccountEntity u
 				join fetch u.lossInspectorLimitConfiguration lil
