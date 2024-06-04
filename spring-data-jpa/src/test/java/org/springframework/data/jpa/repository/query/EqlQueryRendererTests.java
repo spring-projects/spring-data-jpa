@@ -28,6 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Tests built around examples of EQL found in the JPA spec
@@ -54,7 +55,7 @@ class EqlQueryRendererTests {
 
 		EqlParser.StartContext parsedQuery = parser.start();
 
-		return render(new EqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new EqlQueryRenderer().visit(parsedQuery));
 	}
 
 	static Stream<Arguments> reservedWords() {

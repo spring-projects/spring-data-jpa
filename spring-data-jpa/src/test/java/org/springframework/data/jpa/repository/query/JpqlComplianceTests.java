@@ -21,6 +21,7 @@ import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Test to verify compliance of {@link JpqlParser} with standard SQL. Other than {@link JpqlSpecificationTests} tests in
@@ -40,7 +41,7 @@ class JpqlComplianceTests {
 
 		JpqlParser.StartContext parsedQuery = parser.start();
 
-		return render(new JpqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new JpqlQueryRenderer().visit(parsedQuery));
 	}
 
 	private void assertQuery(String query) {

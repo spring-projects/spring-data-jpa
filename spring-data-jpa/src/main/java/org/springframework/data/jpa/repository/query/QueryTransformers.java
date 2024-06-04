@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -28,19 +29,14 @@ import java.util.List;
  */
 class QueryTransformers {
 
-	/**
-	 * Filter a token list from a {@code SELECT} clause to be used within a count query. That is, filter any {@code AS …}
-	 * aliases.
-	 *
-	 * @param selection the input selection.
-	 * @return filtered selection to be used with count queries.
-	 */
-	static List<JpaQueryParsingToken> filterCountSelection(List<JpaQueryParsingToken> selection) {
+	static CountSelectionTokenStream filterCountSelection(QueryTokenStream<QueryToken> selection) {
 
-		List<JpaQueryParsingToken> target = new ArrayList<>(selection.size());
+		List<QueryToken> target = new ArrayList<>(selection.estimatedSize());
 		boolean skipNext = false;
+		boolean containsNew = false;
 
-		for (JpaQueryParsingToken token : selection) {
+		for (QueryToken token : selection) {
+
 
 			if (skipNext) {
 				skipNext = false;
@@ -52,14 +48,48 @@ class QueryTransformers {
 				continue;
 			}
 
-			if (!token.isA(TOKEN_COMMA) && token instanceof JpaQueryExpression) {
-				token = JpaQueryParsingToken.token(token.getToken());
+			if (!token.isA(TOKEN_COMMA) && token.isExpression()) {
+				token = JpaQueryParsingToken.token(token.value());
+			}
+
+			if(!containsNew && token.value().contains("new")) {
+				containsNew = true;
 			}
 
 			target.add(token);
 		}
 
-		return target;
+		return new CountSelectionTokenStream(target, containsNew);
+	}
+
+	static class CountSelectionTokenStream implements QueryTokenStream<QueryToken> {
+
+		private final List<QueryToken> tokens;
+		private final boolean requiresPrimaryAlias;
+
+		public CountSelectionTokenStream(List<QueryToken> tokens, boolean containsNew) {
+			this.tokens = tokens;
+			this.requiresPrimaryAlias = containsNew;
+		}
+
+		@Override
+		public int estimatedSize() {
+			return tokens.size();
+		}
+
+		@Override
+		public Iterator<QueryToken> iterator() {
+			return tokens.iterator();
+		}
+
+		@Override
+		public List<QueryToken> toList() {
+			return tokens;
+		}
+
+		public boolean requiresPrimaryAlias() {
+			return requiresPrimaryAlias;
+		}
 	}
 
 }

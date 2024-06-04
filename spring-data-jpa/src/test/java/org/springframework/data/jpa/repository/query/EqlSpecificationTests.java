@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Tests built around examples of EQL found in the JPA spec
@@ -44,7 +45,7 @@ class EqlSpecificationTests {
 
 		EqlParser.StartContext parsedQuery = parser.start();
 
-		return render(new EqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new EqlQueryRenderer().visit(parsedQuery));
 	}
 
 	private void assertQuery(String query) {

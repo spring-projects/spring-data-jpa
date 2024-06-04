@@ -105,8 +105,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		QueryRendererBuilder builder = super.visitSelect_item(ctx);
 
 		if (ctx.result_variable() != null) {
-			List<JpaQueryParsingToken> tokens = builder.build().stream().toList();
-			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+			transformerSupport.registerAlias(builder.lastToken());
 		}
 
 		return builder;
@@ -117,8 +116,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 
 		QueryRendererBuilder builder = super.visitJoin(ctx);
 
-		List<JpaQueryParsingToken> tokens = builder.build().stream().toList();
-		transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+		transformerSupport.registerAlias(builder.lastToken());
 
 		return builder;
 	}

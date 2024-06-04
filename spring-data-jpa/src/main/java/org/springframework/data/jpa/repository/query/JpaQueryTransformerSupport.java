@@ -41,6 +41,10 @@ class JpaQueryTransformerSupport {
 		projectionAliases.add(token);
 	}
 
+	void registerAlias(QueryToken token) {
+		projectionAliases.add(token.value());
+	}
+
 	/**
 	 * Using the primary {@literal FROM} clause's alias and a {@link Sort}, construct all the {@literal ORDER BY}
 	 * arguments.

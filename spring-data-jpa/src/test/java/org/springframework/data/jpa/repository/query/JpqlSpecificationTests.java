@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Tests built around examples of JPQL found in the JPA spec
@@ -48,7 +49,7 @@ class JpqlSpecificationTests {
 
 		JpqlParser.StartContext parsedQuery = parser.start();
 
-		return render(new JpqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new JpqlQueryRenderer().visit(parsedQuery));
 	}
 
 	private void assertQuery(String query) {

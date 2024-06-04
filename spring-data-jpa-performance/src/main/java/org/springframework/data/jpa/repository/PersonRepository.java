@@ -39,4 +39,9 @@ public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 
 	@Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
 	List<Person> findAllWithNativeQueryByFirstname(String firstname);
+
+	Long countByFirstname(String firstname);
+
+	@Query("SELECT COUNT(*) FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	Long countWithAnnotatedQueryByFirstname(String firstname);
 }

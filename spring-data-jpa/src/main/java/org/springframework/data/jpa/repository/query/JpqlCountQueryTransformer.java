@@ -17,9 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
 import org.springframework.lang.Nullable;
 
 /**
@@ -87,10 +86,10 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 				QueryRendererBuilder selectionListbuilder = QueryRendererBuilder.concat(ctx.select_item(), this::visit,
 						TOKEN_COMMA);
 
-				List<JpaQueryParsingToken> countSelection = QueryTransformers
-						.filterCountSelection(selectionListbuilder.build().stream().toList());
+				CountSelectionTokenStream countSelection = QueryTransformers
+						.filterCountSelection(selectionListbuilder);
 
-				if (countSelection.stream().anyMatch(jpqlToken -> jpqlToken.getToken().contains("new"))) {
+				if (countSelection.requiresPrimaryAlias()) {
 					// constructor
 					nested.append(new JpaQueryParsingToken(primaryFromAlias));
 				} else {

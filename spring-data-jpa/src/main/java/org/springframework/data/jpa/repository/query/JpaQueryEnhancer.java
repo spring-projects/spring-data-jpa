@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
-
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -31,7 +29,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -65,7 +62,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		this.introspector.visit(context);
 
 		List<JpaQueryParsingToken> tokens = introspector.getProjection();
-		this.projection = tokens.isEmpty() ? "" : render(tokens);
+		this.projection = tokens.isEmpty() ? "" : QueryRenderer.TokenRenderer.render(tokens);
 	}
 
 	static <P extends Parser> ParserRuleContext parse(String query, Function<CharStream, Lexer> lexerFactoryFunction,
@@ -194,7 +191,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String applySorting(Sort sort) {
-		return render(sortFunction.apply(sort, detectAlias()).visit(context));
+		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias()).visit(context));
 	}
 
 	/**
@@ -226,7 +223,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
-		return render(countQueryFunction.apply(countProjection, detectAlias()).visit(context));
+		return QueryRenderer.TokenRenderer.render(countQueryFunction.apply(countProjection, detectAlias()).visit(context));
 	}
 
 	/**

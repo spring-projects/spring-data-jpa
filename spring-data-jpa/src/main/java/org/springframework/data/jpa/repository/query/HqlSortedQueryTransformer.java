@@ -101,8 +101,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = super.visitJoinPath(ctx);
 
 		if (ctx.variable() != null) {
-			List<JpaQueryParsingToken> tokens = builder.build().stream().toList();
-			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+			transformerSupport.registerAlias(builder.lastToken());
 		}
 
 		return builder;
@@ -114,8 +113,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = super.visitJoinSubquery(ctx);
 
 		if (ctx.variable() != null) {
-			List<JpaQueryParsingToken> tokens = builder.build().stream().toList();
-			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+			transformerSupport.registerAlias(builder.lastToken());
 		}
 
 		return builder;
@@ -127,8 +125,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = super.visitVariable(ctx);
 
 		if (ctx.identifier() != null) {
-			List<JpaQueryParsingToken> tokens = builder.build().stream().toList();
-			transformerSupport.registerAlias(tokens.get(tokens.size() - 1).getToken());
+			transformerSupport.registerAlias(builder.lastToken());
 		}
 
 		return builder;

@@ -2291,21 +2291,21 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryRendererBuilder> {
 
 		if (ctx.IS() != null) {
 
-			builder.append(JpaQueryExpression.expression(ctx.IS()));
+			builder.append(JpaExpressionToken.expression(ctx.IS()));
 
 			if (ctx.NOT() != null) {
 				builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 			}
 
-			builder.append(JpaQueryExpression.expression(ctx.EMPTY()));
+			builder.append(JpaExpressionToken.expression(ctx.EMPTY()));
 		} else if (ctx.MEMBER() != null) {
 
 			if (ctx.NOT() != null) {
 				builder.append(JpaQueryParsingToken.expression(ctx.NOT()));
 			}
 
-			builder.append(JpaQueryExpression.expression(ctx.MEMBER()));
-			builder.append(JpaQueryExpression.expression(ctx.OF()));
+			builder.append(JpaExpressionToken.expression(ctx.MEMBER()));
+			builder.append(JpaExpressionToken.expression(ctx.OF()));
 			builder.append(visit(ctx.path()));
 		}
 

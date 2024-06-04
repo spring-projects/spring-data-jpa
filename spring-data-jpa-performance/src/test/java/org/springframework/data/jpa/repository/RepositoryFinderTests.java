@@ -58,6 +58,9 @@ import org.springframework.util.ObjectUtils;
 @Timeout(time = 2)
 public class RepositoryFinderTests {
 
+	private static final String PERSON_FIRSTNAME = "first";
+	private static final String COLUMN_PERSON_FIRSTNAME = "firstname";
+
 	@State(Scope.Benchmark)
 	public static class BenchmarkParameters {
 
@@ -83,7 +86,7 @@ public class RepositoryFinderTests {
 					entityManager.persist(generalProfile);
 					entityManager.persist(sdUserProfile);
 
-					Person person = new Person("first", "last");
+					Person person = new Person(PERSON_FIRSTNAME, "last");
 					person.setProfiles(Set.of(generalProfile, sdUserProfile));
 					entityManager.persist(person);
 					entityManager.getTransaction().commit();
@@ -128,7 +131,7 @@ public class RepositoryFinderTests {
 		CriteriaQuery<Person> query = criteriaBuilder.createQuery(Person.class);
 		Root<Person> root = query.from(Person.class);
 		TypedQuery<Person> typedQuery = parameters.entityManager
-				.createQuery(query.where(criteriaBuilder.equal(root.get("firstname"), "first")));
+				.createQuery(query.where(criteriaBuilder.equal(root.get(COLUMN_PERSON_FIRSTNAME), PERSON_FIRSTNAME)));
 
 		return typedQuery.getResultList();
 	}
@@ -138,35 +141,52 @@ public class RepositoryFinderTests {
 
 		Query query = parameters.entityManager
 				.createQuery("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1");
-		query.setParameter(1, "first");
+		query.setParameter(1, PERSON_FIRSTNAME);
 
 		return query.getResultList();
 	}
 
 	@Benchmark
+	public Long baselineEntityManagerCount(BenchmarkParameters parameters) {
+
+		Query query = parameters.entityManager.createQuery("SELECT COUNT(*) FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1");
+		query.setParameter(1, PERSON_FIRSTNAME);
+
+		return (Long) query.getSingleResult();
+	}
+
+	@Benchmark
 	public List<Person> derivedFinderMethod(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllByFirstname("first");
+		return parameters.repositoryProxy.findAllByFirstname(PERSON_FIRSTNAME);
 	}
 
 	@Benchmark
 	public List<IPersonProjection> derivedFinderMethodWithInterfaceProjection(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllAndProjectToInterfaceByFirstname("first");
+		return parameters.repositoryProxy.findAllAndProjectToInterfaceByFirstname(PERSON_FIRSTNAME);
 	}
-
 
 	@Benchmark
 	public List<Person> stringBasedQuery(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname("first");
+		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME);
 	}
 
 	@Benchmark
 	public List<Person> stringBasedQueryDynamicSort(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname("first", Sort.by("firstname"));
+		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME, Sort.by(COLUMN_PERSON_FIRSTNAME));
 	}
 
 	@Benchmark
 	public List<Person> stringBasedNativeQuery(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllWithNativeQueryByFirstname("first");
+		return parameters.repositoryProxy.findAllWithNativeQueryByFirstname(PERSON_FIRSTNAME);
 	}
 
+	@Benchmark
+	public Long derivedCount(BenchmarkParameters parameters) {
+		return parameters.repositoryProxy.countByFirstname(PERSON_FIRSTNAME);
+	}
+
+	@Benchmark
+	public Long stringBasedCount(BenchmarkParameters parameters) {
+		return parameters.repositoryProxy.countWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME);
+	}
 }
