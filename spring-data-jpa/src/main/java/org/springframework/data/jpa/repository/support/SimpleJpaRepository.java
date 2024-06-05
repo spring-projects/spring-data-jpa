@@ -618,8 +618,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public <S extends T> S save(S entity) {
 
 		Assert.notNull(entity, "Entity must not be null");
@@ -632,8 +632,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public <S extends T> S saveAndFlush(S entity) {
 
 		S result = save(entity);
@@ -642,8 +642,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
 		Assert.notNull(entities, "Entities must not be null");
@@ -657,8 +657,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public <S extends T> List<S> saveAllAndFlush(Iterable<S> entities) {
 
 		List<S> result = saveAll(entities);
@@ -667,8 +667,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return result;
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void flush() {
 		entityManager.flush();
 	}
