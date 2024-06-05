@@ -174,8 +174,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return getQueryString(countQuery, entityInformation.getEntityName());
 	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public void deleteById(ID id) {
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
@@ -476,6 +476,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
+	@Transactional
 	public long delete(Specification<T> spec) {
 
 		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
