@@ -1568,6 +1568,13 @@ class HqlQueryRendererTests {
 		assertQuery("select te from TestEntity te where te.type = :type");
 	}
 
+	@Test // GH-3496
+	void lateralShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.lateral = :_lateral");
+		assertQuery("select te from TestEntity te where te.lateral = :lateral");
+	}
+
 	@Test // GH-3099
 	void functionNamesShouldSupportSchemaScoping() {
 

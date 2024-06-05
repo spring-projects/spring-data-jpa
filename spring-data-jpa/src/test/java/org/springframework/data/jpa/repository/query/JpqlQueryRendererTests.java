@@ -965,6 +965,13 @@ class JpqlQueryRendererTests {
 		assertQuery("select te from TestEntity te where te.type = :type");
 	}
 
+	@Test // GH-3496
+	void lateralShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.lateral = :_lateral");
+		assertQuery("select te from TestEntity te where te.lateral = :lateral");
+	}
+
 	@Test // GH-3061
 	void alternateNotEqualsOperatorShouldWork() {
 		assertQuery("select e from Employee e where e.firstName != :name");
