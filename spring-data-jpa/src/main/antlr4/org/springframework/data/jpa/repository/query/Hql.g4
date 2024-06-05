@@ -768,6 +768,7 @@ reservedWord
 	| JOIN
 	| KEY
 	| LAST
+	| LATERAL
 	| LEADING
 	| LEFT
 	| LIKE
