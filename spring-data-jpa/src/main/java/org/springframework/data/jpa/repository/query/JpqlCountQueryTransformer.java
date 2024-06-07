@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
@@ -66,24 +66,24 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(JpaQueryParsingToken.expression(ctx.SELECT()));
+		builder.append(QueryTokens.expression(ctx.SELECT()));
 		builder.append(TOKEN_COUNT_FUNC);
 
 		if (countProjection != null) {
-			builder.append(JpaQueryParsingToken.token(countProjection));
+			builder.append(QueryTokens.token(countProjection));
 		}
 
 		QueryRendererBuilder nested = QueryRenderer.builder();
 
 		if (ctx.DISTINCT() != null) {
-			nested.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
+			nested.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
 
 		if (countProjection == null) {
 
 			if (ctx.DISTINCT() != null) {
 
-				QueryRendererBuilder selectionListbuilder = QueryRendererBuilder.concat(ctx.select_item(), this::visit,
+				QueryTokenStream selectionListbuilder = QueryTokenStream.concat(ctx.select_item(), this::visit,
 						TOKEN_COMMA);
 
 				CountSelectionTokenStream countSelection = QueryTransformers
@@ -91,13 +91,13 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 
 				if (countSelection.requiresPrimaryAlias()) {
 					// constructor
-					nested.append(new JpaQueryParsingToken(primaryFromAlias));
+					nested.append(QueryTokens.token(primaryFromAlias));
 				} else {
 					// keep all the select items to distinct against
 					nested.append(countSelection);
 				}
 			} else {
-				nested.append(new JpaQueryParsingToken(primaryFromAlias));
+				nested.append(QueryTokens.token(primaryFromAlias));
 			}
 		}
 

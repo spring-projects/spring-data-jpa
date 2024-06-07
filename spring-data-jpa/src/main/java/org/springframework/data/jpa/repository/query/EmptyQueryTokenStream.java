@@ -15,25 +15,48 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Collections;
+import java.util.Iterator;
+
 /**
- * Interface defining a token. Tokens are atomic elements from which queries are built. Tokens can be inline tokens that
- * do not require spacing or expressions that must be separated by spaces, commas, etc.
+ * Empty QueryTokenStream.
  *
- * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.4
  */
-interface QueryToken {
+class EmptyQueryTokenStream implements QueryTokenStream {
 
-	/**
-	 * @return the token value (i.e. its content).
-	 */
-	String value();
+	static final EmptyQueryTokenStream INSTANCE = new EmptyQueryTokenStream();
 
-	/**
-	 * @return {@code true} if the token represents an expression.
-	 */
-	default boolean isExpression() {
+	private EmptyQueryTokenStream() {}
+
+	@Override
+	public QueryToken getFirst() {
+		return null;
+	}
+
+	@Override
+	public QueryToken getLast() {
+		return null;
+	}
+
+	@Override
+	public boolean isExpression() {
 		return false;
 	}
 
+	@Override
+	public int size() {
+		return 0;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return true;
+	}
+
+	@Override
+	public Iterator<QueryToken> iterator() {
+		return Collections.emptyIterator();
+	}
 }

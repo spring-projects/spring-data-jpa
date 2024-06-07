@@ -55,7 +55,8 @@ class HqlQueryRendererTests {
 
 		HqlParser.StartContext parsedQuery = parser.start();
 
-		return new HqlQueryRenderer().visit(parsedQuery).build().render();
+		QueryTokenStream tokens = new HqlQueryRenderer().visit(parsedQuery);
+		return QueryRenderer.from(tokens).render();
 	}
 
 	static Stream<Arguments> reservedWords() {

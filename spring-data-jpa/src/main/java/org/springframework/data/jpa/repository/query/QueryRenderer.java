@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.antlr.v4.runtime.TokenStream;
 import org.springframework.util.CompositeIterator;
 
 /**
@@ -31,8 +30,7 @@ import org.springframework.util.CompositeIterator;
  * <p>
  * Query rendering consists of multiple building blocks:
  * <ul>
- * <li>{@link JpaQueryParsingToken tokens} and
- * {@link org.springframework.data.jpa.repository.query.JpaQueryParsingToken.JpaExpressionToken expression tokens}</li>
+ * <li>{@link QueryTokens.SimpleQueryToken tokens} and {@link QueryTokens.ExpressionToken expression tokens}</li>
  * <li>{@link QueryRenderer compositions} such as a composition of multiple tokens.</li>
  * <li>{@link QueryRenderer expressions} that are individual parts such as {@code SELECT} or {@code ORDER BY …}</li>
  * <li>{@link QueryRenderer inline expressions} such as composition of tokens and expressions such as function calls
@@ -41,10 +39,20 @@ import org.springframework.util.CompositeIterator;
  *
  * @author Mark Paluch
  */
-abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
+abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
-	 * Creates a QueryRenderer from a collection of {@link JpaQueryParsingToken}.
+	 * Creates a QueryRenderer from a {@link QueryToken}.
+	 *
+	 * @param token
+	 * @return
+	 */
+	static QueryRenderer from(QueryToken token) {
+		return QueryRenderer.from(Collections.singletonList(token));
+	}
+
+	/**
+	 * Creates a QueryRenderer from a collection of {@link QueryToken}.
 	 *
 	 * @param tokens
 	 * @return
@@ -53,6 +61,25 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		List<QueryToken> tokensToUse = new ArrayList<>(Math.max(tokens.size(), 32));
 		tokensToUse.addAll(tokens);
 		return new TokenRenderer(tokensToUse);
+	}
+
+	/**
+	 * Creates a QueryRenderer from a {@link QueryTokenStream}.
+	 *
+	 * @param tokens
+	 * @return
+	 */
+	static QueryRenderer from(QueryTokenStream tokens) {
+
+		if (tokens instanceof QueryRendererBuilder builder) {
+			tokens = builder.current;
+		}
+
+		if (tokens instanceof QueryRenderer renderer) {
+			return renderer;
+		}
+
+		return new QueryStreamRenderer(tokens);
 	}
 
 	/**
@@ -79,25 +106,111 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 	abstract String render();
 
 	/**
-	 * Append a {@link QueryRenderer} to create a composed renderer.
-	 *
-	 * @param renderer
-	 * @return
+	 * @return the rendered query.
 	 */
-	QueryRenderer append(QueryRenderer renderer) {
-		return CompositeRenderer.combine(this, renderer);
+	static String render(Iterable<QueryToken> tokenStream) {
+
+		if (tokenStream instanceof QueryRendererBuilder qrb) {
+			tokenStream = qrb.current;
+		}
+
+		if (tokenStream instanceof QueryRenderer qr) {
+			return qr.render();
+		}
+
+		StringBuilder results = null;
+		boolean previousExpression = false;
+
+		Iterator<QueryToken> iterator = tokenStream.iterator();
+		while (iterator.hasNext()) {
+			QueryToken token = iterator.next();
+
+			if (results == null) {
+				if (iterator.hasNext()) {
+					results = new StringBuilder();
+				} else {
+					return token.value();
+				}
+			}
+
+			if (previousExpression) {
+				if (!results.isEmpty() && results.charAt(results.length() - 1) != ' ') {
+					results.append(' ');
+				}
+			}
+
+			previousExpression = token.isExpression();
+			results.append(token.value());
+		}
+
+		return results.toString();
 	}
 
 	/**
-	 * @return {@code true} if the query renderer represents an expression.
+	 * Append a {@link QueryRenderer} to create a composed renderer.
+	 *
+	 * @param tokens
+	 * @return
 	 */
-	public boolean isExpression() {
-		return false;
+	QueryRenderer append(QueryTokenStream tokens) {
+
+		if (tokens instanceof QueryRendererBuilder builder) {
+			tokens = builder.current;
+		}
+
+		if (tokens instanceof QueryRenderer qr) {
+
+			if (isEmpty()) {
+				return qr;
+			}
+
+			return CompositeRenderer.combine(this, qr);
+		}
+
+		if (isEmpty()) {
+			return QueryRenderer.from(tokens);
+		}
+
+		return CompositeRenderer.combine(this, QueryRenderer.from(tokens));
 	}
 
 	@Override
 	public String toString() {
 		return render();
+	}
+
+	public static QueryRenderer expression(QueryTokenStream tokenStream) {
+
+		if (tokenStream instanceof QueryRendererBuilder builder) {
+			tokenStream = builder.current;
+		}
+
+		if (tokenStream.isEmpty()) {
+			return EmptyQueryRenderer.INSTANCE;
+		}
+
+		if (tokenStream.isExpression()) {
+			return (QueryRenderer) tokenStream;
+		}
+
+		return new ExpressionRenderer((QueryRenderer) tokenStream);
+	}
+
+	public static QueryRenderer inline(QueryTokenStream tokenStream) {
+
+		if (tokenStream instanceof QueryRendererBuilder builder) {
+			tokenStream = builder.current;
+		}
+
+		if (tokenStream.isEmpty()) {
+			return EmptyQueryRenderer.INSTANCE;
+		}
+
+		if (!tokenStream.isExpression()) {
+			return (QueryRenderer) tokenStream;
+		}
+
+		return new InlineRenderer((QueryRenderer) tokenStream);
 	}
 
 	/**
@@ -106,7 +219,6 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 	static class CompositeRenderer extends QueryRenderer {
 
 		private final List<QueryRenderer> nested;
-		private int size;
 
 		static CompositeRenderer combine(QueryRenderer root, QueryRenderer nested) {
 
@@ -114,66 +226,124 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 			queryRenderers.add(root);
 			queryRenderers.add(nested);
 
-			return new CompositeRenderer(queryRenderers, root.estimatedSize() + nested.estimatedSize());
+			return new CompositeRenderer(queryRenderers);
 		}
 
-		private CompositeRenderer(List<QueryRenderer> nested, int size) {
-
+		private CompositeRenderer(List<QueryRenderer> nested) {
 			this.nested = nested;
-			this.size = size;
 		}
 
 		@Override
 		String render() {
 
-			StringBuilder builder = new StringBuilder(2048);
+			StringBuilder builder = new StringBuilder(64);
+			String lastAppended = null;
 
 			boolean lastExpression = false;
 			for (QueryRenderer queryRenderer : nested) {
 
-				if (!builder.isEmpty() && builder.charAt(builder.length() - 1) != ' '
-						&& (lastExpression || queryRenderer.isExpression())) {
+				if (lastAppended != null && (lastExpression || queryRenderer.isExpression()) && !builder.isEmpty()
+						&& !lastAppended.endsWith(" ")) {
 					builder.append(' ');
 				}
 
-				builder.append(queryRenderer.render());
+				lastAppended = queryRenderer.render();
+				builder.append(lastAppended);
 				lastExpression = queryRenderer.isExpression();
 			}
 
 			return builder.toString();
 		}
 
-		@Override
-		QueryRenderer append(QueryRenderer renderer) {
+		/**
+		 * Append a {@link QueryRenderer} to create a composed renderer.
+		 *
+		 * @param tokens
+		 * @return
+		 */
+		QueryRenderer append(QueryTokenStream tokens) {
 
-			nested.add(renderer);
-			this.size += renderer.estimatedSize();
-			return this;
+			if (tokens instanceof QueryRendererBuilder builder) {
+				tokens = builder.current;
+			}
+
+			if (tokens instanceof QueryRenderer qr) {
+
+				if (isEmpty()) {
+					return this;
+				}
+
+				if (qr.isEmpty()) {
+					return qr;
+				}
+
+				if (tokens instanceof CompositeRenderer cr) {
+					this.nested.addAll(cr.nested);
+
+					return this;
+				}
+
+			}
+
+			return super.append(tokens);
 		}
 
 		@Override
-		public boolean isExpression() {
-			return !nested.isEmpty() && nested.get(nested.size() - 1).isExpression();
+		public QueryToken getLast() {
+
+			for (int i = nested.size() - 1; i > -1; i--) {
+
+				QueryRenderer renderer = nested.get(i);
+
+				if (!renderer.isEmpty()) {
+					return renderer.getLast();
+				}
+			}
+
+			return null;
 		}
 
 		@Override
 		public Iterator<QueryToken> iterator() {
 
 			CompositeIterator<QueryToken> iterator = new CompositeIterator<>();
-			for (QueryRenderer renderer : nested) {
-				iterator.add(renderer.iterator());
+			for (QueryTokenStream stream : nested) {
+				iterator.add(stream.iterator());
 			}
 			return iterator;
 		}
 
 		@Override
-		public int estimatedSize() {
+		public boolean isEmpty() {
+
+			for (QueryRenderer renderer : nested) {
+				if (!renderer.isEmpty()) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		@Override
+		public int size() {
+
+			int size = 0;
+
+			for (QueryTokenStream stream : nested) {
+				size += stream.size();
+			}
 			return size;
+		}
+
+		@Override
+		public boolean isExpression() {
+			return !nested.isEmpty() && nested.get(nested.size() - 1).isExpression();
 		}
 	}
 
 	/**
-	 * Renderer using {@link JpaQueryParsingToken}.
+	 * Renderer using {@link QueryTokens.SimpleQueryToken}.
 	 */
 	static class TokenRenderer extends QueryRenderer {
 
@@ -189,19 +359,14 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		QueryRenderer append(QueryRenderer renderer) {
+		QueryRenderer append(QueryTokenStream tokens) {
 
-			if (renderer instanceof TokenRenderer tr) {
+			if (tokens instanceof TokenRenderer tr) {
 				this.tokens.addAll(tr.tokens);
 				return this;
 			}
 
-			return super.append(renderer);
-		}
-
-		@Override
-		public boolean isExpression() {
-			return !tokens.isEmpty() && tokens.get(tokens.size() - 1).isExpression();
+			return super.append(tokens);
 		}
 
 		@Override
@@ -220,12 +385,32 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		public int estimatedSize() {
+		public QueryToken getFirst() {
+			return tokens.isEmpty() ? null : tokens.get(0);
+		}
+
+		@Override
+		public QueryToken getLast() {
+			return tokens.isEmpty() ? null : tokens.get(tokens.size() - 1);
+		}
+
+		@Override
+		public int size() {
 			return tokens.size();
 		}
 
+		@Override
+		public boolean isEmpty() {
+			return tokens.isEmpty();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return !tokens.isEmpty() && getLast().isExpression();
+		}
+
 		/**
-		 * Render a list of {@link JpaQueryParsingToken}s into a string.
+		 * Render a list of {@link QueryTokens.SimpleQueryToken}s into a string.
 		 *
 		 * @param tokens
 		 * @return rendered string containing either a query or some subset of that query
@@ -236,45 +421,67 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 				return render(tpr);
 			}
 
-			if(tokens instanceof QueryRendererBuilder qrb) {
+			if (tokens instanceof QueryRendererBuilder qrb) {
 				return qrb.build().render();
 			}
 
-			if(tokens instanceof QueryRenderer qr) {
+			if (tokens instanceof QueryRenderer qr) {
 				return qr.render();
 			}
 
 			throw new IllegalArgumentException("Unknown token type %s".formatted(tokens));
 		}
 
+	}
 
-		static String render(Collection<QueryToken> tokens) {
+	static class QueryStreamRenderer extends QueryRenderer {
 
-			StringBuilder results = new StringBuilder();
+		private final QueryTokenStream tokens;
 
-			boolean previousExpression = false;
-
-			for (QueryToken jpaQueryParsingToken : tokens) {
-
-				if (previousExpression) {
-					if (!results.isEmpty() && results.charAt(results.length() - 1) != ' ') {
-						results.append(' ');
-					}
-				}
-
-				previousExpression = jpaQueryParsingToken.isExpression();
-				results.append(jpaQueryParsingToken.value());
-			}
-
-			return results.toString();
+		public QueryStreamRenderer(QueryTokenStream tokens) {
+			this.tokens = tokens;
 		}
 
+		@Override
+		String render() {
+			return render(tokens);
+		}
+
+		@Override
+		public Iterator<QueryToken> iterator() {
+			return tokens.iterator();
+		}
+
+		@Override
+		public QueryToken getFirst() {
+			return tokens.getFirst();
+		}
+
+		@Override
+		public QueryToken getLast() {
+			return tokens.getLast();
+		}
+
+		@Override
+		public int size() {
+			return tokens.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return tokens.isEmpty();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return !tokens.isEmpty() && tokens.getLast().isExpression();
+		}
 	}
 
 	/**
 	 * Builder for {@link QueryRenderer}.
 	 */
-	static class QueryRendererBuilder implements QueryTokenStream<QueryToken> {
+	static class QueryRendererBuilder implements QueryTokenStream {
 
 		protected QueryRenderer current = QueryRenderer.empty();
 
@@ -289,7 +496,7 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		 * @param <T>
 		 */
 		public static <T> QueryRendererBuilder concat(Collection<T> elements, Function<T, QueryRendererBuilder> visitor,
-			QueryToken separator) {
+				QueryToken separator) {
 			return concat(elements, visitor, QueryRendererBuilder::toInline, separator);
 		}
 
@@ -334,7 +541,7 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		/**
-		 * Create and initialize a QueryRendererBuilder from a {@link JpaQueryParsingToken}.
+		 * Create and initialize a QueryRendererBuilder from a {@link QueryTokens.SimpleQueryToken}.
 		 *
 		 * @param token
 		 * @return
@@ -344,37 +551,23 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		/**
-		 * Append a {@link JpaQueryParsingToken}.
+		 * Append a {@link QueryTokens.SimpleQueryToken}.
 		 *
 		 * @param token
 		 * @return {@code this} builder.
 		 */
 		QueryRendererBuilder append(QueryToken token) {
-			return append(List.of(token));
+			return append(QueryRenderer.from(token));
 		}
 
 		/**
-		 * Append a collection of {@link JpaQueryParsingToken}.
+		 * Append a collection of {@link QueryTokens.SimpleQueryToken}.
 		 *
 		 * @param tokens
 		 * @return {@code this} builder.
 		 */
-		QueryRendererBuilder append(Collection<? extends QueryToken> tokens) {
+		QueryRendererBuilder append(List<? extends QueryToken> tokens) {
 			return append(QueryRenderer.from(tokens));
-		}
-
-		QueryRendererBuilder append(QueryTokenStream<? extends QueryToken> tokens) {
-			return append(QueryRenderer.from(tokens.toList()));
-		}
-
-		/**
-		 * Append a QueryRendererBuilder.
-		 *
-		 * @param builder
-		 * @return {@code this} builder.
-		 */
-		QueryRendererBuilder append(QueryRendererBuilder builder) {
-			return append(builder.current);
 		}
 
 		/**
@@ -388,28 +581,18 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		/**
-		 * Append a QueryRendererBuilder as inline.
-		 *
-		 * @param builder
-		 * @return {@code this} builder.
-		 */
-		QueryRendererBuilder appendInline(QueryRendererBuilder builder) {
-			return appendInline(builder.current);
-		}
-
-		/**
 		 * Append a QueryRenderer.
 		 *
-		 * @param renderer
+		 * @param stream
 		 * @return {@code this} builder.
 		 */
-		QueryRendererBuilder append(QueryRenderer renderer) {
+		QueryRendererBuilder append(QueryTokenStream stream) {
 
-			if (renderer instanceof EmptyQueryRenderer) {
+			if (stream.isEmpty()) {
 				return this;
 			}
 
-			current = current.append(renderer);
+			current = current.append(stream);
 
 			return this;
 		}
@@ -417,16 +600,16 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		/**
 		 * Append a QueryRenderer inline.
 		 *
-		 * @param renderer
+		 * @param stream
 		 * @return {@code this} builder.
 		 */
-		QueryRendererBuilder appendInline(QueryRenderer renderer) {
+		QueryRendererBuilder appendInline(QueryTokenStream stream) {
 
-			if (renderer instanceof EmptyQueryRenderer) {
+			if (stream.isEmpty()) {
 				return this;
 			}
 
-			current = current.append(!renderer.isExpression() ? renderer : new InlineRenderer(renderer));
+			current = current.append(QueryRenderer.inline(stream));
 
 			return this;
 		}
@@ -434,49 +617,18 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		/**
 		 * Append a QueryRenderer as expression.
 		 *
-		 * @param renderer
+		 * @param tokens
 		 * @return {@code this} builder.
 		 */
-		QueryRendererBuilder appendExpression(QueryRenderer renderer) {
+		QueryRendererBuilder appendExpression(QueryTokenStream tokens) {
 
-			if (renderer instanceof EmptyQueryRenderer) {
+			if (tokens.isEmpty()) {
 				return this;
 			}
 
-			current = current.append(renderer.isExpression() ? renderer : new ExpressionRenderer(renderer));
+			current = current.append(QueryRenderer.expression(tokens));
 
 			return this;
-		}
-
-		/**
-		 * Return whet the builder is empty.
-		 *
-		 * @return
-		 */
-		public boolean isEmpty() {
-			return current.isEmpty();
-		}
-
-		public QueryRenderer build() {
-			return current;
-		}
-
-		@Override
-		public String toString() {
-			return current.render();
-		}
-
-		private QueryRenderer toExpression() {
-
-			if (current instanceof ExpressionRenderer) {
-				return current;
-			}
-
-			return new ExpressionRenderer(current);
-		}
-
-		public QueryRenderer toInline() {
-			return new InlineRenderer(current);
 		}
 
 		@Override
@@ -490,14 +642,62 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		public int estimatedSize() {
-			return current.estimatedSize();
+		public QueryToken getFirst() {
+			return current.getFirst();
+		}
+
+		@Override
+		public QueryToken getLast() {
+			return current.getLast();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return current.isExpression();
+		}
+
+		/**
+		 * Return whet the builder is empty.
+		 *
+		 * @return
+		 */
+		@Override
+		public boolean isEmpty() {
+			return current.isEmpty();
+		}
+
+		@Override
+		public int size() {
+			return current.size();
 		}
 
 		@Override
 		public Iterator<QueryToken> iterator() {
 			return current.iterator();
 		}
+
+		@Override
+		public String toString() {
+			return current.render();
+		}
+
+		public QueryRenderer build() {
+			return current;
+		}
+
+		QueryRenderer toExpression() {
+
+			if (current instanceof ExpressionRenderer) {
+				return current;
+			}
+
+			return QueryRenderer.expression(current);
+		}
+
+		public QueryRenderer toInline() {
+			return new InlineRenderer(current);
+		}
+
 	}
 
 	private static class InlineRenderer extends QueryRenderer {
@@ -529,8 +729,28 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		public int estimatedSize() {
-			return delegate.estimatedSize();
+		public QueryToken getFirst() {
+			return delegate.getFirst();
+		}
+
+		@Override
+		public QueryToken getLast() {
+			return delegate.getLast();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return delegate.isEmpty();
+		}
+
+		@Override
+		public int size() {
+			return delegate.size();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return false;
 		}
 	}
 
@@ -545,11 +765,6 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		@Override
 		String render() {
 			return delegate.render();
-		}
-
-		@Override
-		public boolean isExpression() {
-			return true;
 		}
 
 		@Override
@@ -568,9 +783,30 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		public int estimatedSize() {
-			return delegate.estimatedSize();
+		public QueryToken getFirst() {
+			return delegate.getFirst();
 		}
+
+		@Override
+		public QueryToken getLast() {
+			return delegate.getLast();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return delegate.isEmpty();
+		}
+
+		@Override
+		public int size() {
+			return delegate.size();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return true;
+		}
+
 	}
 
 	private static class EmptyQueryRenderer extends QueryRenderer {
@@ -583,13 +819,17 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		QueryRenderer append(QueryRenderer renderer) {
-			return renderer;
-		}
+		QueryRenderer append(QueryTokenStream tokens) {
 
-		@Override
-		public boolean isEmpty() {
-			return true;
+			if (tokens.isEmpty()) {
+				return this;
+			}
+
+			if (tokens instanceof QueryRenderer qr) {
+				return qr;
+			}
+
+			return QueryRenderer.from(tokens);
 		}
 
 		@Override
@@ -608,8 +848,18 @@ abstract class QueryRenderer implements QueryTokenStream<QueryToken> {
 		}
 
 		@Override
-		public int estimatedSize() {
+		public boolean isEmpty() {
+			return true;
+		}
+
+		@Override
+		public int size() {
 			return 0;
+		}
+
+		@Override
+		public boolean isExpression() {
+			return false;
 		}
 	}
 }

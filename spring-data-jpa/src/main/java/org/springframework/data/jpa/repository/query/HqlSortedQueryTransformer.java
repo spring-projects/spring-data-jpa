@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.List;
 
@@ -63,7 +63,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		if (!isSubquery(ctx)) {
 
 			if (ctx.queryOrder() != null) {
-				QueryRendererBuilder existingOrder = visit(ctx.queryOrder());
+				QueryTokenStream existingOrder = visit(ctx.queryOrder());
 				if (sort.isSorted()) {
 					builder.appendInline(existingOrder);
 				} else {
@@ -73,7 +73,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 			if (sort.isSorted()) {
 
-				List<JpaQueryParsingToken> sortBy = transformerSupport.orderBy(primaryFromAlias, sort);
+				List<QueryToken> sortBy = transformerSupport.orderBy(primaryFromAlias, sort);
 
 				if (ctx.queryOrder() != null) {
 
@@ -96,39 +96,39 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitJoinPath(HqlParser.JoinPathContext ctx) {
+	public QueryTokenStream visitJoinPath(HqlParser.JoinPathContext ctx) {
 
-		QueryRendererBuilder builder = super.visitJoinPath(ctx);
+		QueryTokenStream tokens = super.visitJoinPath(ctx);
 
 		if (ctx.variable() != null) {
-			transformerSupport.registerAlias(builder.lastToken());
+			transformerSupport.registerAlias(tokens.getLast());
 		}
 
-		return builder;
+		return tokens;
 	}
 
 	@Override
-	public QueryRendererBuilder visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
+	public QueryTokenStream visitJoinSubquery(HqlParser.JoinSubqueryContext ctx) {
 
-		QueryRendererBuilder builder = super.visitJoinSubquery(ctx);
+		QueryTokenStream tokens = super.visitJoinSubquery(ctx);
 
-		if (ctx.variable() != null) {
-			transformerSupport.registerAlias(builder.lastToken());
+		if (ctx.variable() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(tokens.getLast());
 		}
 
-		return builder;
+		return tokens;
 	}
 
 	@Override
-	public QueryRendererBuilder visitVariable(HqlParser.VariableContext ctx) {
+	public QueryTokenStream visitVariable(HqlParser.VariableContext ctx) {
 
-		QueryRendererBuilder builder = super.visitVariable(ctx);
+		QueryTokenStream tokens = super.visitVariable(ctx);
 
-		if (ctx.identifier() != null) {
-			transformerSupport.registerAlias(builder.lastToken());
+		if (ctx.identifier() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(tokens.getLast());
 		}
 
-		return builder;
+		return tokens;
 	}
 
 }

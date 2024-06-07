@@ -18,11 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
-import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.parser.ParseException;
+import net.sf.jsqlparser.parser.feature.Feature;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -99,11 +101,25 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param query the query to parse
 	 * @return the parsed query
 	 */
-	private static <T extends Statement> T parseStatement(String query, Class<T> classOfT) {
+	static <T extends Statement> T parseStatement(String sql, Class<T> classOfT) {
 
 		try {
-			return classOfT.cast(CCJSqlParserUtil.parse(query));
-		} catch (JSQLParserException e) {
+
+			CCJSqlParser parser = CCJSqlParserUtil.newParser(sql);
+			boolean allowComplex = parser.getConfiguration().getAsBoolean(Feature.allowComplexParsing);
+			try {
+				return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
+			} catch (ParseException ex) {
+				if (allowComplex && CCJSqlParserUtil.getNestingDepth(sql) <= CCJSqlParserUtil.ALLOWED_NESTING_DEPTH) {
+					// beware: the parser must not be reused, but needs to be re-initiated
+					parser = CCJSqlParserUtil.newParser(sql);
+					return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
+				} else {
+					throw ex;
+				}
+			}
+
+		} catch (ParseException e) {
 			throw new IllegalArgumentException("The query you provided is not a valid SQL Query", e);
 		}
 	}

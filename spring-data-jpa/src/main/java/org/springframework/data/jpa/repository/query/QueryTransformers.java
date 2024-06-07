@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,30 +29,29 @@ import java.util.List;
  */
 class QueryTransformers {
 
-	static CountSelectionTokenStream filterCountSelection(QueryTokenStream<QueryToken> selection) {
+	static CountSelectionTokenStream filterCountSelection(QueryTokenStream selection) {
 
-		List<QueryToken> target = new ArrayList<>(selection.estimatedSize());
+		List<QueryToken> target = new ArrayList<>(selection.size());
 		boolean skipNext = false;
 		boolean containsNew = false;
 
 		for (QueryToken token : selection) {
-
 
 			if (skipNext) {
 				skipNext = false;
 				continue;
 			}
 
-			if (token.isA(TOKEN_AS)) {
+			if (token.equals(TOKEN_AS)) {
 				skipNext = true;
 				continue;
 			}
 
-			if (!token.isA(TOKEN_COMMA) && token.isExpression()) {
-				token = JpaQueryParsingToken.token(token.value());
+			if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
+				token = QueryTokens.token(token.value());
 			}
 
-			if(!containsNew && token.value().contains("new")) {
+			if (!containsNew && token.value().contains("new")) {
 				containsNew = true;
 			}
 
@@ -62,19 +61,14 @@ class QueryTransformers {
 		return new CountSelectionTokenStream(target, containsNew);
 	}
 
-	static class CountSelectionTokenStream implements QueryTokenStream<QueryToken> {
+	static class CountSelectionTokenStream implements QueryTokenStream {
 
 		private final List<QueryToken> tokens;
 		private final boolean requiresPrimaryAlias;
 
-		public CountSelectionTokenStream(List<QueryToken> tokens, boolean containsNew) {
+		public CountSelectionTokenStream(List<QueryToken> tokens, boolean requiresPrimaryAlias) {
 			this.tokens = tokens;
-			this.requiresPrimaryAlias = containsNew;
-		}
-
-		@Override
-		public int estimatedSize() {
-			return tokens.size();
+			this.requiresPrimaryAlias = requiresPrimaryAlias;
 		}
 
 		@Override
@@ -87,9 +81,25 @@ class QueryTransformers {
 			return tokens;
 		}
 
+		@Override
+		public int size() {
+			return tokens.size();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return true;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return tokens.isEmpty();
+		}
+
 		public boolean requiresPrimaryAlias() {
 			return requiresPrimaryAlias;
 		}
+
 	}
 
 }

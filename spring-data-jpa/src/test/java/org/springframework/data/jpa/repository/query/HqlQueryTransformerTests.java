@@ -499,7 +499,7 @@ class HqlQueryTransformerTests {
 				select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId
 				""");
 
-		assertThat(countQuery).startsWith("WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr")
+		assertThat(countQuery).startsWith("WITH maxId AS (select max(sr.snapshot.id) snapshotId from SnapshotReference sr")
 				.endsWith("select count(m) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
 	}
 
@@ -514,7 +514,7 @@ class HqlQueryTransformerTests {
 				""", Sort.by("sr.snapshot"));
 
 		assertThat(sortedQuery).startsWith(
-				"WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr where sr.id.selectionId = ?1 and sr.enabled group by sr.userId )")
+				"WITH maxId AS (select max(sr.snapshot.id) snapshotId from SnapshotReference sr where sr.id.selectionId = ?1 and sr.enabled group by sr.userId)")
 				.endsWith(
 						"select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId order by sr.snapshot asc");
 	}

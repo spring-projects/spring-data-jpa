@@ -62,7 +62,7 @@ public interface QueryEnhancer {
 	/**
 	 * Gets the query we want to use for enhancements.
 	 *
-	 * @return non-null {@link DeclaredQuery} that wraps the query
+	 * @return non-null {@link DeclaredQuery} that wraps the query.
 	 */
 	@Deprecated(forRemoval = true)
 	DeclaredQuery getQuery();

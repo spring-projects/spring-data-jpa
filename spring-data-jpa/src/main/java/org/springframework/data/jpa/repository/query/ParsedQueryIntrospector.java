@@ -29,6 +29,12 @@ import org.springframework.lang.Nullable;
  */
 interface ParsedQueryIntrospector {
 
+	/**
+	 * Visit the parsed tree to introspect the AST tree.
+	 *
+	 * @param tree
+	 * @return
+	 */
 	Void visit(ParseTree tree);
 
 	/**
@@ -39,7 +45,13 @@ interface ParsedQueryIntrospector {
 	@Nullable
 	String getAlias();
 
-	List<JpaQueryParsingToken> getProjection();
+	/**
+	 * @return the primary selection.
+	 */
+	List<QueryToken> getProjection();
 
+	/**
+	 * @return {@code true} if the query uses a constructor expression.
+	 */
 	boolean hasConstructorExpression();
 }

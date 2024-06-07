@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import java.util.stream.Stream;
 

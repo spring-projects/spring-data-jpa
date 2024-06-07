@@ -16,18 +16,16 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Test to verify compliance of {@link JpqlParser} with standard SQL. Other than {@link JpqlSpecificationTests} tests in
  * this class check that the parser follows a lenient approach and does not error on well known concepts like numeric
  * suffix.
- * 
+ *
  * @author Christoph Strobl
  */
 class JpqlComplianceTests {
@@ -41,7 +39,7 @@ class JpqlComplianceTests {
 
 		JpqlParser.StartContext parsedQuery = parser.start();
 
-		return TokenRenderer.render(new JpqlQueryRenderer().visit(parsedQuery));
+		return QueryRenderer.render(new JpqlQueryRenderer().visit(parsedQuery));
 	}
 
 	private void assertQuery(String query) {
@@ -60,11 +58,11 @@ class JpqlComplianceTests {
 	@Test // GH-3277
 	void numericLiterals() {
 
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234");
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234L");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14F");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234");
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234L");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14F");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14e32D");
 	}
 
 	@Test // GH-3308

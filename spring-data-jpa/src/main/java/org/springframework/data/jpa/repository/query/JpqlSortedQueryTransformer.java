@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -75,7 +75,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 	private void doVisitOrderBy(QueryRendererBuilder builder, JpqlParser.Select_statementContext ctx) {
 
 		if (ctx.orderby_clause() != null) {
-			QueryRendererBuilder existingOrder = visit(ctx.orderby_clause());
+			QueryTokenStream existingOrder = visit(ctx.orderby_clause());
 			if (sort.isSorted()) {
 				builder.appendInline(existingOrder);
 			} else {
@@ -85,7 +85,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 
 		if (sort.isSorted()) {
 
-			List<JpaQueryParsingToken> sortBy = transformerSupport.orderBy(primaryFromAlias, sort);
+			List<QueryToken> sortBy = transformerSupport.orderBy(primaryFromAlias, sort);
 
 			if (ctx.orderby_clause() != null) {
 
@@ -100,24 +100,26 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelect_item(JpqlParser.Select_itemContext ctx) {
+	public QueryTokenStream visitSelect_item(JpqlParser.Select_itemContext ctx) {
 
-		QueryRendererBuilder builder = super.visitSelect_item(ctx);
+		QueryTokenStream tokens = super.visitSelect_item(ctx);
 
-		if (ctx.result_variable() != null) {
-			transformerSupport.registerAlias(builder.lastToken());
+		if (ctx.result_variable() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(tokens.getLast());
 		}
 
-		return builder;
+		return tokens;
 	}
 
 	@Override
-	public QueryRendererBuilder visitJoin(JpqlParser.JoinContext ctx) {
+	public QueryTokenStream visitJoin(JpqlParser.JoinContext ctx) {
 
-		QueryRendererBuilder builder = super.visitJoin(ctx);
+		QueryTokenStream tokens = super.visitJoin(ctx);
 
-		transformerSupport.registerAlias(builder.lastToken());
+		if (!tokens.isEmpty()) {
+			transformerSupport.registerAlias(tokens.getLast());
+		}
 
-		return builder;
+		return tokens;
 	}
 }

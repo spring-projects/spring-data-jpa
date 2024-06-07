@@ -1,6 +1,6 @@
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,9 +53,9 @@ class JpaQueryTransformerSupport {
 	 * @param sort
 	 * @return
 	 */
-	List<JpaQueryParsingToken> orderBy(String primaryFromAlias, Sort sort) {
+	List<QueryToken> orderBy(String primaryFromAlias, Sort sort) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+		List<QueryToken> tokens = new ArrayList<>();
 
 		sort.forEach(order -> {
 
@@ -64,7 +64,7 @@ class JpaQueryTransformerSupport {
 			StringBuilder builder = new StringBuilder();
 
 			if (order.isIgnoreCase()) {
-				builder.append(TOKEN_LOWER_FUNC.getToken());
+				builder.append(TOKEN_LOWER_FUNC.value());
 			}
 
 			builder.append(generateOrderByArgument(primaryFromAlias, order));
@@ -80,7 +80,7 @@ class JpaQueryTransformerSupport {
 				tokens.add(TOKEN_COMMA);
 			}
 
-			tokens.add(JpaQueryParsingToken.token(builder.toString()));
+			tokens.add(QueryTokens.token(builder.toString()));
 		});
 
 		return tokens;

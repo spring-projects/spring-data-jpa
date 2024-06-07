@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +34,7 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	private final JpqlQueryRenderer renderer = new JpqlQueryRenderer();
 
 	private @Nullable String primaryFromAlias = null;
-	private @Nullable List<JpaQueryParsingToken> projection;
+	private @Nullable List<QueryToken> projection;
 	private boolean projectionProcessed;
 	private boolean hasConstructorExpression = false;
 
@@ -43,7 +43,7 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 		return primaryFromAlias;
 	}
 
-	public List<JpaQueryParsingToken> getProjection() {
+	public List<QueryToken> getProjection() {
 		return projection == null ? Collections.emptyList() : projection;
 	}
 
@@ -66,7 +66,7 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	public Void visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
 		List<JpqlParser.Select_itemContext> selections = ctx.select_item();
-		List<JpaQueryParsingToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
+		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
 
 		for (JpqlParser.Select_itemContext selection : selections) {
 
@@ -74,7 +74,7 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 				selectItemTokens.add(TOKEN_COMMA);
 			}
 
-			selectItemTokens.add(JpaQueryParsingToken.token(renderer.visitSelect_item(selection).build().render()));
+			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(renderer.visitSelect_item(selection)).render()));
 		}
 
 		if (!projectionProcessed) {

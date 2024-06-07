@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JpaQueryParsingToken.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
@@ -76,12 +76,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			countBuilder.append(TOKEN_SELECT_COUNT);
 
 			if (countProjection != null) {
-				countBuilder.append(new JpaQueryParsingToken(countProjection));
+				countBuilder.append(QueryTokens.token(countProjection));
 			} else {
 				if (primaryFromAlias == null) {
 					countBuilder.append(TOKEN_DOUBLE_UNDERSCORE);
 				} else {
-					countBuilder.append(JpaQueryParsingToken.token(primaryFromAlias));
+					countBuilder.append(QueryTokens.token(primaryFromAlias));
 				}
 			}
 
@@ -133,7 +133,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		} else if (ctx.subquery() != null) {
 
 			if (ctx.LATERAL() != null) {
-				builder.append(JpaQueryParsingToken.expression(ctx.LATERAL()));
+				builder.append(QueryTokens.expression(ctx.LATERAL()));
 			}
 
 			QueryRendererBuilder nested = QueryRenderer.builder();
@@ -158,7 +158,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.joinType()));
-		builder.append(JpaQueryParsingToken.expression(ctx.JOIN()));
+		builder.append(QueryTokens.expression(ctx.JOIN()));
 
 		builder.appendExpression(visit(ctx.joinTarget()));
 
@@ -170,25 +170,25 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelectClause(HqlParser.SelectClauseContext ctx) {
+	public QueryTokenStream visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(JpaQueryParsingToken.expression(ctx.SELECT()));
+		builder.append(QueryTokens.expression(ctx.SELECT()));
 
-		QueryRendererBuilder selectionListbuilder = visit(ctx.selectionList());
+		QueryTokenStream selectionListbuilder = visit(ctx.selectionList());
 
 		if (!isSubquery(ctx)) {
 
 			builder.append(TOKEN_COUNT_FUNC);
 
 			if (countProjection != null) {
-				builder.append(JpaQueryParsingToken.token(countProjection));
+				builder.append(QueryTokens.token(countProjection));
 			}
 
 			QueryRendererBuilder nested = QueryRenderer.builder();
 
 			if (ctx.DISTINCT() != null) {
-				nested.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
+				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
 
 			if (countProjection == null) {
@@ -200,13 +200,13 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 					if (countSelection.requiresPrimaryAlias()) {
 						// constructor
-						nested.append(new JpaQueryParsingToken(primaryFromAlias));
+						nested.append(QueryTokens.token(primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
 						nested.append(countSelection);
 					}
 				} else {
-					nested.append(new JpaQueryParsingToken(primaryFromAlias));
+					nested.append(QueryTokens.token(primaryFromAlias));
 				}
 			}
 
@@ -216,7 +216,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		} else {
 
 			if (ctx.DISTINCT() != null) {
-				builder.append(JpaQueryParsingToken.expression(ctx.DISTINCT()));
+				builder.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
 
 			builder.append(selectionListbuilder);
