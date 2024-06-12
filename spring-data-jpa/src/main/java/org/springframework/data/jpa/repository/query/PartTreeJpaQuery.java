@@ -23,6 +23,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
@@ -208,6 +209,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private class QueryPreparer {
 
 		private final @Nullable CriteriaQuery<?> cachedCriteriaQuery;
+		private final ReentrantLock lock = new ReentrantLock();
 		private final @Nullable ParameterBinder cachedParameterBinder;
 		private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
@@ -297,8 +299,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		private TypedQuery<?> createQuery(CriteriaQuery<?> criteriaQuery) {
 
 			if (this.cachedCriteriaQuery != null) {
-				synchronized (this.cachedCriteriaQuery) {
+				lock.lock();
+				try {
 					return getEntityManager().createQuery(criteriaQuery);
+				} finally {
+					lock.unlock();
 				}
 			}
 
