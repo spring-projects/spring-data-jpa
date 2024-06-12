@@ -30,9 +30,9 @@
 		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.4</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
-		<hibernate>6.4.8.Final</hibernate>
+		<hibernate>6.4.9.Final</hibernate>
 		<hibernate-62>6.2.24.Final</hibernate-62>
-		<hibernate-64-snapshots>6.4.9-SNAPSHOT</hibernate-64-snapshots>
+		<hibernate-64-snapshots>6.4.10-SNAPSHOT</hibernate-64-snapshots>
 		<hibernate-65>6.5.0.CR1</hibernate-65>
 		<hibernate-65-snapshots>6.5.0-SNAPSHOT</hibernate-65-snapshots>
 		<hibernate-66-snapshots>6.6.0-SNAPSHOT</hibernate-66-snapshots>
