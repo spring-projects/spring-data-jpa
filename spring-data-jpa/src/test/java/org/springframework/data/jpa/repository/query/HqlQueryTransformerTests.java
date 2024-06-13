@@ -500,6 +500,20 @@ class HqlQueryTransformerTests {
 				""");
 	}
 
+	@Test // GH-3504
+	void cteWithClauseShouldWork() {
+
+		String countQuery = createCountQueryFor("""
+			WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr
+				where sr.id.selectionId = ?1 and sr.enabled
+				group by sr.userId)
+			select sr from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId
+			""");
+
+		assertThat(countQuery).contains("WITH maxId AS(select max(sr.snapshot.id) snapshotId from SnapshotReference sr")
+			.endsWith("select count(m) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
+	}
+
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
