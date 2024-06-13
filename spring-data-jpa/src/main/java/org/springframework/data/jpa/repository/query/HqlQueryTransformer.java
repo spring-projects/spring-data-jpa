@@ -93,7 +93,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	 */
 	private static boolean isSubquery(ParserRuleContext ctx) {
 
-		if (ctx instanceof HqlParser.SubqueryContext) {
+		if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
 			return true;
 		} else if (ctx instanceof HqlParser.SelectStatementContext) {
 			return false;
