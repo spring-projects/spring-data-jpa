@@ -19,16 +19,16 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
+
+import java.util.Arrays;
 
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
@@ -111,12 +111,12 @@ class PersistenceProviderUnitTests {
 
 	static class InterfaceGenerator implements Opcodes {
 
-		static Class<?> generate(final String interfaceName, ClassLoader parentClassLoader,
-				final Class<?>... interfaces) throws ClassNotFoundException {
+		static Class<?> generate(final String interfaceName, ClassLoader parentClassLoader, final Class<?>... interfaces)
+				throws ClassNotFoundException {
 
 			class CustomClassLoader extends ClassLoader {
 
-				CustomClassLoader(ClassLoader parent) {
+				private CustomClassLoader(ClassLoader parent) {
 					super(parent);
 				}
 
@@ -151,12 +151,10 @@ class PersistenceProviderUnitTests {
 
 		private static String[] toResourcePaths(Class<?>... interfacesToImplement) {
 
-			List<String> interfaceResourcePaths = new ArrayList<>(interfacesToImplement.length);
-			for (Class<?> targetInterface : interfacesToImplement) {
-				interfaceResourcePaths.add(ClassUtils.convertClassNameToResourcePath(targetInterface.getName()));
-			}
-
-			return interfaceResourcePaths.toArray(new String[0]);
+			return Arrays.stream(interfacesToImplement) //
+					.map(Class::getName) //
+					.map(ClassUtils::convertClassNameToResourcePath) //
+					.toArray(String[]::new);
 		}
 	}
 }
