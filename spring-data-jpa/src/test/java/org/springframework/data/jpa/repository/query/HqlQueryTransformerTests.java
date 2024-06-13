@@ -208,16 +208,6 @@ class HqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
 		assertThat(newParser("""
 				select u
 				from user u
@@ -364,7 +354,6 @@ class HqlQueryTransformerTests {
 	@Test // DATAJPA-938
 	void detectsComplexConstructorExpression() {
 
-		//
 		assertThat(hasConstructorExpression(
 				"""
 						select new foo.bar.Foo(ip.id, ip.name, sum(lp.amount))
@@ -487,9 +476,6 @@ class HqlQueryTransformerTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select user from User user
 				 where user.age = 18
@@ -533,11 +519,6 @@ class HqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreaksInSelectClause() {
 
-		//
-		//
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select user.age,
 				 user.name
@@ -600,10 +581,6 @@ class HqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		//
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select
 				distinct
