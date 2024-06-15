@@ -38,7 +38,6 @@ In addition to the above examples, you can also define locking for specific quer
 [source, java]
 ----
 interface UserRepository extends JpaRepository<User, Long> {
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from User u where u.id = :id")
     User findByIdWithLock(@Param("id") Long id);
@@ -48,15 +47,18 @@ interface UserRepository extends JpaRepository<User, Long> {
 
 This method declaration causes the query to be equipped with a `LockModeType` of `PESSIMISTIC_WRITE`, ensuring that the record is locked for writing until the transaction is completed. This prevents other transactions from modifying the record simultaneously.
 
+The following example demonstrates how to use `LockModeType.OPTIMISTIC` for a query method:
+
 .Defining optimistic lock metadata on query methods
 ====
 [source, java]
 ----
 interface UserRepository extends JpaRepository<User, Long> {
-
     @Lock(LockModeType.OPTIMISTIC)
     @Query("select u from User u where u.id = :id")
     User findByIdWithOptimisticLock(@Param("id") Long id);
 }
 ----
 ====
+
+This method declaration applies a `LockModeType` of `OPTIMISTIC` to the query, ensuring that an optimistic lock is applied when retrieving the record. This helps prevent other transactions from making conflicting updates to the record until the transaction is completed.
