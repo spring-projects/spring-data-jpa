@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-public class StringQuery implements DeclaredQuery {
+class StringQuery implements DeclaredQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;

@@ -15,12 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
 import org.springframework.lang.Nullable;
 
 /**
@@ -56,20 +57,8 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		List<HqlParser.SelectionContext> selections = ctx.selectionList().selection();
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-
-		for (HqlParser.SelectionContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(renderer.visitSelection(selection)).render()));
-		}
-
 		if (!projectionProcessed) {
-			projection = selectItemTokens;
+			projection = captureSelectItems(ctx.selectionList().selection(), renderer);
 			projectionProcessed = true;
 		}
 
@@ -80,12 +69,10 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	public Void visitFromRoot(HqlParser.FromRootContext ctx) {
 
 		if (primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
-
-			primaryFromAlias = (ctx.variable().reservedWord() != null ? ctx.variable().reservedWord()
-					: ctx.variable().identifier().reservedWord()).getText();
+			primaryFromAlias = capturePrimaryAlias(ctx.variable());
 		}
 
-		return null;
+		return super.visitFromRoot(ctx);
 	}
 
 	@Override
@@ -96,4 +83,22 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 		return super.visitInstantiation(ctx);
 	}
 
+	private static String capturePrimaryAlias(VariableContext ctx) {
+		return ((ctx).reservedWord() != null ? ctx.reservedWord() : ctx.identifier().reservedWord()).getText();
+	}
+
+	private static List<QueryToken> captureSelectItems(List<HqlParser.SelectionContext> selections,
+			HqlQueryRenderer itemRenderer) {
+
+		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
+		for (HqlParser.SelectionContext selection : selections) {
+
+			if (!selectItemTokens.isEmpty()) {
+				selectItemTokens.add(TOKEN_COMMA);
+			}
+
+			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelection(selection)).render()));
+		}
+		return selectItemTokens;
+	}
 }

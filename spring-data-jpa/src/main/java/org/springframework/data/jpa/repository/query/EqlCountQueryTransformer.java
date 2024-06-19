@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COUNT_FUNC;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
@@ -27,6 +29,7 @@ import org.springframework.lang.Nullable;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 3.4
  */
 @SuppressWarnings("ConstantValue")
@@ -36,6 +39,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	private final @Nullable String primaryFromAlias;
 
 	EqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
+
 		this.countProjection = countProjection;
 		this.primaryFromAlias = primaryFromAlias;
 	}
@@ -64,47 +68,45 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	@Override
 	public QueryTokenStream visitSelect_clause(EqlParser.Select_clauseContext ctx) {
 
+		boolean usesDistinct = ctx.DISTINCT() != null;
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.SELECT()));
 		builder.append(TOKEN_COUNT_FUNC);
 
-		if (countProjection != null) {
-			builder.append(QueryTokens.token(countProjection));
-		}
-
 		QueryRendererBuilder nested = QueryRenderer.builder();
-
-		if (ctx.DISTINCT() != null) {
-			nested.append(QueryTokens.expression(ctx.DISTINCT()));
-		}
-
 		if (countProjection == null) {
-
-			if (ctx.DISTINCT() != null) {
-
-				QueryTokenStream selectionListbuilder = QueryTokenStream.concat(ctx.select_item(), this::visit,
-						TOKEN_COMMA);
-
-				CountSelectionTokenStream countSelection = QueryTransformers
-						.filterCountSelection(selectionListbuilder);
-
-				if (countSelection.requiresPrimaryAlias()) {
-					// constructor
-					nested.append(QueryTokens.token(primaryFromAlias));
-				} else {
-					// keep all the select items to distinct against
-					nested.append(countSelection);
-				}
+			if (usesDistinct) {
+				nested.append(QueryTokens.expression(ctx.DISTINCT()));
+				nested.append(getDistinctCountSelection(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA)));
 			} else {
 				nested.append(QueryTokens.token(primaryFromAlias));
+			}
+		} else {
+			builder.append(QueryTokens.token(countProjection));
+			if (usesDistinct) {
+				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
 		}
 
 		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
-
 		return builder;
 	}
 
+	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
+
+		QueryRendererBuilder nested = new QueryRendererBuilder();
+		CountSelectionTokenStream countSelection = QueryTransformers.filterCountSelection(selectionListbuilder);
+
+		if (countSelection.requiresPrimaryAlias()) {
+			// constructor
+			nested.append(QueryTokens.token(primaryFromAlias));
+		} else {
+			// keep all the select items to distinct against
+			nested.append(countSelection);
+		}
+		return nested;
+	}
 }

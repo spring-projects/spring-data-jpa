@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +27,7 @@ import org.springframework.lang.Nullable;
  * {@link ParsedQueryIntrospector} for JPQL queries.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
 class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQueryIntrospector {
@@ -55,30 +56,17 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
 		if (primaryFromAlias == null) {
-			primaryFromAlias = ctx.identification_variable() == null ? ctx.entity_name().getText()
-					: ctx.identification_variable().getText();
+			primaryFromAlias = capturePrimaryAlias(ctx);
 		}
 
-		return null;
+		return super.visitRange_variable_declaration(ctx);
 	}
 
 	@Override
 	public Void visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
-		List<JpqlParser.Select_itemContext> selections = ctx.select_item();
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-
-		for (JpqlParser.Select_itemContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(renderer.visitSelect_item(selection)).render()));
-		}
-
 		if (!projectionProcessed) {
-			projection = selectItemTokens;
+			projection = captureSelectItems(ctx.select_item(), renderer);
 			projectionProcessed = true;
 		}
 
@@ -91,6 +79,26 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 		hasConstructorExpression = true;
 
 		return super.visitConstructor_expression(ctx);
+	}
+
+	private static String capturePrimaryAlias(JpqlParser.Range_variable_declarationContext ctx) {
+		return ctx.identification_variable() != null ? ctx.identification_variable().getText()
+				: ctx.entity_name().getText();
+	}
+
+	private static List<QueryToken> captureSelectItems(List<JpqlParser.Select_itemContext> selections,
+			JpqlQueryRenderer itemRenderer) {
+
+		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
+		for (JpqlParser.Select_itemContext selection : selections) {
+
+			if (!selectItemTokens.isEmpty()) {
+				selectItemTokens.add(TOKEN_COMMA);
+			}
+
+			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelect_item(selection)).render()));
+		}
+		return selectItemTokens;
 	}
 
 }

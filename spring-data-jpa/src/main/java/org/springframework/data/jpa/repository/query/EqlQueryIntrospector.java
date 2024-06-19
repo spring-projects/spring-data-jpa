@@ -15,18 +15,20 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.query.EqlParser.Range_variable_declarationContext;
 import org.springframework.lang.Nullable;
 
 /**
  * {@link ParsedQueryIntrospector} for EQL queries.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @SuppressWarnings("UnreachableCode")
 class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIntrospector {
@@ -56,20 +58,8 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitSelect_clause(EqlParser.Select_clauseContext ctx) {
 
-		List<EqlParser.Select_itemContext> selections = ctx.select_item();
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-
-		for (EqlParser.Select_itemContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(renderer.visitSelect_item(selection)).render()));
-		}
-
 		if (!projectionProcessed) {
-			projection = selectItemTokens;
+			projection = captureSelectItems(ctx.select_item(), renderer);
 			projectionProcessed = true;
 		}
 
@@ -80,8 +70,7 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	public Void visitRange_variable_declaration(EqlParser.Range_variable_declarationContext ctx) {
 
 		if (primaryFromAlias == null) {
-			primaryFromAlias = ctx.identification_variable() != null ? ctx.identification_variable().getText()
-					: ctx.entity_name().getText();
+			primaryFromAlias = capturePrimaryAlias(ctx);
 		}
 
 		return super.visitRange_variable_declaration(ctx);
@@ -91,8 +80,26 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	public Void visitConstructor_expression(EqlParser.Constructor_expressionContext ctx) {
 
 		hasConstructorExpression = true;
-
 		return super.visitConstructor_expression(ctx);
 	}
 
+	private static String capturePrimaryAlias(Range_variable_declarationContext ctx) {
+		return ctx.identification_variable() != null ? ctx.identification_variable().getText()
+				: ctx.entity_name().getText();
+	}
+
+	private static List<QueryToken> captureSelectItems(List<EqlParser.Select_itemContext> selections,
+			EqlQueryRenderer itemRenderer) {
+
+		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
+		for (EqlParser.Select_itemContext selection : selections) {
+
+			if (!selectItemTokens.isEmpty()) {
+				selectItemTokens.add(TOKEN_COMMA);
+			}
+
+			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelect_item(selection)).render()));
+		}
+		return selectItemTokens;
+	}
 }

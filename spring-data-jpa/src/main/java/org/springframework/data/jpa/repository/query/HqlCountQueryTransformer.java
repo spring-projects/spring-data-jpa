@@ -15,8 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_AS;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COUNT_FUNC;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_UNDERSCORE;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_SELECT_COUNT;
 
+import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
 import org.springframework.lang.Nullable;
@@ -175,53 +181,30 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 		builder.append(QueryTokens.expression(ctx.SELECT()));
 
-		QueryTokenStream selectionListbuilder = visit(ctx.selectionList());
-
-		if (!isSubquery(ctx)) {
-
-			builder.append(TOKEN_COUNT_FUNC);
-
-			if (countProjection != null) {
-				builder.append(QueryTokens.token(countProjection));
-			}
-
-			QueryRendererBuilder nested = QueryRenderer.builder();
-
-			if (ctx.DISTINCT() != null) {
-				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-			}
-
-			if (countProjection == null) {
-
-				if (ctx.DISTINCT() != null) {
-
-					CountSelectionTokenStream countSelection = QueryTransformers
-							.filterCountSelection(selectionListbuilder);
-
-					if (countSelection.requiresPrimaryAlias()) {
-						// constructor
-						nested.append(QueryTokens.token(primaryFromAlias));
-					} else {
-						// keep all the select items to distinct against
-						nested.append(countSelection);
-					}
-				} else {
-					nested.append(QueryTokens.token(primaryFromAlias));
-				}
-			}
-
-			builder.appendInline(nested);
-			builder.append(TOKEN_CLOSE_PAREN);
-
-		} else {
-
-			if (ctx.DISTINCT() != null) {
-				builder.append(QueryTokens.expression(ctx.DISTINCT()));
-			}
-
-			builder.append(selectionListbuilder);
+		if (isSubquery(ctx)) {
+			return visitSubQuerySelectClause(ctx, builder);
 		}
 
+		builder.append(TOKEN_COUNT_FUNC);
+		boolean usesDistinct = ctx.DISTINCT() != null;
+		QueryRendererBuilder nested = QueryRenderer.builder();
+		if (countProjection == null) {
+			if (usesDistinct) {
+
+				nested.append(QueryTokens.expression(ctx.DISTINCT()));
+				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
+			} else {
+				nested.append(QueryTokens.token(primaryFromAlias));
+			}
+		} else {
+			builder.append(QueryTokens.token(countProjection));
+			if (usesDistinct) {
+				nested.append(QueryTokens.expression(ctx.DISTINCT()));
+			}
+		}
+
+		builder.appendInline(nested);
+		builder.append(TOKEN_CLOSE_PAREN);
 		return builder;
 	}
 
@@ -243,6 +226,30 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return builder;
+	}
+
+	private QueryRendererBuilder visitSubQuerySelectClause(SelectClauseContext ctx, QueryRendererBuilder builder) {
+		if (ctx.DISTINCT() != null) {
+			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		}
+
+		builder.append(visit(ctx.selectionList()));
+		return builder;
+	}
+
+	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
+
+		QueryRendererBuilder nested = new QueryRendererBuilder();
+		CountSelectionTokenStream countSelection = QueryTransformers.filterCountSelection(selectionListbuilder);
+
+		if (countSelection.requiresPrimaryAlias()) {
+			// constructor
+			nested.append(QueryTokens.token(primaryFromAlias));
+		} else {
+			// keep all the select items to distinct against
+			nested.append(countSelection);
+		}
+		return nested;
 	}
 
 }
