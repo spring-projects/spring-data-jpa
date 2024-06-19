@@ -2896,6 +2896,18 @@ class UserRepositoryTests {
 		assertThat(exists).isFalse();
 	}
 
+	@Test // GH-3476
+	void unPagedSortedQuery() {
+
+		flushTestUsers();
+
+		Sort sort = Sort.by(DESC, "firstname");
+		Page<User> firstPage = repository.findAll(PageRequest.of(0, 10, sort));
+		Page<User> secondPage = repository.findAll(Pageable.unpaged(sort));
+		assertThat(firstPage.getContent()).isEqualTo(secondPage.getContent());
+	}
+
+
 	@Test // DATAJPA-905
 	void executesPagedSpecificationSettingAnOrder() {
 

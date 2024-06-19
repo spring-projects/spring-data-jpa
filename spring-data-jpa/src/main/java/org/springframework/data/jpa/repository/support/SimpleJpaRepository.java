@@ -430,11 +430,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
-
-		if (pageable.isUnpaged()) {
-			return new PageImpl<>(findAll());
-		}
-
 		return findAll((Specification<T>) null, pageable);
 	}
 
@@ -728,9 +723,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param pageable must not be {@literal null}.
 	 */
 	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
-
-		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
-		return getQuery(spec, getDomainClass(), sort);
+		return getQuery(spec, getDomainClass(), pageable.getSort());
 	}
 
 	/**
@@ -743,8 +736,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
 			Pageable pageable) {
 
-		Sort sort = pageable.isPaged() ? pageable.getSort() : Sort.unsorted();
-		return getQuery(spec, domainClass, sort);
+		return getQuery(spec, domainClass, pageable.getSort());
 	}
 
 	/**
