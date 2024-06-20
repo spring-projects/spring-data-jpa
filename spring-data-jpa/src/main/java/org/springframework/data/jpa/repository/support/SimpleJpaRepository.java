@@ -431,7 +431,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return new PageImpl<>(findAll());
 		}
 
-		return findAll((root, query, criteriaBuilder) -> null, pageable);
+		return findAll((Specification<T>) null, pageable);
 	}
 
 	@Override
@@ -450,7 +450,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
+	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
@@ -458,7 +458,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(Specification<T> spec, Sort sort) {
+	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
 
@@ -477,7 +477,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	@Transactional
-	public long delete(Specification<T> spec) {
+	public long delete(@Nullable Specification<T> spec) {
 
 		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
