@@ -96,12 +96,12 @@ public interface Specification<T> extends Serializable {
 	 * {@link Root} and {@link CriteriaQuery}.
 	 *
 	 * @param root must not be {@literal null}.
-	 * @param query must not be {@literal null}.
+	 * @param query can be {@literal null} to allow overrides that accept {@link jakarta.persistence.criteria.CriteriaDelete} which is an {@link jakarta.persistence.criteria.AbstractQuery} but no {@link CriteriaQuery}.
 	 * @param criteriaBuilder must not be {@literal null}.
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+	Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 	/**
 	 * Applies an AND operation to all the given {@link Specification}s.
