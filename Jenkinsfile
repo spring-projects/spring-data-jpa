@@ -38,10 +38,12 @@ pipeline {
 			}
 			steps {
 				script {
-					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-						sh "PROFILE=all-dbs " +
-							"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-							"ci/test.sh"
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
+							sh "PROFILE=all-dbs " +
+								"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+								"ci/test.sh"
+						}
 					}
 				}
 			}
@@ -70,10 +72,12 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-								sh "PROFILE=all-dbs,hibernate-62 " +
-									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-									"ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+									sh "PROFILE=all-dbs,hibernate-62 " +
+										"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+										"ci/test.sh"
+								}
 							}
 						}
 					}
@@ -91,10 +95,12 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-								sh "PROFILE=all-dbs,hibernate-65-snapshots " +
-									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-									"ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+									sh "PROFILE=all-dbs,hibernate-65-snapshots " +
+										"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+										"ci/test.sh"
+								}
 							}
 						}
 					}
@@ -112,10 +118,12 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-								sh "PROFILE=all-dbs,hibernate-66-snapshots " +
-									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-									"ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+									sh "PROFILE=all-dbs,hibernate-66-snapshots " +
+										"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+										"ci/test.sh"
+								}
 							}
 						}
 					}
@@ -133,10 +141,12 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
-								sh "PROFILE=all-dbs " +
-									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-									"ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+									sh "PROFILE=all-dbs " +
+										"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+										"ci/test.sh"
+								}
 							}
 						}
 					}
@@ -154,10 +164,12 @@ pipeline {
 					}
 					steps {
 						script {
-							docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
-								sh "PROFILE=all-dbs,eclipselink-next " +
-									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
-									"ci/test.sh"
+							docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+								docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
+									sh "PROFILE=all-dbs,eclipselink-next " +
+										"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+										"ci/test.sh"
+								}
 							}
 						}
 					}
@@ -184,20 +196,22 @@ pipeline {
 			}
 			steps {
 				script {
-					docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
-						sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
-								"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
-								"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
-								"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
-								"./mvnw -s settings.xml -Pci,artifactory " +
-								"-Dartifactory.server=${p['artifactory.url']} " +
-								"-Dartifactory.username=${ARTIFACTORY_USR} " +
-								"-Dartifactory.password=${ARTIFACTORY_PSW} " +
-								"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
-								"-Dartifactory.build-name=spring-data-jpa " +
-								"-Dartifactory.build-number=spring-data-jpa-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
-								'-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
-								'-Dmaven.test.skip=true clean deploy -U -B '
+					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
+									"DEVELOCITY_CACHE_USERNAME=${DEVELOCITY_CACHE_USR} " +
+									"DEVELOCITY_CACHE_PASSWORD=${DEVELOCITY_CACHE_PSW} " +
+									"GRADLE_ENTERPRISE_ACCESS_KEY=${DEVELOCITY_ACCESS_KEY} " +
+									"./mvnw -s settings.xml -Pci,artifactory " +
+									"-Dartifactory.server=${p['artifactory.url']} " +
+									"-Dartifactory.username=${ARTIFACTORY_USR} " +
+									"-Dartifactory.password=${ARTIFACTORY_PSW} " +
+									"-Dartifactory.staging-repository=${p['artifactory.repository.snapshot']} " +
+									"-Dartifactory.build-name=spring-data-jpa " +
+									"-Dartifactory.build-number=spring-data-jpa-${BRANCH_NAME}-build-${BUILD_NUMBER} " +
+									'-Dmaven.repo.local=/tmp/jenkins-home/.m2/spring-data-jpa-enterprise ' +
+									'-Dmaven.test.skip=true clean deploy -U -B '
+						}
 					}
 				}
 			}
