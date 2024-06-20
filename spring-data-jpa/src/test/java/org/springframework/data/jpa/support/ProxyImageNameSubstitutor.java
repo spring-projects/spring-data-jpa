@@ -23,7 +23,7 @@ import org.testcontainers.utility.ImageNameSubstitutor;
 /**
  * An {@link ImageNameSubstitutor} only used on CI servers to leverage internal proxy solution, that needs to vary the
  * prefix based on which container image is needed.
- * 
+ *
  * @author Greg Turnquist
  */
 public class ProxyImageNameSubstitutor extends ImageNameSubstitutor {
@@ -32,7 +32,7 @@ public class ProxyImageNameSubstitutor extends ImageNameSubstitutor {
 
 	private static final List<String> NAMES_TO_LIBRARY_PROXY_PREFIX = List.of("mysql", "postgres");
 
-	private static final String PROXY_PREFIX = "harbor-repo.vmware.com/dockerhub-proxy-cache/";
+	private static final String PROXY_PREFIX = "docker-hub.usw1.packages.broadcom.com/";
 
 	private static final String LIBRARY_PROXY_PREFIX = PROXY_PREFIX + "library/";
 
