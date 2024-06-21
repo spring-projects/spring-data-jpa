@@ -23,6 +23,7 @@ import java.util.List;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an EQL query without making any changes.
@@ -1008,6 +1009,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(visit(ctx.case_expression()));
 		} else if (ctx.entity_type_expression() != null) {
 			builder.append(visit(ctx.entity_type_expression()));
+		} else if (ctx.cast_function() != null) {
+			return (visit(ctx.cast_function()));
 		}
 
 		return builder;
@@ -1603,6 +1606,11 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.subquery()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (!ObjectUtils.isEmpty(ctx.string_expression())) {
+
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_DOUBLE_PIPE);
+			builder.appendExpression(visit(ctx.string_expression(1)));
 		}
 
 		return builder;
@@ -1934,6 +1942,32 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.string_expression(0)));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.LEFT() != null) {
+
+			builder.append(QueryTokens.token(ctx.LEFT()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.arithmetic_expression(0)));
+			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.RIGHT() != null) {
+
+			builder.append(QueryTokens.token(ctx.RIGHT()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.arithmetic_expression(0)));
+			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.REPLACE() != null) {
+
+			builder.append(QueryTokens.token(ctx.REPLACE()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.string_expression(1)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.string_expression(2)));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
 		return builder;
@@ -1960,9 +1994,9 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.appendInline(visit(ctx.single_valued_path_expression()));
 		builder.append(TOKEN_SPACE);
-		builder.appendInline(visit(ctx.identification_variable()));
+		builder.appendInline(QueryTokenStream.concat(ctx.identification_variable(), this::visit, TOKEN_SPACE));
 
-		if (ctx.numeric_literal() != null) {
+		if (!ObjectUtils.isEmpty(ctx.numeric_literal())) {
 
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(QueryTokenStream.concat(ctx.numeric_literal(), this::visit, TOKEN_COMMA));
@@ -2061,6 +2095,14 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		} else {
 			return visit(ctx.nullif_expression());
 		}
+	}
+
+	@Override
+	public QueryRendererBuilder visitType_literal(EqlParser.Type_literalContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		ctx.children.forEach(it -> builder.append(QueryTokens.expression(it.getText())));
+		return builder;
 	}
 
 	@Override
@@ -2183,9 +2225,11 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			return QueryRendererBuilder.from(QueryTokens.expression(ctx.IDENTIFICATION_VARIABLE()));
 		} else if (ctx.f != null) {
 			return QueryRendererBuilder.from(QueryTokens.expression(ctx.f));
-		} else {
-			return QueryRenderer.builder();
+		} else if (ctx.type_literal() != null) {
+			return visit(ctx.type_literal());
 		}
+
+		return QueryRenderer.builder();
 	}
 
 	@Override

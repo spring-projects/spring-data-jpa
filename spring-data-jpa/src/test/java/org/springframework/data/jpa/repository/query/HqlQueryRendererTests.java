@@ -1954,6 +1954,18 @@ class HqlQueryRendererTests {
 		assertQuery(source);
 	}
 
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"LEFT", "RIGHT"})
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
 	@Test
 	void reservedWordsShouldWork() {
 

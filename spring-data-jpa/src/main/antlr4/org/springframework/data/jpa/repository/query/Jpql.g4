@@ -43,13 +43,25 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (setOperator_with_select_statement)*
+    : select_query
     ;
 
-setOperator_with_select_statement
-    : INTERSECT select_statement
-    | UNION select_statement
-    | EXCEPT select_statement
+select_query
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
+    ;
+
+setOperator
+    : UNION ALL?
+    | INTERSECT ALL?
+    | EXCEPT ALL?
+    ;
+
+set_fuction
+    : setOperator set_function_select
+    ;
+
+set_function_select
+    : select_query
     ;
 
 update_statement
@@ -303,6 +315,7 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
+    | cast_expression
     | entity_type_expression
     ;
 
@@ -447,6 +460,7 @@ string_expression
     | function_invocation
     | string_expression op='||' string_expression
     | '(' subquery ')'
+    | string_expression '||' string_expression
     ;
 
 datetime_expression
@@ -530,7 +544,10 @@ functions_returning_strings
     | SUBSTRING '(' string_expression ',' arithmetic_expression (',' arithmetic_expression)? ')'
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
+    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
     | UPPER '(' string_expression ')'
+    | LEFT '(' string_expression ',' arithmetic_expression ')'
+    | RIGHT '(' string_expression ',' arithmetic_expression ')'
     ;
 
 trim_specification
@@ -603,6 +620,10 @@ nullif_expression
     : NULLIF '(' scalar_expression ',' scalar_expression ')'
     ;
 
+cast_expression
+    : CAST '(' string_expression AS type_literal ')'
+    ;
+
 /*******************
     Gaps in the spec.
  *******************/
@@ -624,6 +645,7 @@ identification_variable
     | ORDER
     | OUTER
     | POWER
+    | RIGHT
     | FLOOR
     | SIGN
     | TIME
@@ -671,6 +693,14 @@ numeric_literal
     : INTLITERAL
     | FLOATLITERAL
     | LONGLITERAL
+    ;
+
+type_literal
+    : STRING
+    | INTEGER
+    | LONG
+    | FLOAT
+    | DOUBLE
     ;
 
 boolean_literal
@@ -808,6 +838,8 @@ reserved_word
        |ORDER
        |OUTER
        |POWER
+       |REPLACE
+       |RIGHT
        |ROUND
        |SELECT
        |SET
@@ -877,6 +909,7 @@ BETWEEN                     : B E T W E E N;
 BOTH                        : B O T H;
 BY                          : B Y;
 CASE                        : C A S E;
+CAST                        : C A S T;
 CEILING                     : C E I L I N G;
 COALESCE                    : C O A L E S C E;
 CONCAT                      : C O N C A T;
@@ -889,6 +922,7 @@ DATETIME                    : D A T E T I M E ;
 DELETE                      : D E L E T E;
 DESC                        : D E S C;
 DISTINCT                    : D I S T I N C T;
+DOUBLE                      : D O U B L E;
 END                         : E N D;
 ELSE                        : E L S E;
 EMPTY                       : E M P T Y;
@@ -901,6 +935,7 @@ EXTRACT                     : E X T R A C T;
 FALSE                       : F A L S E;
 FETCH                       : F E T C H;
 FIRST                       : F I R S T;
+FLOAT                       : F L O A T;
 FLOOR                       : F L O O R;
 FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
@@ -909,6 +944,7 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTEGER                     : I N T E G E R;
 INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
 JOIN                        : J O I N;
@@ -921,6 +957,7 @@ LIKE                        : L I K E;
 LN                          : L N;
 LOCAL                       : L O C A L;
 LOCATE                      : L O C A T E;
+LONG                        : L O N G;
 LOWER                       : L O W E R;
 MAX                         : M A X;
 MEMBER                      : M E M B E R;
@@ -937,6 +974,8 @@ ON                          : O N;
 OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
+REPLACE                     : R E P L A C E;
+RIGHT                       : R I G H T;
 POWER                       : P O W E R;
 ROUND                       : R O U N D;
 SELECT                      : S E L E C T;
@@ -945,6 +984,7 @@ SIGN                        : S I G N;
 SIZE                        : S I Z E;
 SOME                        : S O M E;
 SQRT                        : S Q R T;
+STRING                      : S T R I N G;
 SUBSTRING                   : S U B S T R I N G;
 SUM                         : S U M;
 THEN                        : T H E N;

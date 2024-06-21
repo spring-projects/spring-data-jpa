@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Test to verify compliance of {@link JpqlParser} with standard SQL. Other than {@link JpqlSpecificationTests} tests in
@@ -61,6 +63,56 @@ class JpqlComplianceTests {
 	@Test // GH-3308
 	void newWithStrings() {
 		assertQuery("select new com.example.demo.SampleObject(se.id, se.sampleValue, \"java\") from SampleEntity se");
+	}
+
+	@Test // GH-3136
+	void union() {
+
+		assertQuery("""
+				SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city1
+				UNION SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city2
+				""");
+	}
+
+	@Test // GH-3136
+	void intersect() {
+
+		assertQuery("""
+				SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode1
+				INTERSECT SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode2
+				""");
+	}
+
+	@Test // GH-3136
+	void except() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
+				""");
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"STRING", "INTEGER", "FLOAT", "DOUBLE"})
+	void cast(String targetType) {
+		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"LEFT", "RIGHT"})
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
+	@Test // GH-3136
+	void stringConcatWithPipes() {
+		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
 	}
 
 }
