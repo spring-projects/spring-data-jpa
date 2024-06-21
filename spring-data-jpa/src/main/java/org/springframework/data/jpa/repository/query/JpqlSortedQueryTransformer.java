@@ -54,6 +54,16 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 	@Override
 	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
 
+		if(ctx.select_query() != null) {
+			return visitSelect_query(ctx.select_query());
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitSelect_query(JpqlParser.Select_queryContext ctx) {
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.select_clause()));
@@ -96,7 +106,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
 	}
 
-	private void doVisitOrderBy(QueryRendererBuilder builder, JpqlParser.Select_statementContext ctx) {
+	private void doVisitOrderBy(QueryRendererBuilder builder, JpqlParser.Select_queryContext ctx) {
 
 		if (ctx.orderby_clause() != null) {
 			QueryTokenStream existingOrder = visit(ctx.orderby_clause());
