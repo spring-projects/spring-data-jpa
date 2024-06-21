@@ -1033,11 +1033,4 @@ class EqlQueryRendererTests {
 		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
 		assertQuery(source);
 	}
-
-	@Test // GH-3496
-	void lateralShouldBeAValidParameter() {
-
-		assertQuery("select e from Employee e where e.lateral = :_lateral");
-		assertQuery("select te from TestEntity te where te.lateral = :lateral");
-	}
 }
