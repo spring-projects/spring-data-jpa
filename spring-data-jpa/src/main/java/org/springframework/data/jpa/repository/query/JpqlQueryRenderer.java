@@ -15,14 +15,27 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COLON;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOT;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_EQUALS;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_QUESTION_MARK;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_SPACE;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import org.springframework.data.jpa.repository.query.JpqlParser.Except_clauseContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Intersect_clauseContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Relation_fuctions_selectContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Union_clauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 
 /**
@@ -54,8 +67,17 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		}
 	}
 
-	@Override
-	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+    @Override
+    public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+
+        if(ctx.select_query() != null) {
+            return visitSelect_query(ctx.select_query());
+        }
+
+        return QueryTokenStream.empty();
+    }
+
+    public QueryTokenStream visitSelect_query(JpqlParser.Select_queryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -76,6 +98,10 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.orderby_clause() != null) {
 			builder.appendExpression(visit(ctx.orderby_clause()));
+		}
+
+		if(ctx.relation_fuctions() != null) {
+            builder.appendExpression(visit(ctx.relation_fuctions()));
 		}
 
 		return builder;
@@ -772,6 +798,42 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		builder.append(QueryTokens.expression(ctx.BY()));
 		builder.appendExpression(QueryTokenStream.concat(ctx.orderby_item(), this::visit, TOKEN_COMMA));
 
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitUnion_clause(Union_clauseContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(QueryTokens.expression(ctx.UNION()));
+		builder.appendExpression(visit(ctx.relation_fuctions_select()));
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitIntersect_clause(Intersect_clauseContext ctx) {
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(QueryTokens.expression(ctx.INTERSECT()));
+		builder.appendExpression(visit(ctx.relation_fuctions_select()));
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitExcept_clause(Except_clauseContext ctx) {
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(QueryTokens.expression(ctx.EXCEPT()));
+		builder.appendExpression(visit(ctx.relation_fuctions_select()));
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitRelation_fuctions_select(Relation_fuctions_selectContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		if(ctx.ALL() != null) {
+			builder.append(QueryTokens.expression(ctx.ALL()));
+		}
+		builder.appendExpression(visit(ctx.select_query()));
 		return builder;
 	}
 

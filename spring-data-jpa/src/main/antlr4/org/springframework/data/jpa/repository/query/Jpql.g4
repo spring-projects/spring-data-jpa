@@ -42,8 +42,22 @@ ql_statement
     | delete_statement
     ;
 
+select_query
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (relation_fuctions)?
+    ;
+
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)?
+    : select_query
+    ;
+
+relation_fuctions
+    : union_clause
+    | intersect_clause
+    | except_clause
+    ;
+
+relation_fuctions_select
+    : (ALL)? select_query
     ;
 
 update_statement
@@ -232,6 +246,18 @@ having_clause
 
 orderby_clause
     : ORDER BY orderby_item (',' orderby_item)*
+    ;
+
+union_clause
+    : UNION relation_fuctions_select
+    ;
+
+intersect_clause
+    : INTERSECT relation_fuctions_select
+    ;
+
+except_clause
+    : EXCEPT relation_fuctions_select
     ;
 
 // TODO Error in spec BNF, correctly shown elsewhere in spec.
@@ -874,6 +900,7 @@ ELSE                        : E L S E;
 EMPTY                       : E M P T Y;
 ENTRY                       : E N T R Y;
 ESCAPE                      : E S C A P E;
+EXCEPT                      : E X C E P T;
 EXISTS                      : E X I S T S;
 EXP                         : E X P;
 EXTRACT                     : E X T R A C T;
@@ -887,6 +914,7 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
 JOIN                        : J O I N;
 KEY                         : K E Y;
@@ -929,6 +957,7 @@ TREAT                       : T R E A T;
 TRIM                        : T R I M;
 TRUE                        : T R U E;
 TYPE                        : T Y P E;
+UNION                       : U N I O N;
 UPDATE                      : U P D A T E;
 UPPER                       : U P P E R;
 VALUE                       : V A L U E;

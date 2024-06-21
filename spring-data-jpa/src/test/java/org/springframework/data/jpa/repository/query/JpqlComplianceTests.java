@@ -70,4 +70,31 @@ class JpqlComplianceTests {
 		assertQuery("select new com.example.demo.SampleObject(se.id, se.sampleValue, \"java\") from SampleEntity se");
 	}
 
+	@Test // GH-3136
+	void union() {
+
+		assertQuery("""
+				SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city1
+				UNION SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city2
+				""");
+	}
+
+	@Test // GH-3136
+	void intersect() {
+
+		assertQuery("""
+				SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode1
+				INTERSECT SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode2
+				""");
+	}
+
+	@Test // GH-3136
+	void except() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
+				""");
+	}
+
 }
