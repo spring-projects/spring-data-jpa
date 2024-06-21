@@ -43,13 +43,25 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (setOperator_with_select_statement)*
+    : select_query
     ;
 
-setOperator_with_select_statement
-    : INTERSECT select_statement
-    | UNION select_statement
-    | EXCEPT select_statement
+select_query
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
+    ;
+
+setOperator
+    : UNION ALL?
+    | INTERSECT ALL?
+    | EXCEPT ALL?
+    ;
+
+set_fuction
+    : setOperator set_function_select
+    ;
+
+set_function_select
+    : select_query
     ;
 
 update_statement
@@ -303,6 +315,7 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
+    | cast_expression
     | entity_type_expression
     ;
 
@@ -453,6 +466,7 @@ string_expression
     | string_cast_function
     | type_cast_function
     | '(' subquery ')'
+    | string_expression '||' string_expression
     ;
 
 datetime_expression
@@ -536,7 +550,10 @@ functions_returning_strings
     | SUBSTRING '(' string_expression ',' arithmetic_expression (',' arithmetic_expression)? ')'
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
+    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
     | UPPER '(' string_expression ')'
+    | LEFT '(' string_expression ',' arithmetic_expression ')'
+    | RIGHT '(' string_expression ',' arithmetic_expression ')'
     ;
 
 trim_specification
@@ -620,6 +637,10 @@ nullif_expression
     : NULLIF '(' scalar_expression ',' scalar_expression ')'
     ;
 
+cast_expression
+    : CAST '(' string_expression AS type_literal ')'
+    ;
+
 /*******************
     Gaps in the spec.
  *******************/
@@ -641,6 +662,7 @@ identification_variable
     | ORDER
     | OUTER
     | POWER
+    | RIGHT
     | FLOOR
     | SIGN
     | TIME
@@ -689,6 +711,14 @@ numeric_literal
     : INTLITERAL
     | FLOATLITERAL
     | LONGLITERAL
+    ;
+
+type_literal
+    : STRING
+    | INTEGER
+    | LONG
+    | FLOAT
+    | DOUBLE
     ;
 
 boolean_literal
@@ -827,6 +857,8 @@ reserved_word
        |ORDER
        |OUTER
        |POWER
+       |REPLACE
+       |RIGHT
        |ROUND
        |SELECT
        |SET
@@ -922,6 +954,7 @@ EXTRACT                     : E X T R A C T;
 FALSE                       : F A L S E;
 FETCH                       : F E T C H;
 FIRST                       : F I R S T;
+FLOAT                       : F L O A T;
 FLOOR                       : F L O O R;
 FLOAT                       : F L O A T;
 FROM                        : F R O M;
@@ -931,6 +964,7 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTEGER                     : I N T E G E R;
 INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
 INTEGER                     : I N T E G E R;
@@ -961,6 +995,8 @@ ON                          : O N;
 OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
+REPLACE                     : R E P L A C E;
+RIGHT                       : R I G H T;
 POWER                       : P O W E R;
 REGEXP                      : R E G E X P;
 ROUND                       : R O U N D;
@@ -970,6 +1006,7 @@ SIGN                        : S I G N;
 SIZE                        : S I Z E;
 SOME                        : S O M E;
 SQRT                        : S Q R T;
+STRING                      : S T R I N G;
 SUBSTRING                   : S U B S T R I N G;
 STRING                      : S T R I N G;
 SUM                         : S U M;
