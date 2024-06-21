@@ -24,9 +24,9 @@ import java.lang.annotation.Target;
 import org.springframework.data.annotation.QueryAnnotation;
 
 /**
- * Annotation to declare finder queries directly on repository methods.
+ * Annotation to declare finder queries directly on repository query methods.
  * <p>
- * When using a native query {@link NativeQuery @NativeQuery} variant is available.
+ * When using a native query, a {@link NativeQuery @NativeQuery} variant is available.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -48,7 +48,7 @@ public @interface Query {
 	String value() default "";
 
 	/**
-	 * Defines a special count query that shall be used for pagination queries to lookup the total number of elements for
+	 * Defines a special count query that shall be used for pagination queries to look up the total number of elements for
 	 * a page. If none is configured we will derive the count query from the original query or {@link #countProjection()}
 	 * query if any.
 	 */
@@ -56,7 +56,7 @@ public @interface Query {
 
 	/**
 	 * Defines the projection part of the count query that is generated for pagination. If neither {@link #countQuery()}
-	 * nor {@link #countProjection()} is configured we will derive the count query from the original query.
+	 * nor {@code countProjection()} is configured we will derive the count query from the original query.
 	 *
 	 * @return
 	 * @since 1.6
@@ -70,7 +70,7 @@ public @interface Query {
 
 	/**
 	 * The named query to be used. If not defined, a {@link jakarta.persistence.NamedQuery} with name of
-	 * {@code $ domainClass}.${queryMethodName}} will be used.
+	 * {@code ${domainClass}.${queryMethodName}} will be used.
 	 */
 	String name() default "";
 

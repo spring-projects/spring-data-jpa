@@ -19,8 +19,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
@@ -28,6 +31,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
+import org.springframework.util.ObjectUtils;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -41,6 +45,8 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  */
 final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
+
+	private final @Nullable String sqlResultSetMapping;
 
 	private final boolean queryForEntity;
 
@@ -59,6 +65,10 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
 
+		MergedAnnotations annotations = MergedAnnotations.from(method.getMethod());
+		MergedAnnotation<NativeQuery> annotation = annotations.get(NativeQuery.class);
+		this.sqlResultSetMapping = annotation.isPresent() ? annotation.getString("sqlResultSetMapping") : null;
+
 		this.queryForEntity = getQueryMethod().isQueryForEntity();
 
 		Parameters<?, ?> parameters = method.getParameters();
@@ -72,10 +82,14 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	protected Query createJpaQuery(String queryString, Sort sort, Pageable pageable, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
-		Class<?> type = getTypeToQueryFor(returnedType);
+		String query = potentiallyRewriteQuery(queryString, sort, pageable);
 
-		return type == null ? em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable))
-				: em.createNativeQuery(potentiallyRewriteQuery(queryString, sort, pageable), type);
+		if (!ObjectUtils.isEmpty(sqlResultSetMapping)) {
+			return em.createNativeQuery(query, sqlResultSetMapping);
+		}
+
+		Class<?> type = getTypeToQueryFor(returnedType);
+		return type == null ? em.createNativeQuery(query) : em.createNativeQuery(query, type);
 	}
 
 	@Nullable

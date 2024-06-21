@@ -234,6 +234,15 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns the {@link Method}.
+	 *
+	 * @return
+	 */
+	Method getMethod() {
+		return method;
+	}
+
+	/**
 	 * Returns the actual return type of the method.
 	 *
 	 * @return

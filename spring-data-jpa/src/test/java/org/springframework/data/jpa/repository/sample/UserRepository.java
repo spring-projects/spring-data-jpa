@@ -41,6 +41,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.query.Procedure;
@@ -405,7 +406,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	Slice<User> findTop2UsersBy(Pageable page);
 
 	// DATAJPA-506
-	@Query(value = "select u.binaryData from SD_User u where u.id = ?1", nativeQuery = true)
+	@NativeQuery("select u.binaryData from SD_User u where u.id = ?1")
 	byte[] findBinaryDataByIdNative(Integer id);
 
 	// DATAJPA-506
@@ -555,8 +556,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
 	NameOnly findByNativeQuery(Integer id);
 
-	// DATAJPA-1248
-	@Query(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1", nativeQuery = true)
+	// GH-3155
+	@NativeQuery(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1",
+			sqlResultSetMapping = "emailDto")
+	User.EmailDto findEmailDtoByNativeQuery(Integer id);
+
+	@NativeQuery(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1")
 	EmailOnly findEmailOnlyByNativeQuery(Integer id);
 
 	// DATAJPA-1235
@@ -729,4 +734,5 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	interface IdOnly {
 		int getId();
 	}
+
 }

@@ -185,8 +185,7 @@ you can make any alterations at the last moment.
 ----
 public interface MyRepository extends JpaRepository<User, Long> {
 
-		@Query(value = "select original_user_alias.* from SD_USER original_user_alias",
-                nativeQuery = true,
+		@NativeQuery(value = "select original_user_alias.* from SD_USER original_user_alias",
 				queryRewriter = MyQueryRewriter.class)
 		List<User> findByNativeQuery(String param);
 
@@ -273,7 +272,7 @@ In the preceding example, the `LIKE` delimiter character (`%`) is recognized, an
 [[jpa.query-methods.at-query.native]]
 === Native Queries
 
-The `@Query` annotation allows for running native queries by setting the `nativeQuery` flag to true, as shown in the following example:
+Using the `@NativeQuery` annotation allows running native queries, as shown in the following example:
 
 .Declare a native query at the query method using @Query
 ====
@@ -281,24 +280,24 @@ The `@Query` annotation allows for running native queries by setting the `native
 ----
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  @Query(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1", nativeQuery = true)
+  @NativeQuery(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1")
   User findByEmailAddress(String emailAddress);
 }
 ----
-
 ====
+
+NOTE: The `@NativeQuery` annotation is mostly a composed annotation for `@Query(nativeQuery=true)` but it also provides additional attributes such as `sqlResultSetMapping` to leverage JPA's `@SqlResultSetMapping(…)`.
 
 NOTE: Spring Data JPA does not currently support dynamic sorting for native queries, because it would have to manipulate the actual query declared, which it cannot do reliably for native SQL. You can, however, use native queries for pagination by specifying the count query yourself, as shown in the following example:
 
-.Declare native count queries for pagination at the query method by using `@Query`
+.Declare native count queries for pagination at the query method by using `@NativeQuery`
 ====
 [source, java]
 ----
 public interface UserRepository extends JpaRepository<User, Long> {
 
-  @Query(value = "SELECT * FROM USERS WHERE LASTNAME = ?1",
-    countQuery = "SELECT count(*) FROM USERS WHERE LASTNAME = ?1",
-    nativeQuery = true)
+  @NativeQuery(value = "SELECT * FROM USERS WHERE LASTNAME = ?1",
+    countQuery = "SELECT count(*) FROM USERS WHERE LASTNAME = ?1")
   Page<User> findByLastname(String lastname, Pageable pageable);
 }
 ----

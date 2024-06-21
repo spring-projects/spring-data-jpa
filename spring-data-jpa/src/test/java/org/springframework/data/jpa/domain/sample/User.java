@@ -83,8 +83,11 @@ import java.util.Set;
 				@StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
 
 // Annotations for native Query with pageable
-@SqlResultSetMappings({
-		@SqlResultSetMapping(name = "SqlResultSetMapping.count", columns = @ColumnResult(name = "cnt")) })
+@SqlResultSetMappings({ @SqlResultSetMapping(name = "SqlResultSetMapping.count", columns = @ColumnResult(name = "cnt")),
+		@SqlResultSetMapping(name = "emailDto",
+				classes = { @ConstructorResult(targetClass = User.EmailDto.class,
+						columns = { @ColumnResult(name = "emailaddress", type = String.class),
+								@ColumnResult(name = "secondary_email_address", type = String.class) }) }) })
 @NamedNativeQueries({
 		@NamedNativeQuery(name = "User.findByNativeNamedQueryWithPageable", resultClass = User.class,
 				query = "SELECT * FROM SD_USER ORDER BY UCASE(firstname)"),
@@ -93,7 +96,26 @@ import java.util.Set;
 @Table(name = "SD_User")
 public class User {
 
-	@Id @GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
+	public static class EmailDto {
+		private final String one;
+		private final String two;
+
+		public EmailDto(String one, String two) {
+			this.one = one;
+			this.two = two;
+		}
+
+		public String getOne() {
+			return one;
+		}
+
+		public String getTwo() {
+			return two;
+		}
+	}
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO) private Integer id;
 	private String firstname;
 	private String lastname;
 	private int age;

@@ -15,12 +15,13 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.Query;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -75,7 +76,7 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Disabled
 	@Override
 	@Test // DATAJPA-980
-	void supportsProjectionsWithNativeQueries() {}
+	void supportsInterfaceProjectionsWithNativeQueries() {}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.

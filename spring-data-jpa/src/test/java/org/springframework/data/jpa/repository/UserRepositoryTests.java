@@ -2943,7 +2943,7 @@ class UserRepositoryTests {
 	}
 
 	@Test // DATAJPA-980
-	void supportsProjectionsWithNativeQueries() {
+	void supportsInterfaceProjectionsWithNativeQueries() {
 
 		flushTestUsers();
 
@@ -2969,6 +2969,19 @@ class UserRepositoryTests {
 				.isEqualTo(user.getEmailAddress()) //
 				.as("ensuring email is actually not null") //
 				.isNotNull();
+	}
+
+	@Test // GH-3155
+	void supportsResultSetMappingWithNativeQueries() {
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		User.EmailDto result = repository.findEmailDtoByNativeQuery(user.getId());
+
+		assertThat(result.getOne()).isEqualTo(user.getEmailAddress());
+		assertThat(result.getTwo()).isEqualTo(user.getSecondaryEmailAddress());
 	}
 
 	@Test // GH-3462
