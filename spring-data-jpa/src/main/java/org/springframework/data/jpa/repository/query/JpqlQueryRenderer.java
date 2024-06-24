@@ -30,12 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import org.springframework.data.jpa.repository.query.JpqlParser.Except_clauseContext;
-import org.springframework.data.jpa.repository.query.JpqlParser.Intersect_clauseContext;
-import org.springframework.data.jpa.repository.query.JpqlParser.Relation_fuctions_selectContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
-import org.springframework.data.jpa.repository.query.JpqlParser.Union_clauseContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Set_fuctionContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 
 /**
@@ -100,8 +96,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.appendExpression(visit(ctx.orderby_clause()));
 		}
 
-		if(ctx.relation_fuctions() != null) {
-            builder.appendExpression(visit(ctx.relation_fuctions()));
+		if(ctx.set_fuction() != null) {
+            builder.appendExpression(visit(ctx.set_fuction()));
 		}
 
 		return builder;
@@ -802,38 +798,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitUnion_clause(Union_clauseContext ctx) {
+	public QueryTokenStream visitSet_fuction(Set_fuctionContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(QueryTokens.expression(ctx.UNION()));
-		builder.appendExpression(visit(ctx.relation_fuctions_select()));
-		return builder;
-	}
+        QueryRendererBuilder builder = QueryRenderer.builder();
 
-	@Override
-	public QueryTokenStream visitIntersect_clause(Intersect_clauseContext ctx) {
-		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(QueryTokens.expression(ctx.INTERSECT()));
-		builder.appendExpression(visit(ctx.relation_fuctions_select()));
-		return builder;
-	}
-
-	@Override
-	public QueryTokenStream visitExcept_clause(Except_clauseContext ctx) {
-		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(QueryTokens.expression(ctx.EXCEPT()));
-		builder.appendExpression(visit(ctx.relation_fuctions_select()));
-		return builder;
-	}
-
-	@Override
-	public QueryTokenStream visitRelation_fuctions_select(Relation_fuctions_selectContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-		if(ctx.ALL() != null) {
-			builder.append(QueryTokens.expression(ctx.ALL()));
+        builder.append(QueryTokens.expression(ctx.setOperator().getStart()));
+		if(ctx.setOperator().ALL() != null) {
+            builder.append(QueryTokens.expression(ctx.setOperator().ALL()));
 		}
-		builder.appendExpression(visit(ctx.select_query()));
+		builder.appendExpression(visit(ctx.set_function_select().select_query()));
 		return builder;
 	}
 

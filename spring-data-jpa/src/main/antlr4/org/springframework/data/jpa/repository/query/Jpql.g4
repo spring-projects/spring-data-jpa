@@ -43,21 +43,25 @@ ql_statement
     ;
 
 select_query
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (relation_fuctions)?
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
     ;
 
 select_statement
     : select_query
     ;
 
-relation_fuctions
-    : union_clause
-    | intersect_clause
-    | except_clause
+setOperator
+    : UNION ALL?
+    | INTERSECT ALL?
+    | EXCEPT ALL?
     ;
 
-relation_fuctions_select
-    : (ALL)? select_query
+set_fuction
+    : setOperator set_function_select
+    ;
+
+set_function_select
+    : select_query
     ;
 
 update_statement
@@ -246,18 +250,6 @@ having_clause
 
 orderby_clause
     : ORDER BY orderby_item (',' orderby_item)*
-    ;
-
-union_clause
-    : UNION relation_fuctions_select
-    ;
-
-intersect_clause
-    : INTERSECT relation_fuctions_select
-    ;
-
-except_clause
-    : EXCEPT relation_fuctions_select
     ;
 
 // TODO Error in spec BNF, correctly shown elsewhere in spec.
