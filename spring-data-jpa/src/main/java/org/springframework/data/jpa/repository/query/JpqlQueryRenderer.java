@@ -30,8 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.springframework.data.jpa.repository.query.JpqlParser.Cast_expressionContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Set_fuctionContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Type_literalContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 
 /**
@@ -945,6 +947,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.case_expression());
 		} else if (ctx.entity_type_expression() != null) {
 			return visit(ctx.entity_type_expression());
+		} else if (ctx.cast_expression() != null) {
+			return (visit(ctx.cast_expression()));
 		}
 
 		return QueryTokenStream.empty();
@@ -1880,6 +1884,26 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		} else {
 			return visit(ctx.nullif_expression());
 		}
+	}
+
+	@Override
+	public QueryRendererBuilder visitCast_expression(Cast_expressionContext ctx) {
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(QueryTokens.token(ctx.CAST()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.string_expression()));
+		builder.append(QueryTokens.expression(ctx.AS()));
+		builder.appendInline(visit(ctx.type_literal()));
+		builder.append(TOKEN_CLOSE_PAREN);
+		return builder;
+	}
+
+	@Override
+	public QueryRendererBuilder visitType_literal(Type_literalContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		ctx.children.forEach(it -> builder.append(QueryTokens.expression(it.getText())));
+		return builder;
 	}
 
 	@Override

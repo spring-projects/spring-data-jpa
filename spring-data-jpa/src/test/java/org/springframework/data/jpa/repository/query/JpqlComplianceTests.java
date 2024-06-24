@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Test to verify compliance of {@link JpqlParser} with standard SQL. Other than {@link JpqlSpecificationTests} tests in
@@ -95,6 +97,12 @@ class JpqlComplianceTests {
 				SELECT e FROM Employee e
 				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
 				""");
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"STRING", "INTEGER", "FLOAT", "DOUBLE"})
+	void cast(String targetType) {
+		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
 	}
 
 }
