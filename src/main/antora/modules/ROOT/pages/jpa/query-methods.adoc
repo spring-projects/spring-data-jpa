@@ -288,7 +288,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 NOTE: The `@NativeQuery` annotation is mostly a composed annotation for `@Query(nativeQuery=true)` but it also provides additional attributes such as `sqlResultSetMapping` to leverage JPA's `@SqlResultSetMapping(…)`.
 
-NOTE: Spring Data JPA does not currently support dynamic sorting for native queries, because it would have to manipulate the actual query declared, which it cannot do reliably for native SQL. You can, however, use native queries for pagination by specifying the count query yourself, as shown in the following example:
+NOTE: Spring Data can rewrite simple queries for pagination and sorting.
+More complex queries require either link:https://github.com/JSQLParser/JSqlParser[JSqlParser] to be on the class path or a `countQuery` declared in your code.
+See the example below for more details.
 
 .Declare native count queries for pagination at the query method by using `@NativeQuery`
 ====
