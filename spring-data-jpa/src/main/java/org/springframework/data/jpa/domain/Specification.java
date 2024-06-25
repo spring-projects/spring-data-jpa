@@ -38,6 +38,7 @@ import org.springframework.lang.Nullable;
  * @author Daniel Shuy
  * @author Sergey Rukin
  */
+@FunctionalInterface
 public interface Specification<T> extends Serializable {
 
 	long serialVersionUID = 1L;
