@@ -533,6 +533,7 @@ functions_returning_strings
     | SUBSTRING '(' string_expression ',' arithmetic_expression (',' arithmetic_expression)? ')'
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
+    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
     | UPPER '(' string_expression ')'
     | LEFT '(' string_expression ',' arithmetic_expression ')'
     | RIGHT '(' string_expression ',' arithmetic_expression ')'
@@ -822,6 +823,7 @@ reserved_word
        |ORDER
        |OUTER
        |POWER
+       |REPLACE
        |RIGHT
        |ROUND
        |SELECT
@@ -954,6 +956,7 @@ ON                          : O N;
 OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
+REPLACE                     : R E P L A C E;
 RIGHT                       : R I G H T;
 POWER                       : P O W E R;
 ROUND                       : R O U N D;

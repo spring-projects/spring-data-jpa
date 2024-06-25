@@ -111,4 +111,10 @@ class JpqlComplianceTests {
 		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
 	}
 
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
 }
