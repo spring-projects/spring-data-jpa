@@ -105,4 +105,10 @@ class JpqlComplianceTests {
 		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
 	}
 
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"LEFT", "RIGHT"})
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
 }

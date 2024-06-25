@@ -534,6 +534,8 @@ functions_returning_strings
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
     | UPPER '(' string_expression ')'
+    | LEFT '(' string_expression ',' arithmetic_expression ')'
+    | RIGHT '(' string_expression ',' arithmetic_expression ')'
     ;
 
 trim_specification
@@ -631,6 +633,7 @@ identification_variable
     | ORDER
     | OUTER
     | POWER
+    | RIGHT
     | FLOOR
     | SIGN
     | TIME
@@ -819,6 +822,7 @@ reserved_word
        |ORDER
        |OUTER
        |POWER
+       |RIGHT
        |ROUND
        |SELECT
        |SET
@@ -950,6 +954,7 @@ ON                          : O N;
 OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
+RIGHT                       : R I G H T;
 POWER                       : P O W E R;
 ROUND                       : R O U N D;
 SELECT                      : S E L E C T;
