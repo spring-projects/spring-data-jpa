@@ -117,4 +117,9 @@ class JpqlComplianceTests {
 		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
 	}
 
+	@Test // GH-3136
+	void stringConcatWithPipes() {
+		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
+	}
+
 }

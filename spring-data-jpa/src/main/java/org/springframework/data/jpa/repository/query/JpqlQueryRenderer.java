@@ -22,6 +22,7 @@ import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DO
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_EQUALS;
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_QUESTION_MARK;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_PIPE;
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_SPACE;
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
 import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
@@ -35,6 +36,7 @@ import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordCon
 import org.springframework.data.jpa.repository.query.JpqlParser.Set_fuctionContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Type_literalContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
@@ -1464,6 +1466,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.subquery()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (!ObjectUtils.isEmpty(ctx.string_expression())) {
+
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_DOUBLE_PIPE);
+			builder.appendExpression(visit(ctx.string_expression(1)));
 		}
 
 		return builder;

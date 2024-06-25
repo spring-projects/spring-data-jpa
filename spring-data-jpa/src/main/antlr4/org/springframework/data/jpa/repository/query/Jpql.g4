@@ -450,6 +450,7 @@ string_expression
     | case_expression
     | function_invocation
     | '(' subquery ')'
+    | string_expression '||' string_expression
     ;
 
 datetime_expression
