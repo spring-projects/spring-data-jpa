@@ -22,6 +22,7 @@ import jakarta.persistence.Version;
 
 /**
  * @author Oliver Gierke
+ * @author Yanming Zhou
  */
 @Entity
 public class VersionedUser {
@@ -32,6 +33,8 @@ public class VersionedUser {
 
 	@Version
 	private Long version;
+
+	private String name;
 
 	public Long getId() {
 		return id;
@@ -47,5 +50,13 @@ public class VersionedUser {
 
 	public void setVersion(Long version) {
 		this.version = version;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }
