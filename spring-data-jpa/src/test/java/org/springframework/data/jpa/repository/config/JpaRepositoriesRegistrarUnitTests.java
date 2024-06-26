@@ -18,11 +18,16 @@ package org.springframework.data.jpa.repository.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.annotation.AnnotationBeanNameGenerator;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
@@ -34,21 +39,21 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Erik Pellizzon
+ * @author Christoph Strobl
  */
 class JpaRepositoriesRegistrarUnitTests {
 
 	private BeanDefinitionRegistry registry;
-	private AnnotationMetadata metadata;
 
 	@BeforeEach
 	void setUp() {
-
-		metadata = AnnotationMetadata.introspect(Config.class);
 		registry = new DefaultListableBeanFactory();
 	}
 
-	@Test
-	void configuresRepositoriesCorrectly() {
+
+	@ParameterizedTest // GH-499, GH-3440
+	@MethodSource(value = { "args" })
+	void configuresRepositoriesCorrectly(AnnotationMetadata metadata, String[] beanNames) {
 
 		JpaRepositoriesRegistrar registrar = new JpaRepositoriesRegistrar();
 		registrar.setResourceLoader(new DefaultResourceLoader());
@@ -56,11 +61,32 @@ class JpaRepositoriesRegistrarUnitTests {
 		registrar.registerBeanDefinitions(metadata, registry);
 
 		Iterable<String> names = Arrays.asList(registry.getBeanDefinitionNames());
-		assertThat(names).contains("userRepository", "auditableUserRepository", "roleRepository");
+		assertThat(names).contains(beanNames);
+	}
+
+	static Stream<Arguments> args() {
+		return Stream.of(
+				Arguments.of(AnnotationMetadata.introspect(Config.class),
+						new String[] { "userRepository", "auditableUserRepository", "roleRepository" }),
+				Arguments.of(AnnotationMetadata.introspect(ConfigWithBeanNameGenerator.class),
+						new String[] { "userREPO", "auditableUserREPO", "roleREPO" }));
 	}
 
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
 	private class Config {
 
+	}
+
+	@EnableJpaRepositories(basePackageClasses = UserRepository.class, nameGenerator = MyBeanNameGenerator.class)
+	private class ConfigWithBeanNameGenerator {
+
+	}
+
+	static class MyBeanNameGenerator extends AnnotationBeanNameGenerator {
+
+		@Override
+		public String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry) {
+			return super.generateBeanName(definition, registry).replaceAll("Repository", "REPO");
+		}
 	}
 }
