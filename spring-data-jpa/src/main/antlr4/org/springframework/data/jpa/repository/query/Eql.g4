@@ -309,6 +309,7 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
+    | cast_expression
     | entity_type_expression
     ;
 
@@ -450,6 +451,7 @@ string_expression
     | case_expression
     | function_invocation
     | '(' subquery ')'
+    | string_expression '||' string_expression
     ;
 
 datetime_expression
@@ -534,6 +536,9 @@ functions_returning_strings
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
     | UPPER '(' string_expression ')'
+    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
+    | LEFT '(' string_expression ',' arithmetic_expression ')'
+    | RIGHT '(' string_expression ',' arithmetic_expression ')'
     ;
 
 trim_specification
@@ -609,6 +614,18 @@ nullif_expression
     : NULLIF '(' scalar_expression ',' scalar_expression ')'
     ;
 
+cast_expression
+    : CAST '(' string_expression AS type_literal ')'
+    ;
+
+type_literal
+    : STRING
+    | INTEGER
+    | LONG
+    | FLOAT
+    | DOUBLE
+    ;
+
 /*******************
     Gaps in the spec.
  *******************/
@@ -630,6 +647,7 @@ identification_variable
     | ORDER
     | OUTER
     | POWER
+    | RIGHT
     | FLOOR
     | SIGN
     | TIME
@@ -811,6 +829,8 @@ reserved_word
        |OR
        |ORDER
        |OUTER
+       |REPLACE
+       |RIGHT
        |POWER
        |ROUND
        |SELECT
@@ -894,6 +914,7 @@ DATETIME                    : D A T E T I M E ;
 DELETE                      : D E L E T E;
 DESC                        : D E S C;
 DISTINCT                    : D I S T I N C T;
+DOUBLE                      : D O U B L E;
 END                         : E N D;
 ELSE                        : E L S E;
 EMPTY                       : E M P T Y;
@@ -906,6 +927,7 @@ EXTRACT                     : E X T R A C T;
 FALSE                       : F A L S E;
 FETCH                       : F E T C H;
 FIRST                       : F I R S T;
+FLOAT                       : F L O A T;
 FLOOR                       : F L O O R;
 FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
@@ -914,6 +936,7 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTEGER                     : I N T E G E R;
 INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
 JOIN                        : J O I N;
@@ -944,6 +967,8 @@ ORDER                       : O R D E R;
 OUTER                       : O U T E R;
 POWER                       : P O W E R;
 REGEXP                      : R E G E X P;
+REPLACE                     : R E P L A C E;
+RIGHT                       : R I G H T;
 ROUND                       : R O U N D;
 SELECT                      : S E L E C T;
 SET                         : S E T;
@@ -951,6 +976,7 @@ SIGN                        : S I G N;
 SIZE                        : S I Z E;
 SOME                        : S O M E;
 SQRT                        : S Q R T;
+STRING                      : S T R I N G;
 SUBSTRING                   : S U B S T R I N G;
 SUM                         : S U M;
 THEN                        : T H E N;
@@ -969,7 +995,6 @@ WHERE                       : W H E R E;
 
 EQUAL                       : '=' ;
 NOT_EQUAL                   : '<>' | '!=' ;
-
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;

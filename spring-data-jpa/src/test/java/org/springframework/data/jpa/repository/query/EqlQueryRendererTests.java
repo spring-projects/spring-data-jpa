@@ -1046,4 +1046,54 @@ class EqlQueryRendererTests {
 		assertQuery("select e from Employee e where e.lateral = :_lateral");
 		assertQuery("select te from TestEntity te where te.lateral = :lateral");
 	}
+
+	@Test // GH-3136
+	void union() {
+
+		assertQuery("""
+				SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city1
+				UNION SELECT MAX(e.salary) FROM Employee e WHERE e.address.city = :city2
+				""");
+	}
+
+	@Test // GH-3136
+	void intersect() {
+
+		assertQuery("""
+				SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode1
+				INTERSECT SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode2
+				""");
+	}
+
+	@Test // GH-3136
+	void except() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
+				""");
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"STRING", "INTEGER", "FLOAT", "DOUBLE"})
+	void cast(String targetType) {
+		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"LEFT", "RIGHT"})
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
+	@Test // GH-3136
+	void stringConcatWithPipes() {
+		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
+	}
 }
