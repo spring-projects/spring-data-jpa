@@ -309,7 +309,7 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
-    | cast_expression
+    | cast_function
     | entity_type_expression
     ;
 
@@ -548,7 +548,7 @@ trim_specification
     ;
 
 cast_function
-    : CAST '(' single_valued_path_expression identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    : CAST '(' single_valued_path_expression (identification_variable)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
     ;
 
 function_invocation
@@ -614,10 +614,6 @@ nullif_expression
     : NULLIF '(' scalar_expression ',' scalar_expression ')'
     ;
 
-cast_expression
-    : CAST '(' string_expression AS type_literal ')'
-    ;
-
 type_literal
     : STRING
     | INTEGER
@@ -638,6 +634,7 @@ trim_character
 identification_variable
     : IDENTIFICATION_VARIABLE
     | f=(COUNT
+    | AS
     | DATE
     | FROM
     | INNER
@@ -653,6 +650,7 @@ identification_variable
     | TIME
     | TYPE
     | VALUE)
+    | type_literal
     ;
 
 constructor_name
@@ -949,6 +947,7 @@ LIKE                        : L I K E;
 LN                          : L N;
 LOCAL                       : L O C A L;
 LOCATE                      : L O C A T E;
+LONG                        : L O N G;
 LOWER                       : L O W E R;
 MAX                         : M A X;
 MEMBER                      : M E M B E R;
