@@ -128,37 +128,41 @@ class ParameterBinderUnitTests {
 		verify(query).setParameter(eq(1), eq("foo"));
 	}
 
-	@Test
+	@Test // GH-3242
 	void bindAndPrepareWorksWithPageable() throws Exception {
 
 		Method validWithPageable = SampleRepository.class.getMethod("validWithPageable", String.class, Pageable.class);
-
 		Object[] values = { "foo", Pageable.ofSize(10).withPage(3) };
+
 		bindAndPrepare(validWithPageable, values);
-		verify(query).setParameter(eq(1), eq("foo"));
-		verify(query).setFirstResult(eq(30));
-		verify(query).setMaxResults(eq(10));
+
+		verify(query).setParameter(1, "foo");
+		verify(query).setFirstResult(30);
+		verify(query).setMaxResults(10);
 	}
 
-	@Test
+	@Test // GH-3242
 	void bindWorksWithNullForLimit() throws Exception {
 
 		Method validWithLimit = SampleRepository.class.getMethod("validWithLimit", String.class, Limit.class);
-
 		Object[] values = { "foo", null };
+
 		bind(validWithLimit, values);
-		verify(query).setParameter(eq(1), eq("foo"));
+
+		verify(query).setParameter(1, "foo");
+		verify(query, never()).setFirstResult(anyInt());
 	}
 
-	@Test
+	@Test // GH-3242
 	void bindAndPrepareWorksWithLimit() throws Exception {
 
 		Method validWithLimit = SampleRepository.class.getMethod("validWithLimit", String.class, Limit.class);
-
 		Object[] values = { "foo", Limit.of(10) };
+
 		bindAndPrepare(validWithLimit, values);
-		verify(query).setParameter(eq(1), eq("foo"));
-		verify(query).setMaxResults(eq(10));
+
+		verify(query).setParameter(1, "foo");
+		verify(query).setMaxResults(10);
 		verify(query, never()).setFirstResult(anyInt());
 	}
 
