@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
 
 import org.springframework.data.domain.Sort;
 
@@ -30,12 +30,12 @@ import org.springframework.data.domain.Sort;
 public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new DefaultQueryEnhancer(declaredQuery);
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+		return new DefaultQueryEnhancer(query);
 	}
 
 	@Override
-	@Test // GH-2511, GH-2773
+	@ParameterizedTest // GH-2511, GH-2773
 	@Disabled("Not properly supported by QueryUtils")
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
 

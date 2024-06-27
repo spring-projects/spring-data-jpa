@@ -28,8 +28,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+
 import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -47,7 +49,10 @@ import org.springframework.data.repository.query.parser.Part.Type;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ExpressionBasedStringQueryUnitTests {
 
-	private static final ValueExpressionParser PARSER = ValueExpressionParser.create();
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, QueryMethodEvaluationContextProvider.DEFAULT, EscapeCharacter.DEFAULT,
+			ValueExpressionParser.create());
+
 	@Mock JpaEntityMetadata<?> metadata;
 
 	@BeforeEach

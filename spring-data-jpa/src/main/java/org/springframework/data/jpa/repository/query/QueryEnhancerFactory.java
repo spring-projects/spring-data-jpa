@@ -24,7 +24,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link DeclaredQuery}.
+ * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link IntrospectedQuery}.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
@@ -32,45 +32,32 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @since 2.7.0
  */
-public final class QueryEnhancerFactory {
-
-	private static final Log LOG = LogFactory.getLog(QueryEnhancerFactory.class);
-	private static final NativeQueryEnhancer NATIVE_QUERY_ENHANCER;
-
-	static {
-
-		NATIVE_QUERY_ENHANCER = NativeQueryEnhancer.select();
-
-		if (PersistenceProvider.ECLIPSELINK.isPresent()) {
-			LOG.info("EclipseLink is in classpath; If applicable, EQL parser will be used.");
-		}
-
-		if (PersistenceProvider.HIBERNATE.isPresent()) {
-			LOG.info("Hibernate is in classpath; If applicable, HQL parser will be used.");
-		}
-	}
-
-	private QueryEnhancerFactory() {}
+public interface QueryEnhancerFactory {
 
 	/**
-	 * Creates a new {@link QueryEnhancer} for the given {@link DeclaredQuery}.
+	 * Returns whether this QueryEnhancerFactory supports the given {@link DeclaredQuery}.
+	 *
+	 * @param query the query to be enhanced and introspected.
+	 * @return {@code true} if this QueryEnhancer supports the given query; {@code false} otherwise.
+	 */
+	boolean supports(DeclaredQuery query);
+
+	/**
+	 * Creates a new {@link QueryEnhancer} for the given query.
+	 *
+	 * @param query the query to be enhanced and introspected.
+	 * @return
+	 */
+	QueryEnhancer create(DeclaredQuery query);
+
+	/**
+	 * Creates a new {@link QueryEnhancer} for the given {@link IntrospectedQuery}.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return an implementation of {@link QueryEnhancer} that suits the query the most
 	 */
-	public static QueryEnhancer forQuery(DeclaredQuery query) {
-
-		if (query.isNativeQuery()) {
-			return getNativeQueryEnhancer(query);
-		}
-
-		if (PersistenceProvider.HIBERNATE.isPresent()) {
-			return JpaQueryEnhancer.forHql(query);
-		} else if (PersistenceProvider.ECLIPSELINK.isPresent()) {
-			return JpaQueryEnhancer.forEql(query);
-		} else {
-			return JpaQueryEnhancer.forJpql(query);
-		}
+	static QueryEnhancer forQuery(DeclaredQuery query) {
+		return QueryEnhancerSelector.DEFAULT_SELECTOR.select(query);
 	}
 
 	/**

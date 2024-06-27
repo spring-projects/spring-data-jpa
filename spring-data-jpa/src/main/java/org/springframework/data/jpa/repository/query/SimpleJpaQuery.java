@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Greg Turnquist
  */
-final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
+class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.

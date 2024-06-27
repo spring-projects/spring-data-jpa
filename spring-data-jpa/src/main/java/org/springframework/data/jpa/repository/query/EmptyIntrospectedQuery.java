@@ -21,17 +21,17 @@ import java.util.List;
 import org.springframework.lang.Nullable;
 
 /**
- * NULL-Object pattern implementation for {@link DeclaredQuery}.
+ * NULL-Object pattern implementation for {@link IntrospectedQuery}.
  *
  * @author Jens Schauder
  * @since 2.0.3
  */
-class EmptyDeclaredQuery implements DeclaredQuery {
+class EmptyIntrospectedQuery implements IntrospectedQuery {
 
 	/**
 	 * An implementation implementing the NULL-Object pattern for situations where there is no query.
 	 */
-	static final DeclaredQuery EMPTY_QUERY = new EmptyDeclaredQuery();
+	static final IntrospectedQuery EMPTY_QUERY = new EmptyIntrospectedQuery();
 
 	@Override
 	public boolean hasNamedParameter() {
@@ -41,6 +41,11 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	@Override
 	public String getQueryString() {
 		return "";
+	}
+
+	@Override
+	public boolean isNativeQuery() {
+		return false;
 	}
 
 	@Override
@@ -64,7 +69,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection) {
+	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 		return EMPTY_QUERY;
 	}
 

@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
 /**
  * Extension of {@link StringQuery} that evaluates the given query string as a SpEL template-expression.
  * <p>
- * Currently the following template variables are available:
+ * Currently, the following template variables are available:
  * <ol>
  * <li>{@code #entityName} - the simple class name of the given entity</li>
  * <ol>
@@ -58,11 +58,13 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query must not be {@literal null} or empty.
 	 * @param metadata must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
-	 * @param nativeQuery is a given query is native or not
+	 * @param nativeQuery is a given query is native or not.
+	 * @param selector must not be {@literal null}.
 	 */
-	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
-			boolean nativeQuery) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
+	ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
+			boolean nativeQuery, QueryEnhancerSelector selector) {
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
+				selector);
 	}
 
 	/**
@@ -122,4 +124,10 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static boolean containsExpression(String query) {
 		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
 	}
+
+	public static IntrospectedQuery create(String query, JpaQueryMethod method, JpaQueryConfiguration queryContext) {
+		return new ExpressionBasedStringQuery(query, method.getEntityInformation(), queryContext.getParser(),
+				method.isNativeQuery(), queryContext.getSelector());
+	}
+
 }

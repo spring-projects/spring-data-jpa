@@ -119,6 +119,11 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
+
+		if (source instanceof AnnotationRepositoryConfigurationSource) {
+			builder.addPropertyValue("queryEnhancerSelector",
+					source.getAttribute("queryEnhancerSelector", Class.class).orElse(null));
+		}
 	}
 
 	@Override
