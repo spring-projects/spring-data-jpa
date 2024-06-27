@@ -1071,10 +1071,7 @@ class HqlQueryTransformerTests {
         String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
 		String target = createQueryFor(source, Sort.by("Type").ascending());
 		
-		System.out.println("target: " + target);
-
 		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
-//		assertThat(target).contains(" UNION SELECT ").doesNotContainPattern(Pattern.compile(".*\\SUNION"));
 	}
 
 	@ParameterizedTest // GH-3427
