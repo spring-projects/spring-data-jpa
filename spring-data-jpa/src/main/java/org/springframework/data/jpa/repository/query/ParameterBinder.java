@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.Query;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.util.Assert;
@@ -98,16 +99,19 @@ public class ParameterBinder {
 
 		bind(query, metadata, accessor);
 
-		if (!useJpaForPaging || !parameters.hasLimitingParameters() || accessor.getPageable().isUnpaged()) {
+		Pageable pageable = accessor.getPageable();
+
+		if (!useJpaForPaging || !parameters.hasLimitingParameters() || pageable.isUnpaged()) {
 			return query;
 		}
 
-		// see #3242
-		if (!parameters.hasLimitParameter()) {
-			// offset is meaningless if Limit parameter present
-			query.setFirstResult(PageableUtils.getOffsetAsInteger(accessor.getPageable()));
+		// Apply offset only if it is not 0 (the default).
+		int offset = PageableUtils.getOffsetAsInteger(pageable);
+		if (offset != 0) {
+			query.setFirstResult(offset);
 		}
-		query.setMaxResults(accessor.getPageable().getPageSize());
+
+		query.setMaxResults(pageable.getPageSize());
 
 		return query;
 	}
