@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query.
@@ -35,7 +36,7 @@ import org.springframework.util.Assert;
 class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
-	private final Sort sort;
+	private Sort sort;
 	private final @Nullable String primaryFromAlias;
 
 	HqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias) {
@@ -46,8 +47,37 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		this.primaryFromAlias = primaryFromAlias;
 	}
 
+
+	public QueryTokenStream visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
+
+		if(ObjectUtils.isEmpty(ctx.setOperator())) {
+			return super.visitQueryExpression(ctx);
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		if (ctx.withClause() != null) {
+			builder.appendExpression(visit(ctx.withClause()));
+		}
+
+		Sort tmp = this.sort;
+		this.sort = Sort.unsorted();
+		builder.append(visit(ctx.orderedQuery(0)));
+		this.sort = tmp;
+
+		for (int i = 1; i < ctx.orderedQuery().size(); i++) {
+
+			builder.append(visit(ctx.setOperator(i - 1)));
+			builder.append(visit(ctx.orderedQuery(i)));
+		}
+
+
+		return builder;
+	}
+
+
 	@Override
 	public QueryRendererBuilder visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
+
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
