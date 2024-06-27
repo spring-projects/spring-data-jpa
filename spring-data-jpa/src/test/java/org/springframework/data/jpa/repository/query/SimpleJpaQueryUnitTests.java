@@ -204,14 +204,15 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	@Test // DATAJPA-352
-	@SuppressWarnings("unchecked")
 	void validatesAndRejectsCountQueryIfPagingMethod() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
 
 		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
 
-		assertThatIllegalArgumentException().isThrownBy(() -> createJpaQuery(method)).withMessageContaining("Count")
+		assertThatIllegalArgumentException() //
+				.isThrownBy(() -> createJpaQuery(method)) //
+				.withMessageContaining("Count") //
 				.withMessageContaining(method.getName());
 	}
 
