@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * Extension of {@link StringQuery} that evaluates the given query string as a SpEL template-expression.
  * <p>
- * Currently the following template variables are available:
+ * Currently, the following template variables are available:
  * <ol>
  * <li>{@code #entityName} - the simple class name of the given entity</li>
  * <ol>
@@ -66,25 +66,13 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param query must not be {@literal null} or empty.
 	 * @param metadata must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
-	 * @param nativeQuery is a given query is native or not
+	 * @param nativeQuery is a given query is native or not.
+	 * @param selector must not be {@literal null}.
 	 */
-	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
-			boolean nativeQuery) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
-	}
-
-	/**
-	 * Creates an {@link ExpressionBasedStringQuery} from a given {@link DeclaredQuery}.
-	 *
-	 * @param query the original query. Must not be {@literal null}.
-	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
-	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
-	 * @param nativeQuery is a given query native or not
-	 * @return A query supporting SpEL expressions.
-	 */
-	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
-			ValueExpressionParser parser, boolean nativeQuery) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
+	ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
+			boolean nativeQuery, QueryEnhancerSelector selector) {
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
+				selector, parameterBindings -> {});
 	}
 
 	/**
@@ -131,4 +119,11 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static boolean containsExpression(String query) {
 		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
 	}
+
+	public static StringQuery create(String query, JpaQueryMethod method, JpaQueryConfiguration queryContext) {
+		return new ExpressionBasedStringQuery(query, method.getEntityInformation(),
+				queryContext.getValueExpressionDelegate().getValueExpressionParser(),
+				method.isNativeQuery(), queryContext.getSelector());
+	}
+
 }

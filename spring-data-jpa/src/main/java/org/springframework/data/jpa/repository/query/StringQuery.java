@@ -29,6 +29,7 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueExpression;
 
 import org.jspecify.annotations.Nullable;
@@ -61,13 +62,14 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-class StringQuery implements DeclaredQuery {
+class StringQuery implements EntityQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
 	private final boolean containsPageableInSpel;
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
+	private final QueryEnhancerFactory queryEnhancerFactory;
 	private final QueryEnhancer queryEnhancer;
 	private final boolean hasNamedParameters;
 
@@ -77,7 +79,7 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	public StringQuery(String query, boolean isNative) {
-		this(query, isNative, it -> {});
+		this(query, isNative, QueryEnhancerSelector.DEFAULT_SELECTOR, it -> {});
 	}
 
 	/**
@@ -85,20 +87,21 @@ class StringQuery implements DeclaredQuery {
 	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
-	private StringQuery(String query, boolean isNative, Consumer<List<ParameterBinding>> parameterPostProcessor) {
+	StringQuery(String query, boolean isNative, QueryEnhancerFactory factory,Consumer<List<ParameterBinding>> parameterPostProcessor) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
 		this.isNative = isNative;
 		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
+		this.queryEnhancerFactory = factory;
 
 		Metadata queryMeta = new Metadata();
 		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
 				this.bindings, queryMeta);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
+		this.queryEnhancer = factory.create(this);
 
 		parameterPostProcessor.accept(this.bindings);
 
@@ -111,6 +114,44 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		this.hasNamedParameters = hasNamedParameters;
+	}
+
+	/**
+	 * Creates a new {@link StringQuery} from the given JPQL query.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 */
+	StringQuery(String query, boolean isNative, QueryEnhancerSelector selector, Consumer<List<ParameterBinding>> parameterPostProcessor) {
+
+		Assert.hasText(query, "Query must not be null or empty");
+
+		this.isNative = isNative;
+		this.bindings = new ArrayList<>();
+		this.containsPageableInSpel = query.contains("#pageable");
+
+		Metadata queryMeta = new Metadata();
+		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
+				this.bindings, queryMeta);
+
+		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
+		this.queryEnhancerFactory = selector.select(this);
+		this.queryEnhancer = queryEnhancerFactory.create(this);
+
+		parameterPostProcessor.accept(this.bindings);
+
+		boolean hasNamedParameters = false;
+		for (ParameterBinding parameterBinding : getParameterBindings()) {
+			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
+				hasNamedParameters = true;
+				break;
+			}
+		}
+
+		this.hasNamedParameters = hasNamedParameters;
+	}
+
+	QueryEnhancer getQueryEnhancer() {
+		return queryEnhancer;
 	}
 
 	/**
@@ -130,13 +171,13 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection) {
+	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 
 		// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
 		// JPA parameter markers and not the original expressions anymore.
 
 		return new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
-				this.isNative, derivedBindings -> {
+				this.isNative, queryEnhancerFactory, derivedBindings -> {
 
 					// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
 					// JPA
@@ -159,6 +200,11 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
+	public String applySorting(Sort sort) {
+		return queryEnhancer.applySorting(sort);
+	}
+
+	@Override
 	public boolean usesJdbcStyleParameters() {
 		return usesJdbcStyleParameters;
 	}
@@ -168,7 +214,6 @@ class StringQuery implements DeclaredQuery {
 		return query;
 	}
 
-	@Override
 	public @Nullable String getAlias() {
 		return queryEnhancer.detectAlias();
 	}
@@ -404,16 +449,18 @@ class StringQuery implements DeclaredQuery {
 
 				BindingIdentifier targetBinding = queryParameter;
 				Function<BindingIdentifier, ParameterBinding> bindingFactory = switch (ParameterBindingType.of(typeSource)) {
-                    case LIKE -> {
+					case LIKE -> {
 
-                        Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-                        yield (identifier) -> new LikeParameterBinding(identifier, origin, likeType);
-                    }
-                    case IN -> (identifier) -> new InParameterBinding(identifier, origin); // fall-through we don't need a special parameter queryParameter for the given parameter.
-                    default -> (identifier) -> new ParameterBinding(identifier, origin);
-                };
+						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+						yield (identifier) -> new LikeParameterBinding(identifier, origin, likeType);
+					}
+					case IN -> (identifier) -> new InParameterBinding(identifier, origin); // fall-through we don't need a special
+																																									// parameter queryParameter for the
+																																									// given parameter.
+					default -> (identifier) -> new ParameterBinding(identifier, origin);
+				};
 
-                if (origin.isExpression()) {
+				if (origin.isExpression()) {
 					parameterBindings.register(bindingFactory.apply(queryParameter));
 				} else {
 					targetBinding = parameterBindings.register(queryParameter, origin, bindingFactory, parameterLabels);

@@ -37,14 +37,14 @@ import org.springframework.data.domain.Sort;
 public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new JSqlParserQueryEnhancer(declaredQuery);
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+		return new JSqlParserQueryEnhancer(query);
 	}
 
 	@Test // GH-3546
 	void shouldApplySorting() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofJpql("SELECT e FROM Employee e"));
 
 		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
 
@@ -54,13 +54,13 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-3707
 	void countQueriesShouldConsiderPrimaryTableAlias() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("""
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative("""
 				SELECT DISTINCT a.*, b.b1
 				FROM TableA a
 				  JOIN TableB b ON a.b = b.b
 				  LEFT JOIN TableC c ON b.c = c.c
 				ORDER BY b.b1, a.a1, a.a2
-				""", true));
+				"""));
 
 		String sql = enhancer.createCountQueryFor();
 
@@ -83,7 +83,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select SOME_COLUMN from SOME_OTHER_TABLE where REPORTING_DATE = :REPORTING_DATE";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
@@ -106,7 +106,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("SOME_COLUMN");
@@ -133,7 +133,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "\t;";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("CustomerID");
@@ -153,7 +153,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		String setQuery = "VALUES (1, 2, 'test')";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNullOrEmpty();
 		assertThat(stringQuery.getProjection()).isNullOrEmpty();
@@ -174,7 +174,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select day, value from sample_data as a";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
@@ -197,7 +197,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				+ "select day, value from sample_data as a";
 
 		StringQuery stringQuery = new StringQuery(setQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase("a");
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
@@ -217,7 +217,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	void truncateStatementShouldWork() {
 
 		StringQuery stringQuery = new StringQuery("TRUNCATE TABLE foo", true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(stringQuery.getAlias()).isNull();
 		assertThat(stringQuery.getProjection()).isEmpty();
@@ -235,7 +235,7 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	void mergeStatementWorksWithJSqlParser(String query, String alias) {
 
 		StringQuery stringQuery = new StringQuery(query, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		assertThat(queryEnhancer.detectAlias()).isEqualTo(alias);
 		assertThat(QueryUtils.detectAlias(query)).isNull();

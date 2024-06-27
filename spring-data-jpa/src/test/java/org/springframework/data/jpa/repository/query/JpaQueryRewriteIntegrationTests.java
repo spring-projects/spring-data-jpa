@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +24,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -40,8 +40,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Unit tests for repository with {@link Query} and {@link QueryRewrite}.
@@ -54,6 +57,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class JpaQueryRewriteIntegrationTests {
 
 	@Autowired private UserRepositoryWithRewriter repository;
+	@Autowired private JpaRepositoryFactoryBean<UserRepositoryWithRewriter, User, Integer> factoryBean;
 
 	// Results
 	static final String ORIGINAL_QUERY = "original query";
@@ -64,6 +68,14 @@ class JpaQueryRewriteIntegrationTests {
 	@BeforeEach
 	void setUp() {
 		results.clear();
+	}
+
+	@Test
+	void shouldConfigureQueryEnhancerSelector() {
+
+		JpaRepositoryFactory factory = (JpaRepositoryFactory) ReflectionTestUtils.getField(factoryBean, "factory");
+
+		assertThat(factory).extracting("queryEnhancerSelector").isInstanceOf(MyQueryEnhancerSelector.class);
 	}
 
 	@Test
@@ -222,7 +234,8 @@ class JpaQueryRewriteIntegrationTests {
 	@ImportResource("classpath:infrastructure.xml")
 	@EnableJpaRepositories(considerNestedRepositories = true, basePackageClasses = UserRepositoryWithRewriter.class, //
 			includeFilters = @ComponentScan.Filter(value = { UserRepositoryWithRewriter.class },
-					type = FilterType.ASSIGNABLE_TYPE))
+					type = FilterType.ASSIGNABLE_TYPE),
+			queryEnhancerSelector = MyQueryEnhancerSelector.class)
 	static class JpaRepositoryConfig {
 
 		@Bean
@@ -230,5 +243,11 @@ class JpaQueryRewriteIntegrationTests {
 			return new TestQueryRewriter();
 		}
 
+	}
+
+	static class MyQueryEnhancerSelector extends QueryEnhancerSelector.DefaultQueryEnhancerSelector {
+		public MyQueryEnhancerSelector() {
+			super(QueryEnhancerFactories.fallback(), DefaultQueryEnhancerSelector.jpql());
+		}
 	}
 }
