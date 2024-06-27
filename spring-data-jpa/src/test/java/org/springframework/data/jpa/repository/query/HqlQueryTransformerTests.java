@@ -1196,6 +1196,6 @@ class HqlQueryTransformerTests {
 	}
 
 	private QueryEnhancer newParser(String query) {
-		return JpaQueryEnhancer.forHql(DeclaredQuery.of(query, false));
+		return JpaQueryEnhancer.forHql(query);
 	}
 }

@@ -49,8 +49,8 @@ import org.springframework.util.StringUtils;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private final DeclaredQuery query;
-	private final Lazy<DeclaredQuery> countQuery;
+	private final StringQuery query;
+	private final Lazy<IntrospectedQuery> countQuery;
 	private final ValueExpressionDelegate valueExpressionDelegate;
 	private final QueryRewriter queryRewriter;
 	private final QuerySortRewriter querySortRewriter;
@@ -65,37 +65,32 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
 	 * @param countQueryString must not be {@literal null}.
-	 * @param queryRewriter must not be {@literal null}.
-	 * @param valueExpressionDelegate must not be {@literal null}.
+	 * @param queryConfiguration must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
+			@Nullable String countQueryString, JpaQueryConfiguration queryConfiguration) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty");
-		Assert.notNull(valueExpressionDelegate, "ValueExpressionDelegate must not be null");
-		Assert.notNull(queryRewriter, "QueryRewriter must not be null");
+		Assert.notNull(queryConfiguration, "JpaQueryConfiguration must not be null");
 
-		this.valueExpressionDelegate = valueExpressionDelegate;
+		this.valueExpressionDelegate = queryConfiguration.getValueExpressionDelegate();
 		this.valueExpressionContextProvider = valueExpressionDelegate.createValueContextProvider(method.getParameters());
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), valueExpressionDelegate,
-				method.isNativeQuery());
+		this.query = ExpressionBasedStringQuery.create(queryString, method, queryConfiguration);
 
 		this.countQuery = Lazy.of(() -> {
 
 			if (StringUtils.hasText(countQueryString)) {
-
-				return new ExpressionBasedStringQuery(countQueryString, method.getEntityInformation(), valueExpressionDelegate,
-						method.isNativeQuery());
+				return ExpressionBasedStringQuery.create(countQueryString, method, queryConfiguration);
 			}
 
-			return query.deriveCountQuery(method.getCountQueryProjection());
+			return this.query.deriveCountQuery(method.getCountQueryProjection());
 		});
 
 		this.countParameterBinder = Lazy.of(() -> this.createBinder(this.countQuery.get()));
 
-		this.queryRewriter = queryRewriter;
+		this.queryRewriter = queryConfiguration.getQueryRewriter(method);
 
 		JpaParameters parameters = method.getParameters();
 
@@ -109,7 +104,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			}
 		}
 
-		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
+		Assert.isTrue(method.isNativeQuery() || !this.query.usesJdbcStyleParameters(),
 				"JDBC style parameters (?) are not supported for JPA queries");
 	}
 
@@ -136,7 +131,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return createBinder(query);
 	}
 
-	protected ParameterBinder createBinder(DeclaredQuery query) {
+	protected ParameterBinder createBinder(IntrospectedQuery query) {
 		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query,
 				valueExpressionDelegate, valueExpressionContextProvider);
 	}
@@ -162,14 +157,14 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return the query
 	 */
-	public DeclaredQuery getQuery() {
+	public EntityQuery getQuery() {
 		return query;
 	}
 
 	/**
 	 * @return the countQuery
 	 */
-	public DeclaredQuery getCountQuery() {
+	public IntrospectedQuery getCountQuery() {
 		return countQuery.get();
 	}
 
@@ -211,8 +206,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	}
 
 	String applySorting(CachableQuery cachableQuery) {
-
-		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery())
+		return cachableQuery.getDeclaredQuery().getQueryEnhancer()
 				.rewrite(new DefaultQueryRewriteInformation(cachableQuery.getSort(), cachableQuery.getReturnedType()));
 	}
 
@@ -220,7 +214,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * Query Sort Rewriter interface.
 	 */
 	interface QuerySortRewriter {
-		String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType);
+		String getSorted(StringQuery query, Sort sort, ReturnedType returnedType);
 	}
 
 	/**
@@ -230,9 +224,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		INSTANCE;
 
-		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
-
-			return QueryEnhancerFactory.forQuery(query).rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
+		public String getSorted(StringQuery query, Sort sort, ReturnedType returnedType) {
+			return query.getQueryEnhancer().rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
 		}
 	}
 
@@ -240,7 +233,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		private volatile @Nullable String cachedQueryString;
 
-		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
+		public String getSorted(StringQuery query, Sort sort, ReturnedType returnedType) {
 
 			if (sort.isSorted()) {
 				throw new UnsupportedOperationException("NoOpQueryCache does not support sorting");
@@ -248,7 +241,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 			String cachedQueryString = this.cachedQueryString;
 			if (cachedQueryString == null) {
-				this.cachedQueryString = cachedQueryString = QueryEnhancerFactory.forQuery(query)
+				this.cachedQueryString = cachedQueryString = query.getQueryEnhancer()
 						.rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
 			}
 
@@ -267,7 +260,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		private volatile @Nullable String cachedQueryString;
 
 		@Override
-		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
+		public String getSorted(StringQuery query, Sort sort, ReturnedType returnedType) {
 
 			if (sort.isUnsorted()) {
 
@@ -292,21 +285,21 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	static class CachableQuery {
 
-		private final DeclaredQuery declaredQuery;
+		private final StringQuery query;
 		private final String queryString;
 		private final Sort sort;
 		private final ReturnedType returnedType;
 
-		CachableQuery(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
+		CachableQuery(StringQuery query, Sort sort, ReturnedType returnedType) {
 
-			this.declaredQuery = query;
+			this.query = query;
 			this.queryString = query.getQueryString();
 			this.sort = sort;
 			this.returnedType = returnedType;
 		}
 
-		DeclaredQuery getDeclaredQuery() {
-			return declaredQuery;
+		StringQuery getDeclaredQuery() {
+			return query;
 		}
 
 		Sort getSort() {

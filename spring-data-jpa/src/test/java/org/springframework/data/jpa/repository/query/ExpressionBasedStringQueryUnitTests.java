@@ -28,8 +28,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -47,7 +47,9 @@ import org.springframework.data.repository.query.parser.Part.Type;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ExpressionBasedStringQueryUnitTests {
 
-	private static final ValueExpressionParser PARSER = ValueExpressionParser.create();
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT);
+
 	@Mock JpaEntityMetadata<?> metadata;
 
 	@BeforeEach
@@ -59,14 +61,16 @@ class ExpressionBasedStringQueryUnitTests {
 	void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
 
 		String source = "select u from #{#entityName} u where u.firstname like :firstname";
-		StringQuery query = new ExpressionBasedStringQuery(source, metadata, PARSER, false);
+		StringQuery query = new ExpressionBasedStringQuery(source, metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
 	}
 
 	@Test // DATAJPA-424
 	void renderAliasInExpressionQueryCorrectly() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), true, CONFIG.getSelector());
 		assertThat(query.getAlias()).isEqualTo("u");
 		assertThat(query.getQueryString()).isEqualTo("select u from User u");
 	}
@@ -79,7 +83,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(:#{#networkRequest.server})) OR :#{#networkRequest.server} IS NULL "
 						+ "AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime}) "
 						+ "AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
-				metadata, PARSER, false);
+				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
@@ -92,7 +96,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
 						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
-				metadata, PARSER, false);
+				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
@@ -105,7 +109,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
 						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
-				metadata, PARSER, true);
+				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.isNativeQuery()).isFalse();
 	}
@@ -113,7 +117,8 @@ class ExpressionBasedStringQueryUnitTests {
 	@Test
 	void shouldDetectSimpleNativeQueriesWithSpelAsNonNative() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), true, CONFIG.getSelector());
 
 		assertThat(query.isNativeQuery()).isFalse();
 	}
@@ -121,7 +126,8 @@ class ExpressionBasedStringQueryUnitTests {
 	@Test
 	void shouldDetectSimpleNativeQueriesWithoutSpelAsNative() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from User u", metadata, PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select u from User u", metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), true, CONFIG.getSelector());
 
 		assertThat(query.isNativeQuery()).isTrue();
 	}
@@ -130,8 +136,8 @@ class ExpressionBasedStringQueryUnitTests {
 	void namedExpressionsShouldCreateLikeBindings() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select u from User u where u.firstname like %:#{foo} or u.firstname like :#{foo}%", metadata, PARSER,
-				false);
+				"select u from User u where u.firstname like %:#{foo} or u.firstname like :#{foo}%", metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(
@@ -155,8 +161,8 @@ class ExpressionBasedStringQueryUnitTests {
 	void indexedExpressionsShouldCreateLikeBindings() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select u from User u where u.firstname like %?#{foo} or u.firstname like ?#{foo}%", metadata, PARSER,
-				false);
+				"select u from User u where u.firstname like %?#{foo} or u.firstname like ?#{foo}%", metadata,
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
@@ -180,7 +186,7 @@ class ExpressionBasedStringQueryUnitTests {
 	void doesTemplatingWhenEntityNameSpelIsPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from #{#entityName} u",
-				metadata, PARSER, false);
+				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
 	}
@@ -189,7 +195,7 @@ class ExpressionBasedStringQueryUnitTests {
 	void doesNoTemplatingWhenEntityNameSpelIsNotPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from User u", metadata,
-				PARSER, false);
+				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
 	}
@@ -198,7 +204,7 @@ class ExpressionBasedStringQueryUnitTests {
 	void doesTemplatingWhenEntityNameSpelIsPresentForBindParameter() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u where name = :#{#something}",
-				metadata, PARSER, false);
+				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where name = :__$synthetic$__1");
 	}

@@ -911,12 +911,14 @@ class StringQueryUnitTests {
 
 	void checkNumberOfNamedParameters(String query, int expectedSize, String label, boolean nativeQuery) {
 
-		DeclaredQuery declaredQuery = DeclaredQuery.of(query, nativeQuery);
+		EntityQuery introspectedQuery = nativeQuery
+				? EntityQuery.introspectNativeQuery(query, QueryEnhancerSelector.DEFAULT_SELECTOR)
+				: EntityQuery.introspectJpql(query, QueryEnhancerSelector.DEFAULT_SELECTOR);
 
-		assertThat(declaredQuery.hasNamedParameter()) //
+		assertThat(introspectedQuery.hasNamedParameter()) //
 				.describedAs("hasNamed Parameter " + label) //
 				.isEqualTo(expectedSize > 0);
-		assertThat(declaredQuery.getParameterBindings()) //
+		assertThat(introspectedQuery.getParameterBindings()) //
 				.describedAs("parameterBindings " + label) //
 				.hasSize(expectedSize);
 	}

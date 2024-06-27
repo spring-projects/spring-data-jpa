@@ -55,12 +55,12 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final String countQueryName;
 	private final @Nullable String countProjection;
 	private final boolean namedCountQueryIsPresent;
-	private final Lazy<DeclaredQuery> declaredQuery;
+	private final Lazy<EntityQuery> entityQuery;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
 	 */
-	private NamedQuery(JpaQueryMethod method, EntityManager em, QueryRewriter queryRewriter) {
+	private NamedQuery(JpaQueryMethod method, EntityManager em, QueryEnhancerSelector selector, QueryRewriter queryRewriter) {
 
 		super(method, em);
 
@@ -96,8 +96,12 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		String queryString = extractor.extractQueryString(query);
 
-		this.declaredQuery = Lazy
-				.of(() -> DeclaredQuery.of(queryString, method.isNativeQuery() || query.toString().contains("NativeQuery")));
+		// TODO: What is queryString is null?
+		if (method.isNativeQuery() || (query != null && query.toString().contains("NativeQuery"))) {
+			this.entityQuery = Lazy.of(() -> EntityQuery.introspectNativeQuery(queryString, selector));
+		} else {
+			this.entityQuery = Lazy.of(() -> EntityQuery.introspectJpql(queryString, selector));
+		}
 	}
 
 	/**
@@ -130,10 +134,10 @@ final class NamedQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param queryRewriter must not be {@literal null}.
+	 * @param selector must not be {@literal null}.
 	 */
 	public static @Nullable RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em,
-			QueryRewriter queryRewriter) {
+			QueryEnhancerSelector selector) {
 
 		String queryName = method.getNamedQueryName();
 
@@ -151,7 +155,7 @@ final class NamedQuery extends AbstractJpaQuery {
 					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
-		RepositoryQuery query = new NamedQuery(method, em, queryRewriter);
+		RepositoryQuery query = new NamedQuery(method, em, selector);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Found named query '%s'", queryName));
 		}
@@ -188,7 +192,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.get().deriveCountQuery(countProjection).getQueryString();
+			String countQueryString = entityQuery.get().deriveCountQuery(countProjection).getQueryString();
 			countQueryString = potentiallyRewriteQuery(countQueryString, accessor.getSort(), accessor.getPageable());
 			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
@@ -219,7 +223,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			return type.isInterface() ? Tuple.class : null;
 		}
 
-		return declaredQuery.get().hasConstructorExpression() //
+		return entityQuery.get().hasConstructorExpression() //
 				? null //
 				: super.getTypeToRead(returnedType);
 	}

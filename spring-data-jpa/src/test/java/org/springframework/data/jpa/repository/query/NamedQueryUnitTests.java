@@ -89,8 +89,7 @@ class NamedQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
-		assertThatExceptionOfType(QueryCreationException.class)
-				.isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, QueryRewriter.IdentityQueryRewriter.INSTANCE));
+		assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, QueryEnhancerSelector.DEFAULT_SELECTOR, QueryRewriter.IdentityQueryRewriter.INSTANCE));
 	}
 
 	@Test // DATAJPA-142
@@ -102,8 +101,7 @@ class NamedQueryUnitTests {
 
 		TypedQuery<Long> countQuery = mock(TypedQuery.class);
 		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
-		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE);
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em, QueryEnhancerSelector.DEFAULT_SELECTOR, QueryRewriter.IdentityQueryRewriter.INSTANCE);
 
 		query.doCreateCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[1]));
 		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName(), Long.class);
