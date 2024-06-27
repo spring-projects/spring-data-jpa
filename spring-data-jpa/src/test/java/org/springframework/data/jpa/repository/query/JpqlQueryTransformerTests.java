@@ -832,6 +832,6 @@ class JpqlQueryTransformerTests {
 	}
 
 	private QueryEnhancer newParser(String query) {
-		return JpaQueryEnhancer.forJpql(DeclaredQuery.of(query, false));
+		return JpaQueryEnhancer.forJpql(query);
 	}
 }

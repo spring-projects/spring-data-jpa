@@ -142,43 +142,34 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link DeclaredQuery} using JPQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using JPQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using JPQL.
 	 */
-	public static JpaQueryEnhancer<QueryInformation> forJpql(DeclaredQuery query) {
-
-		Assert.notNull(query, "DeclaredQuery must not be null!");
-
-		return JpqlQueryParser.parseQuery(query.getQueryString());
+	public static JpaQueryEnhancer<QueryInformation> forJpql(String query) {
+		return JpqlQueryParser.parseQuery(query);
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link DeclaredQuery} using HQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using HQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using HQL.
 	 */
-	public static JpaQueryEnhancer<HibernateQueryInformation> forHql(DeclaredQuery query) {
-
-		Assert.notNull(query, "DeclaredQuery must not be null!");
-
-		return HqlQueryParser.parseQuery(query.getQueryString());
+	public static JpaQueryEnhancer<HibernateQueryInformation> forHql(String query) {
+		return HqlQueryParser.parseQuery(query);
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link DeclaredQuery} using EQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using EQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using EQL.
 	 * @since 3.2
 	 */
-	public static JpaQueryEnhancer<QueryInformation> forEql(DeclaredQuery query) {
-
-		Assert.notNull(query, "DeclaredQuery must not be null!");
-
-		return EqlQueryParser.parseQuery(query.getQueryString());
+	public static JpaQueryEnhancer<QueryInformation> forEql(String query) {
+		return EqlQueryParser.parseQuery(query);
 	}
 
 	/**

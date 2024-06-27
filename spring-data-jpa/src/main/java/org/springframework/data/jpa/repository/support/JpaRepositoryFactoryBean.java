@@ -18,12 +18,18 @@ package org.springframework.data.jpa.repository.support;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.util.function.Function;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -46,10 +52,12 @@ import org.springframework.util.Assert;
 public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		extends TransactionalRepositoryFactoryBeanSupport<T, S, ID> {
 
+	private @Nullable BeanFactory beanFactory;
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 	private @Nullable JpaQueryMethodFactory queryMethodFactory;
+	private @Nullable Function<BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -73,6 +81,12 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	@Override
 	public void setMappingContext(MappingContext<?, ?> mappingContext) {
 		super.setMappingContext(mappingContext);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+		super.setBeanFactory(beanFactory);
 	}
 
 	/**
@@ -101,6 +115,43 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		}
 	}
 
+	/**
+	 * Configures the {@link QueryEnhancerSelector} to be used. Defaults to
+	 * {@link QueryEnhancerSelector#DEFAULT_SELECTOR}.
+	 *
+	 * @param queryEnhancerSelectorSource must not be {@literal null}.
+	 */
+	public void setQueryEnhancerSelectorSource(QueryEnhancerSelector queryEnhancerSelectorSource) {
+		this.queryEnhancerSelectorSource = bf -> queryEnhancerSelectorSource;
+	}
+
+	/**
+	 * Configures the {@link QueryEnhancerSelector} to be used.
+	 *
+	 * @param queryEnhancerSelectorType must not be {@literal null}.
+	 */
+	public void setQueryEnhancerSelector(Class<? extends QueryEnhancerSelector> queryEnhancerSelectorType) {
+
+		this.queryEnhancerSelectorSource = bf -> {
+
+			if (bf != null) {
+
+				ObjectProvider<? extends QueryEnhancerSelector> beanProvider = bf.getBeanProvider(queryEnhancerSelectorType);
+				QueryEnhancerSelector selector = beanProvider.getIfAvailable();
+
+				if (selector != null) {
+					return selector;
+				}
+
+				if (bf instanceof AutowireCapableBeanFactory acbf) {
+					return acbf.createBean(queryEnhancerSelectorType);
+				}
+			}
+
+			return BeanUtils.instantiateClass(queryEnhancerSelectorType);
+		};
+	}
+
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
@@ -114,15 +165,19 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
 
-		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
-		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
-		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
+		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
+		factory.setEntityPathResolver(entityPathResolver);
+		factory.setEscapeCharacter(escapeCharacter);
 
 		if (queryMethodFactory != null) {
-			jpaRepositoryFactory.setQueryMethodFactory(queryMethodFactory);
+			factory.setQueryMethodFactory(queryMethodFactory);
 		}
 
-		return jpaRepositoryFactory;
+		if (queryEnhancerSelectorSource != null) {
+			factory.setQueryEnhancerSelector(queryEnhancerSelectorSource.apply(beanFactory));
+		}
+
+		return factory;
 	}
 
 	@Override

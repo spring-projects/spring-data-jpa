@@ -34,7 +34,6 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -75,7 +74,8 @@ class NativeJpaQueryUnitTests {
 		Query annotation = AnnotatedElementUtils.getMergedAnnotation(respositoryMethod, Query.class);
 
 		NativeJpaQuery query = new NativeJpaQuery(queryMethod, em, annotation.value(), annotation.countQuery(),
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
+				new JpaQueryConfiguration(QueryRewriterProvider.simple(), QueryEnhancerSelector.DEFAULT_SELECTOR,
+						ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT));
 		String sql = query.getSortedQueryString(Sort.by("foo", "bar"), queryMethod.getResultProcessor().getReturnedType());
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");

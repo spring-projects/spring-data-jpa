@@ -52,7 +52,8 @@ class QueryParameterSetterFactoryUnitTests {
 
 	@Test // DATAJPA-1058
 	void noExceptionWhenQueryDoesNotContainNamedParameters() {
-		setterFactory.create(binding);
+		setterFactory.create(binding,
+				EntityQuery.introspectJpql("from Employee e", QueryEnhancerSelector.DEFAULT_SELECTOR));
 	}
 
 	@Test // DATAJPA-1058
@@ -61,26 +62,12 @@ class QueryParameterSetterFactoryUnitTests {
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter("NamedParameter", 1));
 
 		assertThatExceptionOfType(IllegalStateException.class) //
-				.isThrownBy(() -> setterFactory.create(binding
-				)) //
+				.isThrownBy(() -> setterFactory.create(binding,
+						EntityQuery.introspectJpql("from Employee e where e.name = :NamedParameter",
+								QueryEnhancerSelector.DEFAULT_SELECTOR))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
-	}
-
-	@Test // DATAJPA-1281
-	void exceptionWhenCriteriaQueryContainsInsufficientAmountOfParameters() {
-
-		// no parameter present in the criteria query
-		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forPartTreeQuery(parameters);
-
-		// one argument present in the method signature
-		when(binding.getRequiredPosition()).thenReturn(1);
-		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
-
-		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding)) //
-				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 
 	@Test // DATAJPA-1281
@@ -94,7 +81,10 @@ class QueryParameterSetterFactoryUnitTests {
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding)) //
+				.isThrownBy(
+						() -> setterFactory.create(binding,
+								EntityQuery.introspectJpql("from Employee e where e.name = ?1",
+										QueryEnhancerSelector.DEFAULT_SELECTOR))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 }

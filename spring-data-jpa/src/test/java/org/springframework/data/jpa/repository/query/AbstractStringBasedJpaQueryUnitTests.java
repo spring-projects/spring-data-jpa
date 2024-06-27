@@ -36,7 +36,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -55,6 +54,9 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  */
 class AbstractStringBasedJpaQueryUnitTests {
+
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT);
 
 	@Test // GH-3310
 	void shouldNotAttemptToAppendSortIfNoSortArgumentPresent() {
@@ -118,8 +120,8 @@ class AbstractStringBasedJpaQueryUnitTests {
 
 		Query query = AnnotatedElementUtils.getMergedAnnotation(respositoryMethod, Query.class);
 
-		return new InvocationCapturingStringQueryStub(respositoryMethod, queryMethod, query.value(), query.countQuery());
-
+		return new InvocationCapturingStringQueryStub(respositoryMethod, queryMethod, query.value(), query.countQuery(),
+				CONFIG);
 	}
 
 	static class InvocationCapturingStringQueryStub extends AbstractStringBasedJpaQuery {
@@ -128,7 +130,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 		private final MultiValueMap<String, Arguments> capturedArguments = new LinkedMultiValueMap<>(3);
 
 		InvocationCapturingStringQueryStub(Method targetMethod, JpaQueryMethod queryMethod, String queryString,
-				@Nullable String countQueryString) {
+				@Nullable String countQueryString, JpaQueryConfiguration queryConfiguration) {
 			super(queryMethod, new Supplier<EntityManager>() {
 
 				@Override
@@ -142,8 +144,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 
 					return em;
 				}
-			}.get(), queryString, countQueryString, Mockito.mock(QueryRewriter.class),
-					ValueExpressionDelegate.create());
+			}.get(), queryString, countQueryString, queryConfiguration);
 
 			this.targetMethod = targetMethod;
 		}

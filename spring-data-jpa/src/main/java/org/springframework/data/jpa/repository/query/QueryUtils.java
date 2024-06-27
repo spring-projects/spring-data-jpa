@@ -445,7 +445,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return Might return {@literal null}.
-	 * @deprecated use {@link DeclaredQuery#getAlias()} instead.
+	 * @deprecated use {@link IntrospectedQuery#getAlias()} instead.
 	 */
 	@Deprecated
 	public static @Nullable String detectAlias(String query) {
@@ -554,7 +554,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param originalQuery must not be {@literal null} or empty.
 	 * @return Guaranteed to be not {@literal null}.
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
+	 * @deprecated use {@link IntrospectedQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery) {
@@ -568,7 +568,7 @@ public abstract class QueryUtils {
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 1.6
-	 * @deprecated use {@link DeclaredQuery#deriveCountQuery(String)} instead.
+	 * @deprecated use {@link IntrospectedQuery#deriveCountQuery(String)} instead.
 	 */
 	@Deprecated
 	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection) {
