@@ -53,7 +53,7 @@ class JpaQueryTransformerSupport {
 	 * @param sort
 	 * @return
 	 */
-	List<QueryToken> orderBy(String primaryFromAlias, Sort sort) {
+	List<QueryToken> orderBy(@Nullable String primaryFromAlias, Sort sort) {
 
 		List<QueryToken> tokens = new ArrayList<>();
 
