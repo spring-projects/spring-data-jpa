@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed EQL query by applying
@@ -30,6 +31,7 @@ import org.springframework.util.Assert;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 3.2
  */
 @SuppressWarnings("ConstantValue")
@@ -67,7 +69,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
-		doVisitOrderBy(builder, ctx);
+		doVisitOrderBy(builder, ctx, ObjectUtils.isEmpty(ctx.setOperator()) ? this.sort : Sort.unsorted());
 
 		for (int i = 0; i < ctx.setOperator().size(); i++) {
 
@@ -78,7 +80,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		return builder;
 	}
 
-	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx) {
+	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx, Sort sort) {
 
 		if (ctx.orderby_clause() != null) {
 			QueryTokenStream existingOrder = visit(ctx.orderby_clause());
