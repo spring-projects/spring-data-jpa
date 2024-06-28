@@ -26,9 +26,9 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer
 /**
  * Tests built around examples of EQL found in the EclipseLink's docs at
  * https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL<br/>
- * With the exception of {@literal MOD} which is defined as {@literal MOD(arithmetic_expression , arithmetic_expression)},
- * but shown in tests as {@literal MOD(arithmetic_expression ? arithmetic_expression)}.
- * <br/>
+ * With the exception of {@literal MOD} which is defined as
+ * {@literal MOD(arithmetic_expression , arithmetic_expression)}, but shown in tests as
+ * {@literal MOD(arithmetic_expression ? arithmetic_expression)}. <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
@@ -415,7 +415,6 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT NULL OR e.active = true)");
 	}
 
-
 	@Test // GH-3496
 	void lateralShouldBeAValidParameter() {
 
@@ -442,13 +441,13 @@ class EqlComplianceTests {
 	}
 
 	@ParameterizedTest // GH-3136
-	@ValueSource(strings = {"STRING", "INTEGER", "FLOAT", "DOUBLE"})
+	@ValueSource(strings = { "STRING", "INTEGER", "FLOAT", "DOUBLE" })
 	void jpqlCast(String targetType) {
 		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
 	}
 
 	@ParameterizedTest // GH-3136
-	@ValueSource(strings = {"LEFT", "RIGHT"})
+	@ValueSource(strings = { "LEFT", "RIGHT" })
 	void leftRightStringFunctions(String keyword) {
 		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
 	}
