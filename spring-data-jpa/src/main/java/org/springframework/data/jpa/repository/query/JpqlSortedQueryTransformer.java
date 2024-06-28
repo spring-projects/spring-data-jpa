@@ -77,7 +77,11 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
-		doVisitOrderBy(builder, ctx);
+		if(ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		} else {
+			doVisitOrderBy(builder, ctx);
+		}
 
 		return builder;
 	}
