@@ -1727,6 +1727,22 @@ class UserRepositoryTests {
 		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
 	}
 
+	@Test // GH-3476
+	void unPageableQueryUnPagedSorted() {
+
+		flushTestUsers();
+
+		Page<User> firstPage = repository.findAll(PageRequest.of(0, 10));
+		assertThat(firstPage.getContent()).hasSize(4);
+		assertThat(firstPage.getTotalElements()).isEqualTo(4L);
+
+
+		Page<User> secondPage = repository.findAll(Pageable.unpaged(Sort.by(DESC, "age")));
+		assertThat(secondPage.getContent()).hasSize(4);
+		assertThat(secondPage.getContent()).containsExactly(thirdUser, secondUser, fourthUser, firstUser);
+		assertThat(secondPage.getTotalElements()).isEqualTo(4L);
+	}
+
 	@Test // DATAJPA-506
 	void invokesQueryWithWrapperType() {
 

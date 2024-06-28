@@ -428,6 +428,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	public Page<T> findAll(Pageable pageable) {
 
 		if (pageable.isUnpaged()) {
+			if(pageable.getSort().isSorted()) {
+				return new PageImpl<>(findAll(pageable.getSort()));
+			}
 			return new PageImpl<>(findAll());
 		}
 
