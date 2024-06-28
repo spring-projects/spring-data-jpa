@@ -68,6 +68,9 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 		if (ctx.having_clause() != null) {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
+		if(ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		}
 
 		return builder;
 	}
