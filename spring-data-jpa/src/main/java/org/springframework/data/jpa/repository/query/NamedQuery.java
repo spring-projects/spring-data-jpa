@@ -22,6 +22,8 @@ import jakarta.persistence.TypedQuery;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
@@ -51,13 +53,13 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final String countQueryName;
 	private final @Nullable String countProjection;
 	private final boolean namedCountQueryIsPresent;
-	private final Lazy<DeclaredQuery> declaredQuery;
+	private final Lazy<IntrospectedQuery> introspectedQuery;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
 	 */
-	private NamedQuery(JpaQueryMethod method, EntityManager em) {
+	private NamedQuery(JpaQueryMethod method, EntityManager em, QueryEnhancerSelector selector) {
 
 		super(method, em);
 
@@ -90,9 +92,12 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 
 		String queryString = extractor.extractQueryString(query);
+		org.springframework.data.jpa.repository.Query queryAnnotation = AnnotatedElementUtils
+				.findMergedAnnotation(method.getMethod(), org.springframework.data.jpa.repository.Query.class);
 
 		// TODO: Detect whether a named query is a native one.
-		this.declaredQuery = Lazy.of(() -> DeclaredQuery.of(queryString, query.toString().contains("NativeQuery")));
+		this.introspectedQuery = Lazy.of(() -> IntrospectedQuery.of(queryString,
+				(queryAnnotation != null && queryAnnotation.nativeQuery()) || query.toString().contains("NativeQuery")));
 		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
@@ -126,9 +131,10 @@ final class NamedQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
+	 * @param selector must not be {@literal null}.
 	 */
 	@Nullable
-	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
+	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em, QueryEnhancerSelector selector) {
 
 		final String queryName = method.getNamedQueryName();
 
@@ -146,7 +152,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		try {
 
-			RepositoryQuery query = new NamedQuery(method, em);
+			RepositoryQuery query = new NamedQuery(method, em, selector);
 			if (LOG.isDebugEnabled()) {
 				LOG.debug(String.format("Found named query %s", queryName));
 			}
@@ -188,7 +194,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		} else {
 
-			String countQueryString = declaredQuery.get().deriveCountQuery(countProjection).getQueryString();
+			String countQueryString = introspectedQuery.get().deriveCountQuery(countProjection).getQueryString();
 			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
@@ -220,7 +226,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			return type.isInterface() ? Tuple.class : null;
 		}
 
-		return declaredQuery.get().hasConstructorExpression() //
+		return introspectedQuery.get().hasConstructorExpression() //
 				? null //
 				: super.getTypeToRead(returnedType);
 	}

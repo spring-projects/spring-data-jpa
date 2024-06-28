@@ -798,6 +798,6 @@ class EqlQueryTransformerTests {
 	}
 
 	private QueryEnhancer newParser(String query) {
-		return JpaQueryEnhancer.forEql(DeclaredQuery.of(query, false));
+		return JpaQueryEnhancer.forEql(query);
 	}
 }

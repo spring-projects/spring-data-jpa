@@ -37,8 +37,8 @@ import org.springframework.data.domain.Sort;
 public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new JSqlParserQueryEnhancer(declaredQuery);
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+		return new JSqlParserQueryEnhancer(query);
 	}
 
 	@Override

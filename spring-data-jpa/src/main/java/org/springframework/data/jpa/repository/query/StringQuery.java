@@ -56,7 +56,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  */
-class StringQuery implements DeclaredQuery {
+class StringQuery implements IntrospectedQuery {
 
 	private final String query;
 	private final List<ParameterBinding> bindings;
@@ -64,6 +64,7 @@ class StringQuery implements DeclaredQuery {
 	private final boolean usesJdbcStyleParameters;
 	private final boolean isNative;
 	private final QueryEnhancer queryEnhancer;
+	private final QueryEnhancerSelector selector;
 	private final boolean hasNamedParameters;
 
 	/**
@@ -72,6 +73,15 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	public StringQuery(String query, boolean isNative) {
+		this(query, isNative, QueryEnhancerSelector.DEFAULT_SELECTOR);
+	}
+
+	/**
+	 * Creates a new {@link StringQuery} from the given JPQL query.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 */
+	StringQuery(String query, boolean isNative, QueryEnhancerSelector selector) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
@@ -84,7 +94,8 @@ class StringQuery implements DeclaredQuery {
 				this.bindings, queryMeta);
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
+		this.queryEnhancer = selector.select(this);
+		this.selector = selector;
 
 		boolean hasNamedParameters = false;
 		for (ParameterBinding parameterBinding : getParameterBindings()) {
@@ -114,10 +125,10 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection) {
+	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 
 		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
-				this.isNative);
+				this.isNative, this.selector);
 
 		if (this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
 			stringQuery.getParameterBindings().clear();

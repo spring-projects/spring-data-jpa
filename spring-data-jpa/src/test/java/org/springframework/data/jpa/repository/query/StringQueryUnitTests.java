@@ -707,12 +707,12 @@ class StringQueryUnitTests {
 
 	void checkNumberOfNamedParameters(String query, int expectedSize, String label, boolean nativeQuery) {
 
-		DeclaredQuery declaredQuery = DeclaredQuery.of(query, nativeQuery);
+		IntrospectedQuery introspectedQuery = IntrospectedQuery.of(query, nativeQuery);
 
-		assertThat(declaredQuery.hasNamedParameter()) //
+		assertThat(introspectedQuery.hasNamedParameter()) //
 				.describedAs("hasNamed Parameter " + label) //
 				.isEqualTo(expectedSize > 0);
-		assertThat(declaredQuery.getParameterBindings()) //
+		assertThat(introspectedQuery.getParameterBindings()) //
 				.describedAs("parameterBindings " + label) //
 				.hasSize(expectedSize);
 	}

@@ -78,7 +78,7 @@ class QueryEnhancerUnitTests {
 
 	@ParameterizedTest
 	@MethodSource("detectsAliasWithUCorrectlySource")
-	void detectsAliasWithUCorrectly(DeclaredQuery query, String alias) {
+	void detectsAliasWithUCorrectly(IntrospectedQuery query, String alias) {
 
 		assumeThat(query.getQueryString()).as("JsqlParser does not support simple JPA syntax.")
 				.doesNotStartWithIgnoringCase("from");
@@ -538,7 +538,7 @@ class QueryEnhancerUnitTests {
 
 	@ParameterizedTest // DATAJPA-1679
 	@MethodSource("findProjectionClauseWithDistinctSource")
-	void findProjectionClauseWithDistinct(DeclaredQuery query, String expected) {
+	void findProjectionClauseWithDistinct(IntrospectedQuery query, String expected) {
 
 		SoftAssertions.assertSoftly(sofly -> sofly.assertThat(getEnhancer(query).getProjection()).isEqualTo(expected));
 	}
@@ -696,7 +696,7 @@ class QueryEnhancerUnitTests {
 		assertThat(getEnhancer(originalQuery).createCountQueryFor()).isEqualToIgnoringCase(countQuery);
 	}
 
-	private static QueryEnhancer getEnhancer(DeclaredQuery query) {
+	private static QueryEnhancer getEnhancer(IntrospectedQuery query) {
 		return QueryEnhancerFactory.forQuery(query);
 	}
 

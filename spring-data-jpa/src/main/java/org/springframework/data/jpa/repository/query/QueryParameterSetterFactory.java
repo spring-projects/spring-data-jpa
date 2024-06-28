@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
 abstract class QueryParameterSetterFactory {
 
 	@Nullable
-	abstract QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery);
+	abstract QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery);
 
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
@@ -184,7 +184,7 @@ abstract class QueryParameterSetterFactory {
 
 		@Nullable
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
+		public QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery) {
 
 			if (!(binding.getOrigin()instanceof ParameterBinding.Expression e)) {
 				return null;
@@ -234,7 +234,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
+		public QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery) {
 
 			Assert.notNull(binding, "Binding must not be null");
 
@@ -245,7 +245,7 @@ abstract class QueryParameterSetterFactory {
 
 			BindingIdentifier identifier = mia.identifier();
 
-			if (declaredQuery.hasNamedParameter()) {
+			if (introspectedQuery.hasNamedParameter()) {
 				parameter = findParameterForBinding(parameters, identifier.getName());
 			} else {
 				parameter = findParameterForBinding(parameters, identifier.getPosition() - 1);
@@ -289,7 +289,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
+		public QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery) {
 
 			int parameterIndex = binding.getRequiredPosition() - 1;
 
