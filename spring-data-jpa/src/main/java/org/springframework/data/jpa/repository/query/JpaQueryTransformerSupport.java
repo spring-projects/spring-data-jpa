@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.NullHandling;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
@@ -75,6 +76,12 @@ class JpaQueryTransformerSupport {
 			builder.append(" ");
 
 			builder.append(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
+
+			if(order.getNullHandling() == NullHandling.NULLS_FIRST) {
+				builder.append(" NULLS FIRST");
+			} else if (order.getNullHandling() == NullHandling.NULLS_LAST) {
+				builder.append(" NULLS LAST");
+			}
 
 			if (!tokens.isEmpty()) {
 				tokens.add(TOKEN_COMMA);
