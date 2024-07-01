@@ -30,6 +30,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -75,6 +76,23 @@ class HqlQueryTransformerTests {
 
 		// then
 		assertThat(results).contains("ORDER BY e.role, e.hire_date, e.first_name asc, e.last_name asc");
+	}
+
+	@Test // GH-1280
+	void nullFirstLastSorting() {
+
+		// given
+		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.first_name asc NULLS FIRST";
+
+		assertThat(createQueryFor(original, Sort.unsorted())).isEqualTo(original);
+
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast())))
+			.startsWith(original)
+			.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
+
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst())))
+			.startsWith(original)
+			.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
 	}
 
 	@Test

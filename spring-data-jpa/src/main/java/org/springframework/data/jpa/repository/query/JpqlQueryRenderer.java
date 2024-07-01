@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import org.springframework.data.jpa.repository.query.JpqlParser.NullsPrecedenceContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 
@@ -795,7 +796,17 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.DESC()));
 		}
 
+		if(ctx.nullsPrecedence() != null) {
+			builder.append(visit(ctx.nullsPrecedence()));
+		}
+
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitNullsPrecedence(NullsPrecedenceContext ctx) {
+//		return QueryTokenStream.concat(ctx.children, it-> QueryRendererBuilder.from(QueryTokens.token(it.getText())), TOKEN_SPACE);
+		return QueryTokenStream.justAs(ctx.children, it-> QueryTokens.token(it.getText()));
 	}
 
 	@Override

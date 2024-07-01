@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Function;
 
+import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -52,6 +53,10 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	static <T> QueryTokenStream concat(Collection<T> elements, Function<T, QueryTokenStream> visitor,
 			QueryToken separator) {
 		return concat(elements, visitor, QueryRenderer::inline, separator);
+	}
+
+	static <T> QueryTokenStream justAs(Collection<T> elements, Function<T, QueryToken> converter) {
+		return concat(elements, it-> QueryRendererBuilder.from(converter.apply(it)), QueryRenderer::inline, QueryTokens.TOKEN_SPACE);
 	}
 
 	/**
