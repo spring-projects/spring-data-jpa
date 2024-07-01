@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-jpa-parent</artifactId>
-		<version>3.4.0-SNAPSHOT</version>
+		<version>3.4.x-GH-1280-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
