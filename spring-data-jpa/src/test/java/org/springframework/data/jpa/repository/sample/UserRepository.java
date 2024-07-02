@@ -189,6 +189,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByEmailAddressLike(String email, Sort sort);
 
+	List<User> findByEmailAddressLike(String email, Pageable pageable);
+
 	List<SpecialUser> findSpecialUsersByLastname(String lastname);
 
 	List<User> findBySpringDataNamedQuery(String lastname);

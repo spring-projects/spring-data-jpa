@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -2888,16 +2889,27 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-3476
-	void unPagedSortedQuery() {
+	void findAllUsingUnpagePageableWithSort() {
 
 		flushTestUsers();
 
 		Sort sort = Sort.by(DESC, "firstname");
 		Page<User> firstPage = repository.findAll(PageRequest.of(0, 10, sort));
 		Page<User> secondPage = repository.findAll(Pageable.unpaged(sort));
-		assertThat(firstPage.getContent()).isEqualTo(secondPage.getContent());
+		assertThat(firstPage.getContent()).containsExactlyElementsOf(secondPage.getContent());
 	}
 
+	@Test // GH-3476
+	void derivedFinderUsingUnpagedPageableWithSort() {
+
+		flushTestUsers();
+
+		List<User> sortedUsers = new ArrayList<>(List.of(firstUser, secondUser, thirdUser, fourthUser));
+		sortedUsers.sort(Comparator.comparing(User::getEmailAddress));
+
+		assertThat(repository.findByEmailAddressLike("%@%", Pageable.unpaged(Sort.by(Direction.ASC, "lastname"))))
+				.containsExactlyElementsOf(sortedUsers);
+	}
 
 	@Test // DATAJPA-905
 	void executesPagedSpecificationSettingAnOrder() {
