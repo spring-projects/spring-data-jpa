@@ -244,7 +244,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
 			 */
 
-			if (Collection.class.isInstance(ids)) {
+			if (ids instanceof Collection) {
 				query.setParameter("ids", ids);
 			} else {
 				Collection<ID> idsCollection = StreamSupport.stream(ids.spliterator(), false)
@@ -854,11 +854,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		LockModeType type = metadata.getLockModeType();
-		TypedQuery<S> toReturn = type == null ? query : query.setLockMode(type);
+		if (type != null) {
+			query.setLockMode(type);
+		}
 
-		applyQueryHints(toReturn);
+		applyQueryHints(query);
 
-		return toReturn;
+		return query;
 	}
 
 	private void applyQueryHints(Query query) {
