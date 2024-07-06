@@ -36,15 +36,7 @@ import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
-import org.springframework.data.jpa.repository.query.BeanFactoryQueryRewriterProvider;
-import org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory;
-import org.springframework.data.jpa.repository.query.EscapeCharacter;
-import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy;
-import org.springframework.data.jpa.repository.query.JpaQueryMethod;
-import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
-import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.data.jpa.repository.query.QueryRewriterProvider;
+import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
@@ -60,6 +52,7 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -80,6 +73,8 @@ import com.querydsl.core.types.EntityPath;
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
+	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
+
 	private final EntityManager entityManager;
 	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
@@ -87,6 +82,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private QueryEnhancerSelector queryEnhancerSelector = QueryEnhancerSelector.DEFAULT_SELECTOR;
 	private JpaQueryMethodFactory queryMethodFactory;
 	private QueryRewriterProvider queryRewriterProvider;
 
@@ -179,6 +175,19 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	/**
+	 * Configures the {@link QueryEnhancerSelector} to be used. Defaults to
+	 * {@link QueryEnhancerSelector#DEFAULT_SELECTOR}.
+	 *
+	 * @param queryEnhancerSelector must not be {@literal null}.
+	 */
+	public void setQueryEnhancerSelector(QueryEnhancerSelector queryEnhancerSelector) {
+
+		Assert.notNull(queryEnhancerSelector, "QueryEnhancerSelector must not be null");
+
+		this.queryEnhancerSelector = queryEnhancerSelector;
+	}
+
+	/**
 	 * Configures the {@link QueryRewriterProvider} to be used. Defaults to instantiate query rewriters through
 	 * {@link BeanUtils#instantiateClass(Class)}.
 	 *
@@ -238,8 +247,10 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
-		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, evaluationContextProvider,
-				queryRewriterProvider, escapeCharacter));
+		JpaQueryConfiguration configuration = new JpaQueryConfiguration(queryRewriterProvider, queryEnhancerSelector,
+				evaluationContextProvider, escapeCharacter, PARSER);
+
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, configuration));
 	}
 
 	@Override

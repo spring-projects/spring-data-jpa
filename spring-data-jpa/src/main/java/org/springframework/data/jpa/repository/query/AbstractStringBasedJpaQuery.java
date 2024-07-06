@@ -48,8 +48,8 @@ import org.springframework.util.StringUtils;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private final DeclaredQuery query;
-	private final Lazy<DeclaredQuery> countQuery;
+	private final IntrospectedQuery query;
+	private final Lazy<IntrospectedQuery> countQuery;
 	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
 	private final SpelExpressionParser parser;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
@@ -65,31 +65,20 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
 	 * @param countQueryString must not be {@literal null}.
-	 * @param evaluationContextProvider must not be {@literal null}.
-	 * @param parser must not be {@literal null}.
-	 * @param queryRewriter must not be {@literal null}.
+	 * @param queryConfiguration must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryRewriter queryRewriter,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			@Nullable String countQueryString, JpaQueryConfiguration queryConfiguration) {
 
 		super(method, em);
 
-		Assert.hasText(queryString, "Query string must not be null or empty");
-		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null");
-		Assert.notNull(parser, "Parser must not be null");
-		Assert.notNull(queryRewriter, "QueryRewriter must not be null");
-
-		this.evaluationContextProvider = evaluationContextProvider;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
-				method.isNativeQuery());
+		this.evaluationContextProvider = queryConfiguration.getEvaluationContextProvider();
+		this.query = ExpressionBasedStringQuery.create(queryString, method, queryConfiguration);
 
 		this.countQuery = Lazy.of(() -> {
 
 			if (StringUtils.hasText(countQueryString)) {
-
-				return new ExpressionBasedStringQuery(countQueryString, method.getEntityInformation(), parser,
-						method.isNativeQuery());
+				return ExpressionBasedStringQuery.create(countQueryString, method, queryConfiguration);
 			}
 
 			return query.deriveCountQuery(method.getCountQueryProjection());
@@ -99,8 +88,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return this.createBinder(this.countQuery.get());
 		});
 
-		this.parser = parser;
-		this.queryRewriter = queryRewriter;
+		this.parser = queryConfiguration.getParser();
+		this.queryRewriter = queryConfiguration.getQueryRewriter(method);
 
 		JpaParameters parameters = method.getParameters();
 		if (parameters.hasPageableParameter() || parameters.hasSortParameter()) {
@@ -135,7 +124,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return createBinder(query);
 	}
 
-	protected ParameterBinder createBinder(DeclaredQuery query) {
+	protected ParameterBinder createBinder(IntrospectedQuery query) {
 		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
 				evaluationContextProvider);
 	}
@@ -160,14 +149,14 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return the query
 	 */
-	public DeclaredQuery getQuery() {
+	public IntrospectedQuery getQuery() {
 		return query;
 	}
 
 	/**
 	 * @return the countQuery
 	 */
-	public DeclaredQuery getCountQuery() {
+	public IntrospectedQuery getCountQuery() {
 		return countQuery.get();
 	}
 
@@ -217,7 +206,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * Query Sort Rewriter interface.
 	 */
 	interface QuerySortRewriter {
-		String getSorted(DeclaredQuery query, Sort sort);
+		String getSorted(IntrospectedQuery query, Sort sort);
 	}
 
 	/**
@@ -226,7 +215,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	enum NoOpQuerySortRewriter implements QuerySortRewriter {
 		INSTANCE;
 
-		public String getSorted(DeclaredQuery query, Sort sort) {
+		public String getSorted(IntrospectedQuery query, Sort sort) {
 
 			if (sort.isSorted()) {
 				throw new UnsupportedOperationException("NoOpQueryCache does not support sorting");
@@ -245,7 +234,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				AbstractStringBasedJpaQuery.this::applySorting);
 
 		@Override
-		public String getSorted(DeclaredQuery query, Sort sort) {
+		public String getSorted(IntrospectedQuery query, Sort sort) {
 
 			if (sort.isUnsorted()) {
 				return query.getQueryString();
@@ -264,19 +253,19 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 */
 	static class CachableQuery {
 
-		private final DeclaredQuery declaredQuery;
+		private final IntrospectedQuery introspectedQuery;
 		private final String queryString;
 		private final Sort sort;
 
-		CachableQuery(DeclaredQuery query, Sort sort) {
+		CachableQuery(IntrospectedQuery query, Sort sort) {
 
-			this.declaredQuery = query;
+			this.introspectedQuery = query;
 			this.queryString = query.getQueryString();
 			this.sort = sort;
 		}
 
-		DeclaredQuery getDeclaredQuery() {
-			return declaredQuery;
+		IntrospectedQuery getDeclaredQuery() {
+			return introspectedQuery;
 		}
 
 		Sort getSort() {
@@ -285,7 +274,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		@Nullable
 		String getAlias() {
-			return declaredQuery.getAlias();
+			return introspectedQuery.getAlias();
 		}
 
 		@Override

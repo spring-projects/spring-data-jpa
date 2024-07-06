@@ -85,7 +85,7 @@ class ParameterBinderFactory {
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link jakarta.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, IntrospectedQuery query,
 			SpelExpressionParser parser, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
@@ -124,26 +124,26 @@ class ParameterBinderFactory {
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
 			QueryParameterSetterFactory... factories) {
-		return createSetters(parameterBindings, EmptyDeclaredQuery.EMPTY_QUERY, factories);
+		return createSetters(parameterBindings, EmptyIntrospectedQuery.EMPTY_QUERY, factories);
 	}
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
-			DeclaredQuery declaredQuery, QueryParameterSetterFactory... strategies) {
+			IntrospectedQuery query, QueryParameterSetterFactory... strategies) {
 
 		List<QueryParameterSetter> setters = new ArrayList<>(parameterBindings.size());
 		for (ParameterBinding parameterBinding : parameterBindings) {
-			setters.add(createQueryParameterSetter(parameterBinding, strategies, declaredQuery));
+			setters.add(createQueryParameterSetter(parameterBinding, strategies, query));
 		}
 
 		return setters;
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, DeclaredQuery declaredQuery) {
+			QueryParameterSetterFactory[] strategies, IntrospectedQuery query) {
 
 		for (QueryParameterSetterFactory strategy : strategies) {
 
-			QueryParameterSetter setter = strategy.create(binding, declaredQuery);
+			QueryParameterSetter setter = strategy.create(binding, query);
 
 			if (setter != null) {
 				return setter;

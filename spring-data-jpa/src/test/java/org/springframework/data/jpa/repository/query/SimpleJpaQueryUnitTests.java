@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +47,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.jpa.repository.query.JpaQueryLookupStrategy.DeclaredQueryLookupStrategy;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -76,9 +77,11 @@ import org.springframework.lang.Nullable;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SimpleJpaQueryUnitTests {
 
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, QueryMethodEvaluationContextProvider.DEFAULT, EscapeCharacter.DEFAULT,
+			new SpelExpressionParser());
+
 	private static final String USER_QUERY = "select u from User u";
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
 
 	private JpaQueryMethod method;
 
@@ -122,8 +125,7 @@ class SimpleJpaQueryUnitTests {
 				extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null, CONFIG);
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -138,7 +140,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
+				CONFIG);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -152,9 +154,8 @@ class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER);
+		AbstractJpaQuery jpaQuery = DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em,
+				queryMethod.getAnnotatedQuery(), null, CONFIG);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -172,9 +173,7 @@ class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("findByLastnameNativeAnnotation", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER);
+		AbstractJpaQuery jpaQuery = createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(), null);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -293,8 +292,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				"select count(u.id) from #{#entityName} u", QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER, PARSER);
+				"select count(u.id) from #{#entityName} u", CONFIG);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -306,16 +304,17 @@ class SimpleJpaQueryUnitTests {
 		return createJpaQuery(method, null);
 	}
 
-	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString, @Nullable String countQueryString) {
+	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString,
+			@Nullable String countQueryString) {
 
-		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryString, countQueryString,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER);
+		return DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em, queryString, countQueryString, CONFIG);
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(), countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
+		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(),
+				countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
 	}
 
 	interface SampleRepository {
@@ -350,8 +349,8 @@ class SimpleJpaQueryUnitTests {
 		@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
 		List<User> findAllWithExpressionInCountQuery(Pageable pageable);
 
-
-		@Query(value = "select u from User u", countQuery = "select count(u.id) from #{#entityName} u where u.name = :#{#arg0}")
+		@Query(value = "select u from User u",
+				countQuery = "select count(u.id) from #{#entityName} u where u.name = :#{#arg0}")
 		List<User> findAllWithBindingsOnlyInCountQuery(String arg0, Pageable pageable);
 
 		// Typo in named parameter
