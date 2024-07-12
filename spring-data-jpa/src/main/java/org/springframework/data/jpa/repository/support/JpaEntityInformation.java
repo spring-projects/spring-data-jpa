@@ -30,6 +30,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, JpaEntityMetadata<T> {
 
@@ -79,7 +80,8 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	Object getCompositeIdAttributeValue(Object id, String idAttribute);
 
 	/**
-	 * Extract a keyset for {@code propertyPaths} and the primary key (including composite key components if applicable).
+	 * Extract a keyset for {@code propertyPaths}, and the primary key (including composite key components if applicable)
+	 * if {@code propertyPaths} is not qualified.
 	 *
 	 * @param propertyPaths the property paths that make up the keyset in combination with the composite key components.
 	 * @param entity the entity to extract values from
@@ -87,4 +89,15 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * @since 3.1
 	 */
 	Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity);
+
+	/**
+	 * Determine whether propertyPaths is qualified for keyset.
+	 *
+	 * @param propertyPaths the property paths that make up the keyset in combination with the composite key components.
+	 * @return {@code propertyPaths} is qualified for keyset.
+	 * @since 3.2
+	 */
+	default boolean isKeysetQualified(Iterable<String> propertyPaths) {
+		return false;
+	}
 }
