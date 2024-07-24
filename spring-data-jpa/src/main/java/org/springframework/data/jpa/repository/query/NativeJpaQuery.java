@@ -22,7 +22,6 @@ import jakarta.persistence.Tuple;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
@@ -56,12 +55,6 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 			SpelExpressionParser parser) {
 
 		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
-
-		Parameters<?, ?> parameters = method.getParameters();
-
-		if (parameters.hasSortParameter() && !queryString.contains("#sort")) {
-			throw new InvalidJpaQueryMethodException("Cannot use native queries with dynamic sorting in method " + method);
-		}
 	}
 
 	@Override
