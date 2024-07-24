@@ -97,20 +97,6 @@ class JpaQueryLookupStrategyUnitTests {
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries));
 	}
 
-	@Test // DATAJPA-554
-	void sholdThrowMorePreciseExceptionIfTryingToUsePaginationInNativeQueries() throws Exception {
-
-		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				EVALUATION_CONTEXT_PROVIDER, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
-		Method method = UserRepository.class.getMethod("findByInvalidNativeQuery", String.class, Sort.class);
-		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
-
-		assertThatExceptionOfType(InvalidJpaQueryMethodException.class)
-				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
-				.withMessageContaining("Cannot use native queries with dynamic sorting in method")
-				.withMessageContaining(method.toString());
-	}
-
 	@Test // GH-2217
 	void considersNamedCountQuery() throws Exception {
 
@@ -230,9 +216,6 @@ class JpaQueryLookupStrategyUnitTests {
 
 		@Query("something absurd")
 		User findByFoo(String foo);
-
-		@Query(value = "select u.* from User u", nativeQuery = true)
-		List<User> findByInvalidNativeQuery(String param, Sort sort);
 
 		@Query(countName = "foo.count")
 		Page<User> findByNamedQuery(String foo, Pageable pageable);
