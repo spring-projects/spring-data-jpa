@@ -15,8 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.data.domain.Sort;
 
 /**
  * TCK Tests for {@link DefaultQueryEnhancer}.
@@ -34,4 +38,14 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-2511, GH-2773
 	@Disabled("Not properly supported by QueryUtils")
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
+
+	@Test // GH-3546
+	void shouldApplySorting() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+
+		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
+
+		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
+	}
 }

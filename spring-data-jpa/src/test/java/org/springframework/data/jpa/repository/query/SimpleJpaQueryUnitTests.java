@@ -38,10 +38,10 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
@@ -161,13 +161,6 @@ class SimpleJpaQueryUnitTests {
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
 		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
-	}
-
-	@Test // DATAJPA-554
-	void rejectsNativeQueryWithDynamicSort() throws Exception {
-
-		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class, Sort.class);
-		assertThatExceptionOfType(InvalidJpaQueryMethodException.class).isThrownBy(() -> createJpaQuery(method));
 	}
 
 	@Test // DATAJPA-352
@@ -299,9 +292,6 @@ class SimpleJpaQueryUnitTests {
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname);
-
-		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
-		List<User> findNativeByLastname(String lastname, Sort sort);
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname, Pageable pageable);

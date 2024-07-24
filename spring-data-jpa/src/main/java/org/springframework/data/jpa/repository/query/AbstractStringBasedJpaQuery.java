@@ -117,7 +117,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		Sort sort = accessor.getSort();
-		String sortedQueryString = querySortRewriter.getSorted(query, sort);
+		String sortedQueryString = getSortedQueryString(sort);
 
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 
@@ -128,6 +128,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
+	}
+
+	String getSortedQueryString(Sort sort) {
+		return querySortRewriter.getSorted(query, sort);
 	}
 
 	@Override

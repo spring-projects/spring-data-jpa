@@ -41,6 +41,16 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		return new JSqlParserQueryEnhancer(declaredQuery);
 	}
 
+	@Test // GH-3546
+	void shouldApplySorting() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+
+		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
+
+		assertThat(sql).isEqualTo("SELECT e FROM Employee e ORDER BY e.foo ASC, e.bar ASC");
+	}
+
 	@Override
 	@ParameterizedTest // GH-2773
 	@MethodSource("jpqlCountQueries")
@@ -237,4 +247,5 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 						"merge into a using (select id2, value from b) on (id = id2) when matched then update set a.value = value",
 						null));
 	}
+
 }
