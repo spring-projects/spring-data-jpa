@@ -302,7 +302,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
   Page<User> findByLastname(String lastname, Pageable pageable);
 }
 ----
-
 ====
 
 A similar approach also works with named native queries, by adding the `.count` suffix to a copy of your query. You probably need to register a result set mapping for your count query, though.
