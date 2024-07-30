@@ -10,7 +10,6 @@ target/
 .DS_Store
 node_modules
 package-lock.json
-package.json
 node
 build/
 .mvn/.gradle-enterprise
