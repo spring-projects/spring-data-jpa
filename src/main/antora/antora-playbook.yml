@@ -3,12 +3,11 @@
 # The purpose of this Antora playbook is to build the docs in the current branch.
 antora:
   extensions:
-    - '@antora/collector-extension'
-    - require: '@springio/antora-extensions/root-component-extension'
+    - require: '@springio/antora-extensions'
       root_component_name: 'data-jpa'
 site:
   title: Spring Data JPA
-  url: https://docs.spring.io/spring-data/jpa/reference/
+  url: https://docs.spring.io/spring-data/jpa/reference
 content:
   sources:
     - url: ./../../..
@@ -22,13 +21,12 @@ content:
       start_path: src/main/antora
 asciidoc:
   attributes:
-    page-pagination: ''
     hide-uri-scheme: '@'
     tabs-sync-option: '@'
-    chomp: 'all'
   extensions:
     - '@asciidoctor/tabs'
     - '@springio/asciidoctor-extensions'
+    - '@springio/asciidoctor-extensions/javadoc-extension'
   sourcemap: true
 urls:
   latest_version_segment: ''
@@ -38,5 +36,5 @@ runtime:
     format: pretty
 ui:
   bundle:
-    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.3.3/ui-bundle.zip
+    url: https://github.com/spring-io/antora-ui-spring/releases/download/v0.4.16/ui-bundle.zip
     snapshot: true
