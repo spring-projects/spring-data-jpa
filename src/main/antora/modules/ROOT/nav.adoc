@@ -32,4 +32,5 @@
 ** xref:envers/configuration.adoc[]
 ** xref:envers/usage.adoc[]
 
-* https://github.com/spring-projects/spring-data-commons/wiki[Wiki]
+* xref:attachment$api/java/index.html[Javadoc,role=link-external, window=_blank]
+* https://github.com/spring-projects/spring-data-commons/wiki[Wiki,role=link-external, window=_blank]
