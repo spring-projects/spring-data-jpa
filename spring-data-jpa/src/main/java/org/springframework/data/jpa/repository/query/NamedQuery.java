@@ -130,7 +130,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	@Nullable
 	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
 
-		final String queryName = method.getNamedQueryName();
+		String queryName = method.getNamedQueryName();
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Looking up named query %s", queryName));
@@ -144,16 +144,11 @@ final class NamedQuery extends AbstractJpaQuery {
 			throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
 		}
 
-		try {
-
-			RepositoryQuery query = new NamedQuery(method, em);
-			if (LOG.isDebugEnabled()) {
-				LOG.debug(String.format("Found named query %s", queryName));
-			}
-			return query;
-		} catch (IllegalArgumentException e) {
-			return null;
+		RepositoryQuery query = new NamedQuery(method, em);
+		if (LOG.isDebugEnabled()) {
+			LOG.debug(String.format("Found named query %s", queryName));
 		}
+		return query;
 	}
 
 	@Override
