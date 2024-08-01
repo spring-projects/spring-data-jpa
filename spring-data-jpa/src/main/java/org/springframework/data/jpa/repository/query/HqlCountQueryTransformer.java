@@ -15,12 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_AS;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COUNT_FUNC;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_UNDERSCORE;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_OPEN_PAREN;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_SELECT_COUNT;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
@@ -209,6 +204,22 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
+	public QueryTokenStream visitSelection(HqlParser.SelectionContext ctx) {
+
+		if (isSubquery(ctx)) {
+			return super.visitSelection(ctx);
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.selectExpression()));
+
+		// do not append variables to skip AS field aliasing
+
+		return builder;
+	}
+
+	@Override
 	public QueryRendererBuilder visitQueryOrder(HqlParser.QueryOrderContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
@@ -247,7 +258,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			nested.append(QueryTokens.token(primaryFromAlias));
 		} else {
 			// keep all the select items to distinct against
-			nested.append(countSelection);
+			nested.append(selectionListbuilder);
 		}
 		return nested;
 	}

@@ -90,6 +90,23 @@ class HqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3536
+	void shouldCreateCountQueryForDistinctCount() {
+
+		// given
+		var original = """
+				select distinct cast(e.timestampField as date) as foo
+				from ExampleEntity e
+				order by cast(e.timestampField as date) desc
+				""";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(distinct cast(e.timestampField as date)) from ExampleEntity e");
+	}
+
 	@Test
 	void applyCountToMoreComplexQuery() {
 
