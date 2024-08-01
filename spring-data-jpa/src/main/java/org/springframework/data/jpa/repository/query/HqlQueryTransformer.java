@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.HqlParser.SelectionContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -332,6 +333,17 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 	}
 
 	@Override
+	public List<JpaQueryParsingToken> visitSelection(SelectionContext ctx) {
+
+		if(!countQuery || isSubquery(ctx)) {
+			return super.visitSelection(ctx);
+		}
+
+		// do not append variables to skip AS field aliasing
+		return visit(ctx.selectExpression());
+	}
+
+	@Override
 	public List<JpaQueryParsingToken> visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
 		List<JpaQueryParsingToken> tokens = newArrayList();
@@ -339,6 +351,7 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 		tokens.add(new JpaQueryParsingToken(ctx.SELECT()));
 
 		if (countQuery && !isSubquery(ctx)) {
+
 			tokens.add(TOKEN_COUNT_FUNC);
 
 			if (countProjection != null) {
@@ -358,14 +371,12 @@ class HqlQueryTransformer extends HqlQueryRenderer {
 
 				if (ctx.DISTINCT() != null) {
 
-					List<JpaQueryParsingToken> countSelection = QueryTransformers.filterCountSelection(selectionListTokens);
-
-					if (countSelection.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
+					if (selectionListTokens.stream().anyMatch(hqlToken -> hqlToken.getToken().contains("new"))) {
 						// constructor
 						tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));
 					} else {
 						// keep all the select items to distinct against
-						tokens.addAll(countSelection);
+						tokens.addAll(selectionListTokens);
 					}
 				} else {
 					tokens.add(new JpaQueryParsingToken(() -> primaryFromAlias));

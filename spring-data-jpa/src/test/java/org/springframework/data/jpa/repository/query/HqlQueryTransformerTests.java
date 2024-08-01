@@ -85,6 +85,23 @@ class HqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3536
+	void shouldCreateCountQueryForDistinctCount() {
+
+		// given
+		var original = """
+				select distinct cast(e.timestampField as date) as foo
+				from ExampleEntity e
+				order by cast(e.timestampField as date) desc
+				""";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(distinct cast(e.timestampField as date)) from ExampleEntity e");
+	}
+
 	@Test
 	void applyCountToMoreComplexQuery() {
 
@@ -1037,9 +1054,9 @@ class HqlQueryTransformerTests {
 
 		assertCountQuery("select distinct 1 as x from Employee","select count(distinct 1) from Employee AS __");
 		assertCountQuery("SELECT DISTINCT abc AS x FROM T","SELECT count(DISTINCT abc) FROM T AS __");
-		assertCountQuery("select distinct a as x, b as y from Employee","select count(distinct a , b) from Employee AS __");
+		assertCountQuery("select distinct a as x, b as y from Employee","select count(distinct a, b) from Employee AS __");
 		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n","select count(distinct sum(amount)) from Employee AS __ GROUP BY n");
-		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n","select count(distinct a, b, sum(amount) , d) from Employee AS __ GROUP BY n");
+		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n","select count(distinct a, b, sum(amount), d) from Employee AS __ GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n","select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
 	}
 
