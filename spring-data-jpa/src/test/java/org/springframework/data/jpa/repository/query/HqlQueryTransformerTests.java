@@ -86,6 +86,23 @@ class HqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3536
+	void shouldCreateCountQueryForDistinctCount() {
+
+		// given
+		var original = """
+				select distinct cast(e.timestampField as date) as foo
+				from ExampleEntity e
+				order by cast(e.timestampField as date) desc
+				""";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(distinct cast(e.timestampField as date)) from ExampleEntity e");
+	}
+
 	@Test
 	void applyCountToMoreComplexQuery() {
 
@@ -701,11 +718,9 @@ class HqlQueryTransformerTests {
 				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
 
 		// partition by + order by in over clause
-		assertThat(
-				createQueryFor(
-						"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u",
-						sort))
-				.isEqualTo(
+		assertThat(createQueryFor(
+				"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u",
+				sort)).isEqualTo(
 						"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u order by u.age desc");
 
 		// partition by + order by in over clause + order by at the end
