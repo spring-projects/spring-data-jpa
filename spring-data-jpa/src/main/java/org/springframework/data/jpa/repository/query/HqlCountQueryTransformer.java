@@ -251,7 +251,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
 
 		QueryRendererBuilder nested = new QueryRendererBuilder();
-		CountSelectionTokenStream countSelection = QueryTransformers.filterCountSelection(selectionListbuilder);
+		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
 			// constructor

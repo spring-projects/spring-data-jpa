@@ -29,46 +29,46 @@ import java.util.List;
  */
 class QueryTransformers {
 
-	static CountSelectionTokenStream filterCountSelection(QueryTokenStream selection) {
-
-		List<QueryToken> target = new ArrayList<>(selection.size());
-		boolean skipNext = false;
-		boolean containsNew = false;
-
-		for (QueryToken token : selection) {
-
-			if (skipNext) {
-				skipNext = false;
-				continue;
-			}
-
-			if (token.equals(TOKEN_AS)) {
-				skipNext = true;
-				continue;
-			}
-
-			if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
-				token = QueryTokens.token(token.value());
-			}
-
-			if (!containsNew && token.value().contains("new")) {
-				containsNew = true;
-			}
-
-			target.add(token);
-		}
-
-		return new CountSelectionTokenStream(target, containsNew);
-	}
-
 	static class CountSelectionTokenStream implements QueryTokenStream {
 
 		private final List<QueryToken> tokens;
 		private final boolean requiresPrimaryAlias;
 
-		public CountSelectionTokenStream(List<QueryToken> tokens, boolean requiresPrimaryAlias) {
+		CountSelectionTokenStream(List<QueryToken> tokens, boolean requiresPrimaryAlias) {
 			this.tokens = tokens;
 			this.requiresPrimaryAlias = requiresPrimaryAlias;
+		}
+
+		static CountSelectionTokenStream create(QueryTokenStream selection) {
+
+			List<QueryToken> target = new ArrayList<>(selection.size());
+			boolean skipNext = false;
+			boolean containsNew = false;
+
+			for (QueryToken token : selection) {
+
+				if (skipNext) {
+					skipNext = false;
+					continue;
+				}
+
+				if (token.equals(TOKEN_AS)) {
+					skipNext = true;
+					continue;
+				}
+
+				if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
+					token = QueryTokens.token(token.value());
+				}
+
+				if (!containsNew && token.value().contains("new")) {
+					containsNew = true;
+				}
+
+				target.add(token);
+			}
+
+			return new CountSelectionTokenStream(target, containsNew);
 		}
 
 		@Override
