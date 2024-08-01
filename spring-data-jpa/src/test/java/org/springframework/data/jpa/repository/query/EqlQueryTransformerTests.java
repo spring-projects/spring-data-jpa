@@ -98,7 +98,7 @@ class EqlQueryTransformerTests {
 	}
 
 	@Test
-	void applyCountToAlreadySorteQuery() {
+	void applyCountToAlreadySortedQuery() {
 
 		// given
 		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.modified_date";

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_CLOSE_PAREN;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COUNT_FUNC;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
@@ -98,7 +96,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
 
 		QueryRendererBuilder nested = new QueryRendererBuilder();
-		CountSelectionTokenStream countSelection = QueryTransformers.filterCountSelection(selectionListbuilder);
+		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
 			// constructor

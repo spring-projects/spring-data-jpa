@@ -96,7 +96,7 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
 
 		QueryRendererBuilder nested = new QueryRendererBuilder();
-		CountSelectionTokenStream countSelection = QueryTransformers.filterCountSelection(selectionListbuilder);
+		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
 			// constructor
