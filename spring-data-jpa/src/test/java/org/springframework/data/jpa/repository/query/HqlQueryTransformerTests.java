@@ -705,11 +705,9 @@ class HqlQueryTransformerTests {
 				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
 
 		// partition by + order by in over clause
-		assertThat(
-				createQueryFor(
-						"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u",
-						sort))
-				.isEqualTo(
+		assertThat(createQueryFor(
+				"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u",
+				sort)).isEqualTo(
 						"select dense_rank() over (partition by active, age order by lastname range between 1.0 preceding and 1.0 following) from user u order by u.age desc");
 
 		// partition by + order by in over clause + order by at the end
@@ -1068,19 +1066,23 @@ class HqlQueryTransformerTests {
 	@Test // GH-3427
 	void sortShouldBeAppendedWithSpacingInCaseOfSetOperator() {
 
-        String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
+		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B') UNION SELECT tb FROM Test tb WHERE (tb.type='C')";
 		String target = createQueryFor(source, Sort.by("Type").ascending());
-		
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+
+		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
+				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') " //
+				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
 	}
 
 	@ParameterizedTest // GH-3427
-	@ValueSource(strings = {"", "res"})
+	@ValueSource(strings = { "", "res" })
 	void sortShouldBeAppendedToSubSelectWithSetOperatorInSubselect(String alias) {
 
 		String prefix = StringUtils.hasText(alias) ? (alias + ".") : "";
-		String source = "SELECT %sname FROM (SELECT c.name as name FROM Category c UNION SELECT t.name as name FROM Tag t)".formatted(prefix);
-		if(StringUtils.hasText(alias)) {
+		String source = "SELECT %sname FROM (SELECT c.name as name FROM Category c UNION SELECT t.name as name FROM Tag t)"
+				.formatted(prefix);
+
+		if (StringUtils.hasText(alias)) {
 			source = source + " %s".formatted(alias);
 		}
 
@@ -1088,10 +1090,10 @@ class HqlQueryTransformerTests {
 
 		assertThat(target).contains(" UNION SELECT ").doesNotContainPattern(Pattern.compile(".*\\SUNION"));
 		assertThat(target).endsWith("order by %sname asc".formatted(prefix)).satisfies(it -> {
-			Pattern pattern = Pattern.compile("order by %sname".formatted(prefix));
+			Pattern pattern = Pattern.compile("order by");
 			Matcher matcher = pattern.matcher(target);
 			int count = 0;
-			while(matcher.find()) {
+			while (matcher.find()) {
 				count++;
 			}
 			assertThat(count).describedAs("Found order by clause more than once in: \n%s", it).isOne();

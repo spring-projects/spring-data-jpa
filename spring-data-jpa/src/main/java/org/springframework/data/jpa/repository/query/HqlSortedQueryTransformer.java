@@ -47,10 +47,10 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		this.primaryFromAlias = primaryFromAlias;
 	}
 
-
+	@Override
 	public QueryTokenStream visitQueryExpression(HqlParser.QueryExpressionContext ctx) {
 
-		if(ObjectUtils.isEmpty(ctx.setOperator())) {
+		if (ObjectUtils.isEmpty(ctx.setOperator())) {
 			return super.visitQueryExpression(ctx);
 		}
 
@@ -59,14 +59,19 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 			builder.appendExpression(visit(ctx.withClause()));
 		}
 
-		builder.append(visitOrderedQuery(ctx.orderedQuery(0), Sort.unsorted()));
+		List<HqlParser.OrderedQueryContext> orderedQueries = ctx.orderedQuery();
+		for (int i = 0; i < orderedQueries.size(); i++) {
 
-		for (int i = 1; i < ctx.orderedQuery().size(); i++) {
+			if (i != 0) {
+				builder.append(visit(ctx.setOperator(i - 1)));
+			}
 
-			builder.append(visit(ctx.setOperator(i - 1)));
-			builder.append(visit(ctx.orderedQuery(i)));
+			if (i == orderedQueries.size() - 1) {
+				builder.append(visitOrderedQuery(ctx.orderedQuery(i), this.sort));
+			} else {
+				builder.append(visitOrderedQuery(ctx.orderedQuery(i), Sort.unsorted()));
+			}
 		}
-
 
 		return builder;
 	}
@@ -81,7 +86,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		QueryTokenStream tokens = super.visitJoinPath(ctx);
 
-		if (ctx.variable() != null  && !isSubquery(ctx)) {
+		if (ctx.variable() != null && !isSubquery(ctx)) {
 			transformerSupport.registerAlias(tokens.getLast());
 		}
 
@@ -93,7 +98,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		QueryTokenStream tokens = super.visitJoinSubquery(ctx);
 
-		if (ctx.variable() != null && !tokens.isEmpty()  && !isSubquery(ctx)) {
+		if (ctx.variable() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
 			transformerSupport.registerAlias(tokens.getLast());
 		}
 
@@ -105,7 +110,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		QueryTokenStream tokens = super.visitVariable(ctx);
 
-		if (ctx.identifier() != null && !tokens.isEmpty()  && !isSubquery(ctx)) {
+		if (ctx.identifier() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
 			transformerSupport.registerAlias(tokens.getLast());
 		}
 

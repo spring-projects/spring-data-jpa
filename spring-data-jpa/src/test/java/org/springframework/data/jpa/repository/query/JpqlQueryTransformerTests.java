@@ -198,16 +198,6 @@ class JpqlQueryTransformerTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
 
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
-		//
 		assertThat(newParser("""
 				select u
 				from user u

@@ -98,7 +98,7 @@ class EqlQueryTransformerTests {
 	}
 
 	@Test
-	void applyCountToAlreadySorteQuery() {
+	void applyCountToAlreadySortedQuery() {
 
 		// given
 		var original = "SELECT e FROM Employee e where e.name = :name ORDER BY e.modified_date";
@@ -762,10 +762,12 @@ class EqlQueryTransformerTests {
 	@Test // GH-3427
 	void sortShouldBeAppendedToFullSelectOnlyInCaseOfSetOperator() {
 
-		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
+		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B') UNION SELECT tb FROM Test tb WHERE (tb.type='C')";
 		String target = createQueryFor(source, Sort.by("Type").ascending());
 
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
+				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') " //
+				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
