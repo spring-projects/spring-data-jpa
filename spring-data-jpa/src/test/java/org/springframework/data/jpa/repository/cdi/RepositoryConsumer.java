@@ -36,6 +36,9 @@ class RepositoryConsumer {
 
 	public void save(Person person) {
 		unqualifiedRepo.save(person);
+	}
+
+	public void saveUserDb(Person person) {
 		qualifiedRepo.save(person);
 	}
 
