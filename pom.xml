@@ -35,6 +35,7 @@
 		<hibernate-65-snapshots>6.5.3-SNAPSHOT</hibernate-65-snapshots>
 		<hibernate-66>6.6.0.CR1</hibernate-66>
 		<hibernate-66-snapshots>6.6.0-SNAPSHOT</hibernate-66-snapshots>
+		<hibernate-70>7.0.0.Beta1</hibernate-70>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
@@ -90,6 +91,22 @@
 			<id>hibernate-66-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-66-snapshots}</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-oss</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-70</id>
+			<properties>
+				<hibernate>${hibernate-70}</hibernate>
+				<jakarta-persistence-api>3.2.0-M2</jakarta-persistence-api>
 			</properties>
 			<repositories>
 				<repository>
