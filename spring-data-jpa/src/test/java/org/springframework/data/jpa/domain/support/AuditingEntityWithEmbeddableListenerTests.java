@@ -17,9 +17,6 @@ package org.springframework.data.jpa.domain.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.time.Instant;
-import java.util.Optional;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +31,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * Integration test for {@link AuditingEntityListener}.
  *
  * @author Greg Turnquist
+ * @author Oliver Drotbohm
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:auditing/auditing-entity-with-embeddable-listener.xml")
@@ -48,7 +46,6 @@ class AuditingEntityWithEmbeddableListenerTests {
 	void setUp() {
 
 		entity = new AuditableEntity();
-		entity.setId(1L);
 		entity.setData("original value");
 
 		auditDetails = new AuditableEmbeddable();
@@ -60,32 +57,30 @@ class AuditingEntityWithEmbeddableListenerTests {
 
 		// when
 		repository.saveAndFlush(entity);
-		Optional<AuditableEntity> optionalEntity = repository.findById(1L);
 
 		// then
-		assertThat(optionalEntity).isNotEmpty();
 
-		AuditableEntity auditableEntity = optionalEntity.get();
-		assertThat(auditableEntity.getData()).isEqualTo("original value");
+		assertThat(repository.findById(1L)).hasValueSatisfying(it -> {
 
-		assertThat(auditableEntity.getAuditDetails().getDateCreated()).isNotNull();
-		assertThat(auditableEntity.getAuditDetails().getDateUpdated()).isNotNull();
+			assertThat(it.getData()).isEqualTo("original value");
 
-		Instant originalCreationDate = auditableEntity.getAuditDetails().getDateCreated();
-		Instant originalDateUpdated = auditableEntity.getAuditDetails().getDateUpdated();
+			AuditableEmbeddable details = it.getAuditDetails();
 
-		auditableEntity.setData("updated value");
+			assertThat(details.getDateCreated()).isNotNull();
+			assertThat(details.getDateUpdated()).isNotNull();
 
-		repository.saveAndFlush(auditableEntity);
+			it.setData("updated value");
+			repository.saveAndFlush(it);
 
-		Optional<AuditableEntity> optionalRevisedEntity = repository.findById(1L);
+			assertThat(repository.findById(1L)).hasValueSatisfying(revised -> {
 
-		assertThat(optionalRevisedEntity).isNotEmpty();
+				assertThat(revised.getData()).isEqualTo("updated value");
 
-		AuditableEntity revisedEntity = optionalRevisedEntity.get();
-		assertThat(revisedEntity.getData()).isEqualTo("updated value");
+				AuditableEmbeddable revisedDetails = revised.getAuditDetails();
 
-		assertThat(revisedEntity.getAuditDetails().getDateCreated()).isEqualTo(originalCreationDate);
-		assertThat(revisedEntity.getAuditDetails().getDateUpdated()).isAfter(originalDateUpdated);
+				assertThat(revisedDetails.getDateCreated()).isEqualTo(details.getDateCreated());
+				assertThat(revisedDetails.getDateUpdated()).isAfter(details.getDateUpdated());
+			});
+		});
 	}
 }
