@@ -102,6 +102,27 @@ pipeline {
 						}
 					}
 				}
+				stage("test: baseline (hibernate 6.6 preview)") {
+					agent {
+						label 'data'
+					}
+					options { timeout(time: 30, unit: 'MINUTES')}
+					environment {
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
+						DEVELOCITY_CACHE = credentials("${p['develocity.cache.credentials']}")
+						DEVELOCITY_ACCESS_KEY = credentials("${p['develocity.access-key']}")
+						TESTCONTAINERS_IMAGE_SUBSTITUTOR = 'org.springframework.data.jpa.support.ProxyImageNameSubstitutor'
+					}
+					steps {
+						script {
+							docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
+								sh "PROFILE=all-dbs,hibernate-66 " +
+									"JENKINS_USER_NAME=${p['jenkins.user.name']} " +
+									"ci/test.sh"
+							}
+						}
+					}
+				}
 				stage("test: baseline (hibernate 6.6 snapshots)") {
 					agent {
 						label 'data'
