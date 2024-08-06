@@ -30,7 +30,7 @@ import java.util.Properties;
 
 import javax.sql.DataSource;
 
-import org.hibernate.dialect.MySQL8Dialect;
+import org.hibernate.dialect.MySQLDialect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -149,8 +149,7 @@ class MySqlStoredProcedureIntegrationTests {
 			resultClasses = Employee.class)
 	public static class Employee {
 
-		@Id
-		@GeneratedValue //
+		@Id @GeneratedValue //
 		private Integer id;
 		private String name;
 
@@ -181,10 +180,12 @@ class MySqlStoredProcedureIntegrationTests {
 		@Override
 		public boolean equals(Object o) {
 
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (o == null || getClass() != o.getClass())
+			}
+			if (o == null || getClass() != o.getClass()) {
 				return false;
+			}
 			Employee employee = (Employee) o;
 			return Objects.equals(id, employee.id) && Objects.equals(name, employee.name);
 		}
@@ -194,6 +195,7 @@ class MySqlStoredProcedureIntegrationTests {
 			return Objects.hash(id, name);
 		}
 
+		@Override
 		public String toString() {
 			return "MySqlStoredProcedureIntegrationTests.Employee(id=" + this.getId() + ", name=" + this.getName() + ")";
 		}
@@ -265,7 +267,7 @@ class MySqlStoredProcedureIntegrationTests {
 
 			Properties properties = new Properties();
 			properties.setProperty("hibernate.hbm2ddl.auto", "create");
-			properties.setProperty("hibernate.dialect", MySQL8Dialect.class.getCanonicalName());
+			properties.setProperty("hibernate.dialect", MySQLDialect.class.getCanonicalName());
 			factoryBean.setJpaProperties(properties);
 
 			return factoryBean;
