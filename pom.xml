@@ -30,7 +30,7 @@
 		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>3.0.4</eclipselink>
 		<eclipselink-next>4.0.2</eclipselink-next>
-		<hibernate>6.5.2.Final</hibernate>
+		<hibernate>6.5.0.Final</hibernate>
 		<hibernate-62>6.2.28.Final</hibernate-62>
 		<hibernate-65-snapshots>6.5.3-SNAPSHOT</hibernate-65-snapshots>
 		<hibernate-66>6.6.0.CR1</hibernate-66>
