@@ -590,7 +590,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(example, "Sample must not be null");
+		Assert.notNull(example, "Example must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
 		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
