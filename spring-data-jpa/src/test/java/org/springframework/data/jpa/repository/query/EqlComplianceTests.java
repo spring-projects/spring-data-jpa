@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -413,5 +415,54 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e WHERE (e.active != NULL OR e.active = true)");
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT null OR e.active = true)");
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT NULL OR e.active = true)");
+	}
+
+
+	@Test // GH-3496
+	void lateralShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.lateral = :_lateral");
+		assertQuery("select te from TestEntity te where te.lateral = :lateral");
+	}
+
+	@Test // GH-3136
+	void intersect() {
+
+		assertQuery("""
+				SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode1
+				INTERSECT SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode2
+				""");
+	}
+
+	@Test // GH-3136
+	void except() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
+				""");
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"STRING", "INTEGER", "FLOAT", "DOUBLE"})
+	void jpqlCast(String targetType) {
+		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = {"LEFT", "RIGHT"})
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
+	@Test // GH-3136
+	void stringConcatWithPipes() {
+		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
 	}
 }
