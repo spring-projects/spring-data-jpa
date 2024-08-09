@@ -236,7 +236,11 @@ orderby_clause
 
 // TODO Error in spec BNF, correctly shown elsewhere in spec.
 orderby_item
-    : (state_field_path_expression | general_identification_variable | result_variable ) (ASC | DESC)?
+    : (state_field_path_expression | general_identification_variable | result_variable ) (ASC | DESC)? nullsPrecedence?
+    ;
+
+nullsPrecedence
+    : NULLS (FIRST | LAST)
     ;
 
 subquery
@@ -879,6 +883,7 @@ EXP                         : E X P;
 EXTRACT                     : E X T R A C T;
 FALSE                       : F A L S E;
 FETCH                       : F E T C H;
+FIRST                       : F I R S T;
 FLOOR                       : F L O O R;
 FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
@@ -890,6 +895,7 @@ INNER                       : I N N E R;
 IS                          : I S;
 JOIN                        : J O I N;
 KEY                         : K E Y;
+LAST                        : L A S T;
 LEADING                     : L E A D I N G;
 LEFT                        : L E F T;
 LENGTH                      : L E N G T H;
@@ -906,6 +912,7 @@ NEW                         : N E W;
 NOT                         : N O T;
 NULL                        : N U L L;
 NULLIF                      : N U L L I F;
+NULLS                       : N U L L S;
 OBJECT                      : O B J E C T;
 OF                          : O F;
 ON                          : O N;
