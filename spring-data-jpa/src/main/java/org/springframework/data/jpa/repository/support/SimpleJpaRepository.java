@@ -93,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Yanming Zhou
  * @author Ernst-Jan van der Laan
  * @author Diego Krupitza
+ * @author Seol-JY
  */
 @Repository
 @Transactional(readOnly = true)
@@ -196,14 +197,16 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Class<?> type = ProxyUtils.getUserClass(entity);
 
-		T existing = (T) entityManager.find(type, entityInformation.getId(entity));
-
-		// if the entity to be deleted doesn't exist, delete is a NOOP
-		if (existing == null) {
+		if (entityManager.contains(entity)) {
+			entityManager.remove(entity);
 			return;
 		}
 
-		entityManager.remove(entityManager.contains(entity) ? entity : entityManager.merge(entity));
+		// if the entity to be deleted doesn't exist, delete is a NOOP
+		T existing = (T) entityManager.find(type, entityInformation.getId(entity));
+		if (existing != null) {
+			entityManager.remove(entityManager.merge(entity));
+		}
 	}
 
 	@Override
