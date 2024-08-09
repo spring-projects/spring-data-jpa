@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +68,7 @@ class JpaAuditingRegistrarUnitTests {
 		AnnotationMetadata annotationMetadata = reader.getAnnotationMetadata();
 
 		// Given a bean already present
-		String beanName = AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME;
+		String beanName = BEAN_CONFIGURER_ASPECT_BEAN_NAME;
 		when(registry.containsBeanDefinition(beanName)).thenReturn(true);
 
 		// When invoking configuration
