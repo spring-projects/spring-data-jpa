@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.support;
 
+import static org.springframework.context.annotation.aspectj.SpringConfiguredConfiguration.*;
 import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import static org.springframework.util.StringUtils.*;
 
@@ -34,8 +35,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
  * @author Thomas Darimont
  */
 public class AuditingBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
-
-	public static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {

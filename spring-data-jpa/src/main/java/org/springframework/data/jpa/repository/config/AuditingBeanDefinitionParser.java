@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.*;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -81,12 +82,6 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	 * @author Juergen Hoeller
 	 */
 	private static class SpringConfiguredBeanDefinitionParser implements BeanDefinitionParser {
-
-		/**
-		 * The bean name of the internally managed bean configurer aspect.
-		 */
-		private static final String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
-
 		private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
 		@Override

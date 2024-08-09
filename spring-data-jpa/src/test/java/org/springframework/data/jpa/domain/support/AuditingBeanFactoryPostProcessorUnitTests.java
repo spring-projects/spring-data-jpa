@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.domain.support;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.context.annotation.aspectj.SpringConfiguredConfiguration.*;
 
 import jakarta.persistence.EntityManagerFactory;
 
@@ -63,7 +64,7 @@ class AuditingBeanFactoryPostProcessorUnitTests {
 
 		processor.postProcessBeanFactory(beanFactory);
 
-		assertThat(beanFactory.isBeanNameInUse(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME)).isTrue();
+		assertThat(beanFactory.isBeanNameInUse(BEAN_CONFIGURER_ASPECT_BEAN_NAME)).isTrue();
 	}
 
 	@Test // DATAJPA-265
@@ -83,7 +84,7 @@ class AuditingBeanFactoryPostProcessorUnitTests {
 			BeanDefinition emfDefinition = beanFactory.getBeanDefinition(emfDefinitionName);
 			assertThat(emfDefinition).isNotNull();
 			assertThat(emfDefinition.getDependsOn())
-					.containsExactly(AuditingBeanFactoryPostProcessor.BEAN_CONFIGURER_ASPECT_BEAN_NAME);
+					.containsExactly(BEAN_CONFIGURER_ASPECT_BEAN_NAME);
 		}
 	}
 

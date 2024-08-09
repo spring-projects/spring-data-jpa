@@ -27,4 +27,6 @@ interface BeanDefinitionNames {
 	String JPA_MAPPING_CONTEXT_BEAN_NAME = "jpaMappingContext";
 	String JPA_CONTEXT_BEAN_NAME = "jpaContext";
 	String EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME = "emBeanDefinitionRegistrarPostProcessor";
+	String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
+	String BEAN_CONFIGURER_ASPECT_BEAN_NAME = "org.springframework.context.config.internalBeanConfigurerAspect";
 }

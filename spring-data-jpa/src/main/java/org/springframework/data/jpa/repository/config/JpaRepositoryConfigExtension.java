@@ -79,7 +79,6 @@ import org.springframework.util.StringUtils;
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
 	private static final Class<?> PAB_POST_PROCESSOR = PersistenceAnnotationBeanPostProcessor.class;
-	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
