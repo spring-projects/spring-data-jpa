@@ -16,24 +16,36 @@
 package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
 import org.springframework.data.jpa.domain.sample.SampleEntityPK;
+import org.springframework.data.jpa.domain.sample.VersionedUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,21 +58,31 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Krzysztof Krason
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
 @Transactional
 class JpaRepositoryTests {
 
+	@Autowired DataSource dataSource;
+
 	@PersistenceContext EntityManager em;
+
+	private EntityManager spiedEntityManager;
 
 	private JpaRepository<SampleEntity, SampleEntityPK> repository;
 	private CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
+	private JpaRepository<VersionedUser, Long> versionedUserRepository;
+	private NamedParameterJdbcOperations jdbcOperations;
 
 	@BeforeEach
 	void setUp() {
-		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
+		spiedEntityManager = Mockito.spy(em);
+		repository = new JpaRepositoryFactory(spiedEntityManager).getRepository(SampleEntityRepository.class);
 		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
+		versionedUserRepository = new JpaRepositoryFactory(em).getRepository(VersionedUserRepository.class);
+		jdbcOperations = new NamedParameterJdbcTemplate(dataSource);
 	}
 
 	@Test
@@ -162,12 +184,70 @@ class JpaRepositoryTests {
 		assertThat(repository.findAll()).containsExactly(two);
 	}
 
+	@Test
+	void deleteDirtyDetachedVersionedEntityShouldRaiseOptimisticLockException() {
+
+		VersionedUser entity = new VersionedUser();
+		entity.setName("name");
+		versionedUserRepository.save(entity);
+		versionedUserRepository.flush();
+		em.detach(entity);
+
+		versionedUserRepository.findById(entity.getId()).ifPresent(u -> {
+			u.setName("new name");
+			versionedUserRepository.flush();
+		});
+
+		assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> {
+			versionedUserRepository.delete(entity);
+			versionedUserRepository.flush();
+		});
+
+		jdbcOperations.update("delete from VersionedUser", Map.of());
+	}
+
+	@Test
+	void deleteDirtyManagedVersionedEntityShouldRaiseOptimisticLockException() {
+
+		VersionedUser entity = new VersionedUser();
+		entity.setName("name");
+		versionedUserRepository.save(entity);
+		versionedUserRepository.flush();
+
+
+		assertThat(jdbcOperations.update("update VersionedUser set version=version+1 where id=:id",
+				Map.of("id", entity.getId()))).isEqualTo(1);
+
+		assertThatExceptionOfType(OptimisticLockException.class).isThrownBy(() -> {
+			versionedUserRepository.delete(entity);
+			versionedUserRepository.flush();
+		});
+
+		jdbcOperations.update("delete from VersionedUser", Map.of());
+	}
+
+	@Test //GH-3401
+	void deleteNonVersionedEntityShouldNotInvokeMerge() {
+		SampleEntity entity = new SampleEntity("one", "eins");
+		repository.save(entity);
+		repository.flush();
+		em.detach(entity);
+
+		reset(spiedEntityManager);
+		repository.delete(entity);
+		then(spiedEntityManager).should(never()).merge(entity);
+	}
+
 	private interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
 
 	}
 
 	private interface SampleWithIdClassRepository
 			extends CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> {
+
+	}
+
+	private interface VersionedUserRepository extends JpaRepository<VersionedUser, Long> {
 
 	}
 }
