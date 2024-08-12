@@ -19,6 +19,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
@@ -30,6 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, JpaEntityMetadata<T> {
 
@@ -38,6 +40,11 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 */
 	@Nullable
 	SingularAttribute<? super T, ?> getIdAttribute();
+
+	/**
+	 * Returns the version attribute of the entity.
+	 */
+	Optional<SingularAttribute<? super T, ?>> getVersionAttribute();
 
 	/**
 	 * Returns the required identifier type.

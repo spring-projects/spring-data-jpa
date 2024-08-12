@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +43,7 @@ import org.mockito.quality.Strictness;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Yanming Zhou
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -86,6 +88,11 @@ class JpaEntityInformationSupportUnitTests {
 		@Override
 		public SingularAttribute<? super T, ?> getIdAttribute() {
 			return null;
+		}
+
+		@Override
+		public Optional<SingularAttribute<? super T, ?>> getVersionAttribute() {
+			return Optional.empty();
 		}
 
 		@Override
