@@ -132,7 +132,7 @@ class PostgresStoredProcedureNullHandlingIntegrationTests {
 		void countUuid(UUID this_uuid);
 
 		@Procedure("countByLocalDate")
-		void countLocalDate(@Temporal Date localDate);
+		void countLocalDate(@Temporal Date this_local_date);
 	}
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
