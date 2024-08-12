@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
@@ -81,8 +82,10 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	 * @param entityManager must not be {@literal null}.
 	 */
 	public EnversRevisionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation,
-			RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
+										RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
 
+		Assert.notNull(entityInformation, "JpaEntityInformation must not be null!");
+		Assert.notNull(entityManager, "EntityManager must not be null!");
 		Assert.notNull(revisionEntityInformation, "RevisionEntityInformation must not be null!");
 
 		this.entityInformation = entityInformation;
@@ -130,11 +133,10 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	public Revisions<N, T> findRevisions(ID id) {
 
 		List<Object[]> resultList = createBaseQuery(id).getResultList();
-		List<Revision<N, T>> revisionList = new ArrayList<>(resultList.size());
-
-		for (Object[] objects : resultList) {
-			revisionList.add(createRevision(new QueryResult<>(objects)));
-		}
+		List<Revision<N, T>> revisionList = resultList
+				.stream()
+				.map(singleResult -> createRevision(new QueryResult<>(singleResult)))
+				.collect(Collectors.toList());
 
 		return Revisions.of(revisionList);
 	}
@@ -171,7 +173,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		AuditQuery baseQuery = createBaseQuery(id);
 
-		List<AuditOrder> orderMapped = (pageable.getSort()instanceof RevisionSort revisionSort)
+		List<AuditOrder> orderMapped = (pageable.getSort() instanceof RevisionSort revisionSort)
 				? List.of(mapRevisionSort(revisionSort))
 				: mapPropertySort(pageable.getSort());
 
@@ -185,11 +187,10 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		Long count = (Long) createBaseQuery(id) //
 				.addProjection(AuditEntity.revisionNumber().count()).getSingleResult();
 
-		List<Revision<N, T>> revisions = new ArrayList<>();
-
-		for (Object[] singleResult : resultList) {
-			revisions.add(createRevision(new QueryResult<>(singleResult)));
-		}
+		List<Revision<N, T>> revisions = resultList
+				.stream()
+				.map(singleResult -> createRevision(new QueryResult<>(singleResult)))
+				.collect(Collectors.toList());
 
 		return new PageImpl<>(revisions, pageable, count);
 	}
