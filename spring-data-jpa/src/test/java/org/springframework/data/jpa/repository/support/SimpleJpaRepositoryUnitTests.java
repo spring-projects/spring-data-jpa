@@ -15,13 +15,9 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.data.jpa.domain.Specification.where;
+import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -41,7 +37,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.repository.CrudRepository;
@@ -212,7 +210,7 @@ class SimpleJpaRepositoryUnitTests {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
-		repo.findAll(where(null), PageRequest.of(2, 1));
+		repo.findAll(Specification.all(), PageRequest.of(2, 1));
 
 		verify(metadata).getQueryHintsForCount();
 	}
