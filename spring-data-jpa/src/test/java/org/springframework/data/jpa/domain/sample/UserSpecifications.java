@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -25,24 +26,24 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class UserSpecifications {
 
-	public static Specification<User> userHasFirstname(final String firstname) {
+	public static PredicateSpecification<User> userHasFirstname(final String firstname) {
 
 		return simplePropertySpec("firstname", firstname);
 	}
 
-	public static Specification<User> userHasLastname(final String lastname) {
+	public static PredicateSpecification<User> userHasLastname(final String lastname) {
 
 		return simplePropertySpec("lastname", lastname);
 	}
 
-	public static Specification<User> userHasFirstnameLike(final String expression) {
+	public static PredicateSpecification<User> userHasFirstnameLike(final String expression) {
 
-		return (root, query, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
+		return (root, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
 	}
 
-	public static Specification<User> userHasAgeLess(final Integer age) {
+	public static PredicateSpecification<User> userHasAgeLess(final Integer age) {
 
-		return (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
+		return (root, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
 	}
 
 	public static Specification<User> userHasLastnameLikeWithSort(final String expression) {
@@ -55,8 +56,8 @@ public class UserSpecifications {
 		};
 	}
 
-	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
+	private static <T> PredicateSpecification<T> simplePropertySpec(final String property, final Object value) {
 
-		return (root, query, builder) -> builder.equal(root.get(property), value);
+		return (root, builder) -> builder.equal(root.get(property), value);
 	}
 }

@@ -17,8 +17,6 @@ package org.springframework.data.jpa.domain;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.domain.Specification.*;
-import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.util.SerializationUtils.*;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
