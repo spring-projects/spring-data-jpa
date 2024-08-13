@@ -38,6 +38,7 @@ class QueryTokens {
 	static final QueryToken TOKEN_EQUALS = token(" = ");
 	static final QueryToken TOKEN_OPEN_PAREN = token("(");
 	static final QueryToken TOKEN_CLOSE_PAREN = token(")");
+	static final QueryToken TOKEN_NEW = expression("new");
 	static final QueryToken TOKEN_ORDER_BY = expression("order by");
 	static final QueryToken TOKEN_LOWER_FUNC = token("lower(");
 	static final QueryToken TOKEN_SELECT_COUNT = token("select count(");

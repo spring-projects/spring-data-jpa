@@ -36,6 +36,41 @@ When using <<projections.dtos,Class-based projections>> with JPQL, you must use 
 (Note the usage of a FQDN for the DTO type!) This JPQL expression can be used in `@Query` annotations as well where you define any named queries.
 As a workaround you may use named queries with `ResultSetMapping` or the Hibernate-specific javadoc:{hibernatejavadocurl}org.hibernate.query.ResultListTransformer[]
 
+===== DTO Projection JPQL Query Rewriting
+
+JPQL queries allow selection of the root object, individual properties, and DTO objects through constructor expressions.
+Using a constructor expression can quickly add a lot of text to a query and make it difficult to read the actual query.
+Spring Data JPA can support you with your JPQL queries by introducing constructor expressions for your convenience.
+
+Consider the following queries:
+
+.Projection Queries
+====
+[source,java]
+----
+interface UserRepository extends Repository<User, Long> {
+
+  @Query("SELECT u FROM USER u")                                 <1>
+  List<UserDto> findByLastname(String lastname);
+
+  @Query("SELECT u.firstname, u.lastname FROM USER u")           <2>
+  List<UserDto> findMultipleColumnsByLastname(String lastname);
+}
+
+record UserDto(String firstname, String lastname){}
+----
+
+<1> Selection of the top-level entity.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u`.
+<2> Multi-select of `firstname` and `lastname` properties.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u`.
+====
+
+Repository query methods that return a DTO projection type (a Java type outside the domain type hierarchy) are subject for query rewriting.
+If an `@Query`-annotated query already uses constructor expressions, then Spring Data backs off and doesn't apply DTO constructor expression rewriting.
+
+Make sure that your DTO types provide an all-args constructor for the projection, otherwise the query will fail.
+
 ==== Native Queries
 
 When using <<projections.dtos,Class-based projections>>, their usage requires slightly more consideration depending on your :

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
 /**
@@ -49,6 +50,11 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
+		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
+	}
+
+	@Override
+	public String rewrite(Sort sort, ReturnedType returnedType) {
 		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
 	}
 

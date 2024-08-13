@@ -721,6 +721,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname >= (select Min(u0.firstname) from User u0)")
 	List<NameOnly> findProjectionBySubselect();
 
+	@Query("select u from User u")
+	List<UserExcerpt> findRecordProjection();
+
+	@Query("select u.firstname, u.lastname from User u")
+	List<UserExcerpt> findMultiselectRecordProjection();
+
 	Window<User> findBy(OffsetScrollPosition position);
 
 	interface RolesAndFirstname {
@@ -745,6 +751,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	interface IdOnly {
 		int getId();
+	}
+
+	record UserExcerpt(String firstname, String lastname) {
+
 	}
 
 }

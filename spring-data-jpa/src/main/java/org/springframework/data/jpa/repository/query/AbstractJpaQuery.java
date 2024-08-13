@@ -283,7 +283,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return null;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+		return returnedType.isProjecting() && returnedType.getReturnedType().isInterface()
+				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
 				? Tuple.class //
 				: null;
 	}

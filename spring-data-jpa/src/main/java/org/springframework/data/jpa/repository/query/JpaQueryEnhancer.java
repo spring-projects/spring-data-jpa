@@ -30,6 +30,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -48,12 +49,12 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	private final ParserRuleContext context;
 	private final ParsedQueryIntrospector introspector;
 	private final String projection;
-	private final BiFunction<Sort, String, ParseTreeVisitor<? extends Object>> sortFunction;
+	private final SortedQueryRewriteFunction sortFunction;
 	private final BiFunction<String, String, ParseTreeVisitor<? extends Object>> countQueryFunction;
 
 	JpaQueryEnhancer(ParserRuleContext context, ParsedQueryIntrospector introspector,
-			@Nullable BiFunction<Sort, String, ParseTreeVisitor<? extends Object>> sortFunction,
-			@Nullable BiFunction<String, String, ParseTreeVisitor<? extends Object>> countQueryFunction) {
+			SortedQueryRewriteFunction sortFunction,
+			BiFunction<String, String, ParseTreeVisitor<? extends Object>> countQueryFunction) {
 
 		this.context = context;
 		this.introspector = introspector;
@@ -136,6 +137,10 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		return EqlQueryParser.parseQuery(query.getQueryString());
 	}
 
+	ParserRuleContext getContext() {
+		return context;
+	}
+
 	/**
 	 * Checks if the select clause has a new constructor instantiation in the JPA query.
 	 *
@@ -191,7 +196,12 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String applySorting(Sort sort) {
-		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias()).visit(context));
+		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias(), null).visit(context));
+	}
+
+	@Override
+	public String rewrite(Sort sort, ReturnedType returnedType) {
+		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias(), returnedType).visit(context));
 	}
 
 	/**
@@ -307,5 +317,11 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		public static JpqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
 			return new JpqlQueryParser(query);
 		}
+	}
+
+	interface SortedQueryRewriteFunction {
+
+		ParseTreeVisitor<? extends Object> apply(Sort sort, String primaryAlias, @Nullable ReturnedType returnedType);
+
 	}
 }

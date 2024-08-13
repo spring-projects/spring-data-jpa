@@ -52,6 +52,7 @@ import org.springframework.util.ReflectionUtils;
  * Unit tests for {@link AbstractStringBasedJpaQuery}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class AbstractStringBasedJpaQueryUnitTests {
 
@@ -64,13 +65,14 @@ class AbstractStringBasedJpaQueryUnitTests {
 		stringQuery.neverCalled("applySorting");
 	}
 
-	@Test // GH-3310
-	void shouldNotAttemptToAppendSortIfSortIndicatesUnsorted() {
+	@Test // GH-3310, GH-3076
+	void shouldRunQueryRewriterOnce() {
 
 		InvocationCapturingStringQueryStub stringQuery = forMethod(TestRepo.class, "find", Sort.class);
 		stringQuery.createQueryWithArguments(Sort.unsorted());
+		stringQuery.createQueryWithArguments(Sort.unsorted());
 
-		stringQuery.neverCalled("applySorting");
+		stringQuery.called("applySorting").times(1);
 	}
 
 	@Test // GH-3310

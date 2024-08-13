@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -298,6 +299,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	@Override
 	public String applySorting(Sort sort) {
 		return applySorting(sort, detectAlias());
+	}
+
+	@Override
+	public String rewrite(Sort sort, ReturnedType returnedType) {
+		return applySorting(sort, primaryAlias);
 	}
 
 	@Override
