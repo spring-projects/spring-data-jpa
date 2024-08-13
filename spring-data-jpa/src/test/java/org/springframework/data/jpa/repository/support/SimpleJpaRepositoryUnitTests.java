@@ -46,6 +46,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.repository.CrudRepository;
@@ -218,7 +219,7 @@ class SimpleJpaRepositoryUnitTests {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
-		repo.findAll(where(null), PageRequest.of(2, 1));
+		repo.findAll(Specification.all(), PageRequest.of(2, 1));
 
 		verify(metadata).getQueryHintsForCount();
 	}
