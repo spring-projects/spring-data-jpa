@@ -195,12 +195,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		Class<?> type = ProxyUtils.getUserClass(entity);
-
 		if (entityManager.contains(entity)) {
 			entityManager.remove(entity);
 			return;
 		}
+
+		Class<?> type = ProxyUtils.getUserClass(entity);
 
 		// if the entity to be deleted doesn't exist, delete is a NOOP
 		T existing = (T) entityManager.find(type, entityInformation.getId(entity));
@@ -282,8 +282,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
-		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities,
-				entityManager)
+		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, entityManager)
 				.executeUpdate();
 	}
 
@@ -321,7 +320,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.ofNullable(type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
+		return Optional.ofNullable(
+				type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
 	@Deprecated
@@ -486,7 +486,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
 
 		if (spec != null) {
-			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), builder.createQuery(getDomainClass()), builder);
+			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), builder.createQuery(getDomainClass()),
+					builder);
 
 			if (predicate != null) {
 				delete.where(predicate);
@@ -524,7 +525,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			TypedQuery<T> query = getQuery(specToUse, domainClass, sort);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
-				if(!offset.isInitial()) {
+				if (!offset.isInitial()) {
 					query.setFirstResult(Math.toIntExact(offset.getOffset()) + 1);
 				}
 			}
@@ -536,8 +537,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
-		FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass, finder,
-				scrollDelegate, this::count, this::exists, this.entityManager, getProjectionFactory());
+		FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass,
+				finder, scrollDelegate, this::count, this::exists, this.entityManager, getProjectionFactory());
 
 		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
 	}
