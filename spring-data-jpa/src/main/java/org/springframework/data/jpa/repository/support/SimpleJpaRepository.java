@@ -25,6 +25,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -52,7 +53,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
+import org.springframework.data.jpa.domain.DeleteSpecification;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
@@ -396,7 +399,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public List<T> findAll() {
-		return getQuery(null, Sort.unsorted()).getResultList();
+		return getQuery(Specification.all(), Sort.unsorted()).getResultList();
 	}
 
 	@Override
@@ -429,12 +432,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public List<T> findAll(Sort sort) {
-		return getQuery(null, sort).getResultList();
+		return getQuery(Specification.all(), sort).getResultList();
 	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
-		return findAll((Specification<T>) null, pageable);
+		return findAll(Specification.all(), pageable);
 	}
 
 	@Override
@@ -448,7 +451,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
+	public Page<T> findAll(Specification<T> spec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
@@ -456,12 +459,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public List<T> findAll(@Nullable Specification<T> spec, Sort sort) {
+	public List<T> findAll(Specification<T> spec, Sort sort) {
 		return getQuery(spec, sort).getResultList();
 	}
 
 	@Override
 	public boolean exists(Specification<T> spec) {
+
+		Assert.notNull(spec, "Specification must not be null");
 
 		CriteriaQuery<Integer> cq = this.entityManager.getCriteriaBuilder() //
 				.createQuery(Integer.class) //
@@ -475,21 +480,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	@Transactional
-	public long delete(@Nullable Specification<T> spec) {
+	public long update(UpdateSpecification<T> spec) {
 
-		CriteriaBuilder builder = this.entityManager.getCriteriaBuilder();
-		CriteriaDelete<T> delete = builder.createCriteriaDelete(getDomainClass());
+		Assert.notNull(spec, "Specification must not be null");
 
-		if (spec != null) {
-			Predicate predicate = spec.toPredicate(delete.from(getDomainClass()), builder.createQuery(getDomainClass()),
-					builder);
+		return getUpdate(spec, getDomainClass()).executeUpdate();
+	}
 
-			if (predicate != null) {
-				delete.where(predicate);
-			}
-		}
+	@Override
+	@Transactional
+	public long delete(DeleteSpecification<T> spec) {
 
-		return this.entityManager.createQuery(delete).executeUpdate();
+		Assert.notNull(spec, "Specification must not be null");
+
+		return getDelete(spec, getDomainClass()).executeUpdate();
 	}
 
 	@Override
@@ -733,17 +737,17 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Sort sort) {
+	protected TypedQuery<T> getQuery(Specification<T> spec, Sort sort) {
 		return getQuery(spec, getDomainClass(), sort);
 	}
 
 	/**
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
@@ -761,6 +765,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec,
 			Class<S> domainClass, Sort sort, @Nullable ScrollPosition scrollPosition) {
+
+		Assert.notNull(spec, "Specification must not be null");
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query;
@@ -807,6 +813,42 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		if (sort.isSorted()) {
 			query.orderBy(toOrders(sort, root, builder));
 		}
+
+		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
+	}
+
+	/**
+	 * Creates a {@link Query} for the given {@link UpdateSpecification}.
+	 *
+	 * @param spec must not be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 */
+	protected <S> Query getUpdate(UpdateSpecification<S> spec, Class<S> domainClass) {
+
+		Assert.notNull(spec, "Specification must not be null");
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaUpdate<S> query = builder.createCriteriaUpdate(domainClass);
+
+		applySpecificationToCriteria(spec, domainClass, query);
+
+		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
+	}
+
+	/**
+	 * Creates a {@link Query} for the given {@link DeleteSpecification}.
+	 *
+	 * @param spec must not be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 */
+	protected <S> Query getDelete(DeleteSpecification<S> spec, Class<S> domainClass) {
+
+		Assert.notNull(spec, "Specification must not be null");
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		CriteriaDelete<S> query = builder.createCriteriaDelete(domainClass);
+
+		applySpecificationToCriteria(spec, domainClass, query);
 
 		return applyRepositoryMethodMetadata(entityManager.createQuery(query));
 	}
@@ -862,24 +904,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return metadata == null ? NoHints.INSTANCE : DefaultQueryHints.of(entityInformation, metadata).forCounts();
 	}
 
-	/**
-	 * Applies the given {@link Specification} to the given {@link CriteriaQuery}.
-	 *
-	 * @param spec can be {@literal null}.
-	 * @param domainClass must not be {@literal null}.
-	 * @param query must not be {@literal null}.
-	 */
-	private <S, U extends T> Root<U> applySpecificationToCriteria(@Nullable Specification<U> spec, Class<U> domainClass,
+	private <S, U extends T> Root<U> applySpecificationToCriteria(Specification<U> spec, Class<U> domainClass,
 			CriteriaQuery<S> query) {
 
-		Assert.notNull(domainClass, "Domain class must not be null");
-		Assert.notNull(query, "CriteriaQuery must not be null");
-
 		Root<U> root = query.from(domainClass);
-
-		if (spec == null) {
-			return root;
-		}
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		Predicate predicate = spec.toPredicate(root, query, builder);
@@ -891,6 +919,32 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return root;
 	}
 
+	private <S> void applySpecificationToCriteria(UpdateSpecification<S> spec, Class<S> domainClass,
+			CriteriaUpdate<S> query) {
+
+		Root<S> root = query.from(domainClass);
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		Predicate predicate = spec.toPredicate(root, query, builder);
+
+		if (predicate != null) {
+			query.where(predicate);
+		}
+	}
+
+	private <S> void applySpecificationToCriteria(DeleteSpecification<S> spec, Class<S> domainClass,
+			CriteriaDelete<S> query) {
+
+		Root<S> root = query.from(domainClass);
+
+		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		Predicate predicate = spec.toPredicate(root, query, builder);
+
+		if (predicate != null) {
+			query.where(predicate);
+		}
+	}
+
 	private <S> TypedQuery<S> applyRepositoryMethodMetadata(TypedQuery<S> query) {
 
 		if (metadata == null) {
@@ -899,6 +953,20 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		LockModeType type = metadata.getLockModeType();
 		TypedQuery<S> toReturn = type == null ? query : query.setLockMode(type);
+
+		applyQueryHints(toReturn);
+
+		return toReturn;
+	}
+
+	private Query applyRepositoryMethodMetadata(Query query) {
+
+		if (metadata == null) {
+			return query;
+		}
+
+		LockModeType type = metadata.getLockModeType();
+		Query toReturn = type == null ? query : query.setLockMode(type);
 
 		applyQueryHints(toReturn);
 
