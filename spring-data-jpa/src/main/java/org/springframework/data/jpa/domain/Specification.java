@@ -17,14 +17,17 @@ package org.springframework.data.jpa.domain;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * Specification in the sense of Domain Driven Design.
@@ -38,9 +41,106 @@ import org.springframework.lang.Nullable;
  * @author Daniel Shuy
  * @author Sergey Rukin
  */
+@FunctionalInterface
 public interface Specification<T> extends Serializable {
 
-	long serialVersionUID = 1L;
+	@Serial long serialVersionUID = 1L;
+
+	/**
+	 * Simple static factory method to create a specification matching all objects.
+	 *
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @return guaranteed to be not {@literal null}.
+	 */
+	static <T> Specification<T> all() {
+		return (root, query, builder) -> null;
+	}
+
+	/**
+	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
+	 *
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @param spec must not be {@literal null}.
+	 * @return guaranteed to be not {@literal null}.
+	 * @since 2.0
+	 */
+	static <T> Specification<T> where(Specification<T> spec) {
+
+		Assert.notNull(spec, "Specification must not be null");
+
+		return spec;
+	}
+
+	/**
+	 * Simple static factory method to add some syntactic sugar translating {@link PredicateSpecification} to
+	 * {@link Specification}.
+	 *
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @param spec the {@link PredicateSpecification} to wrap.
+	 * @return guaranteed to be not {@literal null}.
+	 */
+	static <T> Specification<T> where(PredicateSpecification<T> spec) {
+
+		Assert.notNull(spec, "PredicateSpecification must not be null");
+
+		return where((root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder));
+	}
+
+	/**
+	 * ANDs the given {@link Specification} to the current one.
+	 *
+	 * @param other the other {@link Specification}.
+	 * @return the conjunction of the specifications.
+	 * @since 2.0
+	 */
+	default Specification<T> and(Specification<T> other) {
+
+		Assert.notNull(other, "Other specification must not be null");
+
+		return SpecificationComposition.composed(this, other, CriteriaBuilder::and);
+	}
+
+	/**
+	 * ANDs the given {@link Specification} to the current one.
+	 *
+	 * @param other the other {@link PredicateSpecification}.
+	 * @return the conjunction of the specifications.
+	 * @since 2.0
+	 */
+	default Specification<T> and(PredicateSpecification<T> other) {
+
+		Assert.notNull(other, "Other specification must not be null");
+
+		return SpecificationComposition.composed(this, where(other), CriteriaBuilder::and);
+	}
+
+	/**
+	 * ORs the given specification to the current one.
+	 *
+	 * @param other the other {@link Specification}.
+	 * @return the disjunction of the specifications
+	 * @since 2.0
+	 */
+	default Specification<T> or(Specification<T> other) {
+
+		Assert.notNull(other, "Other specification must not be null");
+
+		return SpecificationComposition.composed(this, other, CriteriaBuilder::or);
+	}
+
+	/**
+	 * ORs the given specification to the current one.
+	 *
+	 * @param other the other {@link PredicateSpecification}.
+	 * @return the disjunction of the specifications
+	 * @since 2.0
+	 */
+	default Specification<T> or(PredicateSpecification<T> other) {
+
+		Assert.notNull(other, "Other specification must not be null");
+
+		return SpecificationComposition.composed(this, where(other), CriteriaBuilder::or);
+	}
 
 	/**
 	 * Negates the given {@link Specification}.
@@ -50,74 +150,23 @@ public interface Specification<T> extends Serializable {
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
 	 */
-	static <T> Specification<T> not(@Nullable Specification<T> spec) {
+	static <T> Specification<T> not(Specification<T> spec) {
 
-		return spec == null //
-				? (root, query, builder) -> null //
-				: (root, query, builder) -> builder.not(spec.toPredicate(root, query, builder));
+		Assert.notNull(spec, "Specification must not be null");
+
+		return (root, query, builder) -> {
+
+			Predicate not = spec.toPredicate(root, query, builder);
+			return not != null ? builder.not(not) : null;
+		};
 	}
-
-	/**
-	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
-	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
-	 * @param spec can be {@literal null}.
-	 * @return guaranteed to be not {@literal null}.
-	 * @since 2.0
-	 */
-	static <T> Specification<T> where(@Nullable Specification<T> spec) {
-		return spec == null ? (root, query, builder) -> null : spec;
-	}
-
-	/**
-	 * ANDs the given {@link Specification} to the current one.
-	 *
-	 * @param other can be {@literal null}.
-	 * @return The conjunction of the specifications
-	 * @since 2.0
-	 */
-	default Specification<T> and(@Nullable Specification<T> other) {
-		return SpecificationComposition.composed(this, other, CriteriaBuilder::and);
-	}
-
-	/**
-	 * ORs the given specification to the current one.
-	 *
-	 * @param other can be {@literal null}.
-	 * @return The disjunction of the specifications
-	 * @since 2.0
-	 */
-	default Specification<T> or(@Nullable Specification<T> other) {
-		return SpecificationComposition.composed(this, other, CriteriaBuilder::or);
-	}
-
-	/**
-	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
-	 * {@link Root} and {@link CriteriaQuery}.
-	 *
-	 * @param root must not be {@literal null}.
-	 * @param query can be {@literal null} to allow overrides that accept {@link jakarta.persistence.criteria.CriteriaDelete} which is an {@link jakarta.persistence.criteria.AbstractQuery} but no {@link CriteriaQuery}.
-	 * @param criteriaBuilder must not be {@literal null}.
-	 * @return a {@link Predicate}, may be {@literal null}.
-	 */
-	@Nullable
-	Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 	/**
 	 * Applies an AND operation to all the given {@link Specification}s.
 	 *
-	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
-	 * @return The conjunction of the specifications
+	 * @param specifications the {@link Specification}s to compose.
+	 * @return the conjunction of the specifications.
 	 * @see #and(Specification)
-	 * @since 3.0
-	 */
-	static <T> Specification<T> allOf(Iterable<Specification<T>> specifications) {
-
-		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(Specification.where(null), Specification::and);
-	}
-
-	/**
 	 * @see #allOf(Iterable)
 	 * @since 3.0
 	 */
@@ -127,20 +176,26 @@ public interface Specification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link Specification}s.
+	 * Applies an AND operation to all the given {@link Specification}s.
 	 *
-	 * @param specifications The {@link Specification}s to compose. Can contain {@code null}s.
-	 * @return The disjunction of the specifications
-	 * @see #or(Specification)
+	 * @param specifications the {@link Specification}s to compose.
+	 * @return the conjunction of the specifications.
+	 * @see #and(Specification)
+	 * @see #allOf(Specification[])
 	 * @since 3.0
 	 */
-	static <T> Specification<T> anyOf(Iterable<Specification<T>> specifications) {
+	static <T> Specification<T> allOf(Iterable<Specification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(Specification.where(null), Specification::or);
+				.reduce(Specification.all(), Specification::and);
 	}
 
 	/**
+	 * Applies an OR operation to all the given {@link Specification}s.
+	 *
+	 * @param specifications the {@link Specification}s to compose.
+	 * @return the disjunction of the specifications
+	 * @see #or(Specification)
 	 * @see #anyOf(Iterable)
 	 * @since 3.0
 	 */
@@ -148,4 +203,32 @@ public interface Specification<T> extends Serializable {
 	static <T> Specification<T> anyOf(Specification<T>... specifications) {
 		return anyOf(Arrays.asList(specifications));
 	}
+
+	/**
+	 * Applies an OR operation to all the given {@link Specification}s.
+	 *
+	 * @param specifications the {@link Specification}s to compose.
+	 * @return the disjunction of the specifications
+	 * @see #or(Specification)
+	 * @see #anyOf(Iterable)
+	 * @since 3.0
+	 */
+	static <T> Specification<T> anyOf(Iterable<Specification<T>> specifications) {
+
+		return StreamSupport.stream(specifications.spliterator(), false) //
+				.reduce(Specification.all(), Specification::or);
+	}
+
+	/**
+	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
+	 * {@link Root} and {@link CriteriaUpdate}.
+	 *
+	 * @param root must not be {@literal null}.
+	 * @param query the criteria query.
+	 * @param criteriaBuilder must not be {@literal null}.
+	 * @return a {@link Predicate}, may be {@literal null}.
+	 */
+	@Nullable
+	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+
 }

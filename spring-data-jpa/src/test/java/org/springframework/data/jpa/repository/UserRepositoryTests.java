@@ -20,8 +20,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.domain.Example.*;
 import static org.springframework.data.domain.ExampleMatcher.*;
 import static org.springframework.data.domain.Sort.Direction.*;
-import static org.springframework.data.jpa.domain.Specification.*;
-import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import jakarta.persistence.EntityManager;
@@ -61,7 +59,10 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.DeleteSpecification;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -466,7 +467,7 @@ class UserRepositoryTests {
 	void executesSpecificationCorrectly() {
 
 		flushTestUsers();
-		assertThat(repository.findAll(where(userHasFirstname("Oliver")))).hasSize(1);
+		assertThat(repository.findAll(Specification.where(userHasFirstname("Oliver")))).hasSize(1);
 	}
 
 	@Test
@@ -496,11 +497,11 @@ class UserRepositoryTests {
 	void executesCombinedSpecificationsCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+		PredicateSpecification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 		List<User> users1 = repository.findAll(spec1);
 		assertThat(users1).hasSize(2);
 
-		Specification<User> spec2 = Specification.anyOf( //
+		PredicateSpecification<User> spec2 = PredicateSpecification.anyOf( //
 				userHasFirstname("Oliver"), //
 				userHasLastname("Arrasz"));
 		List<User> users2 = repository.findAll(spec2);
@@ -513,7 +514,8 @@ class UserRepositoryTests {
 	void executesNegatingSpecificationCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec = not(userHasFirstname("Oliver")).and(userHasLastname("Arrasz"));
+		PredicateSpecification<User> spec = PredicateSpecification.not(userHasFirstname("Oliver"))
+				.and(userHasLastname("Arrasz"));
 
 		assertThat(repository.findAll(spec)).containsOnly(secondUser);
 	}
@@ -522,18 +524,18 @@ class UserRepositoryTests {
 	void executesCombinedSpecificationsWithPageableCorrectly() {
 
 		flushTestUsers();
-		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
+		PredicateSpecification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 
-		Page<User> users1 = repository.findAll(spec1, PageRequest.of(0, 1));
+		Page<User> users1 = repository.findAll(Specification.where(spec1), PageRequest.of(0, 1));
 		assertThat(users1.getSize()).isOne();
 		assertThat(users1.hasPrevious()).isFalse();
 		assertThat(users1.getTotalElements()).isEqualTo(2L);
 
-		Specification<User> spec2 = Specification.anyOf( //
+		PredicateSpecification<User> spec2 = PredicateSpecification.anyOf( //
 				userHasFirstname("Oliver"), //
 				userHasLastname("Arrasz"));
 
-		Page<User> users2 = repository.findAll(spec2, PageRequest.of(0, 1));
+		Page<User> users2 = repository.findAll(Specification.where(spec2), PageRequest.of(0, 1));
 		assertThat(users2.getSize()).isOne();
 		assertThat(users2.hasPrevious()).isFalse();
 		assertThat(users2.getTotalElements()).isEqualTo(2L);
@@ -588,7 +590,7 @@ class UserRepositoryTests {
 	void returnsSameListIfNoSpecGiven() {
 
 		flushTestUsers();
-		assertSameElements(repository.findAll(), repository.findAll((Specification<User>) null));
+		assertSameElements(repository.findAll(), repository.findAll(PredicateSpecification.all()));
 	}
 
 	@Test
@@ -604,15 +606,41 @@ class UserRepositoryTests {
 		Pageable pageable = PageRequest.of(0, 1);
 
 		flushTestUsers();
-		assertThat(repository.findAll((Specification<User>) null, pageable)).isEqualTo(repository.findAll(pageable));
+		assertThat(repository.findAll(Specification.all(), pageable)).isEqualTo(repository.findAll(pageable));
 	}
 
-	@Test // GH-2796
-	void removesAllIfSpecificationIsNull() {
+	@Test // GH-3521
+	void updateSpecificationUpdatesMarriedEntities() {
 
 		flushTestUsers();
 
-		repository.delete((Specification<User>) null);
+		UpdateSpecification<User> updateLastname = UpdateSpecification.<User> update((root, update, criteriaBuilder) -> {
+			update.set("lastname", "Drotbohm");
+		}).where(userHasFirstname("Oliver").and(userHasLastname("Gierke")));
+
+		long updated = repository.update(updateLastname);
+
+		assertThat(updated).isOne();
+		assertThat(repository.count(userHasFirstname("Oliver").and(userHasLastname("Gierke")))).isZero();
+		assertThat(repository.count(userHasFirstname("Oliver").and(userHasLastname("Drotbohm")))).isOne();
+	}
+
+	@Test // GH-2796
+	void predicateSpecificationRemovesAll() {
+
+		flushTestUsers();
+
+		repository.delete(DeleteSpecification.all());
+
+		assertThat(repository.count()).isEqualTo(0L);
+	}
+
+	@Test // GH-2796
+	void deleteSpecificationRemovesAll() {
+
+		flushTestUsers();
+
+		repository.delete(DeleteSpecification.all());
 
 		assertThat(repository.count()).isEqualTo(0L);
 	}
@@ -2450,13 +2478,13 @@ class UserRepositoryTests {
 		prototype.setFirstname("v");
 
 		List<UserProjectionUsingSpEL> users = repository.findBy(
-			of(prototype,
-				matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
-					GenericPropertyMatcher::contains)), //
-			q -> q.as(UserProjectionUsingSpEL.class).all());
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.as(UserProjectionUsingSpEL.class).all());
 
 		assertThat(users).extracting(UserProjectionUsingSpEL::hello)
-			.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
+				.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
 	}
 
 	@Test // GH-2294
@@ -3247,8 +3275,8 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Specification<User> minorSpec = userHasAgeLess(18);
-		Specification<User> hundredYearsOld = userHasAgeLess(100);
+		PredicateSpecification<User> minorSpec = userHasAgeLess(18);
+		PredicateSpecification<User> hundredYearsOld = userHasAgeLess(100);
 
 		assertThat(repository.exists(minorSpec)).isFalse();
 		assertThat(repository.exists(hundredYearsOld)).isTrue();
@@ -3273,7 +3301,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Specification<User> usersWithEInTheirName = userHasFirstnameLike("e");
+		PredicateSpecification<User> usersWithEInTheirName = userHasFirstnameLike("e");
 
 		long initialCount = repository.count();
 		assertThat(repository.delete(usersWithEInTheirName)).isEqualTo(3L);
@@ -3420,16 +3448,16 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		Specification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+		PredicateSpecification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
 
-		Page<User> result1 = repository.findAll(spec1, PageRequest.of(0, 1, sort));
+		Page<User> result1 = repository.findAll(Specification.where(spec1), PageRequest.of(0, 1, sort));
 		assertThat(result1.getTotalElements()).isEqualTo(2L);
 
-		Specification<User> spec2 = Specification.anyOf( //
+		PredicateSpecification<User> spec2 = PredicateSpecification.anyOf( //
 				userHasFirstname("Oliver"), //
 				userHasLastname("Matthews"));
 
-		Page<User> result2 = repository.findAll(spec2, PageRequest.of(0, 1, sort));
+		Page<User> result2 = repository.findAll(Specification.where(spec2), PageRequest.of(0, 1, sort));
 		assertThat(result2.getTotalElements()).isEqualTo(2L);
 
 		assertThat(result1).containsExactlyElementsOf(result2);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2024 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.util.SerializationUtils.*;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -35,114 +34,134 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Unit tests for {@link Specification}.
+ * Unit tests for {@link PredicateSpecification}.
  *
- * @author Oliver Gierke
- * @author Thomas Darimont
- * @author Sebastian Staudt
- * @author Jens Schauder
  * @author Mark Paluch
- * @author Daniel Shuy
  */
 @SuppressWarnings("serial")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class SpecificationUnitTests implements Serializable {
+class PredicateSpecificationUnitTests implements Serializable {
 
-	private Specification<Object> spec;
+	private PredicateSpecification<Object> spec;
 	@Mock(serializable = true) Root<Object> root;
-	@Mock(serializable = true) CriteriaQuery<?> query;
 	@Mock(serializable = true) CriteriaBuilder builder;
-
 	@Mock(serializable = true) Predicate predicate;
+	@Mock(serializable = true) Predicate another;
 
 	@BeforeEach
 	void setUp() {
-
-		spec = (root, query, cb) -> predicate;
+		spec = (root, cb) -> predicate;
 	}
 
-	@Test // GH-1943
+	@Test // GH-3521
+	void allReturnsEmptyPredicate() {
+
+		PredicateSpecification<Object> specification = PredicateSpecification.all();
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, builder)).isNull();
+	}
+
+	@Test // GH-3521
+	void allOfCombinesPredicatesInOrder() {
+
+		PredicateSpecification<Object> specification = PredicateSpecification.allOf(spec);
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, builder)).isSameAs(predicate);
+	}
+
+	@Test // GH-3521
+	void anyOfCombinesPredicatesInOrder() {
+
+		PredicateSpecification<Object> specification = PredicateSpecification.allOf(spec);
+
+		assertThat(specification).isNotNull();
+		assertThat(specification.toPredicate(root, builder)).isSameAs(predicate);
+	}
+
+	@Test // GH-3521
 	void emptyAllOfReturnsEmptySpecification() {
 
-		Specification<Object> specification = Specification.allOf();
+		PredicateSpecification<Object> specification = PredicateSpecification.allOf();
 
 		assertThat(specification).isNotNull();
-		assertThat(specification.toPredicate(root, query, builder)).isNull();
+		assertThat(specification.toPredicate(root, builder)).isNull();
 	}
 
-	@Test // GH-1943
+	@Test // GH-3521
 	void emptyAnyOfReturnsEmptySpecification() {
 
-		Specification<Object> specification = Specification.anyOf();
+		PredicateSpecification<Object> specification = PredicateSpecification.anyOf();
 
 		assertThat(specification).isNotNull();
-		assertThat(specification.toPredicate(root, query, builder)).isNull();
+		assertThat(specification.toPredicate(root, builder)).isNull();
 	}
 
-	@Test // DATAJPA-523
+	@Test // GH-3521
 	void specificationsShouldBeSerializable() {
 
-		Specification<Object> serializableSpec = new SerializableSpecification();
-		Specification<Object> specification = serializableSpec.and(serializableSpec);
+		PredicateSpecification<Object> serializableSpec = new SerializableSpecification();
+		PredicateSpecification<Object> specification = serializableSpec.and(serializableSpec);
 
 		assertThat(specification).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
+		PredicateSpecification<Object> transferredSpecification = (PredicateSpecification<Object>) deserialize(
+				serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
 	}
 
-	@Test // DATAJPA-523
+	@Test // GH-3521
 	void complexSpecificationsShouldBeSerializable() {
 
 		SerializableSpecification serializableSpec = new SerializableSpecification();
-		Specification<Object> specification = Specification
+		PredicateSpecification<Object> specification = PredicateSpecification
 				.not(serializableSpec.and(serializableSpec).or(serializableSpec));
 
 		assertThat(specification).isNotNull();
 
 		@SuppressWarnings("unchecked")
-		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
+		PredicateSpecification<Object> transferredSpecification = (PredicateSpecification<Object>) deserialize(
+				serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
 	}
 
-	@Test // #2146
+	@Test // GH-3521
 	void andCombinesSpecificationsInOrder() {
 
 		Predicate firstPredicate = mock(Predicate.class);
 		Predicate secondPredicate = mock(Predicate.class);
 
-		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
+		PredicateSpecification<Object> first = ((root1, criteriaBuilder) -> firstPredicate);
+		PredicateSpecification<Object> second = ((root1, criteriaBuilder) -> secondPredicate);
 
-		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
-
-		first.and(second).toPredicate(root, query, builder);
+		first.and(second).toPredicate(root, builder);
 
 		verify(builder).and(firstPredicate, secondPredicate);
 	}
 
-	@Test // #2146
+	@Test // GH-3521
 	void orCombinesSpecificationsInOrder() {
 
 		Predicate firstPredicate = mock(Predicate.class);
 		Predicate secondPredicate = mock(Predicate.class);
 
-		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
+		PredicateSpecification<Object> first = ((root1, criteriaBuilder) -> firstPredicate);
+		PredicateSpecification<Object> second = ((root1, criteriaBuilder) -> secondPredicate);
 
-		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
-
-		first.or(second).toPredicate(root, query, builder);
+		first.or(second).toPredicate(root, builder);
 
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
-	static class SerializableSpecification implements Serializable, Specification<Object> {
+	static class SerializableSpecification implements Serializable, PredicateSpecification<Object> {
 
 		@Override
-		public Predicate toPredicate(Root<Object> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		public Predicate toPredicate(Root<Object> root, CriteriaBuilder cb) {
 			return null;
 		}
 	}

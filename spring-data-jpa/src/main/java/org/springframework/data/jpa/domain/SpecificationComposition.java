@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.domain;
 
-import java.io.Serializable;
-
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
+import java.io.Serializable;
 
 import org.springframework.lang.Nullable;
 
@@ -57,8 +59,75 @@ class SpecificationComposition {
 	}
 
 	@Nullable
-	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root, @Nullable CriteriaQuery<?> query,
-			CriteriaBuilder builder) {
+	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
+			@Nullable CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
+
+	static <T> DeleteSpecification<T> composed(@Nullable DeleteSpecification<T> lhs, @Nullable DeleteSpecification<T> rhs,
+			Combiner combiner) {
+
+		return (root, query, builder) -> {
+
+			Predicate thisPredicate = toPredicate(lhs, root, query, builder);
+			Predicate otherPredicate = toPredicate(rhs, root, query, builder);
+
+			if (thisPredicate == null) {
+				return otherPredicate;
+			}
+
+			return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+		};
+	}
+
+	@Nullable
+	private static <T> Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
+			@Nullable CriteriaDelete<T> delete, CriteriaBuilder builder) {
+		return specification == null ? null : specification.toPredicate(root, delete, builder);
+	}
+
+	static <T> UpdateSpecification<T> composed(@Nullable UpdateSpecification<T> lhs, @Nullable UpdateSpecification<T> rhs,
+			Combiner combiner) {
+
+		return (root, query, builder) -> {
+
+			Predicate thisPredicate = toPredicate(lhs, root, query, builder);
+			Predicate otherPredicate = toPredicate(rhs, root, query, builder);
+
+			if (thisPredicate == null) {
+				return otherPredicate;
+			}
+
+			return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+		};
+	}
+
+	@Nullable
+	private static <T> Predicate toPredicate(@Nullable UpdateSpecification<T> specification, Root<T> root,
+			CriteriaUpdate<T> update, CriteriaBuilder builder) {
+		return specification == null ? null : specification.toPredicate(root, update, builder);
+	}
+
+	static <T> PredicateSpecification<T> composed(PredicateSpecification<T> lhs, PredicateSpecification<T> rhs,
+			Combiner combiner) {
+
+		return (root, builder) -> {
+
+			Predicate thisPredicate = toPredicate(lhs, root, builder);
+			Predicate otherPredicate = toPredicate(rhs, root, builder);
+
+			if (thisPredicate == null) {
+				return otherPredicate;
+			}
+
+			return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+		};
+	}
+
+	@Nullable
+	private static <T> Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
+			CriteriaBuilder builder) {
+		return specification == null ? null : specification.toPredicate(root, builder);
+	}
+
 }
