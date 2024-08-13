@@ -378,7 +378,7 @@ class UserRepositoryFinderTests {
 	}
 
 	@Test // DATAJPA-1713, GH-2008
-	public void selectProjectionWithSubselect() {
+	void selectProjectionWithSubselect() {
 
 		List<UserRepository.NameOnly> dtos = userRepository.findProjectionBySubselect();
 
@@ -405,4 +405,22 @@ class UserRepositoryFinderTests {
 		result = userRepository.findUserByLastname(carter.getLastname());
 		assertThat(result).containsExactly(carter);
 	}
+
+    @Test // GH-3076
+    void dtoProjectionShouldApplyConstructorExpressionRewriting() {
+
+        List<UserRepository.UserExcerpt> dtos = userRepository.findRecordProjection();
+
+        assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
+            .contains("Dave", "Carter", "Oliver August");
+    }
+
+    @Test // GH-3076
+    void dtoMultiselectProjectionShouldApplyConstructorExpressionRewriting() {
+
+        List<UserRepository.UserExcerpt> dtos = userRepository.findMultiselectRecordProjection();
+
+        assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
+            .contains("Dave", "Carter", "Oliver August");
+    }
 }

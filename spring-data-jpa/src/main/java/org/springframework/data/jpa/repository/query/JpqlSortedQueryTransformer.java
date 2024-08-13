@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -38,6 +39,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
 	private final Sort sort;
 	private final @Nullable String primaryFromAlias;
+	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
 	JpqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias) {
 
@@ -45,6 +47,16 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 
 		this.sort = sort;
 		this.primaryFromAlias = primaryFromAlias;
+		this.dtoDelegate = null;
+	}
+
+	JpqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias, @Nullable ReturnedType returnedType) {
+
+		Assert.notNull(sort, "Sort must not be null");
+
+		this.sort = sort;
+		this.primaryFromAlias = primaryFromAlias;
+		this.dtoDelegate = returnedType == null ? null : new DtoProjectionTransformerDelegate(returnedType);
 	}
 
 	@Override
@@ -70,6 +82,26 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		doVisitOrderBy(builder, ctx);
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
+
+		if (dtoDelegate == null) {
+			return super.visitSelect_clause(ctx);
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.SELECT()));
+
+		if (ctx.DISTINCT() != null) {
+			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		}
+
+		QueryTokenStream tokenStream = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
+
+		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
 	}
 
 	private void doVisitOrderBy(QueryRendererBuilder builder, JpqlParser.Select_statementContext ctx) {

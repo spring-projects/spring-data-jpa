@@ -61,7 +61,7 @@ class QueryTransformers {
 					token = QueryTokens.token(token.value());
 				}
 
-				if (!containsNew && token.value().contains("new")) {
+				if (!containsNew && token.equals(TOKEN_NEW)) {
 					containsNew = true;
 				}
 

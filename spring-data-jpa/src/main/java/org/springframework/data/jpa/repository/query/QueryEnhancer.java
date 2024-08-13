@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
 /**
@@ -85,6 +86,8 @@ public interface QueryEnhancer {
 	@Deprecated
 	String applySorting(Sort sort, @Nullable String alias);
 
+	String rewrite(Sort sort, ReturnedType returnedType);
+
 	/**
 	 * Creates a count projected query from the given original query.
 	 *
@@ -101,4 +104,5 @@ public interface QueryEnhancer {
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 */
 	String createCountQueryFor(@Nullable String countProjection);
+
 }

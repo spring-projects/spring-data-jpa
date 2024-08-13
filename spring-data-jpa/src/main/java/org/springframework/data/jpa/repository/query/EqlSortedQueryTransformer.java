@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -40,13 +41,15 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
 	private final Sort sort;
 	private final @Nullable String primaryFromAlias;
+	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
-	EqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias) {
+	EqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias, @Nullable ReturnedType returnedType) {
 
 		Assert.notNull(sort, "Sort must not be null");
 
 		this.sort = sort;
 		this.primaryFromAlias = primaryFromAlias;
+		this.dtoDelegate = returnedType == null ? null : new DtoProjectionTransformerDelegate(returnedType);
 	}
 
 	@Override
@@ -78,6 +81,26 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSelect_clause(EqlParser.Select_clauseContext ctx) {
+
+		if (dtoDelegate == null) {
+			return super.visitSelect_clause(ctx);
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.SELECT()));
+
+		if (ctx.DISTINCT() != null) {
+			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		}
+
+		QueryTokenStream tokenStream = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
+
+		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
 	}
 
 	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx, Sort sort) {
