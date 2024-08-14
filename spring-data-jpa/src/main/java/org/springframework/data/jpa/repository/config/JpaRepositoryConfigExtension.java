@@ -195,7 +195,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		registerIfNotAlreadyRegistered(() -> {
 
-			Object value = AnnotationRepositoryConfigurationSource.class.isInstance(config) //
+			Object value = config instanceof AnnotationRepositoryConfigurationSource //
 					? config.getRequiredAttribute(ESCAPE_CHARACTER_PROPERTY, Character.class) //
 					: config.getAttribute(ESCAPE_CHARACTER_PROPERTY).orElse("\\");
 
