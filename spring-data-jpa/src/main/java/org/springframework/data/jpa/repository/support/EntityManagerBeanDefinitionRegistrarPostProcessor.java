@@ -55,13 +55,7 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		if (!ConfigurableListableBeanFactory.class.isInstance(beanFactory)) {
-			return;
-		}
-
-		ConfigurableListableBeanFactory factory = beanFactory;
-
-		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(factory)) {
+		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
 
 			BeanFactory definitionFactory = definition.getBeanFactory();
 
