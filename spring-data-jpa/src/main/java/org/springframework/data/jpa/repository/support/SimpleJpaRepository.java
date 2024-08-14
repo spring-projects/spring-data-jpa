@@ -40,8 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -246,14 +244,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
 			 */
-
-			if (ids instanceof Collection) {
-				query.setParameter("ids", ids);
-			} else {
-				Collection<ID> idsCollection = StreamSupport.stream(ids.spliterator(), false)
-						.collect(Collectors.toCollection(ArrayList::new));
-				query.setParameter("ids", idsCollection);
-			}
+			Collection<ID> idCollection = toCollection(ids);
+			query.setParameter("ids", idCollection);
 
 			applyQueryHints(query);
 
@@ -414,7 +406,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return results;
 		}
 
-		Collection<ID> idCollection = Streamable.of(ids).toList();
+		Collection<ID> idCollection = toCollection(ids);
 
 		ByIdsSpecification<T> specification = new ByIdsSpecification<>(entityInformation);
 		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
@@ -916,6 +908,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		return projectionFactory;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static <T> Collection<T> toCollection(Iterable<T> ids) {
+		return ids instanceof Collection c ? c : Streamable.of(ids).toList();
 	}
 
 	/**
