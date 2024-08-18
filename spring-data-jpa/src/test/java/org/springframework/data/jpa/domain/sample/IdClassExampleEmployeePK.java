@@ -15,13 +15,14 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * @author Thomas Darimont
  */
 public class IdClassExampleEmployeePK implements Serializable {
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	private long empId;
 	private long department;

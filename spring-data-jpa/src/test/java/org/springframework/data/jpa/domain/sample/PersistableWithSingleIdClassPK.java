@@ -17,6 +17,7 @@ package org.springframework.data.jpa.domain.sample;
 
 import static org.springframework.util.ObjectUtils.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -24,7 +25,7 @@ import java.io.Serializable;
  */
 public class PersistableWithSingleIdClassPK implements Serializable {
 
-	private static final long serialVersionUID = 23126782341L;
+	@Serial private static final long serialVersionUID = 23126782341L;
 
 	private Long first;
 

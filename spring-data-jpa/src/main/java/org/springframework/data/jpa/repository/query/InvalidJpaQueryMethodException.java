@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.io.Serial;
+
 /**
  * Signals that we encountered an invalid query method.
  *
@@ -23,7 +25,7 @@ package org.springframework.data.jpa.repository.query;
  */
 public class InvalidJpaQueryMethodException extends RuntimeException {
 
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	/**
 	 * Creates a new {@link InvalidJpaQueryMethodException} with the given message.

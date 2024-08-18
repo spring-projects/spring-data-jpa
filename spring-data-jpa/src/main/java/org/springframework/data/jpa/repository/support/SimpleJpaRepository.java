@@ -31,6 +31,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -952,7 +953,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("rawtypes")
 	private static final class ByIdsSpecification<T> implements Specification<T> {
 
-		private static final long serialVersionUID = 1L;
+		@Serial private static final long serialVersionUID = 1L;
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
@@ -981,7 +982,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	private static class ExampleSpecification<T> implements Specification<T> {
 
-		private static final long serialVersionUID = 1L;
+		@Serial private static final long serialVersionUID = 1L;
 
 		private final Example<T> example;
 		private final EscapeCharacter escapeCharacter;
