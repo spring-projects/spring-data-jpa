@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import jakarta.persistence.Column;
@@ -25,7 +26,7 @@ import jakarta.persistence.Embeddable;
  */
 @Embeddable
 public class EmbeddedIdExampleEmployeePK implements Serializable {
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false) private Long employeeId;
 

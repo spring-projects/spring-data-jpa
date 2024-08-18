@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
+
 import jakarta.persistence.Entity;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;

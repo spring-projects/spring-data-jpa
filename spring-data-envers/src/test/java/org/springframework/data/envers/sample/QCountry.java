@@ -23,6 +23,8 @@ import com.querydsl.core.types.dsl.StringPath;
 
 import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
+import java.io.Serial;
+
 /**
  * Query class for Country domain.
  *
@@ -30,7 +32,7 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
  */
 public class QCountry extends EntityPathBase<Country> {
 
-	private static final long serialVersionUID = -936338527;
+	@Serial private static final long serialVersionUID = -936338527;
 
 	private static final PathInits INITS = PathInits.DIRECT2;
 

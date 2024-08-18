@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 import jakarta.persistence.Column;
@@ -25,7 +26,7 @@ import org.springframework.util.Assert;
 @Embeddable
 public class SampleEntityPK implements Serializable {
 
-	private static final long serialVersionUID = 231060947L;
+	@Serial private static final long serialVersionUID = 231060947L;
 
 	@Column(nullable = false)
 	private String first;
