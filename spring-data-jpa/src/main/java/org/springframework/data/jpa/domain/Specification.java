@@ -21,6 +21,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
@@ -41,7 +42,7 @@ import org.springframework.lang.Nullable;
  */
 public interface Specification<T> extends Serializable {
 
-	long serialVersionUID = 1L;
+	@Serial long serialVersionUID = 1L;
 
 	/**
 	 * Negates the given {@link Specification}.

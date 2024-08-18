@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,7 +46,7 @@ import java.util.List;
  */
 public class JpaSort extends Sort {
 
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	private JpaSort(Direction direction, List<Path<?, ?>> paths) {
 		this(Collections.<Order>emptyList(), direction, paths);
@@ -322,7 +323,7 @@ public class JpaSort extends Sort {
 	 */
 	public static class JpaOrder extends Order {
 
-		private static final long serialVersionUID = 1L;
+		@Serial private static final long serialVersionUID = 1L;
 
 		private final boolean unsafe;
 
