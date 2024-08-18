@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -31,7 +33,7 @@ import jakarta.persistence.Table;
 @Table
 public class Site implements java.io.Serializable {
 
-	private static final long serialVersionUID = 1L;
+	@Serial private static final long serialVersionUID = 1L;
 
 	@Id @GeneratedValue Integer id;
 

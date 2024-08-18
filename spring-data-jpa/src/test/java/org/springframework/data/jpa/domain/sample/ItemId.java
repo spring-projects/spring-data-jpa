@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -25,7 +26,7 @@ import java.io.Serializable;
  */
 public class ItemId implements Serializable {
 
-	private static final long serialVersionUID = -2986871112875450036L;
+	@Serial private static final long serialVersionUID = -2986871112875450036L;
 
 	private Integer id;
 	private Integer manufacturerId;
