@@ -21,7 +21,6 @@ import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
@@ -44,8 +43,6 @@ import org.springframework.util.Assert;
 @FunctionalInterface
 public interface Specification<T> extends Serializable {
 
-	@Serial long serialVersionUID = 1L;
-
 	/**
 	 * Simple static factory method to create a specification matching all objects.
 	 *
@@ -54,23 +51,6 @@ public interface Specification<T> extends Serializable {
 	 */
 	static <T> Specification<T> all() {
 		return (root, query, builder) -> null;
-	}
-
-	/**
-	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
-	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
-	 * @param spec must not be {@literal null}.
-	 * @return guaranteed to be not {@literal null}.
-	 * @since 2.0
-	 * @deprecated since 3.5.
-	 */
-	@Deprecated(since = "3.5.0", forRemoval = true)
-	static <T> Specification<T> where(Specification<T> spec) {
-
-		Assert.notNull(spec, "Specification must not be null");
-
-		return spec;
 	}
 
 	/**
@@ -85,7 +65,7 @@ public interface Specification<T> extends Serializable {
 
 		Assert.notNull(spec, "PredicateSpecification must not be null");
 
-		return where((root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder));
+		return (root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder);
 	}
 
 	/**
