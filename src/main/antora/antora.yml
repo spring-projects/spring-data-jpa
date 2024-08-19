@@ -6,10 +6,7 @@ nav:
 ext:
   collector:
   - run:
-      command: ./mvnw test-compile
-      local: true
-  - run:
-      command: ./mvnw validate process-resources -pl :spring-data-jpa-distribution -am -Pantora-process-resources
+      command: ./mvnw test-compile -Pantora-process-resources
       local: true
     scan:
       dir: spring-data-jpa-distribution/target/classes
