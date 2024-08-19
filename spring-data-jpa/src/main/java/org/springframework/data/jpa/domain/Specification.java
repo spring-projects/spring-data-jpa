@@ -57,21 +57,6 @@ public interface Specification<T> extends Serializable {
 	}
 
 	/**
-	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
-	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
-	 * @param spec must not be {@literal null}.
-	 * @return guaranteed to be not {@literal null}.
-	 * @since 2.0
-	 */
-	static <T> Specification<T> where(Specification<T> spec) {
-
-		Assert.notNull(spec, "Specification must not be null");
-
-		return spec;
-	}
-
-	/**
 	 * Simple static factory method to add some syntactic sugar translating {@link PredicateSpecification} to
 	 * {@link Specification}.
 	 *
@@ -83,7 +68,7 @@ public interface Specification<T> extends Serializable {
 
 		Assert.notNull(spec, "PredicateSpecification must not be null");
 
-		return where((root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder));
+		return (root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder);
 	}
 
 	/**
