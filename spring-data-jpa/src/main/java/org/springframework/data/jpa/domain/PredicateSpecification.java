@@ -19,7 +19,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
@@ -34,8 +33,6 @@ import org.springframework.util.Assert;
  * @since xxx
  */
 public interface PredicateSpecification<T> extends Serializable {
-
-	@Serial long serialVersionUID = 1L;
 
 	/**
 	 * Simple static factory method to create a specification matching all objects.
