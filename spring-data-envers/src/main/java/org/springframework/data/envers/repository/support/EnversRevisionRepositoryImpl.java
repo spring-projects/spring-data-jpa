@@ -64,6 +64,7 @@ import org.springframework.util.Assert;
  * @author Niklas Loechte
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Aref Behboodi
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
@@ -76,9 +77,9 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	 * Creates a new {@link EnversRevisionRepositoryImpl} using the given {@link JpaEntityInformation},
 	 * {@link RevisionEntityInformation} and {@link EntityManager}.
 	 *
-	 * @param entityInformation must not be {@literal null}.
+	 * @param entityInformation         must not be {@literal null}.
 	 * @param revisionEntityInformation must not be {@literal null}.
-	 * @param entityManager must not be {@literal null}.
+	 * @param entityManager             must not be {@literal null}.
 	 */
 	public EnversRevisionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation,
 										RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
@@ -238,7 +239,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			return metadata instanceof DefaultRevisionEntity defaultRevisionEntity //
 					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType) //
 					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
-							revisionType);
+					revisionType);
 		}
 
 		private static RevisionMetadata.RevisionType convertRevisionType(RevisionType datum) {
