@@ -27,8 +27,6 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 @Entity
 public class AuditableRole extends AbstractAuditable<AuditableUser, Long> {
 
-	private static final long serialVersionUID = 5997359055260303863L;
-
 	private String name;
 
 	public void setName(String name) {
