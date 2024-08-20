@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import java.io.Serial;
-
 import jakarta.persistence.Entity;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
@@ -27,5 +25,4 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Entity
 public class Account extends AbstractPersistable<Long> {
 
-	private static final long serialVersionUID = -5719129808165758887L;
 }

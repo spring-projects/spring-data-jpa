@@ -15,16 +15,16 @@
  */
 package org.springframework.data.jpa.domain;
 
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
-
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 import org.springframework.data.domain.Auditable;
 import org.springframework.lang.Nullable;
@@ -41,8 +41,6 @@ import org.springframework.lang.Nullable;
 @MappedSuperclass
 public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK>
 		implements Auditable<U, PK, LocalDateTime> {
-
-	private static final long serialVersionUID = 141481953116476081L;
 
 	@ManyToOne //
 	private @Nullable U createdBy;

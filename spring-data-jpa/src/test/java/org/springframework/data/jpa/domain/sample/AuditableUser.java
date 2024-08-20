@@ -15,13 +15,13 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.NamedQuery;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.lang.Nullable;
@@ -36,8 +36,6 @@ import org.springframework.lang.Nullable;
 @Entity
 @NamedQuery(name = "AuditableUser.findByFirstname", query = "SELECT u FROM AuditableUser u WHERE u.firstname = ?1")
 public class AuditableUser extends AbstractAuditable<AuditableUser, Integer> {
-
-	private static final long serialVersionUID = 7409344446795693011L;
 
 	private String firstname;
 

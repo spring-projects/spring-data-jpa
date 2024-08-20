@@ -15,14 +15,14 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Parent {
@@ -30,8 +30,6 @@ public class Parent {
 	@Id
 	@GeneratedValue
 	Long id;
-
-	static final long serialVersionUID = -89717120680485957L;
 
 	@ManyToMany(cascade = CascadeType.ALL)
 	Set<Child> children = new HashSet<>();
