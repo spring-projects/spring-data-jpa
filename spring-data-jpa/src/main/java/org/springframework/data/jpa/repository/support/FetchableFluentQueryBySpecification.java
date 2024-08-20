@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -174,18 +176,18 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	@Override
 	public Slice<R> slice(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readSlice(pageable);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort())) : readSlice(pageable);
 	}
 
 	@Override
 	public Page<R> page(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readPage(pageable, spec);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort())) : readPage(pageable, spec);
 	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Page<R> page(Pageable pageable, Specification<?> countSpec) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort)))
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort()))
 				: readPage(pageable, (Specification) countSpec);
 	}
 
