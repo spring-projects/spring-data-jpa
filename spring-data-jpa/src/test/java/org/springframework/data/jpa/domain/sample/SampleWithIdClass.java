@@ -1,12 +1,12 @@
 package org.springframework.data.jpa.domain.sample;
 
-import java.io.Serializable;
-
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
+
+import java.io.Serializable;
 
 @Entity
 @IdClass(SampleWithIdClass.SampleWithIdClassPK.class)
@@ -29,11 +29,9 @@ public class SampleWithIdClass {
 				return true;
 			}
 
-			if (!(obj instanceof SampleWithIdClassPK)) {
+			if (!(obj instanceof SampleWithIdClassPK that)) {
 				return false;
 			}
-
-			SampleWithIdClassPK that = (SampleWithIdClassPK) obj;
 
 			return this.first.equals(that.first) && this.second.equals(that.second);
 		}

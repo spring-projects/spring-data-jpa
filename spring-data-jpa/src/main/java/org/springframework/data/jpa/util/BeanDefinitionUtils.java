@@ -223,11 +223,9 @@ public final class BeanDefinitionUtils {
 				return true;
 			}
 
-			if (!(o instanceof EntityManagerFactoryBeanDefinition)) {
+			if (!(o instanceof EntityManagerFactoryBeanDefinition that)) {
 				return false;
 			}
-
-			EntityManagerFactoryBeanDefinition that = (EntityManagerFactoryBeanDefinition) o;
 
 			if (!ObjectUtils.nullSafeEquals(beanName, that.beanName)) {
 				return false;
