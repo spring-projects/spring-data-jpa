@@ -498,6 +498,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		return doFindBy(spec, getDomainClass(), queryFunction);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
 			Function<FetchableFluentQuery<S>, R> queryFunction) {
 
@@ -586,6 +587,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(example, EXAMPLE_MUST_NOT_BE_NULL);
@@ -608,7 +610,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public long count(@Nullable Specification<T> spec) {
+	public long count(Specification<T> spec) {
 		return executeCountQuery(getCountQuery(spec, getDomainClass()));
 	}
 
@@ -677,7 +679,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @deprecated use {@link #readPage(TypedQuery, Class, Pageable, Specification)} instead
 	 */
 	@Deprecated
-	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, @Nullable Specification<T> spec) {
+	protected Page<T> readPage(TypedQuery<T> query, Pageable pageable, Specification<T> spec) {
 		return readPage(query, getDomainClass(), pageable, spec);
 	}
 
@@ -687,11 +689,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 *
 	 * @param query must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param pageable can be {@literal null}.
 	 */
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
-			@Nullable Specification<S> spec) {
+			Specification<S> spec) {
+
+		Assert.notNull(spec, "Specification must not be null");
 
 		if (pageable.isPaged()) {
 			query.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
@@ -705,10 +709,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
 
 		return getQuery(spec, getDomainClass(), pageable.getSort());
 	}
@@ -716,11 +720,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Creates a new {@link TypedQuery} from the given {@link Specification}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
+	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass,
 			Pageable pageable) {
 
 		return getQuery(spec, domainClass, pageable.getSort());
@@ -799,21 +803,23 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	/**
 	 * Creates a new count query for the given {@link Specification}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @deprecated override {@link #getCountQuery(Specification, Class)} instead
 	 */
 	@Deprecated
-	protected TypedQuery<Long> getCountQuery(@Nullable Specification<T> spec) {
+	protected TypedQuery<Long> getCountQuery(Specification<T> spec) {
 		return getCountQuery(spec, getDomainClass());
 	}
 
 	/**
 	 * Creates a new count query for the given {@link Specification}.
 	 *
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<Long> getCountQuery(@Nullable Specification<S> spec, Class<S> domainClass) {
+	protected <S extends T> TypedQuery<Long> getCountQuery(Specification<S> spec, Class<S> domainClass) {
+
+		Assert.notNull(spec, "Specification must not be null");
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
@@ -963,7 +969,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private void applyComment(CrudMethodMetadata metadata, BiConsumer<String, Object> consumer) {
 
 		if (metadata.getComment() != null && provider.getCommentHintKey() != null) {
-			consumer.accept(provider.getCommentHintKey(), provider.getCommentHintValue(this.metadata.getComment()));
+			consumer.accept(provider.getCommentHintKey(), provider.getCommentHintValue(metadata.getComment()));
 		}
 	}
 
