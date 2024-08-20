@@ -279,11 +279,9 @@ class ParameterBinding {
 		@Override
 		public boolean equals(Object obj) {
 
-			if (!(obj instanceof LikeParameterBinding)) {
+			if (!(obj instanceof LikeParameterBinding that)) {
 				return false;
 			}
-
-			LikeParameterBinding that = (LikeParameterBinding) obj;
 
 			return super.equals(obj) && this.type.equals(that.type);
 		}

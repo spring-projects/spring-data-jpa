@@ -262,11 +262,9 @@ public class User {
 	@Override
 	public boolean equals(Object obj) {
 
-		if (!(obj instanceof User)) {
+		if (!(obj instanceof User that)) {
 			return false;
 		}
-
-		User that = (User) obj;
 
 		if ((null == this.getId()) || (null == that.getId())) {
 			return false;

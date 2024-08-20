@@ -42,10 +42,8 @@ public class ItemSiteId implements Serializable {
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof ItemSiteId))
+		if (!(o instanceof ItemSiteId that))
 			return false;
-
-		ItemSiteId that = (ItemSiteId) o;
 
 		if (item != null ? !item.equals(that.item) : that.item != null)
 			return false;
