@@ -30,8 +30,6 @@ import org.springframework.data.domain.Persistable;
 @IdClass(PersistableWithIdClassPK.class)
 public class PersistableWithIdClass implements Persistable<PersistableWithIdClassPK> {
 
-	private static final long serialVersionUID = 1L;
-
 	@Id
 	private
 	Long first;

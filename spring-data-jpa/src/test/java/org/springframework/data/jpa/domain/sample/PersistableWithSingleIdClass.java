@@ -28,8 +28,6 @@ import jakarta.persistence.IdClass;
 @IdClass(PersistableWithSingleIdClassPK.class)
 public class PersistableWithSingleIdClass {
 
-	private static final long serialVersionUID = 1L;
-
 	@Id private Long first;
 
 	protected PersistableWithSingleIdClass() {
