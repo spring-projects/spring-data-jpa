@@ -753,6 +753,10 @@ public abstract class QueryUtils {
 		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
 		Expression<?> expression = toExpressionRecursively(from, property);
 
+		if (order.getNullHandling() != Sort.NullHandling.NATIVE) {
+			throw new UnsupportedOperationException("Applying Null Precedence using Criteria Queries is not yet supported.");
+		}
+
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
 			Expression<String> upper = cb.lower((Expression<String>) expression);
 			return order.isAscending() ? cb.asc(upper) : cb.desc(upper);

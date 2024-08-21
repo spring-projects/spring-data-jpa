@@ -796,7 +796,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.DESC()));
 		}
 
-		if(ctx.nullsPrecedence() != null) {
+		if (ctx.nullsPrecedence() != null) {
 			builder.append(visit(ctx.nullsPrecedence()));
 		}
 
@@ -805,8 +805,18 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitNullsPrecedence(NullsPrecedenceContext ctx) {
-//		return QueryTokenStream.concat(ctx.children, it-> QueryRendererBuilder.from(QueryTokens.token(it.getText())), TOKEN_SPACE);
-		return QueryTokenStream.justAs(ctx.children, it-> QueryTokens.token(it.getText()));
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_NULLS);
+
+		if (ctx.FIRST() != null) {
+			builder.append(TOKEN_FIRST);
+		} else if (ctx.LAST() != null) {
+			builder.append(TOKEN_LAST);
+		}
+
+		return builder;
 	}
 
 	@Override

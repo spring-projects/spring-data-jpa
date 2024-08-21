@@ -15,11 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -48,6 +46,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.Category;
@@ -313,6 +312,20 @@ class QueryUtilsIntegrationTests {
 		List<jakarta.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
 
 		assertThat(orders).hasSize(1);
+	}
+
+	@Test // GH-3529
+	void nullPrecedenceThroughCriteriaApiNotYetSupported() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+		Join<User, User> join = root.join("manager", JoinType.LEFT);
+
+		Sort sort = Sort.by(Sort.Order.desc("manager").nullsFirst());
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> QueryUtils.toOrders(sort, join, builder));
 	}
 
 	/**
