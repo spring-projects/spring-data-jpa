@@ -35,6 +35,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.jndi.JndiObjectFactoryBean;
 import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -96,6 +97,8 @@ public final class BeanDefinitionUtils {
 	 */
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
+
+		Assert.notNull(beanFactory, "ConfigurableListableBeanFactory must not be null!");
 
 		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<>();
 
