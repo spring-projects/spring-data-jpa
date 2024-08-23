@@ -274,13 +274,13 @@ class ParameterBinderUnitTests {
 	}
 
 	private void bind(Method method, JpaParameters parameters, Object[] values) {
-		ParameterBinderFactory.createBinder(parameters).bind(QueryParameterSetter.BindableQuery.from(query),
+		ParameterBinderFactory.createBinder(parameters, false).bind(QueryParameterSetter.BindableQuery.from(query),
 				getAccessor(method, values), QueryParameterSetter.ErrorHandling.STRICT);
 	}
 
 	private void bindAndPrepare(Method method, Object[] values) {
-		ParameterBinderFactory.createBinder(createParameters(method)).bindAndPrepare(query,
-				new QueryParameterSetter.QueryMetadata(query), getAccessor(method, values));
+		ParameterBinderFactory.createBinder(createParameters(method), false).bindAndPrepare(query,
+				getAccessor(method, values));
 	}
 
 	private JpaParametersParameterAccessor getAccessor(Method method, Object... values) {

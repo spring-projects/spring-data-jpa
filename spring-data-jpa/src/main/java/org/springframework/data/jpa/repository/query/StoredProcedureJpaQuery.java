@@ -50,7 +50,6 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 
 	private final StoredProcedureAttributes procedureAttributes;
 	private final boolean useNamedParameters;
-	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 
 	/**
 	 * Creates a new {@link StoredProcedureJpaQuery}.
@@ -90,9 +89,7 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	protected StoredProcedureQuery doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		StoredProcedureQuery storedProcedure = createStoredProcedure();
-		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata("singleton", storedProcedure);
-
-		return parameterBinder.get().bind(storedProcedure, metadata, accessor);
+		return parameterBinder.get().bind(storedProcedure, accessor);
 	}
 
 	@Override

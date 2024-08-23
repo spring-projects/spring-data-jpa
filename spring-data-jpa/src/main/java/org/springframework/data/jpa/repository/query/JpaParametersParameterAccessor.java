@@ -31,14 +31,21 @@ import org.springframework.lang.Nullable;
  */
 public class JpaParametersParameterAccessor extends ParametersParameterAccessor {
 
+	private final JpaParameters parameters;
+
 	/**
 	 * Creates a new {@link ParametersParameterAccessor}.
 	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param values must not be {@literal null}.
 	 */
-	public JpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values) {
+	public JpaParametersParameterAccessor(JpaParameters parameters, Object[] values) {
 		super(parameters, values);
+		this.parameters = parameters;
+	}
+
+	public JpaParameters getParameters() {
+		return parameters;
 	}
 
 	@Nullable

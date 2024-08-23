@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.TemporalType.*;
 import static java.util.Arrays.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.repository.query.QueryParameterSetter.*;
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import jakarta.persistence.Parameter;
@@ -34,7 +35,8 @@ import java.util.function.Function;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
+
+import org.springframework.data.jpa.repository.query.QueryParameterSetter.*;
 
 /**
  * Unit tests fir {@link NamedOrIndexedQueryParameterSetter}.
@@ -79,7 +81,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 		for (Parameter parameter : parameters) {
 			for (TemporalType temporalType : temporalTypes) {
 
-				NamedOrIndexedQueryParameterSetter setter = new NamedOrIndexedQueryParameterSetter( //
+				QueryParameterSetter setter = QueryParameterSetter.create( //
 						firstValueExtractor, //
 						parameter, //
 						temporalType //
@@ -87,7 +89,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 				softly
 						.assertThatThrownBy(
-								() -> setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, STRICT)) //
+								() -> setter.setParameter(BindableQuery.from(query), methodArguments, STRICT)) //
 						.describedAs("p-type: %s, p-name: %s, p-position: %s, temporal: %s", //
 								parameter.getClass(), //
 								parameter.getName(), //
@@ -108,7 +110,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 		for (Parameter<?> parameter : parameters) {
 			for (TemporalType temporalType : temporalTypes) {
 
-				NamedOrIndexedQueryParameterSetter setter = new NamedOrIndexedQueryParameterSetter( //
+				QueryParameterSetter setter = QueryParameterSetter.create( //
 						firstValueExtractor, //
 						parameter, //
 						temporalType //
@@ -116,7 +118,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 				softly
 						.assertThatCode(
-								() -> setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT)) //
+								() -> setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT)) //
 						.describedAs("p-type: %s, p-name: %s, p-position: %s, temporal: %s", //
 								parameter.getClass(), //
 								parameter.getName(), //
@@ -141,13 +143,13 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 		for (TemporalType temporalType : temporalTypes) {
 
-			NamedOrIndexedQueryParameterSetter setter = new NamedOrIndexedQueryParameterSetter( //
+			QueryParameterSetter setter = QueryParameterSetter.create( //
 					firstValueExtractor, //
 					new ParameterImpl(null, 11), // parameter position is beyond number of parametes in query (0)
 					temporalType //
 			);
 
-			setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT);
+			setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT);
 
 			if (temporalType == null) {
 				verify(query).setParameter(eq(11), any(Date.class));
@@ -171,13 +173,13 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 		for (TemporalType temporalType : temporalTypes) {
 
-			NamedOrIndexedQueryParameterSetter setter = new NamedOrIndexedQueryParameterSetter( //
+			QueryParameterSetter setter = QueryParameterSetter.create( //
 					firstValueExtractor, //
 					new ParameterImpl(null, null), // no position (and no name) makes a success of a setParameter impossible
 					temporalType //
 			);
 
-			setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT);
+			setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT);
 
 			if (temporalType == null) {
 				verify(query, never()).setParameter(anyInt(), any(Date.class));
