@@ -134,6 +134,29 @@ public class KeysetScrollDelegate {
 		return CollectionUtils.getFirst(limit, list);
 	}
 
+	public Sort createSort(Sort sort, JpaEntityInformation<?, ?> entity) {
+
+		Collection<String> sortById;
+		Sort sortToUse;
+		if (entity.hasCompositeId()) {
+			sortById = new ArrayList<>(entity.getIdAttributeNames());
+		} else {
+			sortById = new ArrayList<>(1);
+			sortById.add(entity.getRequiredIdAttribute().getName());
+		}
+
+		sort.forEach(it -> sortById.remove(it.getProperty()));
+
+		if (sortById.isEmpty()) {
+			sortToUse = sort;
+		} else {
+			sortToUse = sort.and(Sort.by(sortById.toArray(new String[0])));
+		}
+
+		return getSortOrders(sortToUse);
+
+	}
+
 	/**
 	 * Reverse scrolling variant applying {@link Direction#Backward}. In reverse scrolling, we need to flip directions for
 	 * the actual query so that we do not get everything from the top position and apply the limit but rather flip the

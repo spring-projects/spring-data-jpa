@@ -3319,6 +3319,15 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
+		/*
+		TODO: Hibernate-generated HQL for the CriteriaBuilder-based API. Yields only one result in contrast to the CriteriaBuilder one.
+		Query query = em.createQuery("select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
+				.setParameter(1, asList("cOOl", "hIP"));
+
+		List resultList = query.getResultList();
+
+		*/
+
 		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(asList("cOOl", "hIP")));
 
 		assertThat(result).containsOnly(firstUser, secondUser);

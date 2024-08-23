@@ -69,7 +69,7 @@ class JpaParametersParameterAccessorTests {
 
 	private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
 
-		ParameterBinderFactory.createBinder(parameters)
+		ParameterBinderFactory.createBinder(parameters, true)
 				.bind( //
 						QueryParameterSetter.BindableQuery.from(query), //
 						accessor, //
