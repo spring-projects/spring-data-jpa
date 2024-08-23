@@ -22,8 +22,6 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -42,7 +40,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 3.1
  */
-public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort sort,
+public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort sort,
 		JpaEntityInformation<?, ?> entity) implements Specification<T> {
 
 	public KeysetScrollSpecification(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
@@ -63,24 +61,7 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
 
-		Collection<String> sortById;
-		Sort sortToUse;
-		if (entity.hasCompositeId()) {
-			sortById = new ArrayList<>(entity.getIdAttributeNames());
-		} else {
-			sortById = new ArrayList<>(1);
-			sortById.add(entity.getRequiredIdAttribute().getName());
-		}
-
-		sort.forEach(it -> sortById.remove(it.getProperty()));
-
-		if (sortById.isEmpty()) {
-			sortToUse = sort;
-		} else {
-			sortToUse = sort.and(Sort.by(sortById.toArray(new String[0])));
-		}
-
-		return delegate.getSortOrders(sortToUse);
+		return delegate.createSort(sort, entity);
 	}
 
 	@Override
@@ -92,16 +73,24 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 	public Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
-		return delegate.createPredicate(position, sort, new JpaQueryStrategy(root, criteriaBuilder));
+		return delegate.createPredicate(position, sort, new CriteriaBuilderStrategy(root, criteriaBuilder));
+	}
+
+	@Nullable
+	public JpqlQueryBuilder.Predicate createJpqlPredicate(From<?, ?> from, JpqlQueryBuilder.Entity entity,
+			ParameterFactory factory) {
+
+		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
+		return delegate.createPredicate(position, sort, new JpqlStrategy(from, entity, factory));
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static class JpaQueryStrategy implements QueryStrategy<Expression<Comparable>, Predicate> {
+	private static class CriteriaBuilderStrategy implements QueryStrategy<Expression<Comparable>, Predicate> {
 
 		private final From<?, ?> from;
 		private final CriteriaBuilder cb;
 
-		public JpaQueryStrategy(From<?, ?> from, CriteriaBuilder cb) {
+		public CriteriaBuilderStrategy(From<?, ?> from, CriteriaBuilder cb) {
 
 			this.from = from;
 			this.cb = cb;
@@ -135,5 +124,56 @@ public record KeysetScrollSpecification<T> (KeysetScrollPosition position, Sort 
 		public Predicate or(List<Predicate> intermediate) {
 			return cb.or(intermediate.toArray(new Predicate[0]));
 		}
+	}
+
+	private static class JpqlStrategy implements QueryStrategy<JpqlQueryBuilder.Expression, JpqlQueryBuilder.Predicate> {
+
+		private final From<?, ?> from;
+		private final JpqlQueryBuilder.Entity entity;
+		private final ParameterFactory factory;
+
+		public JpqlStrategy(From<?, ?> from, JpqlQueryBuilder.Entity entity, ParameterFactory factory) {
+
+			this.from = from;
+			this.entity = entity;
+			this.factory = factory;
+		}
+
+		@Override
+		public JpqlQueryBuilder.Expression createExpression(String property) {
+
+			PropertyPath path = PropertyPath.from(property, from.getJavaType());
+			return JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(entity, from, path));
+		}
+
+		@Override
+		public JpqlQueryBuilder.Predicate compare(Order order, JpqlQueryBuilder.Expression propertyExpression,
+				Object value) {
+
+			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
+			return order.isAscending() ? where.gt(factory.capture(value)) : where.lt(factory.capture(value));
+		}
+
+		@Override
+		public JpqlQueryBuilder.Predicate compare(JpqlQueryBuilder.Expression propertyExpression, @Nullable Object value) {
+
+			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
+
+			return value == null ? where.isNull() : where.eq(factory.capture(value));
+		}
+
+		@Override
+		public JpqlQueryBuilder.Predicate and(List<JpqlQueryBuilder.Predicate> intermediate) {
+			return JpqlQueryBuilder.and(intermediate);
+		}
+
+		@Override
+		public JpqlQueryBuilder.Predicate or(List<JpqlQueryBuilder.Predicate> intermediate) {
+			return JpqlQueryBuilder.or(intermediate);
+		}
+	}
+
+	public interface ParameterFactory {
+		JpqlQueryBuilder.Expression capture(Object value);
 	}
 }

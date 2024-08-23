@@ -21,13 +21,19 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.repository.query.Parameter;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -184,6 +190,115 @@ class ParameterBinding {
 	 */
 	public boolean isCompatibleWith(ParameterBinding other) {
 		return other.getClass() == getClass() && other.getOrigin().equals(getOrigin());
+	}
+
+	/**
+	 * Represents a {@link ParameterBinding} in a JPQL query augmented with instructions of how to apply a parameter as an
+	 * {@code IN} parameter.
+	 *
+	 * @author Thomas Darimont
+	 * @author Mark Paluch
+	 */
+	static class PartTreeParameterBinding extends ParameterBinding {
+
+		private final Class<?> parameterType;
+		private final JpqlQueryTemplates templates;
+		private final EscapeCharacter escape;
+		private final Type type;
+		private final boolean ignoreCase;
+		private final boolean noWildcards;
+
+		public PartTreeParameterBinding(BindingIdentifier identifier, ParameterOrigin origin, Class<?> parameterType,
+				Part part, @Nullable Object value, JpqlQueryTemplates templates, EscapeCharacter escape) {
+
+			super(identifier, origin);
+
+			this.parameterType = parameterType;
+			this.templates = templates;
+			this.escape = escape;
+
+			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
+			this.ignoreCase = Part.IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
+			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
+		}
+
+		/**
+		 * Returns whether the parameter shall be considered an {@literal IS NULL} parameter.
+		 */
+		public boolean isIsNullParameter() {
+			return Type.IS_NULL.equals(type);
+		}
+
+		@Override
+		public Object prepare(@Nullable Object value) {
+
+			if (value == null || parameterType == null) {
+				return value;
+			}
+
+			if (String.class.equals(parameterType) && !noWildcards) {
+
+				switch (type) {
+					case STARTING_WITH:
+						return String.format("%s%%", escape.escape(value.toString()));
+					case ENDING_WITH:
+						return String.format("%%%s", escape.escape(value.toString()));
+					case CONTAINING:
+					case NOT_CONTAINING:
+						return String.format("%%%s%%", escape.escape(value.toString()));
+					default:
+						return value;
+				}
+			}
+
+			return Collection.class.isAssignableFrom(parameterType) //
+					? potentiallyIgnoreCase(ignoreCase, toCollection(value)) //
+					: value;
+		}
+
+		@Nullable
+		@SuppressWarnings("unchecked")
+		private Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
+
+			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {
+				return collection;
+			}
+
+			return ((Collection<String>) collection).stream() //
+					.map(it -> it == null //
+							? null //
+							: templates.ignoreCase(it)) //
+					.collect(Collectors.toList());
+		}
+
+		/**
+		 * Returns the given argument as {@link Collection} which means it will return it as is if it's a
+		 * {@link Collections}, turn an array into an {@link ArrayList} or simply wrap any other value into a single element
+		 * {@link Collections}.
+		 *
+		 * @param value the value to be converted to a {@link Collection}.
+		 * @return the object itself as a {@link Collection} or a {@link Collection} constructed from the value.
+		 */
+		@Nullable
+		private static Collection<?> toCollection(@Nullable Object value) {
+
+			if (value == null) {
+				return null;
+			}
+
+			if (value instanceof Collection<?> collection) {
+				return collection.isEmpty() ? null : collection;
+			}
+
+			if (ObjectUtils.isArray(value)) {
+
+				List<Object> collection = Arrays.asList(ObjectUtils.toObjectArray(value));
+				return collection.isEmpty() ? null : collection;
+			}
+
+			return Collections.singleton(value);
+		}
+
 	}
 
 	/**
@@ -349,7 +464,7 @@ class ParameterBinding {
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	sealed interface BindingIdentifier permits Named,Indexed,NamedAndIndexed {
+	sealed interface BindingIdentifier permits Named, Indexed, NamedAndIndexed {
 
 		/**
 		 * Creates an identifier for the given {@code name}.
@@ -495,7 +610,7 @@ class ParameterBinding {
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	sealed interface ParameterOrigin permits Expression,MethodInvocationArgument {
+	sealed interface ParameterOrigin permits Expression, MethodInvocationArgument, Synthetic {
 
 		/**
 		 * Creates a {@link Expression} for the given {@code expression}.
@@ -505,6 +620,17 @@ class ParameterBinding {
 		 */
 		static Expression ofExpression(ValueExpression expression) {
 			return new Expression(expression);
+		}
+
+		/**
+		 * Creates a {@link Expression} for the given {@code expression} string.
+		 *
+		 * @param value the captured value.
+		 * @param source source from which this value is derived.
+		 * @return {@link Synthetic} for the given {@code value}.
+		 */
+		static Synthetic synthetic(@Nullable Object value, Object source) {
+			return new Synthetic(value, source);
 		}
 
 		/**
@@ -545,6 +671,16 @@ class ParameterBinding {
 		 * @param position the parameter position (1-based) from the method invocation.
 		 * @return {@link MethodInvocationArgument} object for {@code position}.
 		 */
+		static MethodInvocationArgument ofParameter(Parameter parameter) {
+			return ofParameter(parameter.getIndex() + 1);
+		}
+
+		/**
+		 * Creates a {@link MethodInvocationArgument} object for {@code position}.
+		 *
+		 * @param position the parameter position (1-based) from the method invocation.
+		 * @return {@link MethodInvocationArgument} object for {@code position}.
+		 */
 		static MethodInvocationArgument ofParameter(int position) {
 			return ofParameter(BindingIdentifier.of(position));
 		}
@@ -568,6 +704,11 @@ class ParameterBinding {
 		 * @return {@code true} if the origin is an expression.
 		 */
 		boolean isExpression();
+
+		/**
+		 * @return {@code true} if the origin is an expression.
+		 */
+		boolean isSynthetic();
 	}
 
 	/**
@@ -588,6 +729,36 @@ class ParameterBinding {
 		public boolean isExpression() {
 			return true;
 		}
+
+		@Override
+		public boolean isSynthetic() {
+			return true;
+		}
+	}
+
+	/**
+	 * Value object capturing the expression of which a binding parameter originates.
+	 *
+	 * @param value
+	 * @param source
+	 * @author Mark Paluch
+	 */
+	public record Synthetic(@Nullable Object value, Object source) implements ParameterOrigin {
+
+		@Override
+		public boolean isMethodArgument() {
+			return false;
+		}
+
+		@Override
+		public boolean isExpression() {
+			return false;
+		}
+
+		@Override
+		public boolean isSynthetic() {
+			return true;
+		}
 	}
 
 	/**
@@ -606,6 +777,11 @@ class ParameterBinding {
 
 		@Override
 		public boolean isExpression() {
+			return false;
+		}
+
+		@Override
+		public boolean isSynthetic() {
 			return false;
 		}
 	}

@@ -18,13 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 
@@ -48,12 +47,12 @@ class QueryParameterSetterFactoryUnitTests {
 		// we have one bindable parameter
 		when(parameters.getBindableParameters().iterator()).thenReturn(Stream.of(mock(JpaParameter.class)).iterator());
 
-		setterFactory = QueryParameterSetterFactory.basic(parameters);
+		setterFactory = QueryParameterSetterFactory.basic(parameters, true);
 	}
 
 	@Test // DATAJPA-1058
 	void noExceptionWhenQueryDoesNotContainNamedParameters() {
-		setterFactory.create(binding, DeclaredQuery.of("from Employee e", false));
+		setterFactory.create(binding);
 	}
 
 	@Test // DATAJPA-1058
@@ -62,8 +61,8 @@ class QueryParameterSetterFactoryUnitTests {
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter("NamedParameter", 1));
 
 		assertThatExceptionOfType(IllegalStateException.class) //
-				.isThrownBy(() -> setterFactory.create(binding,
-						DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+				.isThrownBy(() -> setterFactory.create(binding
+				)) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
@@ -73,16 +72,14 @@ class QueryParameterSetterFactoryUnitTests {
 	void exceptionWhenCriteriaQueryContainsInsufficientAmountOfParameters() {
 
 		// no parameter present in the criteria query
-		List<ParameterMetadataProvider.ParameterMetadata<?>> metadata = Collections.emptyList();
-		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forPartTreeQuery(parameters);
 
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding,
-						DeclaredQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+				.isThrownBy(() -> setterFactory.create(binding)) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 
@@ -90,14 +87,14 @@ class QueryParameterSetterFactoryUnitTests {
 	void exceptionWhenBasicQueryContainsInsufficientAmountOfParameters() {
 
 		// no parameter present in the criteria query
-		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters, false);
 
 		// one argument present in the method signature
 		when(binding.getRequiredPosition()).thenReturn(1);
 		when(binding.getOrigin()).thenReturn(ParameterOrigin.ofParameter(null, 1));
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
-				.isThrownBy(() -> setterFactory.create(binding, DeclaredQuery.of("from Employee e where e.name = ?1", false))) //
+				.isThrownBy(() -> setterFactory.create(binding)) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 }

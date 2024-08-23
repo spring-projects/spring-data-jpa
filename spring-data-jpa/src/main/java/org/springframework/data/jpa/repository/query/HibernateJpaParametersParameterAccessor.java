@@ -51,7 +51,7 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	 * @param values must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
-	HibernateJpaParametersParameterAccessor(Parameters<?, ?> parameters, Object[] values, EntityManager em) {
+	HibernateJpaParametersParameterAccessor(JpaParameters parameters, Object[] values, EntityManager em) {
 
 		super(parameters, values);
 
