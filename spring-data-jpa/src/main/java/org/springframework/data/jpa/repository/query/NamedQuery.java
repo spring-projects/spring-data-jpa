@@ -56,8 +56,6 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final @Nullable String countProjection;
 	private final boolean namedCountQueryIsPresent;
 	private final Lazy<DeclaredQuery> declaredQuery;
-	private final QueryParameterSetter.QueryMetadataCache metadataCache;
-	private final QueryRewriter queryRewriter;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
@@ -100,7 +98,6 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.declaredQuery = Lazy
 				.of(() -> DeclaredQuery.of(queryString, method.isNativeQuery() || query.toString().contains("NativeQuery")));
-		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
 	/**
@@ -175,9 +172,7 @@ final class NamedQuery extends AbstractJpaQuery {
 				? em.createNamedQuery(queryName) //
 				: em.createNamedQuery(queryName, typeToRead);
 
-		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(queryName, query);
-
-		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
+		return parameterBinder.get().bindAndPrepare(query, accessor);
 	}
 
 	@Override
@@ -199,9 +194,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
-		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(cacheKey, countQuery);
-
-		return parameterBinder.get().bind(countQuery, metadata, accessor);
+		return parameterBinder.get().bind(countQuery, accessor);
 	}
 
 	@Override

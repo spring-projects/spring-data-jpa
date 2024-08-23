@@ -23,7 +23,6 @@ import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
-import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.util.Assert;
 
 /**
@@ -40,37 +39,37 @@ class ParameterBinderFactory {
 	 * otherwise.
 	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
+	 * @param preferNamedParameters
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link jakarta.persistence.Query}
 	 */
-	static ParameterBinder createBinder(JpaParameters parameters) {
+	static ParameterBinder createBinder(JpaParameters parameters, boolean preferNamedParameters) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
 
-		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters);
+		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.basic(parameters, preferNamedParameters);
 		List<ParameterBinding> bindings = getBindings(parameters);
 
 		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
 	}
 
 	/**
-	 * Creates a {@link ParameterBinder} that just matches method parameter to parameters of a
-	 * {@link jakarta.persistence.criteria.CriteriaQuery}.
+	 * Creates a {@link ParameterBinder} that matches method parameter to parameters of a
+	 * {@link jakarta.persistence.Query} and that can bind synthetic parameters.
 	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
-	 * @param metadata must not be {@literal null}.
+	 * @param bindings parameter bindings for method argument and synthetic parameters, must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
-	 *         {@link jakarta.persistence.criteria.CriteriaQuery}
+	 *         {@link jakarta.persistence.Query}
 	 */
-	static ParameterBinder createCriteriaBinder(JpaParameters parameters, List<ParameterMetadata<?>> metadata) {
+	static ParameterBinder createBinder(JpaParameters parameters, List<ParameterBinding> bindings) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
-		Assert.notNull(metadata, "Parameter metadata must not be null");
+		Assert.notNull(bindings, "Parameter bindings must not be null");
 
-		QueryParameterSetterFactory setterFactory = QueryParameterSetterFactory.forCriteriaQuery(parameters, metadata);
-		List<ParameterBinding> bindings = getBindings(parameters);
-
-		return new ParameterBinder(parameters, createSetters(bindings, setterFactory));
+		return new ParameterBinder(parameters,
+				createSetters(bindings, QueryParameterSetterFactory.forPartTreeQuery(parameters),
+						QueryParameterSetterFactory.forSynthetic()));
 	}
 
 	/**
@@ -97,15 +96,16 @@ class ParameterBinderFactory {
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
 				evaluationContextProvider);
 
-		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
+		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters,
+				query.hasNamedParameter());
 
 		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory),
 				!query.usesPaging());
 	}
 
-	private static List<ParameterBinding> getBindings(JpaParameters parameters) {
+	static List<ParameterBinding> getBindings(JpaParameters parameters) {
 
-		List<ParameterBinding> result = new ArrayList<>();
+		List<ParameterBinding> result = new ArrayList<>(parameters.getNumberOfParameters());
 		int bindableParameterIndex = 0;
 
 		for (JpaParameter parameter : parameters) {
@@ -143,7 +143,7 @@ class ParameterBinderFactory {
 
 		for (QueryParameterSetterFactory strategy : strategies) {
 
-			QueryParameterSetter setter = strategy.create(binding, declaredQuery);
+			QueryParameterSetter setter = strategy.create(binding);
 
 			if (setter != null) {
 				return setter;

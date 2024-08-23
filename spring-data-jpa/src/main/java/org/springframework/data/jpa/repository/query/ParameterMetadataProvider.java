@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.ParameterBinding.*;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.ParameterExpression;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,10 +25,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -56,83 +57,87 @@ import org.springframework.util.ObjectUtils;
  */
 public class ParameterMetadataProvider {
 
-	private final CriteriaBuilder builder;
 	private final Iterator<? extends Parameter> parameters;
-	private final List<ParameterMetadata<?>> expressions;
+	private final List<ParameterBinding> bindings;
 	private final @Nullable Iterator<Object> bindableParameterValues;
 	private final EscapeCharacter escape;
+	private final JpqlQueryTemplates templates;
+	private final JpaParameters jpaParameters;
+	private int position;
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
 	 * {@link ParametersParameterAccessor}.
 	 *
-	 * @param builder must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
 	 * @param escape must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, ParametersParameterAccessor accessor,
-			EscapeCharacter escape) {
-		this(builder, accessor.iterator(), accessor.getParameters(), escape);
+	public ParameterMetadataProvider(JpaParametersParameterAccessor accessor,
+			EscapeCharacter escape, JpqlQueryTemplates templates) {
+		this(accessor.iterator(), accessor.getParameters(), escape, templates);
 	}
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
 	 * support for parameter value customizations via {@link PersistenceProvider}.
 	 *
-	 * @param builder must not be {@literal null}.
 	 * @param parameters must not be {@literal null}.
 	 * @param escape must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(CriteriaBuilder builder, Parameters<?, ?> parameters, EscapeCharacter escape) {
-		this(builder, null, parameters, escape);
+	public ParameterMetadataProvider(JpaParameters parameters, EscapeCharacter escape,
+			JpqlQueryTemplates templates) {
+		this(null, parameters, escape, templates);
 	}
 
 	/**
 	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
 	 * bindable parameter values, and {@link Parameters}.
 	 *
-	 * @param builder must not be {@literal null}.
 	 * @param bindableParameterValues may be {@literal null}.
 	 * @param parameters must not be {@literal null}.
 	 * @param escape must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
 	 */
-	private ParameterMetadataProvider(CriteriaBuilder builder, @Nullable Iterator<Object> bindableParameterValues,
-			Parameters<?, ?> parameters, EscapeCharacter escape) {
+	private ParameterMetadataProvider(@Nullable Iterator<Object> bindableParameterValues, JpaParameters parameters,
+			EscapeCharacter escape, JpqlQueryTemplates templates) {
 
-		Assert.notNull(builder, "CriteriaBuilder must not be null");
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(escape, "EscapeCharacter must not be null");
+		Assert.notNull(templates, "JpqlQueryTemplates must not be null");
 
-		this.builder = builder;
+		this.jpaParameters = parameters;
 		this.parameters = parameters.getBindableParameters().iterator();
-		this.expressions = new ArrayList<>();
+		this.bindings = new ArrayList<>();
 		this.bindableParameterValues = bindableParameterValues;
 		this.escape = escape;
+		this.templates = templates;
 	}
 
 	/**
-	 * Returns all {@link ParameterMetadata}s built.
+	 * Returns all {@link ParameterBinding}s built.
 	 *
-	 * @return the expressions
+	 * @return the bindings.
 	 */
-	public List<ParameterMetadata<?>> getExpressions() {
-		return expressions;
+	public List<ParameterBinding> getBindings() {
+		return bindings;
 	}
 
 	/**
-	 * Builds a new {@link ParameterMetadata} for given {@link Part} and the next {@link Parameter}.
+	 * Builds a new {@link PartTreeParameterBinding} for given {@link Part} and the next {@link Parameter}.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> ParameterMetadata<T> next(Part part) {
+	public <T> PartTreeParameterBinding next(Part part) {
 
 		Assert.isTrue(parameters.hasNext(), () -> String.format("No parameter available for part %s", part));
 
 		Parameter parameter = parameters.next();
-		return (ParameterMetadata<T>) next(part, parameter.getType(), parameter);
+		return next(part, parameter.getType(), parameter);
 	}
 
 	/**
-	 * Builds a new {@link ParameterMetadata} of the given {@link Part} and type. Forwards the underlying
+	 * Builds a new {@link PartTreeParameterBinding} of the given {@link Part} and type. Forwards the underlying
 	 * {@link Parameters} as well.
 	 *
 	 * @param <T> is the type parameter of the returned {@link ParameterMetadata}.
@@ -140,15 +145,15 @@ public class ParameterMetadataProvider {
 	 * @return ParameterMetadata for the next parameter.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> ParameterMetadata<? extends T> next(Part part, Class<T> type) {
+	public <T> PartTreeParameterBinding next(Part part, Class<T> type) {
 
 		Parameter parameter = parameters.next();
 		Class<?> typeToUse = ClassUtils.isAssignable(type, parameter.getType()) ? parameter.getType() : type;
-		return (ParameterMetadata<? extends T>) next(part, typeToUse, parameter);
+		return next(part, typeToUse, parameter);
 	}
 
 	/**
-	 * Builds a new {@link ParameterMetadata} for the given type and name.
+	 * Builds a new {@link PartTreeParameterBinding} for the given type and name.
 	 *
 	 * @param <T> type parameter for the returned {@link ParameterMetadata}.
 	 * @param part must not be {@literal null}.
@@ -156,7 +161,7 @@ public class ParameterMetadataProvider {
 	 * @param parameter providing the name for the returned {@link ParameterMetadata}.
 	 * @return a new {@link ParameterMetadata} for the given type and name.
 	 */
-	private <T> ParameterMetadata<T> next(Part part, Class<T> type, Parameter parameter) {
+	private <T> PartTreeParameterBinding next(Part part, Class<T> type, Parameter parameter) {
 
 		Assert.notNull(type, "Type must not be null");
 
@@ -166,19 +171,20 @@ public class ParameterMetadataProvider {
 		@SuppressWarnings("unchecked")
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
-		Supplier<String> name = () -> parameter.getName()
-				.orElseThrow(() -> new IllegalArgumentException("o_O Parameter needs to be named"));
-
-		ParameterExpression<T> expression = parameter.isExplicitlyNamed() //
-				? builder.parameter(reifiedType, name.get()) //
-				: builder.parameter(reifiedType);
-
 		Object value = bindableParameterValues == null ? ParameterMetadata.PLACEHOLDER : bindableParameterValues.next();
 
-		ParameterMetadata<T> metadata = new ParameterMetadata<>(expression, part, value, escape);
-		expressions.add(metadata);
+		int currentPosition = ++position;
 
-		return metadata;
+		BindingIdentifier bindingIdentifier = BindingIdentifier.of(currentPosition);
+
+		/* identifier refers to bindable parameters, not _all_ parameters index */
+		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(bindingIdentifier);
+		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier, methodParameter, reifiedType,
+				part, value, templates, escape);
+
+		bindings.add(binding);
+
+		return binding;
 	}
 
 	EscapeCharacter getEscape() {
@@ -186,17 +192,36 @@ public class ParameterMetadataProvider {
 	}
 
 	/**
+	 * Builds a new synthetic {@link ParameterBinding} for the given value.
+	 *
+	 * @param value
+	 * @param source
+	 * @return a new {@link ParameterBinding} for the given value and source.
+	 */
+	public ParameterBinding nextSynthetic(Object value, Object source) {
+
+		int currentPosition = ++position;
+
+		return new ParameterBinding(BindingIdentifier.of(currentPosition), ParameterOrigin.synthetic(value, source));
+	}
+
+	public JpaParameters getParameters() {
+		return this.jpaParameters;
+	}
+
+	/**
 	 * @author Oliver Gierke
 	 * @author Thomas Darimont
 	 * @author Andrey Kovalev
-	 * @param <T>
 	 */
-	public static class ParameterMetadata<T> {
+	public static class ParameterMetadata {
 
 		static final Object PLACEHOLDER = new Object();
 
+		private final Class<?> parameterType;
 		private final Type type;
-		private final ParameterExpression<T> expression;
+		private final int position;
+		private final JpqlQueryTemplates templates;
 		private final EscapeCharacter escape;
 		private final boolean ignoreCase;
 		private final boolean noWildcards;
@@ -204,10 +229,12 @@ public class ParameterMetadataProvider {
 		/**
 		 * Creates a new {@link ParameterMetadata}.
 		 */
-		public ParameterMetadata(ParameterExpression<T> expression, Part part, @Nullable Object value,
-				EscapeCharacter escape) {
+		public ParameterMetadata(Class<?> parameterType, Part part, @Nullable Object value, EscapeCharacter escape,
+				int position, JpqlQueryTemplates templates) {
 
-			this.expression = expression;
+			this.parameterType = parameterType;
+			this.position = position;
+			this.templates = templates;
 			this.type = value == null
 					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
 							? Type.IS_NULL
@@ -217,13 +244,12 @@ public class ParameterMetadataProvider {
 			this.escape = escape;
 		}
 
-		/**
-		 * Returns the {@link ParameterExpression}.
-		 *
-		 * @return the expression
-		 */
-		public ParameterExpression<T> getExpression() {
-			return expression;
+		public int getPosition() {
+			return position;
+		}
+
+		public Class<?> getParameterType() {
+			return parameterType;
 		}
 
 		/**
@@ -241,11 +267,11 @@ public class ParameterMetadataProvider {
 		@Nullable
 		public Object prepare(@Nullable Object value) {
 
-			if (value == null || expression.getJavaType() == null) {
+			if (value == null || parameterType == null) {
 				return value;
 			}
 
-			if (String.class.equals(expression.getJavaType()) && !noWildcards) {
+			if (String.class.equals(parameterType) && !noWildcards) {
 
 				switch (type) {
 					case STARTING_WITH:
@@ -260,8 +286,8 @@ public class ParameterMetadataProvider {
 				}
 			}
 
-			return Collection.class.isAssignableFrom(expression.getJavaType()) //
-					? upperIfIgnoreCase(ignoreCase, toCollection(value)) //
+			return Collection.class.isAssignableFrom(parameterType) //
+					? potentiallyIgnoreCase(ignoreCase, toCollection(value)) //
 					: value;
 		}
 
@@ -295,7 +321,7 @@ public class ParameterMetadataProvider {
 
 		@Nullable
 		@SuppressWarnings("unchecked")
-		private static Collection<?> upperIfIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
+		private Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
 
 			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {
 				return collection;
@@ -304,8 +330,9 @@ public class ParameterMetadataProvider {
 			return ((Collection<String>) collection).stream() //
 					.map(it -> it == null //
 							? null //
-							: it.toUpperCase()) //
+							: templates.ignoreCase(it)) //
 					.collect(Collectors.toList());
 		}
+
 	}
 }
