@@ -18,8 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-
 import java.util.Collections;
 
 import org.eclipse.persistence.internal.jpa.querydef.ParameterExpressionImpl;
@@ -30,7 +28,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.repository.query.Parameters;
+
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.parser.Part;
 
 /**
@@ -51,13 +50,11 @@ class ParameterMetadataProviderUnitTests {
 	@Test // DATAJPA-863
 	void errorMessageMentionsParametersWhenParametersAreExhausted() {
 
-		CriteriaBuilder builder = mock(CriteriaBuilder.class);
-
-		Parameters<?, ?> parameters = mock(Parameters.class, RETURNS_DEEP_STUBS);
+		JpaParameters parameters = mock(JpaParameters.class, RETURNS_DEEP_STUBS);
 		when(parameters.getBindableParameters().iterator()).thenReturn(Collections.emptyListIterator());
 
-		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(builder, parameters,
-				EscapeCharacter.DEFAULT);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters,
+				EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> metadataProvider.next(mock(Part.class))) //
@@ -68,6 +65,7 @@ class ParameterMetadataProviderUnitTests {
 	void returnAugmentedValueForStringExpressions() {
 
 		when(part.getProperty().getLeafProperty().isCollection()).thenReturn(false);
+		when(part.getProperty().getType()).thenReturn((Class) String.class);
 
 		assertThat(createParameterMetadata(Part.Type.STARTING_WITH).prepare("starting with")).isEqualTo("starting with%");
 		assertThat(createParameterMetadata(Part.Type.ENDING_WITH).prepare("ending with")).isEqualTo("%ending with");
@@ -82,6 +80,6 @@ class ParameterMetadataProviderUnitTests {
 	private ParameterMetadataProvider.ParameterMetadata createParameterMetadata(Part.Type partType) {
 
 		when(part.getType()).thenReturn(partType);
-		return new ParameterMetadataProvider.ParameterMetadata<>(parameterExpression, part, null, EscapeCharacter.DEFAULT);
+		return new ParameterMetadataProvider.ParameterMetadata(part.getProperty().getType(), part, null, EscapeCharacter.DEFAULT, 1, JpqlQueryTemplates.LOWER);
 	}
 }

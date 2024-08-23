@@ -826,7 +826,7 @@ public abstract class QueryUtils {
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
 	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
-	private static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
+	static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
 			boolean hasRequiredOuterJoin) {
 
 		// already inner joined so outer join is useless
@@ -896,7 +896,7 @@ public abstract class QueryUtils {
 	 * @param joinType the join type to create if none was found
 	 * @return will never be {@literal null}.
 	 */
-	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+	static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
 
 		for (Join<?, ?> join : from.getJoins()) {
 

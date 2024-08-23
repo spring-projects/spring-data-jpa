@@ -2450,13 +2450,13 @@ class UserRepositoryTests {
 		prototype.setFirstname("v");
 
 		List<UserProjectionUsingSpEL> users = repository.findBy(
-			of(prototype,
-				matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
-					GenericPropertyMatcher::contains)), //
-			q -> q.as(UserProjectionUsingSpEL.class).all());
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.as(UserProjectionUsingSpEL.class).all());
 
 		assertThat(users).extracting(UserProjectionUsingSpEL::hello)
-			.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
+				.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
 	}
 
 	@Test // GH-2294
@@ -3178,6 +3178,15 @@ class UserRepositoryTests {
 		thirdUser.getAttributes().add("roCKsTar");
 
 		flushTestUsers();
+
+		/*
+		TODO: Hibernate-generated HQL for the CriteriaBuilder-based API. Yields only one result in contrast to the CriteriaBuilder one.
+		Query query = em.createQuery("select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
+				.setParameter(1, asList("cOOl", "hIP"));
+
+		List resultList = query.getResultList();
+
+		*/
 
 		List<User> result = repository.findByAttributesIgnoreCaseIn(new HashSet<>(asList("cOOl", "hIP")));
 

@@ -17,9 +17,7 @@ import org.springframework.aop.framework.Advised;
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -37,9 +35,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -147,7 +147,7 @@ class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] {}));
 
-		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("roles is empty");
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("roles IS EMPTY");
 	}
 
 	@Test // DATAJPA-1074, HHH-15432
@@ -158,7 +158,18 @@ class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] {}));
 
-		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("roles is not empty");
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("roles IS NOT EMPTY");
+	}
+
+	@Test //
+	void containingCollection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod("findByRolesContaining", Role.class);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { new Role() }));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("MEMBER OF u.roles");
 	}
 
 	@Test // DATAJPA-1074
@@ -166,7 +177,8 @@ class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstnameIsEmpty");
 
-		assertThatIllegalArgumentException().isThrownBy(() -> new PartTreeJpaQuery(method, entityManager));
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> new PartTreeJpaQuery(method, entityManager).createQuery(getAccessor(method, new Object[] {})));
 	}
 
 	@Test // DATAJPA-1182
@@ -290,6 +302,8 @@ class PartTreeJpaQueryIntegrationTests {
 		List<User> findByRolesIsNotEmpty();
 
 		List<User> findByFirstnameIsEmpty();
+
+		List<User> findByRolesContaining(Role role);
 
 		// should fail, since we can't compare scalar values to collections
 		List<User> findById(Collection<Integer> ids);

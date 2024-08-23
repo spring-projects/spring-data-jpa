@@ -23,17 +23,16 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.criteria.ParameterExpression;
 
 import java.lang.reflect.Proxy;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ErrorHandler;
 
 /**
  * The interface encapsulates the setting of query parameters which might use a significant number of variations of
@@ -45,158 +44,159 @@ import org.springframework.util.Assert;
  */
 interface QueryParameterSetter {
 
-	void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandling errorHandling);
-
 	/** Noop implementation */
-	QueryParameterSetter NOOP = (query, values, errorHandling) -> {};
+	QueryParameterSetter NOOP = (query, values, errorHandler) -> {};
 
 	/**
-	 * {@link QueryParameterSetter} for named or indexed parameters that might have a {@link TemporalType} specified.
+	 * Creates a new {@link QueryParameterSetter} for the given value extractor, JPA parameter and potentially the
+	 * temporal type.
+	 *
+	 * @param valueExtractor
+	 * @param parameter
+	 * @param temporalType
+	 * @return
+	 */
+	static QueryParameterSetter create(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+			Parameter<?> parameter, @Nullable TemporalType temporalType) {
+
+		return temporalType == null ? new NamedOrIndexedQueryParameterSetter(valueExtractor, parameter)
+				: new TemporalParameterSetter(valueExtractor, parameter, temporalType);
+	}
+
+	void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandler errorHandler);
+
+	/**
+	 * {@link QueryParameterSetter} for named or indexed parameters.
 	 */
 	class NamedOrIndexedQueryParameterSetter implements QueryParameterSetter {
 
 		private final Function<JpaParametersParameterAccessor, Object> valueExtractor;
 		private final Parameter<?> parameter;
-		private final @Nullable TemporalType temporalType;
 
 		/**
 		 * @param valueExtractor must not be {@literal null}.
 		 * @param parameter must not be {@literal null}.
-		 * @param temporalType may be {@literal null}.
 		 */
-		NamedOrIndexedQueryParameterSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
-				Parameter<?> parameter, @Nullable TemporalType temporalType) {
+		private NamedOrIndexedQueryParameterSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+				Parameter<?> parameter) {
 
 			Assert.notNull(valueExtractor, "ValueExtractor must not be null");
 
 			this.valueExtractor = valueExtractor;
 			this.parameter = parameter;
-			this.temporalType = temporalType;
+		}
+
+		@Override
+		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandler errorHandler) {
+
+			Object value = valueExtractor.apply(accessor);
+
+			try {
+				setParameter(query, value, errorHandler);
+			} catch (RuntimeException e) {
+				errorHandler.handleError(e);
+			}
 		}
 
 		@SuppressWarnings("unchecked")
-		@Override
-		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor,
-				ErrorHandling errorHandling) {
+		private void setParameter(BindableQuery query, Object value, ErrorHandler errorHandler) {
 
-			if (temporalType != null) {
-
-				Object extractedValue = valueExtractor.apply(accessor);
-
-				Date value = (Date) accessor.potentiallyUnwrap(extractedValue);
-
-				// One would think we can simply use parameter to identify the parameter we want to set.
-				// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
-				// TODO: move to using setParameter(Parameter, value) when https://hibernate.atlassian.net/browse/HHH-11870 is
-				// fixed.
-
-				if (parameter instanceof ParameterExpression) {
-					errorHandling.execute(() -> query.setParameter((Parameter<Date>) parameter, value, temporalType));
-				} else if (query.hasNamedParameters() && parameter.getName() != null) {
-					errorHandling.execute(() -> query.setParameter(parameter.getName(), value, temporalType));
-				} else {
-
-					Integer position = parameter.getPosition();
-
-					if (position != null //
-							&& (query.getParameters().size() >= parameter.getPosition() //
-									|| query.registerExcessParameters() //
-									|| errorHandling == LENIENT)) {
-
-						errorHandling.execute(() -> query.setParameter(parameter.getPosition(), value, temporalType));
-					}
-				}
+			if (parameter instanceof ParameterExpression) {
+				query.setParameter((Parameter<Object>) parameter, value);
+			} else if (query.hasNamedParameters() && parameter.getName() != null) {
+				query.setParameter(parameter.getName(), value);
 
 			} else {
 
-				Object value = valueExtractor.apply(accessor);
+				Integer position = parameter.getPosition();
 
-				if (parameter instanceof ParameterExpression) {
-					errorHandling.execute(() -> query.setParameter((Parameter<Object>) parameter, value));
-				} else if (query.hasNamedParameters() && parameter.getName() != null) {
-					errorHandling.execute(() -> query.setParameter(parameter.getName(), value));
-
-				} else {
-
-					Integer position = parameter.getPosition();
-
-					if (position != null //
-							&& (query.getParameters().size() >= position //
-									|| errorHandling == LENIENT //
-									|| query.registerExcessParameters())) {
-						errorHandling.execute(() -> query.setParameter(position, value));
-					}
+				if (position != null //
+						&& (query.getParameters().size() >= position //
+								|| errorHandler == LENIENT //
+								|| query.registerExcessParameters())) {
+					query.setParameter(position, value);
 				}
 			}
 		}
 	}
 
-	enum ErrorHandling {
+	/**
+	 * {@link QueryParameterSetter} for named or indexed parameters that have a {@link TemporalType} specified.
+	 */
+	class TemporalParameterSetter implements QueryParameterSetter {
+
+		private final Function<JpaParametersParameterAccessor, Object> valueExtractor;
+		private final Parameter<?> parameter;
+		private final TemporalType temporalType;
+
+		private TemporalParameterSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+				Parameter<?> parameter, TemporalType temporalType) {
+			this.valueExtractor = valueExtractor;
+			this.parameter = parameter;
+			this.temporalType = temporalType;
+		}
+
+		@Override
+		public void setParameter(BindableQuery query, JpaParametersParameterAccessor accessor, ErrorHandler errorHandler) {
+
+			Date value = (Date) accessor.potentiallyUnwrap(valueExtractor.apply(accessor));
+
+			try {
+				setParameter(query, value, errorHandler);
+			} catch (RuntimeException e) {
+				errorHandler.handleError(e);
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		private void setParameter(BindableQuery query, Date date, ErrorHandler errorHandler) {
+
+			// One would think we can simply use parameter to identify the parameter we want to set.
+			// But that does not work with list valued parameters. At least Hibernate tries to bind them by name.
+			// TODO: move to using setParameter(Parameter, value) when https://hibernate.atlassian.net/browse/HHH-11870 is
+			// fixed.
+
+			if (parameter instanceof ParameterExpression) {
+				query.setParameter((Parameter<Date>) parameter, date, temporalType);
+			} else if (query.hasNamedParameters() && parameter.getName() != null) {
+				query.setParameter(parameter.getName(), date, temporalType);
+			} else {
+
+				Integer position = parameter.getPosition();
+
+				if (position != null //
+						&& (query.getParameters().size() >= parameter.getPosition() //
+								|| query.registerExcessParameters() //
+								|| errorHandler == LENIENT)) {
+
+					query.setParameter(parameter.getPosition(), date, temporalType);
+				}
+			}
+		}
+	}
+
+	enum ErrorHandling implements ErrorHandler {
 
 		STRICT {
 
 			@Override
-			public void execute(Runnable block) {
-				block.run();
+			public void handleError(Throwable t) {
+				if (t instanceof RuntimeException rx) {
+					throw rx;
+				}
+				throw new RuntimeException(t);
 			}
 		},
 
 		LENIENT {
 
 			@Override
-			public void execute(Runnable block) {
-
-				try {
-					block.run();
-				} catch (RuntimeException rex) {
-					LOG.info("Silently ignoring", rex);
-				}
+			public void handleError(Throwable t) {
+				LOG.info("Silently ignoring", t);
 			}
 		};
 
 		private static final Log LOG = LogFactory.getLog(ErrorHandling.class);
-
-		abstract void execute(Runnable block);
-	}
-
-	/**
-	 * Cache for {@link QueryMetadata}. Optimizes for small cache sizes on a best-effort basis.
-	 */
-	class QueryMetadataCache {
-
-		private Map<String, QueryMetadata> cache = Collections.emptyMap();
-
-		/**
-		 * Retrieve the {@link QueryMetadata} for a given {@code cacheKey}.
-		 *
-		 * @param cacheKey
-		 * @param query
-		 * @return
-		 */
-		public QueryMetadata getMetadata(String cacheKey, Query query) {
-
-			QueryMetadata queryMetadata = cache.get(cacheKey);
-
-			if (queryMetadata == null) {
-
-				queryMetadata = new QueryMetadata(query);
-
-				Map<String, QueryMetadata> cache;
-
-				if (this.cache.isEmpty()) {
-					cache = Collections.singletonMap(cacheKey, queryMetadata);
-				} else {
-					cache = new HashMap<>(this.cache);
-					cache.put(cacheKey, queryMetadata);
-				}
-
-				synchronized (this) {
-					this.cache = cache;
-				}
-			}
-
-			return queryMetadata;
-		}
 	}
 
 	/**
@@ -222,23 +222,6 @@ interface QueryParameterSetter {
 
 			this.registerExcessParameters = query.getParameters().size() == 0
 					&& unwrapClass(query).getName().startsWith("org.eclipse");
-		}
-
-		QueryMetadata(QueryMetadata metadata) {
-
-			this.namedParameters = metadata.namedParameters;
-			this.parameters = metadata.parameters;
-			this.registerExcessParameters = metadata.registerExcessParameters;
-		}
-
-		/**
-		 * Create a {@link BindableQuery} for a {@link Query}.
-		 *
-		 * @param query
-		 * @return
-		 */
-		public BindableQuery withQuery(Query query) {
-			return new BindableQuery(this, query);
 		}
 
 		/**
@@ -294,13 +277,7 @@ interface QueryParameterSetter {
 		private final Query query;
 		private final Query unwrapped;
 
-		BindableQuery(QueryMetadata metadata, Query query) {
-			super(metadata);
-			this.query = query;
-			this.unwrapped = Proxy.isProxyClass(query.getClass()) ? query.unwrap(null) : query;
-		}
-
-		private BindableQuery(Query query) {
+		BindableQuery(Query query) {
 			super(query);
 			this.query = query;
 			this.unwrapped = Proxy.isProxyClass(query.getClass()) ? query.unwrap(null) : query;

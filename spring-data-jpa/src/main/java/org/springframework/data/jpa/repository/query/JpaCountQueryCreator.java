@@ -15,16 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.EntityManager;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.Nullable;
 
 /**
  * Special {@link JpaQueryCreator} that creates a count projecting query.
@@ -36,41 +32,35 @@ import org.springframework.lang.Nullable;
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
-	private boolean distinct;
+	private final boolean distinct;
+	private final ReturnedType returnedType;
 
 	/**
-	 * Creates a new {@link JpaCountQueryCreator}.
+	 * Creates a new {@link JpaCountQueryCreator}
 	 *
 	 * @param tree
-	 * @param type
-	 * @param builder
+	 * @param returnedType
 	 * @param provider
+	 * @param templates
+	 * @param em
 	 */
-	public JpaCountQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
-			ParameterMetadataProvider provider) {
+	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, EntityManager em) {
 
-		super(tree, type, builder, provider);
+		super(tree, returnedType, provider, templates, em);
 
 		this.distinct = tree.isDistinct();
+		this.returnedType = returnedType;
 	}
 
 	@Override
-	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
+	protected JpqlQueryBuilder.Select buildQuery(Sort sort) {
 
-		return builder.createQuery(Long.class);
-	}
+		JpqlQueryBuilder.SelectStep selectStep = JpqlQueryBuilder.selectFrom(returnedType.getDomainType());
+		if (this.distinct) {
+			selectStep = selectStep.distinct();
+		}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
-			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
-
-		CriteriaQuery<? extends Object> select = query.select(getCountQuery(query, builder, root));
-		return predicate == null ? select : select.where(predicate);
-	}
-
-	@SuppressWarnings("rawtypes")
-	private Expression getCountQuery(CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
-		return distinct ? builder.countDistinct(root) : builder.count(root);
+		return selectStep.count();
 	}
 }

@@ -15,18 +15,19 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.EntityManager;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.lang.Nullable;
@@ -41,35 +42,67 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 
 	private final JpaEntityInformation<?, ?> entityInformation;
 	private final KeysetScrollPosition scrollPosition;
+	private final ParameterMetadataProvider provider;
+	private final List<ParameterBinding> syntheticBindings = new ArrayList<>();
 
-	public JpaKeysetScrollQueryCreator(PartTree tree, ReturnedType type, CriteriaBuilder builder,
-			ParameterMetadataProvider provider, JpaEntityInformation<?, ?> entityInformation,
-			KeysetScrollPosition scrollPosition) {
+	public JpaKeysetScrollQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, JpaEntityInformation<?, ?> entityInformation, KeysetScrollPosition scrollPosition,
+			EntityManager em) {
 
-		super(tree, type, builder, provider);
+		super(tree, type, provider, templates, em);
 
 		this.entityInformation = entityInformation;
 		this.scrollPosition = scrollPosition;
+		this.provider = provider;
 	}
 
 	@Override
-	protected CriteriaQuery<?> complete(@Nullable Predicate predicate, Sort sort, CriteriaQuery<?> query,
-			CriteriaBuilder builder, Root<?> root) {
+	public List<ParameterBinding> getBindings() {
+
+		List<ParameterBinding> partTreeBindings = super.getBindings();
+		List<ParameterBinding> bindings = new ArrayList<>(partTreeBindings.size() + this.syntheticBindings.size());
+		bindings.addAll(partTreeBindings);
+		bindings.addAll(this.syntheticBindings);
+
+		return bindings;
+	}
+
+	@Override
+	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(@Nullable JpqlQueryBuilder.Predicate predicate, Sort sort) {
 
 		KeysetScrollSpecification<Object> keysetSpec = new KeysetScrollSpecification<>(scrollPosition, sort,
 				entityInformation);
-		Predicate keysetPredicate = keysetSpec.createPredicate(root, builder);
 
-		CriteriaQuery<?> queryToUse = super.complete(predicate, keysetSpec.sort(), query, builder, root);
+		JpqlQueryBuilder.Select query = buildQuery(keysetSpec.sort());
 
-		if (keysetPredicate != null) {
-			if (queryToUse.getRestriction() != null) {
-				return queryToUse.where(builder.and(queryToUse.getRestriction(), keysetPredicate));
-			}
-			return queryToUse.where(keysetPredicate);
+		AtomicInteger counter = new AtomicInteger(provider.getBindings().size());
+		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(getFrom(), getEntity(), value -> {
+
+			syntheticBindings.add(provider.nextSynthetic(value, scrollPosition));
+			return JpqlQueryBuilder.expression(render(counter.incrementAndGet()));
+		});
+		JpqlQueryBuilder.Predicate predicateToUse = getPredicate(predicate, keysetPredicate);
+
+		if (predicateToUse != null) {
+			return query.where(predicateToUse);
 		}
 
-		return queryToUse;
+		return query;
+	}
+
+	@Nullable
+	private static JpqlQueryBuilder.Predicate getPredicate(@Nullable JpqlQueryBuilder.Predicate predicate,
+			@Nullable JpqlQueryBuilder.Predicate keysetPredicate) {
+
+		if (keysetPredicate != null) {
+			if (predicate != null) {
+				return predicate.nest().and(keysetPredicate.nest());
+			} else {
+				return keysetPredicate;
+			}
+		}
+
+		return predicate;
 	}
 
 	@Override

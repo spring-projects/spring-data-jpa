@@ -235,8 +235,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return lockModeType == null ? query : query.setLockMode(lockModeType);
 	}
 
-	protected ParameterBinder createBinder() {
-		return ParameterBinderFactory.createBinder(getQueryMethod().getParameters());
+	ParameterBinder createBinder() {
+		return ParameterBinderFactory.createBinder(getQueryMethod().getParameters(), false);
 	}
 
 	protected Query createQuery(JpaParametersParameterAccessor parameters) {
