@@ -32,7 +32,7 @@ public interface UserRepository extends Repository<User, Long> {
   List<User> findByEmailAddressAndLastname(String emailAddress, String lastname);
 }
 ----
-We create a query using the JPA criteria API from this, but, essentially, this translates into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in xref:repositories/query-methods-details.adoc#repositories.query-methods.query-property-expressions[Property Expressions].
+We create a query using JPQL  translating into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in xref:repositories/query-methods-details.adoc#repositories.query-methods.query-property-expressions[Property Expressions].
 ====
 
 The following table describes the keywords supported for JPA and what a method containing that keyword translates to:

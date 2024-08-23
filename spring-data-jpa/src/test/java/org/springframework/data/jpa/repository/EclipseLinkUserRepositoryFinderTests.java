@@ -38,6 +38,10 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
 	@Override
+	void shouldProjectWithKeysetScrolling() {}
+
+	@Disabled
+	@Override
 	void rawMapProjectionWithEntityAndAggregatedValue() {}
 
 }

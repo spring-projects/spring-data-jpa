@@ -19,21 +19,17 @@ import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.hibernate.query.spi.SqmQuery;
-import org.hibernate.query.sqm.tree.expression.SqmDistinct;
-import org.hibernate.query.sqm.tree.expression.SqmFunction;
-import org.hibernate.query.sqm.tree.select.SqmSelectClause;
-import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
@@ -63,25 +59,15 @@ class JpaCountQueryCreatorIntegrationTests {
 				AbstractRepositoryMetadata.getMetadata(SomeRepository.class), new SpelAwareProxyProjectionFactory(), provider);
 
 		PartTree tree = new PartTree("findDistinctByRolesIn", User.class);
-		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(entityManager.getCriteriaBuilder(),
-				queryMethod.getParameters(), EscapeCharacter.DEFAULT);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(
+				queryMethod.getParameters(), EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
 
 		JpaCountQueryCreator creator = new JpaCountQueryCreator(tree, queryMethod.getResultProcessor().getReturnedType(),
-				entityManager.getCriteriaBuilder(), metadataProvider);
+				metadataProvider, JpqlQueryTemplates.UPPER, entityManager);
 
-		TypedQuery<? extends Object> query = entityManager.createQuery(creator.createQuery());
+		String query = creator.createQuery();
 
-		SqmQuery sqmQuery = ((SqmQuery) query);
-		SqmSelectStatement<?> select = (SqmSelectStatement<?>) sqmQuery.getSqmStatement();
-
-		// Verify distinct (should this even be there for a count query?)
-		SqmSelectClause clause = select.getQuerySpec().getSelectClause();
-		assertThat(clause.isDistinct()).isTrue();
-
-		// Verify count(distinct(…))
-		SqmFunction<?> function = ((SqmFunction<?>) clause.getSelectionItems().get(0));
-		assertThat(function.getFunctionName()).isEqualTo("count");
-		assertThat(function.getArguments().get(0)).isInstanceOf(SqmDistinct.class);
+		assertThat(query).startsWith("SELECT COUNT(DISTINCT u)");
 	}
 
 	interface SomeRepository extends Repository<User, Integer> {
