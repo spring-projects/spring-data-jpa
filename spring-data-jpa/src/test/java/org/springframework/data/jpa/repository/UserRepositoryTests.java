@@ -3430,6 +3430,21 @@ class UserRepositoryTests {
 
 	}
 
+	@Test // GH-3360
+	void removeWhenDeleteAllByIdInBatch() {
+
+		flushTestUsers();
+		List<User> userList = repository.findAll();
+		List<Integer> userIds = userList.stream().map(User::getId).toList();
+
+		repository.deleteAllByIdInBatch(userIds);
+
+		userList.forEach(user ->
+				assertThat(em.contains(user)).isFalse()
+		);
+
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
