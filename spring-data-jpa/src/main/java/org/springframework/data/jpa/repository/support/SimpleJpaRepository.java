@@ -275,6 +275,15 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return;
 		}
 
+		for (T entity : entities) {
+			if (entityManager.contains(entity)) {
+				entityManager.remove(entity);
+				entityManager.detach(entity);
+			}
+		}
+
+		entityManager.clear();
+
 		applyAndBind(getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()), entities, entityManager)
 				.executeUpdate();
 	}
