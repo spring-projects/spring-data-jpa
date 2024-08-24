@@ -3416,6 +3416,20 @@ class UserRepositoryTests {
 				.map(User::getAge).contains(30);
 	}
 
+	@Test // GH-3360
+	void removeWhenDeleteAllInBatchWithEntities() {
+
+		flushTestUsers();
+		List<User> userList = repository.findAll();
+
+		repository.deleteAllInBatch(userList);
+
+		userList.forEach(user ->
+				assertThat(em.contains(user)).isFalse()
+		);
+
+	}
+
 	private Page<User> executeSpecWithSort(Sort sort) {
 
 		flushTestUsers();
