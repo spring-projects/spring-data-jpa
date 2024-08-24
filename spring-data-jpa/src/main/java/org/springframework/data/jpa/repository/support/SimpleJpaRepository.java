@@ -237,6 +237,15 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			deleteAllInBatch(entities);
 		} else {
 
+			ids.forEach(id -> {
+				T entity = entityManager.find(entityInformation.getJavaType(), id);
+				if (entity != null) {
+					entityManager.remove(entity);
+				}
+			});
+
+			entityManager.clear();
+
 			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
 					entityInformation.getIdAttribute().getName());
 
