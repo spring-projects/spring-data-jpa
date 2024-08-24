@@ -97,6 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
  * @author Yanming Zhou
+ * @author SangMin Lee
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")

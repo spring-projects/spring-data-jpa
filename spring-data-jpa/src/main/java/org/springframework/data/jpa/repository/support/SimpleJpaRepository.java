@@ -93,6 +93,7 @@ import org.springframework.util.Assert;
  * @author Ernst-Jan van der Laan
  * @author Diego Krupitza
  * @author Seol-JY
+ * @author SangMin Lee
  */
 @Repository
 @Transactional(readOnly = true)
