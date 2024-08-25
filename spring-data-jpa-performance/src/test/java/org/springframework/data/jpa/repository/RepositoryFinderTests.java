@@ -106,7 +106,6 @@ public class RepositoryFinderTests {
 			Map<String, String> properties = new HashMap<>();
 			properties.put("jakarta.persistence.jdbc.url", "jdbc:h2:mem:test");
 			properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-			properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
 			properties.put("hibernate.hbm2ddl.auto", "update");
 			EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("benchmark", properties);
 
