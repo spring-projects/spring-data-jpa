@@ -45,6 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mohammad Javad Imani
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
@@ -95,9 +96,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return query.deriveCountQuery(method.getCountQueryProjection());
 		});
 
-		this.countParameterBinder = Lazy.of(() -> {
-			return this.createBinder(this.countQuery.get());
-		});
+		this.countParameterBinder = Lazy.of(() -> this.createBinder(this.countQuery.get()));
 
 		this.parser = parser;
 		this.queryRewriter = queryRewriter;
