@@ -288,7 +288,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		for (T entity : entities) {
 			if (entityManager.contains(entity)) {
 				entityManager.remove(entity);
-				entityManager.detach(entity);
 			}
 		}
 
