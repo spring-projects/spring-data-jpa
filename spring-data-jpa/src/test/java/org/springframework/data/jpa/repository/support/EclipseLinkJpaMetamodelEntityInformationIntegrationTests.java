@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.data.jpa.domain.AbstractPersistable;
+import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveVersion;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -33,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
@@ -79,4 +82,21 @@ class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends JpaMetamo
 	@Override
 	@Disabled
 	void prefersPrivateGetterOverFieldAccess() {}
+
+	@Override
+	@Disabled
+	// superseded by #nonPositiveVersionedEntityIsNew()
+	void considersEntityAsNotNewWhenHavingIdSetAndUsingPrimitiveTypeForVersionProperty() {}
+
+	@Test
+	void nonPositiveVersionedEntityIsNew() {
+		EntityInformation<SampleWithPrimitiveVersion, Long> information = new JpaMetamodelEntityInformation<>(SampleWithPrimitiveVersion.class,
+				em.getMetamodel(), em.getEntityManagerFactory().getPersistenceUnitUtil());
+
+		SampleWithPrimitiveVersion entity = new SampleWithPrimitiveVersion();
+		entity.setId(23L); // assigned
+		assertThat(information.isNew(entity)).isTrue();
+		entity.setVersion(0);
+		assertThat(information.isNew(entity)).isTrue();
+	}
 }

@@ -55,6 +55,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -219,12 +220,37 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public boolean isNew(T entity) {
 
-		if (versionAttribute.isEmpty()
-				|| versionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {
+		if (versionAttribute.isEmpty()) {
 			return super.isNew(entity);
 		}
 
 		BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+
+		if (versionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {
+			return versionAttribute.map(it -> {
+				Object version = wrapper.getPropertyValue(it.getName());
+				if (version instanceof Number value) {
+					PersistenceProvider provider = PersistenceProvider.fromMetamodel(metamodel);
+					if (provider == PersistenceProvider.HIBERNATE) {
+						// Hibernate use 0 or user provided positive initial value as seed of integer version
+						if (value.longValue() < 0) {
+							// see org.hibernate.engine.internal.Versioning#isNullInitialVersion()
+							return true;
+						}
+						// TODO Compare version to initial value (field value of transient entity)
+						// It's unknown if equals because entity maybe transient or just persisted
+						// But it's absolute not new if not equals
+					} else if (provider == PersistenceProvider.ECLIPSELINK) {
+						// EclipseLink always use 1 as seed of integer version
+						if (value.longValue() < 1) {
+							return true;
+						}
+						// It's unknown because the value may be initial value or persisted entity version
+					}
+				}
+				return super.isNew(entity);
+			}).orElseThrow(); // should never throw
+		}
 
 		return versionAttribute.map(it -> wrapper.getPropertyValue(it.getName()) == null).orElse(true);
 	}
