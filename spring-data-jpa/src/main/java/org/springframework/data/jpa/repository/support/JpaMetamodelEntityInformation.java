@@ -61,7 +61,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	private final IdMetadata<T> idMetadata;
 	private final Optional<SingularAttribute<? super T, ?>> versionAttribute;
-	private final Metamodel metamodel;
+	private final PersistenceProvider persistenceProvider;
 	private final @Nullable String entityName;
 	private final PersistenceUnitUtil persistenceUnitUtil;
 
@@ -78,7 +78,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		super(domainClass);
 
 		Assert.notNull(metamodel, "Metamodel must not be null");
-		this.metamodel = metamodel;
+		this.persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
@@ -92,7 +92,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
 
-		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
+		this.idMetadata = new IdMetadata<>(identifiableType, persistenceProvider);
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 
 		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
@@ -149,8 +149,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	public ID getId(T entity) {
 
 		// check if this is a proxy. If so use Proxy mechanics to access the id.
-		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
-
 		if (persistenceProvider.shouldUseAccessorFor(entity)) {
 			return (ID) persistenceProvider.getIdentifierFrom(entity);
 		}
@@ -230,8 +228,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return versionAttribute.map(it -> {
 				Object version = wrapper.getPropertyValue(it.getName());
 				if (version instanceof Number value) {
-					PersistenceProvider provider = PersistenceProvider.fromMetamodel(metamodel);
-					if (provider == PersistenceProvider.HIBERNATE) {
+					if (persistenceProvider == PersistenceProvider.HIBERNATE) {
 						// Hibernate use 0 or user provided positive initial value as seed of integer version
 						if (value.longValue() < 0) {
 							// see org.hibernate.engine.internal.Versioning#isNullInitialVersion()
@@ -240,7 +237,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 						// TODO Compare version to initial value (field value of transient entity)
 						// It's unknown if equals because entity maybe transient or just persisted
 						// But it's absolute not new if not equals
-					} else if (provider == PersistenceProvider.ECLIPSELINK) {
+					} else if (persistenceProvider == PersistenceProvider.ECLIPSELINK) {
 						// EclipseLink always use 1 as seed of integer version
 						if (value.longValue() < 1) {
 							return true;
