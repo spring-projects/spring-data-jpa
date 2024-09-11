@@ -38,7 +38,7 @@
 		<hsqldb>2.7.1</hsqldb>
 		<h2>2.2.220</h2>
 		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
-		<jsqlparser>4.9</jsqlparser>
+		<jsqlparser>5.0</jsqlparser>
 		<mysql-connector-java>8.0.33</mysql-connector-java>
 		<postgresql>42.6.0</postgresql>
 		<springdata.commons>3.4.0-SNAPSHOT</springdata.commons>
