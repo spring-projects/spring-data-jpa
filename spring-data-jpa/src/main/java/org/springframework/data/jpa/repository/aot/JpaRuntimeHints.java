@@ -88,9 +88,8 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 		// streaming results requires reflective access to jakarta.persistence.Query#getResultAsStream
 		hints.reflection().registerType(jakarta.persistence.Query.class, MemberCategory.INTROSPECT_PUBLIC_METHODS);
-		hints.reflection().registerType(jakarta.persistence.Query.class, hint -> {
-			hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE);
-		});
+		hints.reflection().registerType(jakarta.persistence.Query.class, hint ->
+				hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE));
 
 		hints.reflection().registerType(NamedEntityGraph.class,
 				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));

@@ -99,6 +99,8 @@ import org.springframework.util.Assert;
 public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T, ID> {
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null";
+	private static final String IDS_MUST_NOT_BE_NULL = "Ids must not be null";
+	private static final String ENTITIES_MUST_NOT_BE_NULL = "Entities must not be null";
 
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager entityManager;
@@ -212,7 +214,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllById(Iterable<? extends ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null");
+		Assert.notNull(ids, IDS_MUST_NOT_BE_NULL);
 
 		for (ID id : ids) {
 			deleteById(id);
@@ -223,7 +225,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllByIdInBatch(Iterable<ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null");
+		Assert.notNull(ids, IDS_MUST_NOT_BE_NULL);
 
 		if (!ids.iterator().hasNext()) {
 			return;
@@ -258,7 +260,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAll(Iterable<? extends T> entities) {
 
-		Assert.notNull(entities, "Entities must not be null");
+		Assert.notNull(entities, ENTITIES_MUST_NOT_BE_NULL);
 
 		for (T entity : entities) {
 			delete(entity);
@@ -269,7 +271,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch(Iterable<T> entities) {
 
-		Assert.notNull(entities, "Entities must not be null");
+		Assert.notNull(entities, ENTITIES_MUST_NOT_BE_NULL);
 
 		if (!entities.iterator().hasNext()) {
 			return;
@@ -390,7 +392,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public List<T> findAllById(Iterable<ID> ids) {
 
-		Assert.notNull(ids, "Ids must not be null");
+		Assert.notNull(ids, IDS_MUST_NOT_BE_NULL);
 
 		if (!ids.iterator().hasNext()) {
 			return Collections.emptyList();
@@ -644,7 +646,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 
-		Assert.notNull(entities, "Entities must not be null");
+		Assert.notNull(entities, ENTITIES_MUST_NOT_BE_NULL);
 
 		List<S> result = new ArrayList<>();
 

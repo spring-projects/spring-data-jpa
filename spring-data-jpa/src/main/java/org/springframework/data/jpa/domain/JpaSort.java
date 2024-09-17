@@ -303,7 +303,7 @@ public class JpaSort extends Sort {
 				builder.append(attribute.getName()).append(".");
 			}
 
-			return builder.length() == 0 ? "" : builder.substring(0, builder.lastIndexOf("."));
+			return builder.isEmpty() ? "" : builder.substring(0, builder.lastIndexOf("."));
 		}
 	}
 
