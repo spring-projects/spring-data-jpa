@@ -192,15 +192,15 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 			Predicate predicateToUse = predicate;
 
-			if (scrollPosition instanceof KeysetScrollPosition keyset) {
+			if (scrollPosition instanceof KeysetScrollPosition keySet) {
 
-				KeysetScrollDelegate delegate = KeysetScrollDelegate.of(keyset.getDirection());
-				sort = KeysetScrollSpecification.createSort(keyset, sort, entityInformation);
-				BooleanExpression keysetPredicate = delegate.createPredicate(keyset, sort, scrollQueryAdapter);
+				KeysetScrollDelegate delegate = KeysetScrollDelegate.of(keySet.getDirection());
+				sort = KeysetScrollSpecification.createSort(keySet, sort, entityInformation);
+				BooleanExpression keySetPredicate = delegate.createPredicate(keySet, sort, scrollQueryAdapter);
 
-				if (keysetPredicate != null) {
-					predicateToUse = predicate instanceof BooleanExpression be ? be.and(keysetPredicate)
-							: keysetPredicate.and(predicate);
+				if (keySetPredicate != null) {
+					predicateToUse = predicate instanceof BooleanExpression be ? be.and(keySetPredicate)
+							: keySetPredicate.and(predicate);
 				}
 			}
 

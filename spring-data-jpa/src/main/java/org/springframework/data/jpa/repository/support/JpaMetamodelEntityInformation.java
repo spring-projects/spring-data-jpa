@@ -234,21 +234,21 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		Function<String, Object> getter = getPropertyValueFunction(entity);
 
-		Map<String, Object> keyset = new LinkedHashMap<>();
+		Map<String, Object> keySet = new LinkedHashMap<>();
 
 		if (hasCompositeId()) {
 			for (String idAttributeName : getIdAttributeNames()) {
-				keyset.put(idAttributeName, getter.apply(idAttributeName));
+				keySet.put(idAttributeName, getter.apply(idAttributeName));
 			}
 		} else {
-			keyset.put(getIdAttribute().getName(), getId(entity));
+			keySet.put(getIdAttribute().getName(), getId(entity));
 		}
 
 		for (String propertyPath : propertyPaths) {
-			keyset.put(propertyPath, getter.apply(propertyPath));
+			keySet.put(propertyPath, getter.apply(propertyPath));
 		}
 
-		return keyset;
+		return keySet;
 	}
 
 	private Function<String, Object> getPropertyValueFunction(Object entity) {
