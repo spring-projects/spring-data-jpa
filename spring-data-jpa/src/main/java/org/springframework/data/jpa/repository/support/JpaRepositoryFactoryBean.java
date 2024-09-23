@@ -105,11 +105,12 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 * fallback to {@link org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory} in case none is
 	 * available.
 	 *
-	 * @param factory may be {@literal null}.
+	 * @param resolver may be {@literal null}.
 	 */
 	@Autowired
-	public void setQueryMethodFactory(@Nullable JpaQueryMethodFactory factory) {
+	public void setQueryMethodFactory(ObjectProvider<JpaQueryMethodFactory> resolver) { // TODO: nullable insteand of ObjectProvider
 
+		JpaQueryMethodFactory factory = resolver.getIfAvailable();
 		if (factory != null) {
 			this.queryMethodFactory = factory;
 		}

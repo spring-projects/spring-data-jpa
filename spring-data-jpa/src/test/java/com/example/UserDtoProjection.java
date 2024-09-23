@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.sample;
+package com.example;
 
-// DATAJPA-1334
-public class NameOnlyDto {
+/**
+ * @author Christoph Strobl
+ * @since 2025/01
+ */
+public class UserDtoProjection {
 
-	private String firstname;
-	private String lastname;
+    private final String firstname;
+    private final String emailAddress;
 
-	public NameOnlyDto(String firstname, String lastname) {
-		this.firstname = firstname;
-		this.lastname = lastname;
-	}
+    public UserDtoProjection(String firstname, String emailAddress) {
+        this.firstname = firstname;
+        this.emailAddress = emailAddress;
+    }
+
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public String getEmailAddress() {
+        return emailAddress;
+    }
 }

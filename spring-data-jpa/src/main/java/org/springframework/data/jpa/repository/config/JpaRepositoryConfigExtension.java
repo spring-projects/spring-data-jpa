@@ -15,7 +15,9 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_CONTEXT_BEAN_NAME;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
@@ -41,23 +43,34 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RegisteredBean;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
+import org.springframework.core.type.filter.TypeFilter;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.aot.generated.JpaRepsoitoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.aot.generate.RepositoryContributor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.config.ImplementationDetectionConfiguration;
+import org.springframework.data.repository.config.ImplementationLookupConfiguration;
+import org.springframework.data.repository.config.RepositoryConfiguration;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryRegistrationAotProcessor;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
+import org.springframework.data.util.Streamable;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -193,7 +206,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			contextDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 			return contextDefinition;
-
 		}, registry, JPA_CONTEXT_BEAN_NAME, source);
 
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
@@ -211,7 +223,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			builder.addConstructorArgValue(value);
 
 			return builder.getBeanDefinition();
-
 		}, registry, JpaEvaluationContextExtension.class.getName(), source);
 	}
 
@@ -316,8 +327,131 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
-		protected void contribute(AotRepositoryContext repositoryContext, GenerationContext generationContext) {
+		protected RepositoryContributor contribute(AotRepositoryContext repositoryContext, GenerationContext generationContext) {
+
 			// don't register domain types nor annotations.
+
+			if (!AotContext.aotGeneratedRepositoriesEnabled()) {
+				return null;
+			}
+
+			return new JpaRepsoitoryContributor(repositoryContext);
+		}
+
+		@Nullable
+		@Override
+		protected RepositoryConfiguration<?> getRepositoryMetadata(RegisteredBean bean) {
+			RepositoryConfiguration<?> configuration = super.getRepositoryMetadata(bean);
+			if (!configuration.getRepositoryBaseClassName().isEmpty()) {
+				return configuration;
+			}
+			return new Meh<>(configuration);
+		}
+	}
+
+	/**
+	 * I'm just a dirty hack so we can refine the {@link #getRepositoryBaseClassName()} method as we cannot instantiate
+	 * the bean safely to extract it form the repository factory in data commons. So we either have a configurable
+	 * {@link RepositoryConfiguration} return from
+	 * {@link RepositoryRegistrationAotProcessor#getRepositoryMetadata(RegisteredBean)} or change the arrangement and
+	 * maybe move the type out of the factoy.
+	 *
+	 * @param <T>
+	 */
+	static class Meh<T extends RepositoryConfigurationSource> implements RepositoryConfiguration<T> {
+
+		private RepositoryConfiguration<?> configuration;
+
+		public Meh(RepositoryConfiguration<?> configuration) {
+			this.configuration = configuration;
+		}
+
+		@Nullable
+		@Override
+		public Object getSource() {
+			return configuration.getSource();
+		}
+
+		@Override
+		public T getConfigurationSource() {
+			return (T) configuration.getConfigurationSource();
+		}
+
+		@Override
+		public boolean isLazyInit() {
+			return configuration.isLazyInit();
+		}
+
+		@Override
+		public boolean isPrimary() {
+			return configuration.isPrimary();
+		}
+
+		@Override
+		public Streamable<String> getBasePackages() {
+			return configuration.getBasePackages();
+		}
+
+		@Override
+		public Streamable<String> getImplementationBasePackages() {
+			return configuration.getImplementationBasePackages();
+		}
+
+		@Override
+		public String getRepositoryInterface() {
+			return configuration.getRepositoryInterface();
+		}
+
+		@Override
+		public Optional<Object> getQueryLookupStrategyKey() {
+			return Optional.ofNullable(configuration.getQueryLookupStrategyKey());
+		}
+
+		@Override
+		public Optional<String> getNamedQueriesLocation() {
+			return configuration.getNamedQueriesLocation();
+		}
+
+		@Override
+		public Optional<String> getRepositoryBaseClassName() {
+			String name = SimpleJpaRepository.class.getName();
+			return Optional.of(name);
+		}
+
+		@Override
+		public String getRepositoryFactoryBeanClassName() {
+			return configuration.getRepositoryFactoryBeanClassName();
+		}
+
+		@Override
+		public String getImplementationBeanName() {
+			return configuration.getImplementationBeanName();
+		}
+
+		@Override
+		public String getRepositoryBeanName() {
+			return configuration.getRepositoryBeanName();
+		}
+
+		@Override
+		public Streamable<TypeFilter> getExcludeFilters() {
+			return configuration.getExcludeFilters();
+		}
+
+		@Override
+		public ImplementationDetectionConfiguration toImplementationDetectionConfiguration(MetadataReaderFactory factory) {
+			return configuration.toImplementationDetectionConfiguration(factory);
+		}
+
+		@Override
+		public ImplementationLookupConfiguration toLookupConfiguration(MetadataReaderFactory factory) {
+			return configuration.toLookupConfiguration(factory);
+		}
+
+		@Nullable
+		@Override
+		public String getResourceDescription() {
+			return configuration.getResourceDescription();
 		}
 	}
 }
