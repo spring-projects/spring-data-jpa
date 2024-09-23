@@ -28,6 +28,7 @@ import org.springframework.data.jpa.repository.query.ParameterBinding.InParamete
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
+import org.springframework.data.jpa.repository.query.ParameterBindingParser.Metadata;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**

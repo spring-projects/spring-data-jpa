@@ -145,6 +145,11 @@
 			<version>${spring}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.jboss.logging</groupId>
+			<artifactId>jboss-logging</artifactId>
+			<version>3.6.1.Final</version>
+		</dependency>
 	</dependencies>
 
 	<build>

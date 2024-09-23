@@ -63,7 +63,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jinmyeong Kim
  */
-class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
+public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
 
 	private final ReturnedType returnedType;
 	private final ParameterMetadataProvider provider;
@@ -86,15 +86,21 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 	public JpaQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, EntityManager em) {
 
+		this(tree, type, provider, templates, em.getMetamodel());
+	}
+
+	public JpaQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
+		JpqlQueryTemplates templates, Metamodel metamodel) {
+
 		super(tree);
 		this.tree = tree;
 		this.returnedType = type;
 		this.provider = provider;
 		this.templates = templates;
 		this.escape = provider.getEscape();
-		this.entityType = em.getMetamodel().entity(type.getDomainType());
+		this.entityType = metamodel.entity(type.getDomainType());
 		this.entity = JpqlQueryBuilder.entity(returnedType.getDomainType());
-		this.metamodel = em.getMetamodel();
+		this.metamodel = metamodel;
 	}
 
 	Bindable<?> getFrom() {

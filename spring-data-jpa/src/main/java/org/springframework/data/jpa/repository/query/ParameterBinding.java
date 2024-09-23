@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-class ParameterBinding {
+public class ParameterBinding {
 
 	private final BindingIdentifier identifier;
 	private final ParameterOrigin origin;
@@ -462,7 +462,7 @@ class ParameterBinding {
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	sealed interface BindingIdentifier permits Named, Indexed, NamedAndIndexed {
+	public sealed interface BindingIdentifier permits Named, Indexed, NamedAndIndexed {
 
 		/**
 		 * Creates an identifier for the given {@code name}.

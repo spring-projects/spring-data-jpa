@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.*;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,6 +34,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
+import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
@@ -463,7 +464,7 @@ final class PreprocessedQuery implements DeclaredQuery {
 	 */
 	private static class ParameterBindings {
 
-		private final MultiValueMap<ParameterBinding.BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
+		private final MultiValueMap<BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
 
 		private final Consumer<ParameterBinding> registration;
 

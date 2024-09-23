@@ -578,7 +578,7 @@ public abstract class QueryUtils {
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 * @since 2.7.8
 	 */
-	static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean nativeQuery) {
+	public static String createCountQueryFor(String originalQuery, @Nullable String countProjection, boolean nativeQuery) {
 
 		Assert.hasText(originalQuery, "OriginalQuery must not be null or empty");
 
