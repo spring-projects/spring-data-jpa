@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 
 /**
  * Unit tests for {@link FetchableFluentQueryByPredicate}.
@@ -32,10 +34,13 @@ class FetchableFluentQueryByPredicateUnitTests {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void multipleSortBy() {
 
+		JpaEntityInformationSupport<User, String> entityInformation = new JpaEntityInformationSupportUnitTests.DummyJpaEntityInformation(
+				User.class);
+
 		Sort s1 = Sort.by(Order.by("s1"));
 		Sort s2 = Sort.by(Order.by("s2"));
-		FetchableFluentQueryByPredicate f = new FetchableFluentQueryByPredicate(null, null, null, null, null, null, null,
-				null, null);
+		FetchableFluentQueryByPredicate f = new FetchableFluentQueryByPredicate(null, null, entityInformation, null, null,
+				null, null, null, null, new SpelAwareProxyProjectionFactory());
 		f = (FetchableFluentQueryByPredicate) f.sortBy(s1).sortBy(s2);
 		assertThat(f.sort).isEqualTo(s1.and(s2));
 	}

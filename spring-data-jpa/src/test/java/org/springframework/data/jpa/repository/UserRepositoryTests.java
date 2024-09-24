@@ -1410,6 +1410,57 @@ class UserRepositoryTests {
 		assertThat(previousWindow.hasNext()).isFalse();
 	}
 
+	@Test // GH-2327
+	void scrollByPredicateKeysetWithInterfaceProjection() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Window<UserProjectionInterfaceBased> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).as(UserProjectionInterfaceBased.class)
+						.scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow.getContent()).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsOnly(jane1.getFirstname());
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<UserProjectionInterfaceBased> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).as(UserProjectionInterfaceBased.class)
+						.scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow.getContent()).extracting(UserProjectionInterfaceBased::getFirstname)
+				.containsExactly(jane2.getFirstname(), john1.getFirstname());
+		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2327
+	void scrollByPredicateKeysetWithDtoProjection() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", "Doe", "jane@doe2.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", "Doe", "john@doe2.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, jane1, jane2));
+
+		Window<UserDto> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(Sort.by("firstname", "emailAddress")).as(UserDto.class).scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow.getContent()).extracting(UserDto::firstname).containsOnly(jane1.getFirstname());
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<UserDto> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"), q -> q.limit(2)
+				.sortBy(Sort.by("firstname", "emailAddress")).as(UserDto.class).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow.getContent()).extracting(UserDto::firstname).containsExactly(jane2.getFirstname(),
+				john1.getFirstname());
+		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
 	@Test // GH-2878
 	void scrollByPartTreeKeysetBackward() {
 
@@ -2558,40 +2609,6 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-2294
-	void fluentExamplesWithClassBasedDtosNotYetSupported() {
-
-		class UserDto {
-			String firstname;
-
-			public UserDto() {}
-
-			public String getFirstname() {
-				return this.firstname;
-			}
-
-			public void setFirstname(String firstname) {
-				this.firstname = firstname;
-			}
-
-			public String toString() {
-				return "UserDto(firstname=" + this.getFirstname() + ")";
-			}
-		}
-
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-
-			User prototype = new User();
-			prototype.setFirstname("v");
-
-			repository.findBy(
-					of(prototype,
-							matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
-									GenericPropertyMatcher::contains)), //
-					q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all());
-		});
-	}
-
-	@Test // GH-2294
 	void countByFluentExample() {
 
 		flushTestUsers();
@@ -2690,6 +2707,17 @@ class UserRepositoryTests {
 
 		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
 				.containsExactlyInAnyOrder(firstUser.getFirstname(), thirdUser.getFirstname(), fourthUser.getFirstname());
+	}
+
+	@Test // GH-2327
+	void findByFluentSpecificationWithDtoProjection() {
+
+		flushTestUsers();
+
+		List<UserDto> users = repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).all());
+
+		assertThat(users).extracting(UserDto::firstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
 	}
 
 	@Test // GH-2274
@@ -2800,32 +2828,6 @@ class UserRepositoryTests {
 
 		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
 				.containsExactlyInAnyOrder(thirdUser.getFirstname(), firstUser.getFirstname(), fourthUser.getFirstname());
-	}
-
-	@Test // GH-2274
-	void fluentSpecificationWithClassBasedDtosNotYetSupported() {
-
-		class UserDto {
-			String firstname;
-
-			public UserDto() {}
-
-			public String getFirstname() {
-				return this.firstname;
-			}
-
-			public void setFirstname(String firstname) {
-				this.firstname = firstname;
-			}
-
-			public String toString() {
-				return "UserDto(firstname=" + this.getFirstname() + ")";
-			}
-		}
-
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
-			repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all());
-		});
 	}
 
 	@Test // GH-2274
@@ -3455,6 +3457,10 @@ class UserRepositoryTests {
 
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
+	}
+
+	record UserDto(Integer id, String firstname, String lastname, String emailAddress) {
+
 	}
 
 	private interface UserProjectionUsingSpEL {

@@ -305,7 +305,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected abstract Query doCreateCountQuery(JpaParametersParameterAccessor accessor);
 
-	static class TupleConverter implements Converter<Object, Object> {
+	public static class TupleConverter implements Converter<Object, Object> {
 
 		private final ReturnedType type;
 
