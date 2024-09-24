@@ -78,9 +78,9 @@ public class Querydsl {
 	public <T> AbstractJPAQuery<T, JPAQuery<T>> createQuery() {
 
         return switch (provider) {
-            case ECLIPSELINK -> new JPAQuery<>(em, EclipseLinkTemplates.DEFAULT);
-            case HIBERNATE -> new JPAQuery<>(em, HQLTemplates.DEFAULT);
-            default -> new JPAQuery<>(em);
+					case ECLIPSELINK -> new SpringDataJpaQuery<>(em, EclipseLinkTemplates.DEFAULT);
+					case HIBERNATE -> new SpringDataJpaQuery<>(em, HQLTemplates.DEFAULT);
+					default -> new SpringDataJpaQuery<>(em);
         };
 	}
 

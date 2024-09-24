@@ -30,16 +30,19 @@ import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
 
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.data.domain.Example;
@@ -48,6 +51,7 @@ import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
@@ -60,9 +64,11 @@ import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpe
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
@@ -107,7 +113,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final PersistenceProvider provider;
 
 	private @Nullable CrudMethodMetadata metadata;
-	private @Nullable ProjectionFactory projectionFactory;
+	private ProjectionFactory projectionFactory;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 
 	/**
@@ -124,6 +130,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.entityInformation = entityInformation;
 		this.entityManager = entityManager;
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+		this.projectionFactory = new SpelAwareProxyProjectionFactory();
 	}
 
 	/**
@@ -502,7 +509,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(spec, "Specification must not be null");
 		Assert.notNull(queryFunction, "Query function must not be null");
 
-		ScrollQueryFactory scrollFunction = (sort, scrollPosition) -> {
+		ScrollQueryFactory<TypedQuery<T>> scrollFunction = (returnedType, sort, scrollPosition) -> {
 
 			Specification<T> specToUse = spec;
 
@@ -512,7 +519,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				specToUse = specToUse.and(keysetSpec);
 			}
 
-			TypedQuery<T> query = getQuery(specToUse, domainClass, sort);
+			TypedQuery<T> query = getQuery(returnedType, specToUse, domainClass, sort, scrollPosition);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
 				if (!offset.isInitial()) {
@@ -523,7 +530,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return query;
 		};
 
-		Function<Sort, TypedQuery<T>> finder = sort -> getQuery(spec, domainClass, sort);
+		BiFunction<ReturnedType, Sort, TypedQuery<T>> finder = (returnedType, sort) -> getQuery(returnedType, spec,
+				domainClass, sort, null);
 
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
@@ -745,12 +753,63 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param sort must not be {@literal null}.
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
+		return getQuery(ReturnedType.of(domainClass, domainClass, projectionFactory), spec, domainClass, sort, null);
+	}
+
+	/**
+	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
+	 *
+	 * @param returnedType must not be {@literal null}.
+	 * @param spec can be {@literal null}.
+	 * @param domainClass must not be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 */
+	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec,
+			Class<S> domainClass, Sort sort, @Nullable ScrollPosition scrollPosition) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-		CriteriaQuery<S> query = builder.createQuery(domainClass);
+		CriteriaQuery<S> query;
+
+		List<String> inputProperties = returnedType.getInputProperties();
+
+		if (returnedType.needsCustomConstruction() && !inputProperties.isEmpty()) {
+			query = (CriteriaQuery) (returnedType.getReturnedType().isInterface() ? builder.createTupleQuery()
+					: builder.createQuery(returnedType.getReturnedType()));
+		} else {
+			query = builder.createQuery(domainClass);
+		}
 
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
-		query.select(root);
+
+		if (returnedType.needsCustomConstruction() && !inputProperties.isEmpty()) {
+
+			Collection<String> requiredSelection;
+
+			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
+				requiredSelection = new LinkedHashSet<>(inputProperties);
+				sort.stream().map(Sort.Order::getProperty).forEach(requiredSelection::add);
+				entityInformation.getIdAttributeNames().forEach(requiredSelection::add);
+			} else {
+				requiredSelection = inputProperties;
+			}
+
+			List<Selection<?>> selections = new ArrayList<>();
+
+			for (String property : requiredSelection) {
+
+				PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
+				selections.add(QueryUtils.toExpressionRecursively(root, path, true).alias(property));
+			}
+
+			Class<?> typeToRead = returnedType.getReturnedType();
+
+			query = typeToRead.isInterface() //
+					? query.multiselect(selections) //
+					: query.select((Selection) builder.construct(typeToRead, //
+							selections.toArray(new Selection[0])));
+		} else {
+			query.select(root);
+		}
 
 		if (sort.isSorted()) {
 			query.orderBy(toOrders(sort, root, builder));
