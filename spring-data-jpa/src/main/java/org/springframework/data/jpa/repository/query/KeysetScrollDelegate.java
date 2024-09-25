@@ -16,7 +16,9 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.lang.Nullable;
 
 /**
@@ -45,6 +48,25 @@ public class KeysetScrollDelegate {
 	 */
 	public static KeysetScrollDelegate of(Direction direction) {
 		return direction == Direction.FORWARD ? FORWARD : REVERSE;
+	}
+
+	/**
+	 * Return a collection of property names required to construct a keyset selection query that include all keyset and
+	 * identifier properties required to resume keyset scrolling.
+	 *
+	 * @param entity the underlying entity.
+	 * @param projectionProperties projection property names.
+	 * @param sort sort properties.
+	 * @return a collection of property names required to construct a keyset selection query
+	 */
+	public static Collection<String> getProjectionInputProperties(JpaEntityInformation<?, ?> entity,
+			Collection<String> projectionProperties, Sort sort) {
+
+		Collection<String> properties = new LinkedHashSet<>(projectionProperties);
+		sort.forEach(it -> properties.add(it.getProperty()));
+		properties.addAll(entity.getIdAttributeNames());
+
+		return properties;
 	}
 
 	@Nullable

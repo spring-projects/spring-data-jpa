@@ -2959,6 +2959,16 @@ class UserRepositoryTests {
 		assertThat(users).hasSize(1);
 	}
 
+	@Test // GH-2327
+	void dynamicOpenProjectionReturningList() {
+
+		flushTestUsers();
+
+		List<UserProjectionUsingSpEL> users = repository.findAsListByFirstnameLike("%O%", UserProjectionUsingSpEL.class);
+
+		assertThat(users).hasSize(1);
+	}
+
 	@Test // DATAJPA-1179
 	void duplicateSpelsWorkAsIntended() {
 

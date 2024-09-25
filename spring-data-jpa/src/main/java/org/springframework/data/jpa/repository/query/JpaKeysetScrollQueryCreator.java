@@ -21,8 +21,6 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
@@ -77,9 +75,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 
 		Sort sortToUse = KeysetScrollSpecification.createSort(scrollPosition, sort, entityInformation);
 
-		Set<String> selection = new LinkedHashSet<>(returnedType.getInputProperties());
-		sortToUse.forEach(it -> selection.add(it.getProperty()));
-
-		return selection;
+		return KeysetScrollDelegate.getProjectionInputProperties(entityInformation, returnedType.getInputProperties(),
+				sortToUse);
 	}
 }

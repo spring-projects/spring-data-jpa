@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,6 +57,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpecification.SpecificationScrollDelegate;
@@ -772,7 +772,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		List<String> inputProperties = returnedType.getInputProperties();
 
-		if (returnedType.needsCustomConstruction() && !inputProperties.isEmpty()) {
+		if (returnedType.needsCustomConstruction()) {
 			query = (CriteriaQuery) (returnedType.getReturnedType().isInterface() ? builder.createTupleQuery()
 					: builder.createQuery(returnedType.getReturnedType()));
 		} else {
@@ -781,14 +781,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Root<S> root = applySpecificationToCriteria(spec, domainClass, query);
 
-		if (returnedType.needsCustomConstruction() && !inputProperties.isEmpty()) {
+		if (returnedType.needsCustomConstruction()) {
 
 			Collection<String> requiredSelection;
 
 			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
-				requiredSelection = new LinkedHashSet<>(inputProperties);
-				sort.stream().map(Sort.Order::getProperty).forEach(requiredSelection::add);
-				entityInformation.getIdAttributeNames().forEach(requiredSelection::add);
+				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
 			} else {
 				requiredSelection = inputProperties;
 			}

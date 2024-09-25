@@ -20,7 +20,6 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -34,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
@@ -219,13 +219,11 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		List<String> inputProperties = returnedType.getInputProperties();
 
-		if (returnedType.needsCustomConstruction() && !inputProperties.isEmpty()) {
+		if (returnedType.needsCustomConstruction()) {
 
 			Collection<String> requiredSelection;
 			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
-				requiredSelection = new LinkedHashSet<>(inputProperties);
-				sort.forEach(it -> requiredSelection.add(it.getProperty()));
-				entityInformation.getIdAttributeNames().forEach(requiredSelection::add);
+				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
 			} else {
 				requiredSelection = inputProperties;
 			}
