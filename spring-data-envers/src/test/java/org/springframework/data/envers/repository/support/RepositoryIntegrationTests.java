@@ -15,6 +15,7 @@
  */
 package org.springframework.data.envers.repository.support;
 
+import org.assertj.core.util.IterableUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.envers.Config;
+import org.springframework.data.envers.sample.Continent;
+import org.springframework.data.envers.sample.ContinentRepository;
 import org.springframework.data.envers.sample.Country;
 import org.springframework.data.envers.sample.CountryRepository;
 import org.springframework.data.envers.sample.License;
@@ -35,9 +38,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
@@ -48,6 +54,7 @@ import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Niklas Loechte
+ * @author Miguel Ángel Ruiz
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
@@ -57,12 +64,15 @@ class RepositoryIntegrationTests {
 	LicenseRepository licenseRepository;
 	@Autowired
 	CountryRepository countryRepository;
+	@Autowired
+	ContinentRepository continentRepository;
 
 	@BeforeEach
 	void setUp() {
 
 		licenseRepository.deleteAll();
 		countryRepository.deleteAll();
+		continentRepository.deleteAll();
 	}
 
 	@Test
@@ -94,6 +104,15 @@ class RepositoryIntegrationTests {
 
 		countryRepository.save(de);
 
+		Continent europe = new Continent();
+		europe.name = "Asia";
+
+		continentRepository.save(europe);
+
+		europe.name = "Europe";
+
+		continentRepository.save(europe);
+
 		Optional<Revision<Integer, License>> revision = licenseRepository.findLastChangeRevision(license.id);
 
 		assertThat(revision).hasValueSatisfying(it -> {
@@ -104,6 +123,17 @@ class RepositoryIntegrationTests {
 
 			assertThat(latestRevision.getRequiredRevisionNumber()).isEqualTo(it.getRequiredRevisionNumber());
 			assertThat(latestRevision.getEntity()).isEqualTo(it.getEntity());
+		});
+
+		Revisions<Integer, Continent> revisionsWithModifiedFlag = continentRepository.findRevisions(europe.id,
+				Set.of("name"));
+
+		assertThat(revisionsWithModifiedFlag).matches(revisions -> {
+			Collection<? extends Revision<Integer, Continent>> revisionCollection = IterableUtil.toCollection(revisions);
+
+			Set<String> continentNames = revisionCollection.stream().map(Revision::getEntity).map(continent -> continent.name)
+					.collect(Collectors.toSet());
+			return continentNames.size() == revisionCollection.size();
 		});
 	}
 

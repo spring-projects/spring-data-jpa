@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.hibernate.Hibernate;
 import org.hibernate.envers.AuditReader;
@@ -33,6 +34,7 @@ import org.hibernate.envers.RevisionTimestamp;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
+import org.hibernate.envers.query.AuditQueryCreator;
 import org.hibernate.envers.query.criteria.AuditProperty;
 import org.hibernate.envers.query.order.AuditOrder;
 import org.springframework.data.domain.Page;
@@ -65,6 +67,7 @@ import org.springframework.util.Assert;
  * @author Donghun Shin
  * @author Greg Turnquist
  * @author Aref Behboodi
+ * @author Miguel Ángel Ruiz
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
@@ -132,7 +135,14 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	@SuppressWarnings("unchecked")
 	public Revisions<N, T> findRevisions(ID id) {
 
-		List<Object[]> resultList = createBaseQuery(id).getResultList();
+		return findRevisions(id, Set.of());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Revisions<N, T> findRevisions(ID id, Set<String> changedFields) {
+
+		List<Object[]> resultList = createBaseQuery(id, changedFields).getResultList();
 		List<Revision<N, T>> revisionList = new ArrayList<>(resultList.size());
 
 		for (Object[] objects : resultList) {
@@ -172,7 +182,14 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	@SuppressWarnings("unchecked")
 	public Page<Revision<N, T>> findRevisions(ID id, Pageable pageable) {
 
-		AuditQuery baseQuery = createBaseQuery(id);
+		return findRevisions(id, Set.of(), pageable);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Page<Revision<N, T>> findRevisions(ID id, Set<String> changedFields, Pageable pageable) {
+
+		AuditQuery baseQuery = createBaseQuery(id, changedFields);
 
 		List<AuditOrder> orderMapped = (pageable.getSort() instanceof RevisionSort revisionSort)
 				? List.of(mapRevisionSort(revisionSort))
@@ -185,7 +202,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 				.setMaxResults(pageable.getPageSize()) //
 				.getResultList();
 
-		Long count = (Long) createBaseQuery(id) //
+		Long count = (Long) createBaseQuery(id, changedFields) //
 				.addProjection(AuditEntity.revisionNumber().count()).getSingleResult();
 
 		List<Revision<N, T>> revisions = new ArrayList<>();
@@ -198,12 +215,24 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 	private AuditQuery createBaseQuery(ID id) {
 
+		return createBaseQuery(id, Set.of());
+	}
+
+	private AuditQuery createBaseQuery(ID id, Set<String> changedFields) {
+
+		Assert.notNull(changedFields, "Changed fields must not be null!");
+
 		Class<T> type = entityInformation.getJavaType();
 		AuditReader reader = AuditReaderFactory.get(entityManager);
 
-		return reader.createQuery() //
-				.forRevisionsOfEntity(type, false, true) //
-				.add(AuditEntity.id().eq(id));
+		AuditQueryCreator auditQueryCreator = reader.createQuery();
+
+		AuditQuery auditQuery = changedFields.isEmpty() ? auditQueryCreator.forRevisionsOfEntity(type, false, true) //
+				: auditQueryCreator.forRevisionsOfEntityWithChanges(type, true);
+
+		changedFields.forEach(fieldName -> auditQuery.add(AuditEntity.property(fieldName).hasChanged()));
+
+		return auditQuery.add(AuditEntity.id().eq(id));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -217,13 +246,14 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		private final T entity;
 		private final Object metadata;
 		private final RevisionMetadata.RevisionType revisionType;
+		private final Set<String> changedFields;
 
 		QueryResult(Object[] data) {
 
 			Assert.notNull(data, "Data must not be null");
 			Assert.isTrue( //
-					data.length == 3, //
-					() -> String.format("Data must have length three, but has length %d.", data.length));
+					data.length >= 3, //
+					() -> String.format("Data must have at least length three, but has length %d.", data.length));
 			Assert.isTrue( //
 					data[2] instanceof RevisionType, //
 					() -> String.format("The third array element must be of type Revision type, but is of type %s",
@@ -232,12 +262,23 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			entity = (T) data[0];
 			metadata = data[1];
 			revisionType = convertRevisionType((RevisionType) data[2]);
+			Set<String> changedFieldsTemp = Set.of();
+
+			if (data.length == 4) {
+				Assert.isTrue( //
+						data[3] instanceof Set<?>, //
+						() -> String.format("The fourth array element must be of type Set, but is of type %s", data[3].getClass()));
+
+				changedFieldsTemp = (Set<String>) data[3];
+			}
+
+			changedFields = changedFieldsTemp;
 		}
 
 		RevisionMetadata<?> createRevisionMetadata() {
 
 			return metadata instanceof DefaultRevisionEntity defaultRevisionEntity //
-					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType) //
+					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType, changedFields) //
 					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
 					revisionType);
 		}
