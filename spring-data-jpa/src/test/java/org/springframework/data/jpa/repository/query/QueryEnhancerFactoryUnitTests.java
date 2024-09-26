@@ -15,15 +15,24 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.data.jpa.repository.query.QueryEnhancerFactory.NativeQueryEnhancer;
+import org.springframework.data.jpa.util.ClassPathExclusions;
+import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link QueryEnhancerFactory}.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 class QueryEnhancerFactoryUnitTests {
 
@@ -51,5 +60,57 @@ class QueryEnhancerFactoryUnitTests {
 
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JSqlParserQueryEnhancer.class);
+	}
+
+	@ParameterizedTest // GH-2989
+	@MethodSource("nativeEnhancerSelectionArgs")
+	void createsNativeImplementationAccordingToUserChoice(@Nullable String selection, NativeQueryEnhancer enhancer) {
+
+		withSystemProperty(NativeQueryEnhancer.NATIVE_PARSER_PROPERTY, selection, () -> {
+			assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader())).isEqualTo(enhancer);
+		});
+	}
+
+	@Test // GH-2989
+	@ClassPathExclusions(packages = { "net.sf.jsqlparser.parser" })
+	void selectedDefaultImplementationIfJsqlNotAvailable() {
+
+		assertThat(assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader()))
+				.isEqualTo(NativeQueryEnhancer.DEFAULT));
+	}
+
+	@Test // GH-2989
+	@ClassPathExclusions(packages = { "net.sf.jsqlparser.parser" })
+	void selectedDefaultImplementationIfJsqlNotAvailableEvenIfExplicitlyStated/* or should we raise an error? */() {
+
+		withSystemProperty(NativeQueryEnhancer.NATIVE_PARSER_PROPERTY, "jsql", () -> {
+			assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader())).isEqualTo(NativeQueryEnhancer.DEFAULT);
+		});
+	}
+
+	void withSystemProperty(String property, @Nullable String value, Runnable exeution) {
+
+		String currentValue = System.getProperty(property);
+		if (value != null) {
+			System.setProperty(property, value);
+		} else {
+			System.clearProperty(property);
+		}
+		try {
+			exeution.run();
+		} finally {
+			if (currentValue != null) {
+				System.setProperty(property, currentValue);
+			} else {
+				System.clearProperty(property);
+			}
+		}
+
+	}
+
+	static Stream<Arguments> nativeEnhancerSelectionArgs() {
+		return Stream.of(Arguments.of(null, NativeQueryEnhancer.JSQL), Arguments.of("", NativeQueryEnhancer.JSQL),
+				Arguments.of("auto", NativeQueryEnhancer.JSQL), Arguments.of("default", NativeQueryEnhancer.DEFAULT),
+				Arguments.of("jsql", NativeQueryEnhancer.JSQL));
 	}
 }
