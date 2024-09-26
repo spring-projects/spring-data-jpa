@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * @author Oliver Gierke
  * @author Philip Huegelmeyer
  * @author Jens Schauder
+ * @author Miguel Ángel Ruiz
  */
 public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> {
 
@@ -92,9 +93,9 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 			return false;
 		}
 		DefaultRevisionMetadata that = (DefaultRevisionMetadata) o;
-		return getRevisionNumber().equals(that.getRevisionNumber())
-				&& getRevisionInstant().equals(that.getRevisionInstant()) && revisionType.equals(that.getRevisionType())
-				&& getChangedFields().equals(that.getChangedFields());
+		return getRevisionNumber().equals(that.getRevisionNumber()) && getRevisionInstant().equals(
+				that.getRevisionInstant()) && revisionType.equals(that.getRevisionType()) && getChangedFields().equals(
+				that.getChangedFields());
 	}
 
 	@Override

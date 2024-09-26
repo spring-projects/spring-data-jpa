@@ -67,6 +67,7 @@ import org.springframework.util.Assert;
  * @author Donghun Shin
  * @author Greg Turnquist
  * @author Aref Behboodi
+ * @author Miguel Ángel Ruiz
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
@@ -226,9 +227,8 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		AuditQueryCreator auditQueryCreator = reader.createQuery();
 
-		AuditQuery auditQuery = changedFields.isEmpty()
-				? auditQueryCreator.forRevisionsOfEntity(type, false, true) //
-				: auditQueryCreator.forRevisionsOfEntityWithChanges(type, true) ;
+		AuditQuery auditQuery = changedFields.isEmpty() ? auditQueryCreator.forRevisionsOfEntity(type, false, true) //
+				: auditQueryCreator.forRevisionsOfEntityWithChanges(type, true);
 
 		changedFields.forEach(fieldName -> auditQuery.add(AuditEntity.property(fieldName).hasChanged()));
 
@@ -267,13 +267,12 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			if (data.length == 4) {
 				Assert.isTrue( //
 						data[3] instanceof Set<?>, //
-						() -> String.format("The fourth array element must be of type Set, but is of type %s",
-								data[3].getClass()));
+						() -> String.format("The fourth array element must be of type Set, but is of type %s", data[3].getClass()));
 
 				changedFieldsTemp = (Set<String>) data[3];
 			}
 
-            changedFields = changedFieldsTemp;
+			changedFields = changedFieldsTemp;
 		}
 
 		RevisionMetadata<?> createRevisionMetadata() {

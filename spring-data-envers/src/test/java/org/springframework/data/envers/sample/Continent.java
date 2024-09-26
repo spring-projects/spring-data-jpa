@@ -23,6 +23,7 @@ import java.time.Instant;
 /**
  * Sample domain class with modified flag.
  *
+ * @author Miguel Ángel Ruiz
  */
 @Audited(withModifiedFlag = true)
 @Entity

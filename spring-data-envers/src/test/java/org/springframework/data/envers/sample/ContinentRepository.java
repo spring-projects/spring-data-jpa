@@ -21,6 +21,7 @@ import org.springframework.data.repository.history.RevisionRepository;
 /**
  * Repository for {@link Continent} objects.
  *
+ * @author Miguel Ángel Ruiz
  */
 public interface ContinentRepository extends RevisionRepository<Continent, Long, Integer>, JpaRepository<Continent, Long> {
 

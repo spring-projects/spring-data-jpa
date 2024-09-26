@@ -54,6 +54,7 @@ import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Niklas Loechte
+ * @author Miguel Ángel Ruiz
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
@@ -124,14 +125,13 @@ class RepositoryIntegrationTests {
 			assertThat(latestRevision.getEntity()).isEqualTo(it.getEntity());
 		});
 
-		Revisions<Integer, Continent> revisionsWithModifiedFlag = continentRepository.findRevisions(europe.id, Set.of("name"));
+		Revisions<Integer, Continent> revisionsWithModifiedFlag = continentRepository.findRevisions(europe.id,
+				Set.of("name"));
 
 		assertThat(revisionsWithModifiedFlag).matches(revisions -> {
 			Collection<? extends Revision<Integer, Continent>> revisionCollection = IterableUtil.toCollection(revisions);
 
-			Set<String> continentNames = revisionCollection.stream()
-					.map(Revision::getEntity)
-					.map(continent -> continent.name)
+			Set<String> continentNames = revisionCollection.stream().map(Revision::getEntity).map(continent -> continent.name)
 					.collect(Collectors.toSet());
 			return continentNames.size() == revisionCollection.size();
 		});
