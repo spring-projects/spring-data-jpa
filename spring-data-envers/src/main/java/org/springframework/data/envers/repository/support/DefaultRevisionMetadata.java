@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
+import java.util.Set;
 
 import org.hibernate.envers.DefaultRevisionEntity;
 
@@ -37,17 +38,20 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 
 	private final DefaultRevisionEntity entity;
 	private final RevisionType revisionType;
+	private final Set<String> changedFields;
 
 	public DefaultRevisionMetadata(DefaultRevisionEntity entity) {
-		this(entity, RevisionType.UNKNOWN);
+		this(entity, RevisionType.UNKNOWN, Set.of());
 	}
 
-	public DefaultRevisionMetadata(DefaultRevisionEntity entity, RevisionType revisionType) {
+	public DefaultRevisionMetadata(DefaultRevisionEntity entity, RevisionType revisionType, Set<String> changedFields) {
 
 		Assert.notNull(entity, "DefaultRevisionEntity must not be null");
+		Assert.notNull(changedFields, "Changed fields set must not be null");
 
 		this.entity = entity;
 		this.revisionType = revisionType;
+		this.changedFields = changedFields;
 	}
 
 	public Optional<Integer> getRevisionNumber() {
@@ -74,6 +78,10 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 		return revisionType;
 	}
 
+	public Set<String> getChangedFields() {
+		return changedFields;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 
@@ -85,11 +93,12 @@ public final class DefaultRevisionMetadata implements RevisionMetadata<Integer> 
 		}
 		DefaultRevisionMetadata that = (DefaultRevisionMetadata) o;
 		return getRevisionNumber().equals(that.getRevisionNumber())
-				&& getRevisionInstant().equals(that.getRevisionInstant()) && revisionType.equals(that.getRevisionType());
+				&& getRevisionInstant().equals(that.getRevisionInstant()) && revisionType.equals(that.getRevisionType())
+				&& getChangedFields().equals(that.getChangedFields());
 	}
 
 	@Override
 	public String toString() {
-		return "DefaultRevisionMetadata{" + "entity=" + entity + ", revisionType=" + revisionType + '}';
+		return "DefaultRevisionMetadata{" + "entity=" + entity + ", revisionType=" + revisionType + ", changedFields=" + changedFields + '}';
 	}
 }
