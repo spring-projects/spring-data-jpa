@@ -309,6 +309,20 @@ class UserRepositoryFinderTests {
 		assertThat(userRepository.findContainingEscaped("att\\_")).containsExactly(withEscapedWildcard);
 	}
 
+	@Test // GH-3619
+	void propertyPlaceholderInQuery() {
+
+		User extra = new User("extra", "Matt_ew", "extra");
+
+		userRepository.save(extra);
+
+		System.setProperty("query.lastname", "%_ew");
+		assertThat(userRepository.findWithPropertyPlaceholder()).containsOnly(extra);
+
+		System.clearProperty("query.lastname");
+		assertThat(userRepository.findWithPropertyPlaceholder()).isEmpty();
+	}
+
 	@Test // DATAJPA-829
 	void translatesContainsToMemberOf() {
 

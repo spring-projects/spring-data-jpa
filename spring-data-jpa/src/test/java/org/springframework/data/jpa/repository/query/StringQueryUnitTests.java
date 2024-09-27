@@ -415,13 +415,15 @@ class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "ab1babc생일233", bindings.get(0));
 	}
 
-	@Test // DATAJPA-712
+	@Test // DATAJPA-712, GH-3619
 	void shouldReplaceAllNamedExpressionParametersWithInClause() {
 
-		StringQuery query = new StringQuery("select a from A a where a.b in :#{#bs} and a.c in :#{#cs}", true);
+		StringQuery query = new StringQuery(
+				"select a from A a where a.b in :#{#bs} and a.c in :#{#cs} and a.d in :${foo.bar}", true);
 		String queryString = query.getQueryString();
 
-		assertThat(queryString).isEqualTo("select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2");
+		assertThat(queryString).isEqualTo(
+				"select a from A a where a.b in :__$synthetic$__1 and a.c in :__$synthetic$__2 and a.d in :__$synthetic$__3");
 	}
 
 	@Test // DATAJPA-712
@@ -435,15 +437,21 @@ class StringQueryUnitTests {
 				.isEqualTo("select a from A a where a.b LIKE :__$synthetic$__1 and a.c LIKE :__$synthetic$__2");
 	}
 
-	@Test // DATAJPA-712
+	@Test // DATAJPA-712, GH-3619
 	void shouldReplaceAllPositionExpressionParametersWithInClause() {
 
-		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs}", true);
+		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs} and a.d in ?${foo}",
+				true);
 		String queryString = query.getQueryString();
 
-		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2");
-		assertThat(((Expression) query.getParameterBindings().get(0).getOrigin()).expression()).isEqualTo("#bs");
-		assertThat(((Expression) query.getParameterBindings().get(1).getOrigin()).expression()).isEqualTo("#cs");
+		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2 and a.d in ?3");
+
+		assertThat(((Expression) query.getParameterBindings().get(0).getOrigin()).expression().getExpressionString())
+				.isEqualTo("#bs");
+		assertThat(((Expression) query.getParameterBindings().get(1).getOrigin()).expression().getExpressionString())
+				.isEqualTo("#cs");
+		assertThat(((Expression) query.getParameterBindings().get(2).getOrigin()).expression().getExpressionString())
+				.isEqualTo("${foo}");
 	}
 
 	@Test // DATAJPA-864
@@ -480,7 +488,7 @@ class StringQueryUnitTests {
 		for (ParameterBinding binding : bindings) {
 			assertThat(binding.getName()).isNotNull();
 			assertThat(query.getQueryString()).contains(binding.getName());
-			assertThat(((Expression) binding.getOrigin()).expression()).isEqualTo("#exp");
+			assertThat(((Expression) binding.getOrigin()).expression().getExpressionString()).isEqualTo("#exp");
 		}
 	}
 

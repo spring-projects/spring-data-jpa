@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -37,8 +38,7 @@ import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -67,7 +67,7 @@ class AbstractStringBasedJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getMethod("findRolesByEmailAddress", String.class);
 		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				QueryMethodEvaluationContextProvider.DEFAULT, new SpelExpressionParser());
+				ValueExpressionDelegate.create());
 
 		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), Sort.unsorted(), null,
 				method.getResultProcessor().getReturnedType());

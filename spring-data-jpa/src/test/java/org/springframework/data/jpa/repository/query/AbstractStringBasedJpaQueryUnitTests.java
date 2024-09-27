@@ -29,6 +29,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -40,9 +41,8 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.ParametersSource;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -116,8 +116,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 
 		Query query = AnnotatedElementUtils.getMergedAnnotation(respositoryMethod, Query.class);
 
-		return new InvocationCapturingStringQueryStub(respositoryMethod, queryMethod, query.value(), query.countQuery(),
-				new SpelExpressionParser());
+		return new InvocationCapturingStringQueryStub(respositoryMethod, queryMethod, query.value(), query.countQuery());
 
 	}
 
@@ -127,7 +126,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 		private final MultiValueMap<String, Arguments> capturedArguments = new LinkedMultiValueMap<>(3);
 
 		InvocationCapturingStringQueryStub(Method targetMethod, JpaQueryMethod queryMethod, String queryString,
-				@Nullable String countQueryString, SpelExpressionParser parser) {
+				@Nullable String countQueryString) {
 			super(queryMethod, new Supplier<EntityManager>() {
 
 				@Override
@@ -142,7 +141,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 					return em;
 				}
 			}.get(), queryString, countQueryString, Mockito.mock(QueryRewriter.class),
-					Mockito.mock(QueryMethodEvaluationContextProvider.class), parser);
+					ValueExpressionDelegate.create());
 
 			this.targetMethod = targetMethod;
 		}

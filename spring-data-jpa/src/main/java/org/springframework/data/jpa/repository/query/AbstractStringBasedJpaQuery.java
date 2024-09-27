@@ -22,12 +22,12 @@ import java.util.Objects;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentLruCache;
@@ -50,12 +50,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final DeclaredQuery query;
 	private final Lazy<DeclaredQuery> countQuery;
-	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
-	private final SpelExpressionParser parser;
+	private final ValueExpressionDelegate valueExpressionDelegate;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	private final QueryRewriter queryRewriter;
 	private final QuerySortRewriter querySortRewriter;
 	private final Lazy<ParameterBinder> countParameterBinder;
+	private final ValueEvaluationContextProvider valueExpressionContextProvider;
 
 	/**
 	 * Creates a new {@link AbstractStringBasedJpaQuery} from the given {@link JpaQueryMethod}, {@link EntityManager} and
@@ -65,30 +65,29 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
 	 * @param countQueryString must not be {@literal null}.
-	 * @param evaluationContextProvider must not be {@literal null}.
-	 * @param parser must not be {@literal null}.
 	 * @param queryRewriter must not be {@literal null}.
+	 * @param valueExpressionDelegate must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
 			@Nullable String countQueryString, QueryRewriter queryRewriter,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, SpelExpressionParser parser) {
+			ValueExpressionDelegate valueExpressionDelegate) {
 
 		super(method, em);
 
 		Assert.hasText(queryString, "Query string must not be null or empty");
-		Assert.notNull(evaluationContextProvider, "ExpressionEvaluationContextProvider must not be null");
-		Assert.notNull(parser, "Parser must not be null");
+		Assert.notNull(valueExpressionDelegate, "ValueExpressionDelegate must not be null");
 		Assert.notNull(queryRewriter, "QueryRewriter must not be null");
 
-		this.evaluationContextProvider = evaluationContextProvider;
-		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), parser,
+		this.valueExpressionDelegate = valueExpressionDelegate;
+		this.valueExpressionContextProvider = valueExpressionDelegate.createValueContextProvider(method.getParameters());
+		this.query = new ExpressionBasedStringQuery(queryString, method.getEntityInformation(), valueExpressionDelegate,
 				method.isNativeQuery());
 
 		this.countQuery = Lazy.of(() -> {
 
 			if (StringUtils.hasText(countQueryString)) {
 
-				return new ExpressionBasedStringQuery(countQueryString, method.getEntityInformation(), parser,
+				return new ExpressionBasedStringQuery(countQueryString, method.getEntityInformation(), valueExpressionDelegate,
 						method.isNativeQuery());
 			}
 
@@ -99,7 +98,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return this.createBinder(this.countQuery.get());
 		});
 
-		this.parser = parser;
 		this.queryRewriter = queryRewriter;
 
 		JpaParameters parameters = method.getParameters();
@@ -140,8 +138,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	}
 
 	protected ParameterBinder createBinder(DeclaredQuery query) {
-		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query, parser,
-				evaluationContextProvider);
+		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query,
+				valueExpressionDelegate, valueExpressionContextProvider);
 	}
 
 	@Override

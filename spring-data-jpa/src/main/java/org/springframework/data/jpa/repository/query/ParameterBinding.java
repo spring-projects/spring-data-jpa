@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
@@ -493,12 +494,12 @@ class ParameterBinding {
 	sealed interface ParameterOrigin permits Expression,MethodInvocationArgument {
 
 		/**
-		 * Creates a {@link Expression} for the given {@code expression} string.
+		 * Creates a {@link Expression} for the given {@code expression}.
 		 *
 		 * @param expression must not be {@literal null}.
-		 * @return {@link Expression} for the given {@code expression} string.
+		 * @return {@link Expression} for the given {@code expression}.
 		 */
-		static Expression ofExpression(String expression) {
+		static Expression ofExpression(ValueExpression expression) {
 			return new Expression(expression);
 		}
 
@@ -562,7 +563,7 @@ class ParameterBinding {
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	public record Expression(String expression) implements ParameterOrigin {
+	public record Expression(ValueExpression expression) implements ParameterOrigin {
 
 		@Override
 		public boolean isMethodArgument() {

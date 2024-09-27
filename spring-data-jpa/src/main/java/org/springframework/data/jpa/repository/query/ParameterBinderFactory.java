@@ -18,12 +18,12 @@ package org.springframework.data.jpa.repository.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.expression.ValueEvaluationContextProvider;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.ParameterMetadata;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.util.Assert;
 
 /**
@@ -86,7 +86,7 @@ class ParameterBinderFactory {
 	 *         {@link jakarta.persistence.Query} while processing SpEL expressions where applicable.
 	 */
 	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, DeclaredQuery query,
-			SpelExpressionParser parser, QueryMethodEvaluationContextProvider evaluationContextProvider) {
+			ValueExpressionParser parser, ValueEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
 		Assert.notNull(query, "StringQuery must not be null");
@@ -95,7 +95,7 @@ class ParameterBinderFactory {
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
-				evaluationContextProvider, parameters);
+				evaluationContextProvider);
 
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 

@@ -12,7 +12,7 @@ Derived queries with the predicates `IsStartingWith`, `StartingWith`, `StartsWit
 `IsNotContaining`, `NotContaining`, `NotContains`, `IsContaining`, `Containing`, `Contains` the respective arguments for these queries will get sanitized.
 This means if the arguments actually contain characters recognized by `LIKE` as wildcards these will get escaped so they match only as literals.
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
-Compare with xref:jpa/query-methods.adoc#jpa.query.spel-expressions[Using SpEL Expressions].
+Compare with xref:jpa/query-methods.adoc#jpa.query.spel-expressions[Using Value Expressions].
 
 [[jpa.query-methods.declared-queries]]
 === Declared Queries
@@ -401,13 +401,23 @@ NOTE: The method parameters are switched according to their order in the defined
 NOTE: As of version 4, Spring fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. By using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
 
 [[jpa.query.spel-expressions]]
-== Using SpEL Expressions
+== Using Expressions
 
-As of Spring Data JPA release 1.4, we support the usage of restricted SpEL template expressions in manually defined queries that are defined with `@Query`. Upon the query being run, these expressions are evaluated against a predefined set of variables. Spring Data JPA supports a variable called `entityName`. Its usage is `select x from #{#entityName} x`. It inserts the `entityName` of the domain type associated with the given repository. The `entityName` is resolved as follows: If the domain type has set the name property on the `@Entity` annotation, it is used. Otherwise, the simple class-name of the domain type is used.
+We support the usage of restricted expressions in manually defined queries that are defined with `@Query`.
+Upon the query being run, these expressions are evaluated against a predefined set of variables.
+
+NOTE: If you are not familiar with Value Expressions, please refer to xref:jpa/value-expressions.adoc[] to learn about SpEL Expressions and Property Placeholders.
+
+Spring Data JPA supports a variable called `entityName`.
+Its usage is `select x from #{#entityName} x`.
+It inserts the `entityName` of the domain type associated with the given repository.
+The `entityName` is resolved as follows:
+* If the domain type has set the name property on the `@Entity` annotation, it is used.
+* Otherwise, the simple class-name of the domain type is used.
 
 The following example demonstrates one use case for the `+#{#entityName}+` expression in a query string where you want to define a repository interface with a query method and a manually defined query:
 
-.Using SpEL expressions in repository query methods - entityName
+.Using SpEL expressions in repository query methods: entityName
 ====
 [source, java]
 ----
@@ -431,13 +441,16 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
 To avoid stating the actual entity name in the query string of a `@Query` annotation, you can use the `+#{#entityName}+` variable.
 
-NOTE: The `entityName` can be customized by using the `@Entity` annotation. Customizations in `orm.xml` are not supported for the SpEL expressions.
+NOTE: The `entityName` can be customized by using the `@Entity` annotation.
+Customizations in `orm.xml` are not supported for the SpEL expressions.
 
-Of course, you could have just used `User` in the query declaration directly, but that would require you to change the query as well. The reference to `#entityName` picks up potential future remappings of the `User` class to a different entity name (for example, by using `@Entity(name = "MyUser")`.
+Of course, you could have just used `User` in the query declaration directly, but that would require you to change the query as well.
+The reference to `#entityName` picks up potential future remappings of the `User` class to a different entity name (for example, by using `@Entity(name = "MyUser")`.
 
-Another use case for the `#{#entityName}` expression in a query string is if you want to define a generic repository interface with specialized repository interfaces for a concrete domain type. To not repeat the definition of custom query methods on the concrete interfaces, you can use the entity name expression in the query string of the `@Query` annotation in the generic repository interface, as shown in the following example:
+Another use case for the `#{#entityName}` expression in a query string is if you want to define a generic repository interface with specialized repository interfaces for a concrete domain type.
+To not repeat the definition of custom query methods on the concrete interfaces, you can use the entity name expression in the query string of the `@Query` annotation in the generic repository interface, as shown in the following example:
 
-.Using SpEL expressions in repository query methods - entityName with inheritance
+.Using SpEL expressions in Repository Query Methods: entityName with Inheritance
 ====
 [source, java]
 ----
@@ -463,13 +476,15 @@ public interface ConcreteRepository
 ----
 ====
 
-In the preceding example, the `MappedTypeRepository` interface is the common parent interface for a few domain types extending `AbstractMappedType`. It also defines the generic `findAllByAttribute(…)` method, which can be used on instances of the specialized repository interfaces. If you now invoke `findByAllAttribute(…)` on `ConcreteRepository`, the query becomes `select t from ConcreteType t where t.attribute = ?1`.
+In the preceding example, the `MappedTypeRepository` interface is the common parent interface for a few domain types extending `AbstractMappedType`.
+It also defines the generic `findAllByAttribute(…)` method, which can be used on instances of the specialized repository interfaces.
+If you now invoke `findByAllAttribute(…)` on `ConcreteRepository`, the query becomes `select t from ConcreteType t where t.attribute = ?1`.
 
-SpEL expressions to manipulate arguments may also be used to manipulate method arguments.
-In these SpEL expressions the entity name is not available, but the arguments are.
+You can also use Expressions to control arguments may also be used to control method arguments.
+In these expressions the entity name is not available, but the arguments are.
 They can be accessed by name or index as demonstrated in the following example.
 
-.Using SpEL expressions in repository query methods - accessing arguments.
+.Using Value Expressions in Repository Query Methods: Accessing Arguments
 ====
 [source, java]
 ----
@@ -482,7 +497,7 @@ For `like`-conditions one often wants to append `%` to the beginning or the end 
 This can be done by appending or prefixing a bind parameter marker or a SpEL expression with `%`.
 Again the following example demonstrates this.
 
-.Using SpEL expressions in repository query methods - wildcard shortcut.
+.Using Value Expressions in Repository Query Methods: Wildcard shortcut
 ====
 [source, java]
 ----
@@ -496,8 +511,7 @@ For this purpose the `escape(String)` method is made available in the SpEL conte
 It prefixes all instances of `_` and `%` in the first argument with the single character from the second argument.
 In combination with the `escape` clause of the `like` expression available in JPQL and standard SQL this allows easy cleaning of bind parameters.
 
-
-.Using SpEL expressions in repository query methods - sanitizing input values.
+.Using Value Expressions in Repository Query Methods: Sanitizing Input Values
 ====
 [source, java]
 ----
@@ -510,6 +524,19 @@ Given this method declaration in a repository interface `findContainingEscaped("
 The escape character used can be configured by setting the `escapeCharacter` of the `@EnableJpaRepositories` annotation.
 Note that the method `escape(String)` available in the SpEL context will only escape the SQL and JPQL standard wildcards `_` and `%`.
 If the underlying database or the JPA implementation supports additional wildcards these will not get escaped.
+
+.Using Value Expressions in Repository Query Methods: Configuration Properties
+====
+[source,java]
+----
+@Query("select u from User u where u.applicationName = ?${spring.application.name:unknown}")
+List<User> findContainingEscaped(String namePart);
+----
+====
+
+You can refer in your query methods also to configuration property names including fallbacks if you wish to resolve a property from `Environment` during runtime.
+The property is being evaluated upon query execution.
+Typically, property placeholders resolve to String-like values.
 
 [[jpa.query.other-methods]]
 == Other Methods

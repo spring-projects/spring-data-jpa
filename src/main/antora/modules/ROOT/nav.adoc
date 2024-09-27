@@ -9,6 +9,7 @@
 ** xref:jpa/entity-persistence.adoc[]
 ** xref:repositories/query-methods-details.adoc[]
 ** xref:jpa/query-methods.adoc[]
+** xref:jpa/value-expressions.adoc[]
 ** xref:repositories/projections.adoc[]
 ** xref:jpa/stored-procedures.adoc[]
 ** xref:jpa/specifications.adoc[]
