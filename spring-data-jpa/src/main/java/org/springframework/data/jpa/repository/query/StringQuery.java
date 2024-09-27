@@ -26,13 +26,14 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.expression.ValueExpression;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
-import org.springframework.data.repository.query.SpelQueryContext;
-import org.springframework.data.repository.query.SpelQueryContext.SpelExtractor;
+import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -241,14 +242,15 @@ class StringQuery implements DeclaredQuery {
 				greatestParameterIndex = 0;
 			}
 
-			SpelExtractor spelExtractor = createSpelExtractor(query, parametersShouldBeAccessedByIndex,
+			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query,
+					parametersShouldBeAccessedByIndex,
 					greatestParameterIndex);
 
-			String resultingQuery = spelExtractor.getQueryString();
+			String resultingQuery = parsedQuery.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
 
 			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
-			int syntheticParameterIndex = expressionParameterIndex + spelExtractor.size();
+			int syntheticParameterIndex = expressionParameterIndex + parsedQuery.size();
 
 			ParameterBindings parameterBindings = new ParameterBindings(bindings, it -> checkAndRegister(it, bindings),
 					syntheticParameterIndex);
@@ -258,7 +260,7 @@ class StringQuery implements DeclaredQuery {
 
 			while (matcher.find()) {
 
-				if (spelExtractor.isQuoted(matcher.start())) {
+				if (parsedQuery.isQuoted(matcher.start())) {
 					continue;
 				}
 
@@ -282,7 +284,8 @@ class StringQuery implements DeclaredQuery {
 				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
 				Assert.isTrue(parameterIndexString != null || parameterName != null,
 						() -> String.format("We need either a name or an index; Offending query string: %s", query));
-				String expression = spelExtractor.getParameter(parameterName == null ? parameterIndexString : parameterName);
+				ValueExpression expression = parsedQuery
+						.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
 				expressionParameterIndex++;
@@ -346,7 +349,8 @@ class StringQuery implements DeclaredQuery {
 			return resultingQuery;
 		}
 
-		private static SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex,
+		private static ValueExpressionQueryRewriter.ParsedQuery createSpelExtractor(String queryWithSpel,
+				boolean parametersShouldBeAccessedByIndex,
 				int greatestParameterIndex) {
 
 			/*
@@ -362,8 +366,10 @@ class StringQuery implements DeclaredQuery {
 			String fixedPrefix = parametersShouldBeAccessedByIndex ? "?" : ":";
 
 			BiFunction<String, String, String> parameterNameToReplacement = (prefix, name) -> fixedPrefix + name;
+			ValueExpressionQueryRewriter rewriter = ValueExpressionQueryRewriter.of(ValueExpressionParser.create(),
+					indexToParameterName, parameterNameToReplacement);
 
-			return SpelQueryContext.of(indexToParameterName, parameterNameToReplacement).parse(queryWithSpel);
+			return rewriter.parse(queryWithSpel);
 		}
 
 		@Nullable

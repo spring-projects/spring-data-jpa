@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
@@ -29,44 +30,45 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 class LikeBindingUnitTests {
 
 	private static void assertAugmentedValue(Type type, Object value) {
 
 		LikeParameterBinding binding = new LikeParameterBinding(BindingIdentifier.of("foo"),
-				ParameterOrigin.ofExpression("foo"), type);
+				ParameterOrigin.ofParameter(1), type);
 		assertThat(binding.prepare("value")).isEqualTo(value);
 	}
 
 	@Test
 	void rejectsNullName() {
 		assertThatIllegalArgumentException()
-				.isThrownBy(() -> new LikeParameterBinding(null, ParameterOrigin.ofExpression(""), Type.CONTAINING));
+				.isThrownBy(() -> new LikeParameterBinding(null, ParameterOrigin.ofParameter(0), Type.CONTAINING));
 	}
 
 	@Test
 	void rejectsEmptyName() {
 		assertThatIllegalArgumentException().isThrownBy(
-				() -> new LikeParameterBinding(BindingIdentifier.of(""), ParameterOrigin.ofExpression(""), Type.CONTAINING));
+				() -> new LikeParameterBinding(BindingIdentifier.of(""), ParameterOrigin.ofParameter(0), Type.CONTAINING));
 	}
 
 	@Test
 	void rejectsNullType() {
 		assertThatIllegalArgumentException().isThrownBy(
-				() -> new LikeParameterBinding(BindingIdentifier.of("foo"), ParameterOrigin.ofExpression("foo"), null));
+				() -> new LikeParameterBinding(BindingIdentifier.of("foo"), ParameterOrigin.ofParameter(0), null));
 	}
 
 	@Test
 	void rejectsInvalidType() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LikeParameterBinding(BindingIdentifier.of("foo"),
-				ParameterOrigin.ofExpression("foo"), Type.SIMPLE_PROPERTY));
+				ParameterOrigin.ofParameter(0), Type.SIMPLE_PROPERTY));
 	}
 
 	@Test
 	void rejectsInvalidPosition() {
 		assertThatIllegalArgumentException().isThrownBy(
-				() -> new LikeParameterBinding(BindingIdentifier.of(0), ParameterOrigin.ofExpression(""), Type.CONTAINING));
+				() -> new LikeParameterBinding(BindingIdentifier.of(0), ParameterOrigin.ofParameter(0), Type.CONTAINING));
 	}
 
 	@Test

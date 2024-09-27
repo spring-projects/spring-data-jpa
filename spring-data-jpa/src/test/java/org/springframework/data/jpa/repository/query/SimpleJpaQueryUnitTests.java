@@ -52,10 +52,9 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 
 /**
@@ -77,8 +76,6 @@ import org.springframework.lang.Nullable;
 class SimpleJpaQueryUnitTests {
 
 	private static final String USER_QUERY = "select u from User u";
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-	private static final QueryMethodEvaluationContextProvider EVALUATION_CONTEXT_PROVIDER = QueryMethodEvaluationContextProvider.DEFAULT;
 
 	private JpaQueryMethod method;
 
@@ -123,7 +120,7 @@ class SimpleJpaQueryUnitTests {
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -138,7 +135,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER, PARSER);
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -154,7 +151,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
 				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER);
+				ValueExpressionDelegate.create());
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -174,7 +171,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
 				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER);
+				ValueExpressionDelegate.create());
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -287,7 +284,7 @@ class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
 				"select count(u.id) from #{#entityName} u", QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				EVALUATION_CONTEXT_PROVIDER, PARSER);
+				ValueExpressionDelegate.create());
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -302,7 +299,7 @@ class SimpleJpaQueryUnitTests {
 	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString, @Nullable String countQueryString) {
 
 		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryString, countQueryString,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, EVALUATION_CONTEXT_PROVIDER);
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {

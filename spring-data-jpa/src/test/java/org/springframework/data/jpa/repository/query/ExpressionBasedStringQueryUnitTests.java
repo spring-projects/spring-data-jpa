@@ -27,9 +27,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.repository.query.parser.Part.Type;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
  * Unit tests for {@link ExpressionBasedStringQuery}.
@@ -46,7 +47,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ExpressionBasedStringQueryUnitTests {
 
-	private static final SpelExpressionParser SPEL_PARSER = new SpelExpressionParser();
+	private static final ValueExpressionParser PARSER = ValueExpressionParser.create();
 	@Mock JpaEntityMetadata<?> metadata;
 
 	@BeforeEach
@@ -58,14 +59,14 @@ class ExpressionBasedStringQueryUnitTests {
 	void shouldReturnQueryWithDomainTypeExpressionReplacedWithSimpleDomainTypeName() {
 
 		String source = "select u from #{#entityName} u where u.firstname like :firstname";
-		StringQuery query = new ExpressionBasedStringQuery(source, metadata, SPEL_PARSER, false);
+		StringQuery query = new ExpressionBasedStringQuery(source, metadata, PARSER, false);
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
 	}
 
 	@Test // DATAJPA-424
 	void renderAliasInExpressionQueryCorrectly() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, SPEL_PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u", metadata, PARSER, true);
 		assertThat(query.getAlias()).isEqualTo("u");
 		assertThat(query.getQueryString()).isEqualTo("select u from User u");
 	}
@@ -78,7 +79,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(:#{#networkRequest.server})) OR :#{#networkRequest.server} IS NULL "
 						+ "AND (n.createdAt >= :#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=:#{#networkRequest.createdTime.endDateTime}) "
 						+ "AND (n.updatedAt >= :#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=:#{#networkRequest.updatedTime.endDateTime})",
-				metadata, SPEL_PARSER, false);
+				metadata, PARSER, false);
 
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
@@ -91,7 +92,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
 						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
-				metadata, SPEL_PARSER, false);
+				metadata, PARSER, false);
 
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
@@ -104,7 +105,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
 						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
-				metadata, SPEL_PARSER, true);
+				metadata, PARSER, true);
 
 		assertThat(query.isNativeQuery()).isFalse();
 	}
@@ -112,7 +113,7 @@ class ExpressionBasedStringQueryUnitTests {
 	@Test
 	void shouldDetectSimpleNativeQueriesWithSpelAsNonNative() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, SPEL_PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, PARSER, true);
 
 		assertThat(query.isNativeQuery()).isFalse();
 	}
@@ -120,7 +121,7 @@ class ExpressionBasedStringQueryUnitTests {
 	@Test
 	void shouldDetectSimpleNativeQueriesWithoutSpelAsNative() {
 
-		StringQuery query = new ExpressionBasedStringQuery("select u from User u", metadata, SPEL_PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select u from User u", metadata, PARSER, true);
 
 		assertThat(query.isNativeQuery()).isTrue();
 	}
@@ -129,7 +130,7 @@ class ExpressionBasedStringQueryUnitTests {
 	void namedExpressionsShouldCreateLikeBindings() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select u from User u where u.firstname like %:#{foo} or u.firstname like :#{foo}%", metadata, SPEL_PARSER,
+				"select u from User u where u.firstname like %:#{foo} or u.firstname like :#{foo}%", metadata, PARSER,
 				false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -154,7 +155,7 @@ class ExpressionBasedStringQueryUnitTests {
 	void indexedExpressionsShouldCreateLikeBindings() {
 
 		StringQuery query = new ExpressionBasedStringQuery(
-				"select u from User u where u.firstname like %?#{foo} or u.firstname like ?#{foo}%", metadata, SPEL_PARSER,
+				"select u from User u where u.firstname like %?#{foo} or u.firstname like ?#{foo}%", metadata, PARSER,
 				false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -179,7 +180,7 @@ class ExpressionBasedStringQueryUnitTests {
 	public void doesTemplatingWhenEntityNameSpelIsPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from #{#entityName} u",
-				metadata, SPEL_PARSER, false);
+				metadata, PARSER, false);
 
 		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
 	}
@@ -188,7 +189,7 @@ class ExpressionBasedStringQueryUnitTests {
 	public void doesNoTemplatingWhenEntityNameSpelIsNotPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from User u", metadata,
-				SPEL_PARSER, false);
+				PARSER, false);
 
 		assertThat(query.getQueryString()).isEqualTo("select UserHallo from User u");
 	}
@@ -197,7 +198,7 @@ class ExpressionBasedStringQueryUnitTests {
 	public void doesTemplatingWhenEntityNameSpelIsPresentForBindParameter() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u where name = :#{#something}",
-				metadata, SPEL_PARSER, false);
+				metadata, PARSER, false);
 
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where name = :__$synthetic$__1");
 	}

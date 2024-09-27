@@ -617,6 +617,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.lastname like %?#{escape([0])}% escape ?#{escapeCharacter()}")
 	List<User> findContainingEscaped(String namePart);
 
+	// GH-3619
+	@Query("select u from User u where u.lastname like ?${query.lastname:empty}")
+	List<User> findWithPropertyPlaceholder();
+
 	// DATAJPA-1303
 	List<User> findByAttributesIgnoreCaseIn(Collection<String> attributes);
 

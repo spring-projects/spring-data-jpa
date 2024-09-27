@@ -25,10 +25,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
@@ -57,12 +56,12 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param queryString must not be {@literal null} or empty.
 	 * @param countQueryString must not be {@literal null} or empty.
 	 * @param rewriter the query rewriter to use.
+	 * @param valueExpressionDelegate must not be {@literal null}.
 	 */
 	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			QueryRewriter rewriter, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			SpelExpressionParser parser) {
+			QueryRewriter rewriter, ValueExpressionDelegate valueExpressionDelegate) {
 
-		super(method, em, queryString, countQueryString, rewriter, evaluationContextProvider, parser);
+		super(method, em, queryString, countQueryString, rewriter, valueExpressionDelegate);
 
 		MergedAnnotations annotations = MergedAnnotations.from(method.getMethod());
 		MergedAnnotation<NativeQuery> annotation = annotations.get(NativeQuery.class);

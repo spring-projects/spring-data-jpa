@@ -15,12 +15,13 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.springframework.data.expression.ValueEvaluationContext;
+import org.springframework.data.expression.ValueExpression;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ParserContext;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 
@@ -59,7 +60,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param parser must not be {@literal null}.
 	 * @param nativeQuery is a given query is native or not
 	 */
-	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, SpelExpressionParser parser,
+	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
 			boolean nativeQuery) {
 		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
 	}
@@ -74,7 +75,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @return A query supporting SpEL expressions.
 	 */
 	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
-			SpelExpressionParser parser, boolean nativeQuery) {
+			ValueExpressionParser parser, boolean nativeQuery) {
 		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
 	}
 
@@ -84,7 +85,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param parser Must not be {@literal null}.
 	 */
 	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
-			SpelExpressionParser parser) {
+			ValueExpressionParser parser) {
 
 		Assert.notNull(query, "query must not be null");
 		Assert.notNull(metadata, "metadata must not be null");
@@ -99,9 +100,9 @@ class ExpressionBasedStringQuery extends StringQuery {
 
 		query = potentiallyQuoteExpressionsParameter(query);
 
-		Expression expr = parser.parseExpression(query, ParserContext.TEMPLATE_EXPRESSION);
+		ValueExpression expr = parser.parse(query);
 
-		String result = expr.getValue(evalContext, String.class);
+		String result = Objects.toString(expr.evaluate(ValueEvaluationContext.of(null, evalContext)));
 
 		if (result == null) {
 			return query;

@@ -21,6 +21,10 @@ import jakarta.persistence.TemporalType;
 import java.util.List;
 import java.util.function.Function;
 
+import org.springframework.data.expression.ValueEvaluationContext;
+import org.springframework.data.expression.ValueEvaluationContextProvider;
+import org.springframework.data.expression.ValueExpression;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
@@ -28,9 +32,7 @@ import org.springframework.data.jpa.repository.query.ParameterMetadataProvider.P
 import org.springframework.data.jpa.repository.query.QueryParameterSetter.NamedOrIndexedQueryParameterSetter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.spel.EvaluationContextProvider;
-import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
@@ -89,14 +91,13 @@ abstract class QueryParameterSetterFactory {
 	 * @return a {@link QueryParameterSetterFactory} that can handle
 	 *         {@link org.springframework.expression.spel.standard.SpelExpression}s.
 	 */
-	static QueryParameterSetterFactory parsing(SpelExpressionParser parser,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+	static QueryParameterSetterFactory parsing(ValueExpressionParser parser,
+			ValueEvaluationContextProvider evaluationContextProvider) {
 
-		Assert.notNull(parser, "SpelExpressionParser must not be null");
-		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
-		Assert.notNull(parameters, "Parameters must not be null");
+		Assert.notNull(parser, "ValueExpressionParser must not be null");
+		Assert.notNull(evaluationContextProvider, "ValueEvaluationContextProvider must not be null");
 
-		return new ExpressionBasedQueryParameterSetterFactory(parser, evaluationContextProvider, parameters);
+		return new ExpressionBasedQueryParameterSetterFactory(parser, evaluationContextProvider);
 	}
 
 	/**
@@ -161,25 +162,22 @@ abstract class QueryParameterSetterFactory {
 	 */
 	private static class ExpressionBasedQueryParameterSetterFactory extends QueryParameterSetterFactory {
 
-		private final SpelExpressionParser parser;
-		private final QueryMethodEvaluationContextProvider evaluationContextProvider;
-		private final Parameters<?, ?> parameters;
+		private final ValueExpressionParser parser;
+		private final ValueEvaluationContextProvider evaluationContextProvider;
 
 		/**
 		 * @param parser must not be {@literal null}.
 		 * @param evaluationContextProvider must not be {@literal null}.
 		 * @param parameters must not be {@literal null}.
 		 */
-		ExpressionBasedQueryParameterSetterFactory(SpelExpressionParser parser,
-				QueryMethodEvaluationContextProvider evaluationContextProvider, Parameters<?, ?> parameters) {
+		ExpressionBasedQueryParameterSetterFactory(ValueExpressionParser parser,
+				ValueEvaluationContextProvider evaluationContextProvider) {
 
-			Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
-			Assert.notNull(parser, "SpelExpressionParser must not be null");
-			Assert.notNull(parameters, "Parameters must not be null");
+			Assert.notNull(parser, "ValueExpressionParser must not be null");
+			Assert.notNull(evaluationContextProvider, "ValueEvaluationContextProvider must not be null");
 
-			this.evaluationContextProvider = evaluationContextProvider;
 			this.parser = parser;
-			this.parameters = parameters;
+			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
 		@Nullable
@@ -190,9 +188,7 @@ abstract class QueryParameterSetterFactory {
 				return null;
 			}
 
-			Expression expression = parser.parseExpression(e.expression());
-
-			return createSetter(values -> evaluateExpression(expression, values), binding, null);
+			return createSetter(values -> evaluateExpression(e.expression(), values), binding, null);
 		}
 
 		/**
@@ -203,11 +199,10 @@ abstract class QueryParameterSetterFactory {
 		 * @return the result of the evaluation.
 		 */
 		@Nullable
-		private Object evaluateExpression(Expression expression, JpaParametersParameterAccessor accessor) {
+		private Object evaluateExpression(ValueExpression expression, JpaParametersParameterAccessor accessor) {
 
-			EvaluationContext context = evaluationContextProvider.getEvaluationContext(parameters, accessor.getValues());
-
-			return expression.getValue(context, Object.class);
+			ValueEvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(accessor.getValues());
+			return expression.evaluate(evaluationContext);
 		}
 	}
 
