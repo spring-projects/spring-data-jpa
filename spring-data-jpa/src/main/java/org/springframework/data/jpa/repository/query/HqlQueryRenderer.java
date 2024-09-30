@@ -2094,13 +2094,109 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 	}
 
 	@Override
-	public List<JpaQueryParsingToken> visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
-		return visit(ctx.dealingWithNullExpression());
+	public List<JpaQueryParsingToken> visitIsBooleanPredicate(HqlParser.IsBooleanPredicateContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		tokens.add(new JpaQueryParsingToken(ctx.IS()));
+
+		if (ctx.NOT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		}
+
+		if (ctx.NULL() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.NULL()));
+		}
+
+		if (ctx.TRUE() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.TRUE()));
+		}
+
+		if (ctx.FALSE() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.FALSE()));
+		}
+
+		if (ctx.EMPTY() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitMemberOfPredicate(HqlParser.MemberOfPredicateContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression()));
+		if (ctx.NOT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		}
+		if (ctx.MEMBER() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));
+		}
+		if (ctx.OF() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.OF()));
+		}
+
+		tokens.addAll(visit(ctx.path()));
+
+		return tokens;
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitIsDistinctFromPredicate(HqlParser.IsDistinctFromPredicateContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>(16);
+
+		tokens.addAll(visit(ctx.expression(0)));
+		tokens.add(new JpaQueryParsingToken(ctx.IS()));
+
+		if (ctx.NOT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		}
+
+		if (ctx.DISTINCT() != null) {
+
+			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
+			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
+			tokens.addAll(visit(ctx.expression(1)));
+		}
+
+		return tokens;
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 		return visit(ctx.betweenExpression());
+	}
+
+	@Override
+	public List<JpaQueryParsingToken> visitContainsPredicate(HqlParser.ContainsPredicateContext ctx) {
+
+		List<JpaQueryParsingToken> tokens = new ArrayList<>();
+
+		tokens.addAll(visit(ctx.expression(0)));
+
+		if (ctx.NOT() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.NOT()));
+		}
+
+		if (ctx.CONTAINS() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.CONTAINS()));
+		}
+		if (ctx.INCLUDES() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.INCLUDES()));
+		}
+		if (ctx.INTERSECTS() != null) {
+			tokens.add(new JpaQueryParsingToken(ctx.INTERSECTS()));
+		}
+
+		tokens.addAll(visit(ctx.expression(1)));
+
+		return tokens;
+
 	}
 
 	@Override
@@ -2123,11 +2219,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 	@Override
 	public List<JpaQueryParsingToken> visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 		return visit(ctx.existsExpression());
-	}
-
-	@Override
-	public List<JpaQueryParsingToken> visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
-		return visit(ctx.collectionExpression());
 	}
 
 	@Override
@@ -2220,30 +2311,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 		tokens.addAll(visit(ctx.expression(1)));
 		tokens.add(new JpaQueryParsingToken(ctx.AND()));
 		tokens.addAll(visit(ctx.expression(2)));
-
-		return tokens;
-	}
-
-	@Override
-	public List<JpaQueryParsingToken> visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		tokens.addAll(visit(ctx.expression(0)));
-		tokens.add(new JpaQueryParsingToken(ctx.IS()));
-
-		if (ctx.NOT() != null) {
-			tokens.add(TOKEN_NOT);
-		}
-
-		if (ctx.NULL() != null) {
-			tokens.add(new JpaQueryParsingToken(ctx.NULL()));
-		} else if (ctx.DISTINCT() != null) {
-
-			tokens.add(new JpaQueryParsingToken(ctx.DISTINCT()));
-			tokens.add(new JpaQueryParsingToken(ctx.FROM()));
-			tokens.addAll(visit(ctx.expression(1)));
-		}
 
 		return tokens;
 	}
@@ -2363,36 +2430,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 			tokens.add(new JpaQueryParsingToken(ctx.EXISTS()));
 			tokens.addAll(visit(ctx.expression()));
-		}
-
-		return tokens;
-	}
-
-	@Override
-	public List<JpaQueryParsingToken> visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
-
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
-
-		tokens.addAll(visit(ctx.expression()));
-
-		if (ctx.IS() != null) {
-
-			tokens.add(new JpaQueryParsingToken(ctx.IS()));
-
-			if (ctx.NOT() != null) {
-				tokens.add(TOKEN_NOT);
-			}
-
-			tokens.add(new JpaQueryParsingToken(ctx.EMPTY()));
-		} else if (ctx.MEMBER() != null) {
-
-			if (ctx.NOT() != null) {
-				tokens.add(TOKEN_NOT);
-			}
-
-			tokens.add(new JpaQueryParsingToken(ctx.MEMBER()));
-			tokens.add(new JpaQueryParsingToken(ctx.OF()));
-			tokens.addAll(visit(ctx.path()));
 		}
 
 		return tokens;
