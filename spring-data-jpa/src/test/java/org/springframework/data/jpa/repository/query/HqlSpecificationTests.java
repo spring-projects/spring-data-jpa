@@ -442,8 +442,7 @@ class HqlSpecificationTests {
 	 * @see #functionInvocationExampleWithCorrection()
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
-	void functionInvocationExample_SPEC_BUG() {
+	void functionInvocationExampleAsBooleanExpression() {
 
 		assertQuery("""
 				SELECT c
@@ -459,6 +458,18 @@ class HqlSpecificationTests {
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
+				""");
+	}
+
+	@Test // GH-3628
+	void functionInvocationWithIsBoolean() {
+
+		assertQuery("""
+				from RoleTmpl where find_in_set(:appId, appIds) is true
+				""");
+
+		assertQuery("""
+				from RoleTmpl where find_in_set(:appId, appIds) is false
 				""");
 	}
 
@@ -777,13 +788,76 @@ class HqlSpecificationTests {
 	}
 
 	@Test
-	void theRest26() {
+	void collectionIsEmpty() {
 
 		assertQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
 				AND c.orders IS EMPTY
+				""");
+
+		assertQuery("""
+				DELETE
+				FROM Customer c
+				WHERE c.status = 'inactive'
+				AND c.orders IS NOT EMPTY
+				""");
+	}
+
+	@Test // GH-3628
+	void booleanPredicate() {
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS TRUE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT TRUE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS FALSE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT FALSE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NULL
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT NULL
+				""");
+	}
+
+	@Test // GH-3628
+	void distinctFromPredicate() {
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS DISTINCT FROM c.payments
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT DISTINCT FROM c.payments
 				""");
 	}
 

@@ -2015,13 +2015,109 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitNullExpressionPredicate(HqlParser.NullExpressionPredicateContext ctx) {
-		return visit(ctx.dealingWithNullExpression());
+	public QueryTokenStream visitIsBooleanPredicate(HqlParser.IsBooleanPredicateContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression()));
+		builder.append(QueryTokens.expression(ctx.IS()));
+
+		if (ctx.NOT() != null) {
+			builder.append(QueryTokens.expression(ctx.NOT()));
+		}
+
+		if (ctx.NULL() != null) {
+			builder.append(QueryTokens.expression(ctx.NULL()));
+		}
+
+		if (ctx.TRUE() != null) {
+			builder.append(QueryTokens.expression(ctx.TRUE()));
+		}
+
+		if (ctx.FALSE() != null) {
+			builder.append(QueryTokens.expression(ctx.FALSE()));
+		}
+
+		if (ctx.EMPTY() != null) {
+			builder.append(QueryTokens.expression(ctx.EMPTY()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitMemberOfPredicate(HqlParser.MemberOfPredicateContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression()));
+		if (ctx.NOT() != null) {
+			builder.append(QueryTokens.expression(ctx.NOT()));
+		}
+		if (ctx.MEMBER() != null) {
+			builder.append(QueryTokens.expression(ctx.MEMBER()));
+		}
+		if (ctx.OF() != null) {
+			builder.append(QueryTokens.expression(ctx.OF()));
+		}
+
+		builder.append(visit(ctx.path()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitIsDistinctFromPredicate(HqlParser.IsDistinctFromPredicateContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression(0)));
+		builder.append(QueryTokens.expression(ctx.IS()));
+
+		if (ctx.NOT() != null) {
+			builder.append(QueryTokens.expression(ctx.NOT()));
+		}
+
+		if (ctx.DISTINCT() != null) {
+
+			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+			builder.append(QueryTokens.expression(ctx.FROM()));
+			builder.appendExpression(visit(ctx.expression(1)));
+		}
+
+		return builder;
 	}
 
 	@Override
 	public QueryTokenStream visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 		return visit(ctx.betweenExpression());
+	}
+
+	@Override
+	public QueryTokenStream visitContainsPredicate(HqlParser.ContainsPredicateContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression(0)));
+
+		if (ctx.NOT() != null) {
+			builder.append(QueryTokens.expression(ctx.NOT()));
+		}
+
+		if (ctx.CONTAINS() != null) {
+			builder.append(QueryTokens.expression(ctx.CONTAINS()));
+		}
+		if (ctx.INCLUDES() != null) {
+			builder.append(QueryTokens.expression(ctx.INCLUDES()));
+		}
+		if (ctx.INTERSECTS() != null) {
+			builder.append(QueryTokens.expression(ctx.INTERSECTS()));
+		}
+
+		builder.appendExpression(visit(ctx.expression(1)));
+
+		return builder;
+
 	}
 
 	@Override
@@ -2044,11 +2140,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 		return visit(ctx.existsExpression());
-	}
-
-	@Override
-	public QueryTokenStream visitCollectionPredicate(HqlParser.CollectionPredicateContext ctx) {
-		return visit(ctx.collectionExpression());
 	}
 
 	@Override
@@ -2140,30 +2231,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.appendExpression(visit(ctx.expression(1)));
 		builder.append(QueryTokens.expression(ctx.AND()));
 		builder.appendExpression(visit(ctx.expression(2)));
-
-		return builder;
-	}
-
-	@Override
-	public QueryTokenStream visitDealingWithNullExpression(HqlParser.DealingWithNullExpressionContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.appendExpression(visit(ctx.expression(0)));
-		builder.append(QueryTokens.expression(ctx.IS()));
-
-		if (ctx.NOT() != null) {
-			builder.append(QueryTokens.expression(ctx.NOT()));
-		}
-
-		if (ctx.NULL() != null) {
-			builder.append(QueryTokens.expression(ctx.NULL()));
-		} else if (ctx.DISTINCT() != null) {
-
-			builder.append(QueryTokens.expression(ctx.DISTINCT()));
-			builder.append(QueryTokens.expression(ctx.FROM()));
-			builder.appendExpression(visit(ctx.expression(1)));
-		}
 
 		return builder;
 	}
@@ -2274,36 +2341,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 			builder.append(QueryTokens.expression(ctx.EXISTS()));
 			builder.appendExpression(visit(ctx.expression()));
-		}
-
-		return builder;
-	}
-
-	@Override
-	public QueryTokenStream visitCollectionExpression(HqlParser.CollectionExpressionContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.appendExpression(visit(ctx.expression()));
-
-		if (ctx.IS() != null) {
-
-			builder.append(QueryTokens.expression(ctx.IS()));
-
-			if (ctx.NOT() != null) {
-				builder.append(QueryTokens.expression(ctx.NOT()));
-			}
-
-			builder.append(QueryTokens.expression(ctx.EMPTY()));
-		} else if (ctx.MEMBER() != null) {
-
-			if (ctx.NOT() != null) {
-				builder.append(QueryTokens.expression(ctx.NOT()));
-			}
-
-			builder.append(QueryTokens.expression(ctx.MEMBER()));
-			builder.append(QueryTokens.expression(ctx.OF()));
-			builder.append(visit(ctx.path()));
 		}
 
 		return builder;
