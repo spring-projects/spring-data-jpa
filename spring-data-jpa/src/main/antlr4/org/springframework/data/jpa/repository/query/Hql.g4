@@ -571,13 +571,15 @@ pathContinutation
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
     : '(' predicate ')'                     # GroupedPredicate
-    | dealingWithNullExpression             # NullExpressionPredicate
+    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE) # IsBooleanPredicate
+    | expression IS NOT? DISTINCT FROM expression # IsDistinctFromPredicate
+    | expression NOT? MEMBER OF? path       # MemberOfPredicate
     | inExpression                          # InPredicate
     | betweenExpression                     # BetweenPredicate
+    | expression NOT? (CONTAINS|INCLUDES|INTERSECTS) expression   # ContainsPredicate
     | relationalExpression                  # RelationalPredicate
     | stringPatternMatching                 # LikePredicate
     | existsExpression                      # ExistsPredicate
-    | collectionExpression                  # CollectionPredicate
     | NOT predicate                         # NotPredicate
     | predicate AND predicate               # AndPredicate
     | predicate OR predicate                # OrPredicate
@@ -598,12 +600,6 @@ relationalExpression
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-between-predicate
 betweenExpression
     : expression NOT? BETWEEN expression AND expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-null-predicate
-dealingWithNullExpression
-    : expression IS NOT? NULL
-    | expression IS NOT? DISTINCT FROM expression
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
@@ -630,12 +626,6 @@ inList
 existsExpression
     : EXISTS (ELEMENTS | INDICES) '(' simplePath ')'
     | EXISTS expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-collection-operators
-collectionExpression
-    : expression IS NOT? EMPTY
-    | expression NOT? MEMBER OF path
     ;
 
 // Projection
@@ -707,6 +697,7 @@ reservedWord
 	| CASE
 	| CAST
 	| COLLATE
+	| CONTAINS
 	| COUNT
 	| CROSS
 	| CUBE
@@ -739,6 +730,7 @@ reservedWord
 	| EXISTS
 	| EXP
 	| EXTRACT
+	| FALSE
 	| FETCH
 	| FILTER
 	| FIRST
@@ -757,12 +749,14 @@ reservedWord
 	| IGNORE
 	| ILIKE
 	| IN
+	| INCLUDES
 	| INDEX
 	| INDICES
 	| INNER
 	| INSERT
 	| INSTANT
 	| INTERSECT
+	| INTERSECTS
 	| INTO
 	| IS
 	| JOIN
@@ -834,6 +828,7 @@ reservedWord
 	| SOME
 	| SUBSTRING
 	| SUM
+	| TRUE
 	| THEN
 	| TIES
 	| TIME
@@ -917,6 +912,7 @@ CASE                        : C A S E;
 CAST                        : C A S T;
 CEILING                     : C E I L I N G;
 COLLATE                     : C O L L A T E;
+CONTAINS                    : C O N T A I N S;
 COUNT                       : C O U N T;
 CROSS                       : C R O S S;
 CUBE                        : C U B E;
@@ -969,12 +965,14 @@ ID                          : I D;
 IGNORE                      : I G N O R E;
 ILIKE                       : I L I K E;
 IN                          : I N;
+INCLUDES                    : I N C L U D E S;
 INDEX                       : I N D E X;
 INDICES                     : I N D I C E S;
 INNER                       : I N N E R;
 INSERT                      : I N S E R T;
 INSTANT                     : I N S T A N T;
 INTERSECT                   : I N T E R S E C T;
+INTERSECTS                  : I N T E R S E C T S;
 INTO                        : I N T O;
 IS                          : I S;
 JOIN                        : J O I N;
