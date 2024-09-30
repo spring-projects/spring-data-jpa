@@ -438,11 +438,11 @@ class HqlSpecificationTests {
 	@Test // GH-3628
 	void functionInvocationWithIsBoolean() {
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				from RoleTmpl where find_in_set(:appId, appIds) is true
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				from RoleTmpl where find_in_set(:appId, appIds) is false
 				""");
 	}
@@ -771,7 +771,7 @@ class HqlSpecificationTests {
 				AND c.orders IS EMPTY
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				DELETE
 				FROM Customer c
 				WHERE c.status = 'inactive'
@@ -782,37 +782,37 @@ class HqlSpecificationTests {
 	@Test // GH-3628
 	void booleanPredicate() {
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS TRUE
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS NOT TRUE
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS FALSE
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS NOT FALSE
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS NULL
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS NOT NULL
@@ -822,13 +822,13 @@ class HqlSpecificationTests {
 	@Test // GH-3628
 	void distinctFromPredicate() {
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS DISTINCT FROM c.payments
 				""");
 
-		assertQuery("""
+		HqlQueryParser.parseQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE c.orders IS NOT DISTINCT FROM c.payments
