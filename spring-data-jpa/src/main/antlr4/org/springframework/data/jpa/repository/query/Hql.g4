@@ -47,12 +47,12 @@ ql_statement
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-select
 selectStatement
-	: queryExpression
-	;
+    : queryExpression
+    ;
 
 queryExpression
-	: withClause? orderedQuery (setOperator orderedQuery)*
-	;
+    : withClause? orderedQuery (setOperator orderedQuery)*
+    ;
 
 withClause
     : WITH cte (',' cte)*
@@ -83,25 +83,25 @@ cteAttributes
     ;
 
 orderedQuery
-	: (query | '(' queryExpression ')') queryOrder?
-	;
+    : (query | '(' queryExpression ')') queryOrder?
+    ;
 
 query
-	: selectClause fromClause? whereClause? (groupByClause havingClause?)? # SelectQuery
-	| fromClause whereClause? (groupByClause havingClause?)? selectClause? # FromQuery
-	;
+    : selectClause fromClause? whereClause? (groupByClause havingClause?)? # SelectQuery
+    | fromClause whereClause? (groupByClause havingClause?)? selectClause? # FromQuery
+    ;
 
 queryOrder
-	: orderByClause limitClause? offsetClause? fetchClause?
-	;
+    : orderByClause limitClause? offsetClause? fetchClause?
+    ;
 
 fromClause
-	: FROM entityWithJoins (',' entityWithJoins)*
-	;
+    : FROM entityWithJoins (',' entityWithJoins)*
+    ;
 
 entityWithJoins
-	: fromRoot (joinSpecifier)*
-	;
+    : fromRoot (joinSpecifier)*
+    ;
 
 joinSpecifier
     : join
@@ -110,18 +110,18 @@ joinSpecifier
     ;
 
 fromRoot
-	: entityName variable?
-	| LATERAL? '(' subquery ')' variable?
-	;
+    : entityName variable?
+    | LATERAL? '(' subquery ')' variable?
+    ;
 
 join
-	: joinType JOIN FETCH? joinTarget joinRestriction? // Spec BNF says joinType isn't optional, but text says that it is.
-	;
+    : joinType JOIN FETCH? joinTarget joinRestriction? // Spec BNF says joinType isn't optional, but text says that it is.
+    ;
 
 joinTarget
-	: path variable?                        # JoinPath
-	| LATERAL? '(' subquery ')' variable?   # JoinSubquery
-	;
+    : path variable?                        # JoinPath
+    | LATERAL? '(' subquery ')' variable?   # JoinSubquery
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-update
 updateStatement
@@ -129,12 +129,12 @@ updateStatement
     ;
 
 targetEntity
-	: entityName variable?
-	;
+    : entityName variable?
+    ;
 
 setClause
-	: SET assignment (',' assignment)*
-	;
+    : SET assignment (',' assignment)*
+    ;
 
 assignment
     : simplePath '=' expressionOrPredicate
@@ -152,20 +152,20 @@ insertStatement
 
 // Already defined underneath updateStatement
 //targetEntity
-//	: entityName variable?
-//	;
+//    : entityName variable?
+//    ;
 
 targetFields
-	: '(' simplePath (',' simplePath)* ')'
-	;
+    : '(' simplePath (',' simplePath)* ')'
+    ;
 
 valuesList
-	: VALUES values (',' values)*
-	;
+    : VALUES values (',' values)*
+    ;
 
 values
-	: '(' expression (',' expression)* ')'
-	;
+    : '(' expression (',' expression)* ')'
+    ;
 
 instantiation
     : NEW instantiationTarget '(' instantiationArguments ')'
@@ -247,8 +247,8 @@ mapEntrySelection
  * Deprecated syntax dating back to EJB-QL prior to EJB 3, required by JPA, never documented in Hibernate
  */
 jpaSelectObjectSyntax
-	: OBJECT '(' identifier ')'
-	;
+    : OBJECT '(' identifier ')'
+    ;
 
 whereClause
     : WHERE predicate (',' predicate)*
@@ -339,17 +339,17 @@ dateTimeLiteral
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-duration-literals
 datetimeField
-	: YEAR
-	| MONTH
-	| DAY
-	| WEEK
-	| QUARTER
-	| HOUR
-	| MINUTE
-	| SECOND
-	| NANOSECOND
-	| EPOCH
-	;
+    : YEAR
+    | MONTH
+    | DAY
+    | WEEK
+    | QUARTER
+    | HOUR
+    | MINUTE
+    | SECOND
+    | NANOSECOND
+    | EPOCH
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-binary-literals
 binaryLiteral
@@ -414,8 +414,8 @@ generalPathFragment
     ;
 
 indexedPathAccessFragment
-	: '[' expression ']' ('.' generalPathFragment)?
-	;
+    : '[' expression ']' ('.' generalPathFragment)?
+    ;
 
 simplePath
     : identifier simplePathElement*
@@ -490,24 +490,24 @@ frameClause
     ;
 
 frameStart
-	: UNBOUNDED PRECEDING   # UnboundedPrecedingFrameStart
-	| expression PRECEDING  # ExpressionPrecedingFrameStart
-	| CURRENT ROW           # CurrentRowFrameStart
-	| expression FOLLOWING  # ExpressionFollowingFrameStart
-	;
+    : UNBOUNDED PRECEDING   # UnboundedPrecedingFrameStart
+    | expression PRECEDING  # ExpressionPrecedingFrameStart
+    | CURRENT ROW           # CurrentRowFrameStart
+    | expression FOLLOWING  # ExpressionFollowingFrameStart
+    ;
 
 frameExclusion
-	: EXCLUDE CURRENT ROW   # CurrentRowFrameExclusion
-	| EXCLUDE GROUP         # GroupFrameExclusion
-	| EXCLUDE TIES          # TiesFrameExclusion
-	| EXCLUDE NO OTHERS     # NoOthersFrameExclusion
+    : EXCLUDE CURRENT ROW   # CurrentRowFrameExclusion
+    | EXCLUDE GROUP         # GroupFrameExclusion
+    | EXCLUDE TIES          # TiesFrameExclusion
+    | EXCLUDE NO OTHERS     # NoOthersFrameExclusion
     ;
 
 frameEnd
-	: expression PRECEDING  # ExpressionPrecedingFrameEnd
-	| CURRENT ROW           # CurrentRowFrameEnd
-	| expression FOLLOWING  # ExpressionFollowingFrameEnd
-	| UNBOUNDED FOLLOWING   # UnboundedFollowingFrameEnd
+    : expression PRECEDING  # ExpressionPrecedingFrameEnd
+    | CURRENT ROW           # CurrentRowFrameEnd
+    | expression FOLLOWING  # ExpressionFollowingFrameEnd
+    | UNBOUNDED FOLLOWING   # UnboundedFollowingFrameEnd
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-functions
@@ -516,13 +516,13 @@ castFunction
     ;
 
 castTarget
-	: castTargetType ('(' INTEGER_LITERAL (',' INTEGER_LITERAL)? ')')?
-	;
+    : castTargetType ('(' INTEGER_LITERAL (',' INTEGER_LITERAL)? ')')?
+    ;
 
 castTargetType
-	returns [String fullTargetName]
-	: (i=identifier { $fullTargetName = _localctx.i.getText(); }) ('.' c=identifier { $fullTargetName += ("." + _localctx.c.getText() ); })*
-	;
+    returns [String fullTargetName]
+    : (i=identifier { $fullTargetName = _localctx.i.getText(); }) ('.' c=identifier { $fullTargetName += ("." + _localctx.c.getText() ); })*
+    ;
 
 extractFunction
     : EXTRACT '(' expression FROM expression ')'
@@ -616,11 +616,11 @@ inExpression
     ;
 
 inList
-	: (ELEMENTS | INDICES) '(' simplePath ')'
-	| '(' subquery ')'
-	| parameter
-	| '(' (expressionOrPredicate (',' expressionOrPredicate)*)? ')'
-	;
+    : (ELEMENTS | INDICES) '(' simplePath ')'
+    | '(' subquery ')'
+    | parameter
+    | '(' (expressionOrPredicate (',' expressionOrPredicate)*)? ')'
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exists-predicate
 existsExpression
@@ -641,8 +641,8 @@ instantiationArguments
     ;
 
 instantiationArgument
-	: (expressionOrPredicate | instantiation) variable?
-	;
+    : (expressionOrPredicate | instantiation) variable?
+    ;
 
 // Low level parsing rules
 
@@ -684,180 +684,180 @@ functionName
 
 reservedWord
     : IDENTIFICATION_VARIABLE
-	| f=(ALL
-	| AND
-	| ANY
-	| AS
-	| ASC
-	| AVG
-	| BETWEEN
-	| BOTH
-	| BREADTH
-	| BY
-	| CASE
-	| CAST
-	| COLLATE
-	| CONTAINS
-	| COUNT
-	| CROSS
-	| CUBE
-	| CURRENT
-	| CURRENT_DATE
-	| CURRENT_INSTANT
-	| CURRENT_TIME
-	| CURRENT_TIMESTAMP
-	| CYCLE
-	| DATE
-	| DATETIME
-	| DAY
-	| DEFAULT
-	| DELETE
-	| DEPTH
-	| DESC
-	| DISTINCT
-	| ELEMENT
-	| ELEMENTS
-	| ELSE
-	| EMPTY
-	| END
-	| ENTRY
-	| EPOCH
-	| ERROR
-	| ESCAPE
-	| EVERY
-	| EXCEPT
-	| EXCLUDE
-	| EXISTS
-	| EXP
-	| EXTRACT
-	| FALSE
-	| FETCH
-	| FILTER
-	| FIRST
-	| FLOOR
-	| FOLLOWING
-	| FOR
-	| FORMAT
-	| FROM
-	| FULL
-	| FUNCTION
-	| GROUP
-	| GROUPS
-	| HAVING
-	| HOUR
-	| ID
-	| IGNORE
-	| ILIKE
-	| IN
-	| INCLUDES
-	| INDEX
-	| INDICES
-	| INNER
-	| INSERT
-	| INSTANT
-	| INTERSECT
-	| INTERSECTS
-	| INTO
-	| IS
-	| JOIN
-	| KEY
-	| LAST
-	| LATERAL
-	| LEADING
-	| LEFT
-	| LIKE
-	| LIMIT
-	| LIST
-	| LISTAGG
-	| LOCAL
-	| LOCAL_DATE
-	| LOCAL_DATETIME
-	| LOCAL_TIME
-	| MAP
-	| MATERIALIZED
-	| MAX
-	| MAXELEMENT
-	| MAXINDEX
-	| MEMBER
-	| MICROSECOND
-	| MILLISECOND
-	| MIN
-	| MINELEMENT
-	| MININDEX
-	| MINUTE
-	| MONTH
-	| NANOSECOND
-	| NATURALID
-	| NEW
-	| NEXT
-	| NO
-	| NOT
-	| NULLS
-	| OBJECT
-	| OF
-	| OFFSET
-	| OFFSET_DATETIME
-	| ON
-	| ONLY
-	| OR
-	| ORDER
-	| OTHERS
-	| OUTER
-	| OVER
-	| OVERFLOW
-	| OVERLAY
-	| PAD
-	| PARTITION
-	| PERCENT
-	| PLACING
-	| POSITION
-	| POWER
-	| PRECEDING
-	| QUARTER
-	| RANGE
-	| RESPECT
-	| RIGHT
-	| ROLLUP
-	| ROW
-	| ROWS
-	| SEARCH
-	| SECOND
-	| SELECT
-	| SET
-	| SIZE
-	| SOME
-	| SUBSTRING
-	| SUM
-	| TRUE
-	| THEN
-	| TIES
-	| TIME
-	| TIMESTAMP
-	| TIMEZONE_HOUR
-	| TIMEZONE_MINUTE
-	| TO
-	| TRAILING
-	| TREAT
-	| TRIM
-	| TRUNC
-	| TRUNCATE
-	| TYPE
-	| UNBOUNDED
-	| UNION
-	| UPDATE
-	| USING
-	| VALUE
-	| VALUES
-	| VERSION
-	| VERSIONED
-	| WEEK
-	| WHEN
-	| WHERE
-	| WITH
-	| WITHIN
-	| WITHOUT
-	| YEAR)
-	;
+    | f=(ALL
+    | AND
+    | ANY
+    | AS
+    | ASC
+    | AVG
+    | BETWEEN
+    | BOTH
+    | BREADTH
+    | BY
+    | CASE
+    | CAST
+    | COLLATE
+    | CONTAINS
+    | COUNT
+    | CROSS
+    | CUBE
+    | CURRENT
+    | CURRENT_DATE
+    | CURRENT_INSTANT
+    | CURRENT_TIME
+    | CURRENT_TIMESTAMP
+    | CYCLE
+    | DATE
+    | DATETIME
+    | DAY
+    | DEFAULT
+    | DELETE
+    | DEPTH
+    | DESC
+    | DISTINCT
+    | ELEMENT
+    | ELEMENTS
+    | ELSE
+    | EMPTY
+    | END
+    | ENTRY
+    | EPOCH
+    | ERROR
+    | ESCAPE
+    | EVERY
+    | EXCEPT
+    | EXCLUDE
+    | EXISTS
+    | EXP
+    | EXTRACT
+    | FALSE
+    | FETCH
+    | FILTER
+    | FIRST
+    | FLOOR
+    | FOLLOWING
+    | FOR
+    | FORMAT
+    | FROM
+    | FULL
+    | FUNCTION
+    | GROUP
+    | GROUPS
+    | HAVING
+    | HOUR
+    | ID
+    | IGNORE
+    | ILIKE
+    | IN
+    | INCLUDES
+    | INDEX
+    | INDICES
+    | INNER
+    | INSERT
+    | INSTANT
+    | INTERSECT
+    | INTERSECTS
+    | INTO
+    | IS
+    | JOIN
+    | KEY
+    | LAST
+    | LATERAL
+    | LEADING
+    | LEFT
+    | LIKE
+    | LIMIT
+    | LIST
+    | LISTAGG
+    | LOCAL
+    | LOCAL_DATE
+    | LOCAL_DATETIME
+    | LOCAL_TIME
+    | MAP
+    | MATERIALIZED
+    | MAX
+    | MAXELEMENT
+    | MAXINDEX
+    | MEMBER
+    | MICROSECOND
+    | MILLISECOND
+    | MIN
+    | MINELEMENT
+    | MININDEX
+    | MINUTE
+    | MONTH
+    | NANOSECOND
+    | NATURALID
+    | NEW
+    | NEXT
+    | NO
+    | NOT
+    | NULLS
+    | OBJECT
+    | OF
+    | OFFSET
+    | OFFSET_DATETIME
+    | ON
+    | ONLY
+    | OR
+    | ORDER
+    | OTHERS
+    | OUTER
+    | OVER
+    | OVERFLOW
+    | OVERLAY
+    | PAD
+    | PARTITION
+    | PERCENT
+    | PLACING
+    | POSITION
+    | POWER
+    | PRECEDING
+    | QUARTER
+    | RANGE
+    | RESPECT
+    | RIGHT
+    | ROLLUP
+    | ROW
+    | ROWS
+    | SEARCH
+    | SECOND
+    | SELECT
+    | SET
+    | SIZE
+    | SOME
+    | SUBSTRING
+    | SUM
+    | TRUE
+    | THEN
+    | TIES
+    | TIME
+    | TIMESTAMP
+    | TIMEZONE_HOUR
+    | TIMEZONE_MINUTE
+    | TO
+    | TRAILING
+    | TREAT
+    | TRIM
+    | TRUNC
+    | TRUNCATE
+    | TYPE
+    | UNBOUNDED
+    | UNION
+    | UPDATE
+    | USING
+    | VALUE
+    | VALUES
+    | VERSION
+    | VERSIONED
+    | WEEK
+    | WHEN
+    | WHERE
+    | WITH
+    | WITHIN
+    | WITHOUT
+    | YEAR)
+    ;
 
 /*
     Lexer rules
