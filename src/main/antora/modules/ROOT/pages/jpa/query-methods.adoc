@@ -307,7 +307,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 [TIP]
 ====
-It is possible to disable usage of `JSqlParser` for parsing natvie queries although it is available in classpath by setting `spring.data.jpa.query.native.parser=default` via the `spring.properties` file or a system property.
+It is possible to disable usage of `JSqlParser` for parsing native queries although it is available on the classpath by setting `spring.data.jpa.query.native.parser=regex` via the `spring.properties` file or a system property.
+
+Valid values are (case-insensitive):
+
+* `auto` (default, automatic selection)
+* `regex` (Use the builtin regex-based Query Enhancer)
+* `jsqlparser` (Use JSqlParser)
 ====
 
 A similar approach also works with named native queries, by adding the `.count` suffix to a copy of your query. You probably need to register a result set mapping for your count query, though.

@@ -19,8 +19,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.core.SpringProperties;
 import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,7 +39,7 @@ public final class QueryEnhancerFactory {
 
 	static {
 
-		NATIVE_QUERY_ENHANCER = NativeQueryEnhancer.select(QueryEnhancerFactory.class.getClassLoader());
+		NATIVE_QUERY_ENHANCER = NativeQueryEnhancer.select();
 
 		if (PersistenceProvider.ECLIPSELINK.isPresent()) {
 			LOG.info("EclipseLink is in classpath; If applicable, EQL parser will be used.");
@@ -81,47 +81,66 @@ public final class QueryEnhancerFactory {
 	 */
 	private static QueryEnhancer getNativeQueryEnhancer(DeclaredQuery query) {
 
-		if (NATIVE_QUERY_ENHANCER.equals(NativeQueryEnhancer.JSQL)) {
+		if (NATIVE_QUERY_ENHANCER.equals(NativeQueryEnhancer.JSQLPARSER)) {
 			return new JSqlParserQueryEnhancer(query);
 		}
+
 		return new DefaultQueryEnhancer(query);
 	}
 
 	/**
-	 * Possible choices for the {@link #NATIVE_PARSER_PROPERTY}. Read current selection via {@link #select(ClassLoader)}.
+	 * Possible choices for the {@link #NATIVE_PARSER_PROPERTY}. Resolve the parser through {@link #select()}.
+	 *
+	 * @since 3.3.5
 	 */
 	enum NativeQueryEnhancer {
 
-		AUTO, DEFAULT, JSQL;
+		AUTO, REGEX, JSQLPARSER;
 
 		static final String NATIVE_PARSER_PROPERTY = "spring.data.jpa.query.native.parser";
 
-		private static NativeQueryEnhancer from(@Nullable String name) {
-			if (!StringUtils.hasText(name)) {
-				return AUTO;
+		static final boolean JSQLPARSER_PRESENT = ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser", null);
+
+		/**
+		 * @return the current selection considering classpath availability and user selection via
+		 *         {@link #NATIVE_PARSER_PROPERTY}.
+		 */
+		static NativeQueryEnhancer select() {
+
+			NativeQueryEnhancer selected = resolve();
+
+			if (selected.equals(NativeQueryEnhancer.JSQLPARSER)) {
+				LOG.info("User choice: Using JSqlParser");
+				return NativeQueryEnhancer.JSQLPARSER;
 			}
-			return NativeQueryEnhancer.valueOf(name.toUpperCase());
+
+			if (selected.equals(NativeQueryEnhancer.REGEX)) {
+				LOG.info("Using Regex QueryEnhancer");
+				return NativeQueryEnhancer.REGEX;
+			}
+
+			if (!JSQLPARSER_PRESENT) {
+				return NativeQueryEnhancer.REGEX;
+			}
+
+			LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used.");
+			return NativeQueryEnhancer.JSQLPARSER;
 		}
 
 		/**
-		 * @param classLoader ClassLoader to look up available libraries.
-		 * @return the current selection considering classpath avialability and user selection via
-		 *         {@link #NATIVE_PARSER_PROPERTY}.
+		 * Resolve {@link NativeQueryEnhancer} from {@link SpringProperties}.
+		 *
+		 * @return the {@link NativeQueryEnhancer} constant.
 		 */
-		static NativeQueryEnhancer select(ClassLoader classLoader) {
+		private static NativeQueryEnhancer resolve() {
 
-			if (!ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser", classLoader)) {
-				return NativeQueryEnhancer.DEFAULT;
+			String name = SpringProperties.getProperty(NATIVE_PARSER_PROPERTY);
+
+			if (StringUtils.hasText(name)) {
+				return ObjectUtils.caseInsensitiveValueOf(NativeQueryEnhancer.values(), name);
 			}
 
-			NativeQueryEnhancer selected = NativeQueryEnhancer.from(SpringProperties.getProperty(NATIVE_PARSER_PROPERTY));
-			if (selected.equals(NativeQueryEnhancer.AUTO) || selected.equals(NativeQueryEnhancer.JSQL)) {
-				LOG.info("JSqlParser is in classpath; If applicable, JSqlParser will be used.");
-				return NativeQueryEnhancer.JSQL;
-			}
-
-			LOG.info("JSqlParser is in classpath but won't be used due to user choice.");
-			return selected;
+			return AUTO;
 		}
 	}
 

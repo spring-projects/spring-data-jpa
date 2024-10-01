@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.stream.Stream;
 
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.jpa.repository.query.QueryEnhancerFactory.NativeQueryEnhancer;
 import org.springframework.data.jpa.util.ClassPathExclusions;
 import org.springframework.lang.Nullable;
@@ -33,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class QueryEnhancerFactoryUnitTests {
 
@@ -66,26 +68,48 @@ class QueryEnhancerFactoryUnitTests {
 	@MethodSource("nativeEnhancerSelectionArgs")
 	void createsNativeImplementationAccordingToUserChoice(@Nullable String selection, NativeQueryEnhancer enhancer) {
 
+		assertThat(NativeQueryEnhancer.JSQLPARSER_PRESENT).isTrue();
+
 		withSystemProperty(NativeQueryEnhancer.NATIVE_PARSER_PROPERTY, selection, () -> {
-			assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader())).isEqualTo(enhancer);
+			assertThat(NativeQueryEnhancer.select()).isEqualTo(enhancer);
 		});
+	}
+
+	static Stream<Arguments> nativeEnhancerSelectionArgs() {
+		return Stream.of(Arguments.of(null, NativeQueryEnhancer.JSQLPARSER), //
+				Arguments.of("", NativeQueryEnhancer.JSQLPARSER), //
+				Arguments.of("auto", NativeQueryEnhancer.JSQLPARSER), //
+				Arguments.of("regex", NativeQueryEnhancer.REGEX), //
+				Arguments.of("jsqlparser", NativeQueryEnhancer.JSQLPARSER));
+	}
+
+	@ParameterizedTest // GH-2989
+	@MethodSource("nativeEnhancerExclusionSelectionArgs")
+	@ClassPathExclusions(packages = { "net.sf.jsqlparser.parser" })
+	void createsNativeImplementationAccordingWithoutJsqlParserToUserChoice(@Nullable String selection,
+			NativeQueryEnhancer enhancer) {
+
+		assertThat(NativeQueryEnhancer.JSQLPARSER_PRESENT).isFalse();
+
+		withSystemProperty(NativeQueryEnhancer.NATIVE_PARSER_PROPERTY, selection, () -> {
+			assertThat(NativeQueryEnhancer.select()).isEqualTo(enhancer);
+		});
+	}
+
+	static Stream<Arguments> nativeEnhancerExclusionSelectionArgs() {
+		return Stream.of(Arguments.of(null, NativeQueryEnhancer.REGEX), //
+				Arguments.of("", NativeQueryEnhancer.REGEX), //
+				Arguments.of("auto", NativeQueryEnhancer.REGEX), //
+				Arguments.of("regex", NativeQueryEnhancer.REGEX), //
+				Arguments.of("jsqlparser", NativeQueryEnhancer.JSQLPARSER));
 	}
 
 	@Test // GH-2989
 	@ClassPathExclusions(packages = { "net.sf.jsqlparser.parser" })
 	void selectedDefaultImplementationIfJsqlNotAvailable() {
 
-		assertThat(assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader()))
-				.isEqualTo(NativeQueryEnhancer.DEFAULT));
-	}
-
-	@Test // GH-2989
-	@ClassPathExclusions(packages = { "net.sf.jsqlparser.parser" })
-	void selectedDefaultImplementationIfJsqlNotAvailableEvenIfExplicitlyStated/* or should we raise an error? */() {
-
-		withSystemProperty(NativeQueryEnhancer.NATIVE_PARSER_PROPERTY, "jsql", () -> {
-			assertThat(NativeQueryEnhancer.select(this.getClass().getClassLoader())).isEqualTo(NativeQueryEnhancer.DEFAULT);
-		});
+		assertThat(NativeQueryEnhancer.JSQLPARSER_PRESENT).isFalse();
+		assertThat(NativeQueryEnhancer.select()).isEqualTo(NativeQueryEnhancer.REGEX);
 	}
 
 	void withSystemProperty(String property, @Nullable String value, Runnable exeution) {
@@ -108,9 +132,5 @@ class QueryEnhancerFactoryUnitTests {
 
 	}
 
-	static Stream<Arguments> nativeEnhancerSelectionArgs() {
-		return Stream.of(Arguments.of(null, NativeQueryEnhancer.JSQL), Arguments.of("", NativeQueryEnhancer.JSQL),
-				Arguments.of("auto", NativeQueryEnhancer.JSQL), Arguments.of("default", NativeQueryEnhancer.DEFAULT),
-				Arguments.of("jsql", NativeQueryEnhancer.JSQL));
-	}
+
 }

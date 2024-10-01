@@ -21,7 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
- * The implementation of {@link QueryEnhancer} using {@link QueryUtils}.
+ * The implementation of the Regex-based {@link QueryEnhancer} using {@link QueryUtils}.
  *
  * @author Diego Krupitza
  * @since 2.7.0
