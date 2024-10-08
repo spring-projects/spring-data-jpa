@@ -317,6 +317,26 @@ Valid values are (case-insensitive):
 
 A similar approach also works with named native queries, by adding the `.count` suffix to a copy of your query. You probably need to register a result set mapping for your count query, though.
 
+Next to obtaining mapped results, native queries allow you to read the raw `Tuple` from the database by choosing a `Map` container as the method's return type.
+The resulting map contains key/value pairs representing the actual database column name and the value.
+
+.Native query retuning raw column name/value pairs
+====
+[source, java]
+----
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @NativeQuery("SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1")
+  Map<String, Object> findRawMapByEmail(String emailAddress); <1>
+
+  @NativeQuery("SELECT * FROM USERS WHERE LASTNAME = ?1")
+  List<Map<String, Object>> findRawMapByLastname(String lastname); <2>
+}
+----
+<1> Single `Map` result backed by a `Tuple`.
+<2> Multiple `Map` results backed by ``Tuple``s.
+====
+
 [[jpa.query-methods.sorting]]
 == Using Sort
 
