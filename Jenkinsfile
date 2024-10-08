@@ -168,7 +168,7 @@ pipeline {
 			steps {
 				script {
 					docker.withRegistry(p['docker.proxy.registry'], p['docker.proxy.credentials']) {
-						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.basic']) {
+						docker.image(p['docker.java.main.image']).inside(p['docker.java.inside.docker']) {
 							sh 'MAVEN_OPTS="-Duser.name=' + "${p['jenkins.user.name']}" + ' -Duser.home=/tmp/jenkins-home" ' +
 									"./mvnw -s settings.xml -Pci,artifactory " +
 									"-Dartifactory.server=${p['artifactory.url']} " +
