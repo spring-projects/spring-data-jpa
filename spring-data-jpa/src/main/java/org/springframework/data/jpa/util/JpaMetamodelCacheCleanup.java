@@ -30,7 +30,7 @@ import org.springframework.context.ApplicationContext;
 class JpaMetamodelCacheCleanup implements DisposableBean {
 
 	@Override
-	public void destroy() throws Exception {
+	public void destroy() {
 		JpaMetamodel.clear();
 	}
 }
