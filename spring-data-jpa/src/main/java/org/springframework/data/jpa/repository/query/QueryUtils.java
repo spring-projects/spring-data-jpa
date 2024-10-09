@@ -292,11 +292,11 @@ public abstract class QueryUtils {
 		Set<String> selectionAliases = getFunctionAliases(query);
 		selectionAliases.addAll(getFieldAliases(query));
 
-		for (Order order : sort) {
-			builder.append(getOrderClause(joinAliases, selectionAliases, alias, order)).append(", ");
-		}
+		String orderClauses = sort.stream()
+			.map(order -> getOrderClause(joinAliases, selectionAliases, alias, order))
+			.collect(Collectors.joining(", "));
 
-		builder.delete(builder.length() - 2, builder.length());
+		builder.append(orderClauses);
 
 		return builder.toString();
 	}
