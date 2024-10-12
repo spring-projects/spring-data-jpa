@@ -21,6 +21,7 @@ import java.util.Set;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.ManagedType;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -42,7 +43,7 @@ public class DefaultJpaContext implements JpaContext {
 	 *
 	 * @param entityManagers must not be {@literal null}.
 	 */
-	public DefaultJpaContext(Set<EntityManager> entityManagers) {
+	public DefaultJpaContext(@NotNull Set<EntityManager> entityManagers) {
 
 		Assert.notNull(entityManagers, "EntityManagers must not be null");
 		Assert.notEmpty(entityManagers, "EntityManagers must not be empty");
@@ -57,7 +58,7 @@ public class DefaultJpaContext implements JpaContext {
 	}
 
 	@Override
-	public EntityManager getEntityManagerByManagedType(Class<?> type) {
+	public EntityManager getEntityManagerByManagedType(@NotNull Class<?> type) {
 
 		Assert.notNull(type, "Type must not be null");
 
