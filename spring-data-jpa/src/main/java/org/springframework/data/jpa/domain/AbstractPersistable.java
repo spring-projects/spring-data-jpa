@@ -34,6 +34,7 @@ import org.springframework.lang.Nullable;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @author Ngoc Nhan
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
@@ -89,7 +90,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 		AbstractPersistable<?> that = (AbstractPersistable<?>) obj;
 
-		return null == this.getId() ? false : this.getId().equals(that.getId());
+		return this.getId() != null && this.getId().equals(that.getId());
 	}
 
 	@Override
