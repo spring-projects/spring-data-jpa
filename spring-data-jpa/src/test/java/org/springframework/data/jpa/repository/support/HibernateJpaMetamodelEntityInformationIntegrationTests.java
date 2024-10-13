@@ -17,14 +17,19 @@ package org.springframework.data.jpa.repository.support;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.jpa.domain.sample.SampleWithPrimitiveVersion;
 import org.springframework.data.jpa.util.DisabledOnHibernate61;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Hibernate execution for {@link JpaMetamodelEntityInformationIntegrationTests}.
  *
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -54,5 +59,15 @@ class HibernateJpaMetamodelEntityInformationIntegrationTests extends JpaMetamode
 	@Override
 	void findsIdClassOnMappedSuperclass() {
 		super.findsIdClassOnMappedSuperclass();
+	}
+
+	@Test
+	void negativeVersionedEntityIsNew() {
+		EntityInformation<SampleWithPrimitiveVersion, Long> information = new JpaMetamodelEntityInformation<>(SampleWithPrimitiveVersion.class,
+				em.getMetamodel(), em.getEntityManagerFactory().getPersistenceUnitUtil());
+
+		SampleWithPrimitiveVersion entity = new SampleWithPrimitiveVersion();
+		entity.setId(23L); // assigned
+		assertThat(information.isNew(entity)).isTrue();
 	}
 }
