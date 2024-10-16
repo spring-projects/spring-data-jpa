@@ -38,7 +38,7 @@ enum JpaQueryFactory {
 	 */
 	AbstractJpaQuery fromMethodWithQueryString(JpaQueryMethod method, EntityManager em, String queryString,
 			@Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+			ValueExpressionDelegate valueExpressionDelegate, boolean validation) {
 
 		if (method.isScrollQuery()) {
 			throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
@@ -46,7 +46,7 @@ enum JpaQueryFactory {
 
 		return method.isNativeQuery()
 				? new NativeJpaQuery(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate)
-				: new SimpleJpaQuery(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate);
+				: new SimpleJpaQuery(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate, validation);
 	}
 
 	/**

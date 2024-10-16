@@ -46,8 +46,8 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate);
+			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate, boolean validation) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate, validation);
 	}
 
 	/**
@@ -61,15 +61,17 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+			ValueExpressionDelegate valueExpressionDelegate, boolean validation) {
 
 		super(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate);
 
-		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
+		if(validation) {
+			validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 
-		if (method.isPageQuery()) {
-			validateQuery(getCountQuery().getQueryString(),
+			if (method.isPageQuery()) {
+				validateQuery(getCountQuery().getQueryString(),
 					String.format("Count query validation failed for method %s", method));
+			}
 		}
 	}
 
@@ -80,11 +82,6 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param errorMessage
 	 */
 	private void validateQuery(String query, String errorMessage, Object... arguments) {
-
-		String property = SpringProperties.getProperty("spring.data.jpa.query.validate");
-		if(property != null && !Boolean.parseBoolean(property)) {
-			return;
-		}
 
 		if (getQueryMethod().isProcedureQuery()) {
 			return;

@@ -71,7 +71,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 */
 	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em) {
-		this(method, em, EscapeCharacter.DEFAULT);
+		this(method, em, EscapeCharacter.DEFAULT, true);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 * @param em must not be {@literal null}.
 	 * @param escape character used for escaping characters used as patterns in LIKE-expressions.
 	 */
-	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, EscapeCharacter escape) {
+	PartTreeJpaQuery(JpaQueryMethod method, EntityManager em, EscapeCharacter escape, boolean validate) {
 
 		super(method, em);
 
@@ -99,7 +99,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		try {
 
 			this.tree = new PartTree(method.getName(), domainClass);
-			validate(tree, parameters, method.toString());
+			if(validate) {
+				validate(tree, parameters, method.toString());
+			}
 			this.countQuery = new CountQueryPreparer(recreationRequired);
 			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer(recreationRequired);
 
