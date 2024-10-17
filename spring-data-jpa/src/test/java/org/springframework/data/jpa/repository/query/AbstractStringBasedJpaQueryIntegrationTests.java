@@ -67,7 +67,7 @@ class AbstractStringBasedJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getMethod("findRolesByEmailAddress", String.class);
 		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				ValueExpressionDelegate.create());
+				ValueExpressionDelegate.create(), true);
 
 		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), Sort.unsorted(), null,
 				method.getResultProcessor().getReturnedType());
