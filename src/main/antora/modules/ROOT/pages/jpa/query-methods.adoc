@@ -324,10 +324,10 @@ The resulting map contains key/value pairs representing the actual database colu
 ====
 [source, java]
 ----
-public interface UserRepository extends JpaRepository<User, Long> {
+interface UserRepository extends JpaRepository<User, Long> {
 
   @NativeQuery("SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1")
-  Map<String, Object> findRawMapByEmail(String emailAddress); <1>
+  Map<String, Object> findRawMapByEmail(String emailAddress);      <1>
 
   @NativeQuery("SELECT * FROM USERS WHERE LASTNAME = ?1")
   List<Map<String, Object>> findRawMapByLastname(String lastname); <2>
@@ -336,6 +336,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 <1> Single `Map` result backed by a `Tuple`.
 <2> Multiple `Map` results backed by ``Tuple``s.
 ====
+
+NOTE: String-based Tuple Queries are only supported by Hibernate.
+Eclipselink supports only Criteria-based Tuple Queries.
+
+[[jpa.query-methods.at-query.projections]]
 
 [[jpa.query-methods.sorting]]
 == Using Sort
