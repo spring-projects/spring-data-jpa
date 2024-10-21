@@ -57,6 +57,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * @author Greg Turnquist
  * @author Yanming Zhou
  * @author Thorben Janssen
+ * @author Mark Paluch
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -140,13 +141,22 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
-	@Test // 3460
+	@Test // GH-3460
 	void testPositionalInOutParameter() {
 
 		Map results = repository.positionalInOut(1, 2);
 
 		assertThat(results.get("2")).isEqualTo(2);
 		assertThat(results.get("3")).isEqualTo(3);
+	}
+
+	@Test // GH-3460
+	void supportsMultipleOutParameters() {
+
+		Map<String, Object> results = repository.multiple_out(5);
+
+		assertThat(results).containsEntry("result1", 5).containsEntry("result2", 10);
+		assertThat(results).containsKey("some_cursor");
 	}
 
 	@Entity
@@ -160,6 +170,13 @@ class PostgresStoredProcedureIntegrationTests {
 			name = "Employee.noResultSet", //
 			procedureName = "get_employees_count", //
 			parameters = { @StoredProcedureParameter(mode = ParameterMode.OUT, name = "results", type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "Employee.multiple_out", //
+			procedureName = "multiple_out", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "someNumber", type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, name = "some_cursor", type = void.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, name = "result1", type = Integer.class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, name = "result2", type = Integer.class) })
 	@NamedStoredProcedureQuery( //
 			name = "positional_inout", //
 			procedureName = "positional_inout_parameter_issue3460", //
@@ -242,6 +259,9 @@ class PostgresStoredProcedureIntegrationTests {
 
 		@Procedure(value = "get_employees_count")
 		Integer noResultSet();
+
+		@Procedure(value = "multiple_out")
+		Map<String, Object> multiple_out(int someNumber);
 
 		@Procedure(name = "get_employees_postgres", refCursor = true)
 		List<Employee> entityListFromNamedProcedure();
