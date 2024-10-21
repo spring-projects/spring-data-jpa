@@ -23,6 +23,7 @@ import jakarta.persistence.StoredProcedureQuery;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.core.convert.ConversionService;
@@ -339,6 +340,7 @@ public abstract class JpaQueryExecution {
 
 			StoredProcedureJpaQuery query = (StoredProcedureJpaQuery) jpaQuery;
 			StoredProcedureQuery procedure = query.createQuery(accessor);
+			Class<?> returnType = query.getQueryMethod().getReturnType();
 
 			try {
 
@@ -350,7 +352,9 @@ public abstract class JpaQueryExecution {
 						throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);
 					}
 
-					return collectionQuery ? procedure.getResultList() : procedure.getSingleResult();
+					if (!Map.class.isAssignableFrom(returnType)) {
+						return collectionQuery ? procedure.getResultList() : procedure.getSingleResult();
+					}
 				}
 
 				return query.extractOutputValue(procedure);

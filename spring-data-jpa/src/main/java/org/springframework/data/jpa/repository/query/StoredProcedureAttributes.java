@@ -15,14 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import jakarta.persistence.StoredProcedureQuery;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import jakarta.persistence.StoredProcedureQuery;
-
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -138,7 +139,12 @@ class StoredProcedureAttributes {
 		if (getOutputProcedureParameters().isEmpty())
 			return false;
 
-		Class<?> outputType = getOutputProcedureParameters().get(0).getType();
-		return !(void.class.equals(outputType) || Void.class.equals(outputType));
+		for (ProcedureParameter parameter : getOutputProcedureParameters()) {
+			if (!ClassUtils.isVoidType(parameter.getType())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
