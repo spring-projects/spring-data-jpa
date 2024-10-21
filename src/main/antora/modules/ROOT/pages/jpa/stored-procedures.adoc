@@ -94,4 +94,28 @@ Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 If the stored procedure getting called has a single out parameter that parameter may be returned as the return value of the method.
 If there are multiple out parameters specified in a `@NamedStoredProcedureQuery` annotation those can be returned as a `Map` with the key being the parameter name given in the `@NamedStoredProcedureQuery` annotation.
 
-NOTE: Note that if the stored procedure returns a `ResultSet` then any `OUT` parameters are omitted as Java can only return a single method return value.
+NOTE: Note that if the stored procedure returns a `ResultSet` then any `OUT` parameters are omitted as Java can only return a single method return value unless the method declares a `Map` return type.
+
+The following example shows how to obtain multiple `OUT` parameters if the stored procedure has multiple `OUT` parameters and is registered as `@NamedStoredProcedureQuery`. `@NamedStoredProcedureQuery` registration is required to provide parameter metadata.
+
+.StoredProcedure metadata definitions on an entity.
+====
+[source,java]
+----
+@Entity
+@NamedStoredProcedureQuery(name = "User.multiple_out_parameters", procedureName = "multiple_out_parameters", parameters = {
+  @StoredProcedureParameter(mode = ParameterMode.IN, name = "arg", type = Integer.class),
+  @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, name = "some_cursor", type = void.class),
+  @StoredProcedureParameter(mode = ParameterMode.OUT, name = "res", type = Integer.class) })
+public class User {}
+----
+====
+
+.Returning multiple OUT parameters
+====
+[source,java]
+----
+@Procedure(name = "User.multiple_out_parameters")
+Map<String, Object> returnsMultipleOutParameters(@Param("arg") Integer arg);
+----
+====

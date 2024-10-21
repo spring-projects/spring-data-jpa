@@ -52,3 +52,16 @@ BEGIN
     outParam = 3;
 END;
 $BODY$;;
+
+CREATE OR REPLACE PROCEDURE multiple_out(IN someNumber integer, OUT some_cursor REFCURSOR,
+                                         OUT result1 integer, OUT result2 integer)
+    LANGUAGE 'plpgsql'
+AS
+$BODY$
+BEGIN
+    result1 = 1 * someNumber;
+    result2 = 2 * someNumber;
+
+    OPEN some_cursor FOR SELECT COUNT(*) FROM employee;
+END;
+$BODY$;;
