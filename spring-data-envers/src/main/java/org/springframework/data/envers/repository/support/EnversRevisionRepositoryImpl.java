@@ -93,6 +93,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	public Optional<Revision<N, T>> findLastChangeRevision(ID id) {
 
 		List<Object[]> singleResult = createBaseQuery(id) //
+				.addOrder(AuditEntity.revisionProperty("timestamp").desc()) //
 				.addOrder(AuditEntity.revisionNumber().desc()) //
 				.setMaxResults(1) //
 				.getResultList();
