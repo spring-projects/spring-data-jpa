@@ -69,7 +69,7 @@ Integer callPlus1InOut(Integer arg);
 ----
 ====
 
-The following is again equivalent to the previous two but using the method name instead of an explicite annotation attribute.
+The following is again equivalent to the previous two but using the method name instead of an explicit annotation attribute.
 
 .Referencing implicitly mapped named stored procedure "User.plus1" in `EntityManager` by using the method name.
 ====
@@ -94,4 +94,4 @@ Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
 If the stored procedure getting called has a single out parameter that parameter may be returned as the return value of the method.
 If there are multiple out parameters specified in a `@NamedStoredProcedureQuery` annotation those can be returned as a `Map` with the key being the parameter name given in the `@NamedStoredProcedureQuery` annotation.
 
-
+NOTE: Note that if the stored procedure returns a `ResultSet` then any `OUT` parameters are omitted as Java can only return a single method return value.
