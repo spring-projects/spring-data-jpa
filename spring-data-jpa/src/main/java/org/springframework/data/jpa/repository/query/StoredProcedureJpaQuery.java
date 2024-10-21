@@ -15,15 +15,15 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NamedStoredProcedureQuery;
 import jakarta.persistence.ParameterMode;
 import jakarta.persistence.StoredProcedureQuery;
 import jakarta.persistence.TypedQuery;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
@@ -138,11 +138,17 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	 * @return The value of an output parameter either by name or by index.
 	 */
 	private Object extractOutputParameterValue(ProcedureParameter outputParameter,
-			StoredProcedureQuery storedProcedureQuery) {
+			StoredProcedureQuery query) {
+
+		if (procedureAttributes.isNamedStoredProcedure() && StringUtils.hasText(outputParameter.getName())) {
+
+			return StringUtils.hasText(outputParameter.getName()) ? query.getOutputParameterValue(outputParameter.getName())
+					: query.getOutputParameterValue(outputParameter.getPosition());
+		}
 
 		return useNamedParameters && StringUtils.hasText(outputParameter.getName())
-				? storedProcedureQuery.getOutputParameterValue(outputParameter.getName())
-				: storedProcedureQuery.getOutputParameterValue(outputParameter.getPosition());
+				? query.getOutputParameterValue(outputParameter.getName())
+				: query.getOutputParameterValue(outputParameter.getPosition());
 	}
 
 	/**

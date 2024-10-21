@@ -16,7 +16,7 @@
 
 package org.springframework.data.jpa.repository.procedures;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManagerFactory;
@@ -38,6 +38,7 @@ import org.hibernate.dialect.PostgreSQLDialect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.postgresql.ds.PGSimpleDataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -58,6 +59,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
@@ -165,6 +167,11 @@ class PostgresStoredProcedureIntegrationTests {
 			procedureName = "get_employees", //
 			parameters = { @StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, type = void.class) }, //
 			resultClasses = Employee.class)
+
+	@NamedStoredProcedureQuery( //
+			name = "Employee.noResultSet", //
+			procedureName = "get_employees_count", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.OUT, name = "results", type = Integer.class) })
 	@NamedStoredProcedureQuery( //
 			name = "positional_inout", //
 			procedureName = "positional_inout_parameter_issue3460", //
