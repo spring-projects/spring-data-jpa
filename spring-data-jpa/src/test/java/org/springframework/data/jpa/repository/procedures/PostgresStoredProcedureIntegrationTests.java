@@ -19,7 +19,6 @@ package org.springframework.data.jpa.repository.procedures;
 import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedStoredProcedureQuery;
@@ -30,14 +29,10 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
-
-import javax.sql.DataSource;
 
 import org.hibernate.dialect.PostgreSQLDialect;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -48,15 +43,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.util.DisabledOnHibernate62;
-import org.springframework.jdbc.datasource.init.DataSourceInitializer;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -265,7 +253,11 @@ class PostgresStoredProcedureIntegrationTests {
 	@EnableJpaRepositories(considerNestedRepositories = true,
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeRepositoryWithRefCursor.class))
 	@EnableTransactionManagement
-	static class Config {
+	static class Config extends StoredProcedureConfigSupport {
+
+		public Config() {
+			super(PostgreSQLDialect.class, new ClassPathResource("scripts/postgres-stored-procedures.sql"));
+		}
 
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start", destroyMethod = "stop")
@@ -273,52 +265,6 @@ class PostgresStoredProcedureIntegrationTests {
 
 			return new PostgreSQLContainer<>("postgres:15.3") //
 					.withUsername("postgres");
-		}
-
-		@Bean
-		public DataSource dataSource(PostgreSQLContainer<?> container) {
-
-			PGSimpleDataSource dataSource = new PGSimpleDataSource();
-			dataSource.setUrl(container.getJdbcUrl());
-			dataSource.setUser(container.getUsername());
-			dataSource.setPassword(container.getPassword());
-			return dataSource;
-		}
-
-		@Bean
-		public AbstractEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-
-			LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-			factoryBean.setDataSource(dataSource);
-			factoryBean.setPersistenceUnitRootLocation("simple-persistence");
-			factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-			factoryBean.setPackagesToScan(this.getClass().getPackage().getName());
-
-			Properties properties = new Properties();
-			properties.setProperty("hibernate.hbm2ddl.auto", "create");
-			properties.setProperty("hibernate.dialect", PostgreSQLDialect.class.getCanonicalName());
-			factoryBean.setJpaProperties(properties);
-
-			return factoryBean;
-		}
-
-		@Bean
-		PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {
-			return new JpaTransactionManager(entityManagerFactory);
-		}
-
-		@Bean
-		DataSourceInitializer initializer(DataSource dataSource) {
-
-			DataSourceInitializer initializer = new DataSourceInitializer();
-			initializer.setDataSource(dataSource);
-
-			ClassPathResource script = new ClassPathResource("scripts/postgres-stored-procedures.sql");
-			ResourceDatabasePopulator populator = new ResourceDatabasePopulator(script);
-			populator.setSeparator(";;");
-			initializer.setDatabasePopulator(populator);
-
-			return initializer;
 		}
 	}
 }
