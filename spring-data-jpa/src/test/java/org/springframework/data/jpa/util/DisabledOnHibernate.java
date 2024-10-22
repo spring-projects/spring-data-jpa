@@ -23,14 +23,31 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Annotation to flag JUnit 5 test cases to ONLY activate when Hibernate 6.2 is on the classpath.
+ * {@code @DisabledOnHibernate} is used to signal that the annotated test class or test method is only <em>disabled</em>
+ * if the given Hibernate {@linkplain #value version} is being used.
  *
  * @author Greg Turnquist
- * @since 3.1
+ * @author Mark Paluch
+ * @since 3.2
  */
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(HibernateSupport.DisabledWhenHibernate61OnClasspath.class)
-public @interface DisabledOnHibernate61 {
+@ExtendWith(DisabledOnHibernateCondition.class)
+public @interface DisabledOnHibernate {
 
+	/**
+	 * The version of Hibernate to disable the test or container case on. The version specifier can hold individual
+	 * version components matching effectively the version in a prefix-manner. The more specific you want to match, the
+	 * more version components you can specify, such as {@code  6.2.1} to match a specific service release or {@code 6} to
+	 * match a full major version.
+	 */
+	String value();
+
+	/**
+	 * Custom reason to provide if the test or container is disabled.
+	 * <p>
+	 * If a custom reason is supplied, it will be combined with the default reason for this annotation. If a custom reason
+	 * is not supplied, the default reason will be used.
+	 */
+	String disabledReason() default "";
 }
