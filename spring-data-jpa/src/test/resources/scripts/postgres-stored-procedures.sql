@@ -65,3 +65,13 @@ BEGIN
     OPEN some_cursor FOR SELECT COUNT(*) FROM employee;
 END;
 $BODY$;;
+
+CREATE OR REPLACE PROCEDURE accept_array(IN some_chars VARCHAR(255)[],
+                                         OUT dims VARCHAR(255))
+    LANGUAGE 'plpgsql'
+AS
+$BODY$
+BEGIN
+    dims = array_dims(some_chars);
+END;
+$BODY$;;
