@@ -113,19 +113,21 @@ public final class JpaQueryLookupStrategy {
 	private static class CreateQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final EscapeCharacter escape;
+		private final boolean validate;
 
 		public CreateQueryLookupStrategy(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
-				QueryRewriterProvider queryRewriterProvider, EscapeCharacter escape) {
+				QueryRewriterProvider queryRewriterProvider, EscapeCharacter escape, boolean validate) {
 
 			super(em, queryMethodFactory, queryRewriterProvider);
 
 			this.escape = escape;
+			this.validate = validate;
 		}
 
 		@Override
 		protected RepositoryQuery resolveQuery(JpaQueryMethod method, QueryRewriter queryRewriter, EntityManager em,
 				NamedQueries namedQueries) {
-			return new PartTreeJpaQuery(method, em, escape);
+			return new PartTreeJpaQuery(method, em, escape, validate);
 		}
 	}
 
@@ -140,20 +142,24 @@ public final class JpaQueryLookupStrategy {
 	private static class DeclaredQueryLookupStrategy extends AbstractQueryLookupStrategy {
 
 		private final ValueExpressionDelegate valueExpressionDelegate;
+		private final boolean validation;
 
 		/**
 		 * Creates a new {@link DeclaredQueryLookupStrategy}.
 		 *
 		 * @param em must not be {@literal null}.
 		 * @param queryMethodFactory must not be {@literal null}.
-		 * @param evaluationContextProvider must not be {@literal null}.
+		 * @param delegate must not be {@literal null}.
+		 * @param queryRewriterProvider must not be {@literal null}.
+		 * @param validation indicate if queries are validated on startup.
 		 */
 		public DeclaredQueryLookupStrategy(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
-				ValueExpressionDelegate delegate, QueryRewriterProvider queryRewriterProvider) {
+				ValueExpressionDelegate delegate, QueryRewriterProvider queryRewriterProvider, boolean validation) {
 
 			super(em, queryMethodFactory, queryRewriterProvider);
 
 			this.valueExpressionDelegate = delegate;
+			this.validation = validation;
 		}
 
 		@Override
@@ -172,13 +178,13 @@ public final class JpaQueryLookupStrategy {
 				}
 
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, method.getRequiredAnnotatedQuery(),
-						getCountQuery(method, namedQueries, em), queryRewriter, valueExpressionDelegate);
+						getCountQuery(method, namedQueries, em), queryRewriter, valueExpressionDelegate, validation);
 			}
 
 			String name = method.getNamedQueryName();
 			if (namedQueries.hasQuery(name)) {
 				return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(method, em, namedQueries.getQuery(name),
-						getCountQuery(method, namedQueries, em), queryRewriter, valueExpressionDelegate);
+						getCountQuery(method, namedQueries, em), queryRewriter, valueExpressionDelegate, validation);
 			}
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
@@ -296,19 +302,35 @@ public final class JpaQueryLookupStrategy {
 	 * @param escape must not be {@literal null}.
 	 */
 	public static QueryLookupStrategy create(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
+		@Nullable Key key, ValueExpressionDelegate delegate, QueryRewriterProvider queryRewriterProvider,
+		EscapeCharacter escape) {
+		return create(em, queryMethodFactory, key, delegate, queryRewriterProvider, escape, true);
+	}
+
+	/**
+	 * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager} and {@link Key}.
+	 *
+	 * @param em must not be {@literal null}.
+	 * @param queryMethodFactory must not be {@literal null}.
+	 * @param key may be {@literal null}.
+	 * @param delegate must not be {@literal null}.
+	 * @param queryRewriterProvider must not be {@literal null}.
+	 * @param escape must not be {@literal null}.
+	 */
+	public static QueryLookupStrategy create(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
 			@Nullable Key key, ValueExpressionDelegate delegate, QueryRewriterProvider queryRewriterProvider,
-			EscapeCharacter escape) {
+			EscapeCharacter escape, boolean queryValidation) {
 
 		Assert.notNull(em, "EntityManager must not be null");
 		Assert.notNull(delegate, "ValueExpressionDelegate must not be null");
 
 		return switch (key != null ? key : Key.CREATE_IF_NOT_FOUND) {
-			case CREATE -> new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape);
+			case CREATE -> new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape, queryValidation);
 			case USE_DECLARED_QUERY ->
-				new DeclaredQueryLookupStrategy(em, queryMethodFactory, delegate, queryRewriterProvider);
+				new DeclaredQueryLookupStrategy(em, queryMethodFactory, delegate, queryRewriterProvider, queryValidation);
 			case CREATE_IF_NOT_FOUND -> new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
-					new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape),
-					new DeclaredQueryLookupStrategy(em, queryMethodFactory, delegate, queryRewriterProvider),
+					new CreateQueryLookupStrategy(em, queryMethodFactory, queryRewriterProvider, escape, queryValidation),
+					new DeclaredQueryLookupStrategy(em, queryMethodFactory, delegate, queryRewriterProvider, queryValidation),
 					queryRewriterProvider);
 			default -> throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s", key));
 		};
