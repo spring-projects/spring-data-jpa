@@ -159,6 +159,14 @@ class PostgresStoredProcedureIntegrationTests {
 		assertThat(results).containsKey("some_cursor");
 	}
 
+	@Test // GH-3081
+	void supportsArrayTypes() {
+
+		String result = repository.accept_array(new String[] { "one", "two" });
+
+		assertThat(result).isEqualTo("[1:2]");
+	}
+
 	@Entity
 	@NamedStoredProcedureQuery( //
 			name = "get_employees_postgres", //
@@ -177,6 +185,11 @@ class PostgresStoredProcedureIntegrationTests {
 					@StoredProcedureParameter(mode = ParameterMode.REF_CURSOR, name = "some_cursor", type = void.class),
 					@StoredProcedureParameter(mode = ParameterMode.OUT, name = "result1", type = Integer.class),
 					@StoredProcedureParameter(mode = ParameterMode.OUT, name = "result2", type = Integer.class) })
+	@NamedStoredProcedureQuery( //
+			name = "Employee.accept_array", //
+			procedureName = "accept_array", //
+			parameters = { @StoredProcedureParameter(mode = ParameterMode.IN, name = "some_chars", type = String[].class),
+					@StoredProcedureParameter(mode = ParameterMode.OUT, name = "dims", type = String.class) })
 	@NamedStoredProcedureQuery( //
 			name = "positional_inout", //
 			procedureName = "positional_inout_parameter_issue3460", //
@@ -259,6 +272,9 @@ class PostgresStoredProcedureIntegrationTests {
 
 		@Procedure(value = "get_employees_count")
 		Integer noResultSet();
+
+		@Procedure(value = "accept_array")
+		String accept_array(String[] some_chars);
 
 		@Procedure(value = "multiple_out")
 		Map<String, Object> multiple_out(int someNumber);
