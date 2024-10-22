@@ -139,7 +139,7 @@ public class QueryByExamplePredicateBuilder {
 			Optional<Object> optionalValue = transformer
 					.apply(Optional.ofNullable(beanWrapper.getPropertyValue(attribute.getName())));
 
-			if (!optionalValue.isPresent()) {
+			if (optionalValue.isEmpty()) {
 
 				if (exampleAccessor.getNullHandler().equals(ExampleMatcher.NullHandler.INCLUDE)) {
 					predicates.add(cb.isNull(from.get(attribute)));
