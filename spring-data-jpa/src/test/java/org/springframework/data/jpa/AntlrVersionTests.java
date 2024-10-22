@@ -23,11 +23,12 @@ import java.util.regex.Pattern;
 import org.antlr.v4.runtime.RuntimeMetaData;
 import org.hibernate.grammars.hql.HqlParser;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.asm.ClassReader;
 import org.springframework.asm.ClassVisitor;
 import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Opcodes;
-import org.springframework.data.jpa.util.DisabledOnHibernate62;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.lang.Nullable;
 
 /**
@@ -41,7 +42,7 @@ import org.springframework.lang.Nullable;
 class AntlrVersionTests {
 
 	@Test
-	@DisabledOnHibernate62
+	@DisabledOnHibernate("6.2")
 	void antlrVersionConvergence() throws Exception {
 
 		ClassReader reader = new ClassReader(HqlParser.class.getName());

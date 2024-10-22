@@ -42,7 +42,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.data.jpa.util.DisabledOnHibernate62;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -106,7 +106,7 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
-	@DisabledOnHibernate62
+	@DisabledOnHibernate("6")
 	@Test // 2256
 	void testSingleEntityFromResultSet() {
 
@@ -160,6 +160,8 @@ class PostgresStoredProcedureIntegrationTests {
 	}
 
 	@Test // GH-3081
+	@DisabledOnHibernate(value = "6.2",
+			disabledReason = "Hibernate 6.2 does not support stored procedures with array types")
 	void supportsArrayTypes() {
 
 		String result = repository.accept_array(new String[] { "one", "two" });

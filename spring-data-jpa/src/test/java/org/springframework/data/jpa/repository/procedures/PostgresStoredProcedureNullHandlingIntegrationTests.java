@@ -36,7 +36,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
-import org.springframework.data.jpa.util.DisabledOnHibernate61;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -49,7 +49,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  *
  * @author Greg Turnquist
  */
-@DisabledOnHibernate61 // GH-2903
+@DisabledOnHibernate("6.1") // GH-2903
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureNullHandlingIntegrationTests.Config.class)
