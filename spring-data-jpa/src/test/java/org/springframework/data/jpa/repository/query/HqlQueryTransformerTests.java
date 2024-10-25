@@ -1027,16 +1027,22 @@ class HqlQueryTransformerTests {
 				.isEqualTo("FROM Story WHERE enabled = true order by created desc");
 	}
 
-	@Test // GH-2977
-	void isSubqueryThrowsException() {
-
-		String query = """
-				insert into MyEntity (id, col)
-				select max(id), col
-				from MyEntityStaging
-				group by col
-				""";
-
+	@ParameterizedTest
+	@ValueSource(strings = { """
+			insert into MyEntity (id, col)
+			select max(id), col
+			from MyEntityStaging
+			group by col
+			""", """
+			update MyEntity AS mes
+			set mes.col = 'test'
+			where mes.id = 1
+			""", """
+			delete MyEntity AS mes
+			where mes.col = 'test'
+			"""
+	}) // GH-2977, GH-3649
+	void isSubqueryThrowsException(String query) {
 		assertThat(createQueryFor(query, Sort.unsorted())).isEqualToIgnoringWhitespace(query);
 	}
 
@@ -1133,7 +1139,6 @@ class HqlQueryTransformerTests {
 			}
 			assertThat(count).describedAs("Found order by clause more than once in: \n%s", it).isOne();
 		});
-
 	}
 
 	private void assertCountQuery(String originalQuery, String countQuery) {

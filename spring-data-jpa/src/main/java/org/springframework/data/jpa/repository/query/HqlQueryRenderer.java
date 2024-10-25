@@ -48,8 +48,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return false;
 		} else if (ctx instanceof HqlParser.InsertStatementContext) {
 			return false;
+		} else if (ctx instanceof HqlParser.DeleteStatementContext) {
+			return false;
+		} else if (ctx instanceof HqlParser.UpdateStatementContext) {
+			return false;
 		} else {
-			return isSubquery(ctx.getParent());
+			return ctx.getParent() != null && isSubquery(ctx.getParent());
 		}
 	}
 
