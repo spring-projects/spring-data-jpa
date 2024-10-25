@@ -995,16 +995,23 @@ class HqlQueryTransformerTests {
 				.isEqualTo("FROM Story WHERE enabled = true order by created desc");
 	}
 
-	@Test // GH-2977
-	void isSubqueryThrowsException() {
+	@ParameterizedTest
+	@ValueSource(strings = { """
+			insert into MyEntity (id, col)
+			select max(id), col
+			from MyEntityStaging
+			group by col
+			""", """
+			update MyEntity AS mes
+			set mes.col = 'test'
+			where mes.id = 1
+			""", """
+			delete MyEntity AS mes
+			where mes.col = 'test'
+			"""
 
-		String query = """
-				insert into MyEntity (id, col)
-				select max(id), col
-				from MyEntityStaging
-				group by col
-				""";
-
+	}) // GH-2977, GH-3649
+	void isSubqueryThrowsException(String query) {
 		assertThat(createQueryFor(query, Sort.unsorted())).isEqualToIgnoringWhitespace(query);
 	}
 
