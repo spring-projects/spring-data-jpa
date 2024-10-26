@@ -36,6 +36,7 @@ import org.springframework.util.MultiValueMap;
 public class DefaultJpaContext implements JpaContext {
 
 	private final MultiValueMap<Class<?>, EntityManager> entityManagers;
+	private boolean validateQueries;
 
 	/**
 	 * Creates a new {@link DefaultJpaContext} for the given {@link Set} of {@link EntityManager}s.

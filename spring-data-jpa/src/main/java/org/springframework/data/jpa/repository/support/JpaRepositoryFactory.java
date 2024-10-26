@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.SpringProperties;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -90,6 +91,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 	private JpaQueryMethodFactory queryMethodFactory;
 	private QueryRewriterProvider queryRewriterProvider;
+	private boolean queryValidation;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactory}.
@@ -120,6 +122,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		}
 
 		this.crudMethodMetadata = crudMethodMetadataPostProcessor.getCrudMethodMetadata();
+		String p = SpringProperties.getProperty("spring.data.jpa.query.validate");
+		this.queryValidation = p == null || Boolean.parseBoolean(p);
 	}
 
 	@Override
@@ -167,6 +171,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		this.escapeCharacter = escapeCharacter;
 	}
 
+	/**
+	 * Configures if spring based queries should be validated on creation
+	 *
+	 * @param queryValidation a character used for escaping in certain like expressions.
+	 * @since 3.4
+	 */
+	public void setQueryValidation(boolean queryValidation) {
+		this.queryValidation = queryValidation;
+	}
 	/**
 	 * Configures the {@link JpaQueryMethodFactory} to be used. Defaults to {@link DefaultJpaQueryMethodFactory}.
 	 *
@@ -240,7 +253,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			ValueExpressionDelegate valueExpressionDelegate) {
 		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key,
 				new CachingValueExpressionDelegate(valueExpressionDelegate),
-				queryRewriterProvider, escapeCharacter));
+				queryRewriterProvider, escapeCharacter, queryValidation));
 	}
 
 

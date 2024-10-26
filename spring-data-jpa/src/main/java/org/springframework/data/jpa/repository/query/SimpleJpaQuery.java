@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import org.springframework.core.SpringProperties;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -45,8 +46,8 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate);
+			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate, boolean validation) {
+		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate, validation);
 	}
 
 	/**
@@ -60,15 +61,17 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}
 	 */
 	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+			ValueExpressionDelegate valueExpressionDelegate, boolean validation) {
 
 		super(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate);
 
-		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
+		if(validation) {
+			validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 
-		if (method.isPageQuery()) {
-			validateQuery(getCountQuery().getQueryString(),
+			if (method.isPageQuery()) {
+				validateQuery(getCountQuery().getQueryString(),
 					String.format("Count query validation failed for method %s", method));
+			}
 		}
 	}
 

@@ -48,6 +48,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private Boolean queryValidation;
 	private JpaQueryMethodFactory queryMethodFactory;
 
 	/**
@@ -116,6 +117,9 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
 		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
 		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
+		if(queryValidation != null) {
+			jpaRepositoryFactory.setQueryValidation(queryValidation);
+		}
 
 		if (queryMethodFactory != null) {
 			jpaRepositoryFactory.setQueryMethodFactory(queryMethodFactory);
@@ -135,5 +139,13 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	public void setEscapeCharacter(char escapeCharacter) {
 
 		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
+	}
+
+	/**
+	 * @param queryValidation
+	 * @since 3.4
+	 */
+	public void setQueryValidation(Boolean queryValidation) {
+		this.queryValidation = queryValidation;
 	}
 }

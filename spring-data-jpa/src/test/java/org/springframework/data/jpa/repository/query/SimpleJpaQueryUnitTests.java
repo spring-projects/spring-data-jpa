@@ -120,7 +120,7 @@ class SimpleJpaQueryUnitTests {
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
 		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create(), true);
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -135,7 +135,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create(), true);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -151,7 +151,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
 				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				ValueExpressionDelegate.create());
+				ValueExpressionDelegate.create(), true);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -171,7 +171,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em,
 				queryMethod.getAnnotatedQuery(), null, QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				ValueExpressionDelegate.create());
+				ValueExpressionDelegate.create(), true);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -203,6 +203,16 @@ class SimpleJpaQueryUnitTests {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> createJpaQuery(method)).withMessageContaining("Count")
 				.withMessageContaining(method.getName());
+	}
+
+	@Test // GH-1690
+	void skipsValidationIfFlagSetToFalse() throws Exception {
+
+		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
+
+		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
+
+		assertThatNoException().isThrownBy(() -> createJpaQuery(method, false));
 	}
 
 	@Test
@@ -284,7 +294,7 @@ class SimpleJpaQueryUnitTests {
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
 				"select count(u.id) from #{#entityName} u", QueryRewriter.IdentityQueryRewriter.INSTANCE,
-				ValueExpressionDelegate.create());
+				ValueExpressionDelegate.create(), true);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -292,20 +302,28 @@ class SimpleJpaQueryUnitTests {
 		verify(em).createQuery(eq("select count(u.id) from User u"), eq(Long.class));
 	}
 
-	private AbstractJpaQuery createJpaQuery(Method method) {
-		return createJpaQuery(method, null);
+	private AbstractJpaQuery createJpaQuery(Method method, boolean validate) {
+		return createJpaQuery(method, null, validate);
 	}
 
-	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString, @Nullable String countQueryString) {
+	private AbstractJpaQuery createJpaQuery(Method method) {
+		return createJpaQuery(method, true);
+	}
+
+	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString, @Nullable String countQueryString, boolean validate) {
 
 		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryString, countQueryString,
-				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
+				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create(), validate);
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {
+		return createJpaQuery(method, countQueryString, true);
+	}
+
+	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString, boolean validate) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(), countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
+		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(), countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()), validate);
 	}
 
 	interface SampleRepository {

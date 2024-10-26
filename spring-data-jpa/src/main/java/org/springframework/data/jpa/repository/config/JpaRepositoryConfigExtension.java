@@ -83,6 +83,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
+	private static final String QUERY_VALIDATION = "queryValidation";
 
 	private final Map<Object, String> entityManagerRefs = new LinkedHashMap<>();
 
@@ -118,6 +119,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
+		getQueryValidation(source).ifPresent(it -> builder.addPropertyValue(QUERY_VALIDATION, it));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
 
@@ -134,6 +136,15 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		try {
 			return source.getAttribute(ESCAPE_CHARACTER_PROPERTY, Character.class);
+		} catch (IllegalArgumentException ___) {
+			return Optional.empty();
+		}
+	}
+
+	private static Optional<Boolean> getQueryValidation(RepositoryConfigurationSource source) {
+
+		try {
+			return source.getAttribute(QUERY_VALIDATION, Boolean.class);
 		} catch (IllegalArgumentException ___) {
 			return Optional.empty();
 		}
