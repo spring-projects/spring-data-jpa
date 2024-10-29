@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.model;
-
-import java.util.Set;
+package org.springframework.data.jpa.benchmark.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +22,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+
+import java.util.Set;
 
 /**
  * @author Christoph Strobl

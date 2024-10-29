@@ -13,23 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository;
+package org.springframework.data.jpa.benchmark;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import jmh.mbr.junit5.Microbenchmark;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
+import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.junit.platform.commons.annotation.Testable;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -42,21 +41,24 @@ import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.model.IPersonProjection;
-import org.springframework.data.jpa.model.Person;
-import org.springframework.data.jpa.model.Profile;
+import org.springframework.data.jpa.benchmark.model.IPersonProjection;
+import org.springframework.data.jpa.benchmark.model.Person;
+import org.springframework.data.jpa.benchmark.model.Profile;
+import org.springframework.data.jpa.benchmark.repository.PersonRepository;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
  */
-@Microbenchmark
+@Testable
 @Fork(1)
 @Warmup(time = 2, iterations = 3)
 @Measurement(time = 2)
 @Timeout(time = 2)
-public class RepositoryFinderTests {
+public class RepositoryFinderBenchmarks {
 
 	private static final String PERSON_FIRSTNAME = "first";
 	private static final String COLUMN_PERSON_FIRSTNAME = "firstname";
@@ -103,12 +105,23 @@ public class RepositoryFinderTests {
 
 		private void createEntityManager() {
 
-			Map<String, String> properties = new HashMap<>();
+			LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
+			factoryBean.setPersistenceUnitName("benchmark");
+			factoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+			factoryBean.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+			factoryBean.setPersistenceXmlLocation("classpath*:META-INF/persistence-jmh.xml");
+			factoryBean.setMappingResources("classpath*:META-INF/orm-jmh.xml");
+
+			Properties properties = new Properties();
 			properties.put("jakarta.persistence.jdbc.url", "jdbc:h2:mem:test");
 			properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
 			properties.put("hibernate.hbm2ddl.auto", "update");
-			EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("benchmark", properties);
+			properties.put("hibernate.xml_mapping_enabled", "false");
 
+			factoryBean.setJpaProperties(properties);
+			factoryBean.afterPropertiesSet();
+
+			EntityManagerFactory entityManagerFactory = factoryBean.getObject();
 			entityManager = entityManagerFactory.createEntityManager();
 		}
 
@@ -139,7 +152,7 @@ public class RepositoryFinderTests {
 	public List<Person> baselineEntityManagerHQLQuery(BenchmarkParameters parameters) {
 
 		Query query = parameters.entityManager
-				.createQuery("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1");
+				.createQuery("SELECT p FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1");
 		query.setParameter(1, PERSON_FIRSTNAME);
 
 		return query.getResultList();
@@ -148,7 +161,8 @@ public class RepositoryFinderTests {
 	@Benchmark
 	public Long baselineEntityManagerCount(BenchmarkParameters parameters) {
 
-		Query query = parameters.entityManager.createQuery("SELECT COUNT(*) FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1");
+		Query query = parameters.entityManager.createQuery(
+				"SELECT COUNT(*) FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1");
 		query.setParameter(1, PERSON_FIRSTNAME);
 
 		return (Long) query.getSingleResult();

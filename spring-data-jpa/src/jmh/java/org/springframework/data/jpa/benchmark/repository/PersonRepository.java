@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository;
+package org.springframework.data.jpa.benchmark.repository;
 
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.model.IPersonProjection;
-import org.springframework.data.jpa.model.Person;
+import org.springframework.data.jpa.benchmark.model.IPersonProjection;
+import org.springframework.data.jpa.benchmark.model.Person;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.ListCrudRepository;
 
 /**
@@ -31,10 +32,10 @@ public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 
 	List<IPersonProjection> findAllAndProjectToInterfaceByFirstname(String firstname);
 
-	@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	@Query("SELECT p FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1")
 	List<Person> findAllWithAnnotatedQueryByFirstname(String firstname);
 
-	@Query("SELECT p FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	@Query("SELECT p FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1")
 	List<Person> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort);
 
 	@Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
@@ -42,6 +43,6 @@ public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 
 	Long countByFirstname(String firstname);
 
-	@Query("SELECT COUNT(*) FROM org.springframework.data.jpa.model.Person p WHERE p.firstname = ?1")
+	@Query("SELECT COUNT(*) FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1")
 	Long countWithAnnotatedQueryByFirstname(String firstname);
 }

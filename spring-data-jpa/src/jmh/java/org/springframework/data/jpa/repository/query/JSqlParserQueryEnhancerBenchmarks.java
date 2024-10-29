@@ -15,10 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import jmh.mbr.junit5.Microbenchmark;
-
 import java.io.IOException;
 
+import org.junit.platform.commons.annotation.Testable;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -34,12 +33,12 @@ import org.springframework.data.domain.Sort;
 /**
  * @author Mark Paluch
  */
-@Microbenchmark
+@Testable
 @Fork(1)
 @Warmup(time = 2, iterations = 3)
 @Measurement(time = 2)
 @Timeout(time = 2)
-public class JSqlParserQueryEnhancerTests {
+public class JSqlParserQueryEnhancerBenchmarks {
 
 	@State(Scope.Benchmark)
 	public static class BenchmarkParameters {
@@ -58,7 +57,6 @@ public class JSqlParserQueryEnhancerTests {
 					union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE""";
 
 			enhancer = new JSqlParserQueryEnhancer(DeclaredQuery.of(s, true));
-
 		}
 	}
 
