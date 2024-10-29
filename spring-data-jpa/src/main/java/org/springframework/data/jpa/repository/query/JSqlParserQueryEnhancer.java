@@ -119,7 +119,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Select selectStatement = parseSelectStatement(queryString);
 
-		if (selectStatement instanceof SetOperationList setOperationList) {
+		if (selectStatement  instanceof SetOperationList setOperationList) {
 			return applySortingToSetOperationList(setOperationList, sort);
 		}
 
@@ -217,7 +217,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		Select selectStatement = (Select) statement;
-		if (selectStatement instanceof PlainSelect selectBody) {
+		if (selectStatement  instanceof PlainSelect selectBody) {
 			return getJoinAliases(selectBody);
 		}
 
@@ -315,7 +315,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			 * ValuesStatement has no alias
 			 * SetOperation can have multiple alias for each operation item
 			 */
-			if (!(selectStatement instanceof PlainSelect selectBody)) {
+			if (!(selectStatement  instanceof PlainSelect selectBody)) {
 				return null;
 			}
 
@@ -370,7 +370,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
-		if (!(selectStatement instanceof PlainSelect selectBody)) {
+		if (!(selectStatement  instanceof PlainSelect selectBody)) {
 			return this.query.getQueryString();
 		}
 
@@ -413,7 +413,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		Select selectBody = selectStatement;
 
-		if (selectStatement instanceof SetOperationList setOperationList) {
+		if (selectStatement  instanceof SetOperationList setOperationList) {
 
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);
