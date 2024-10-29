@@ -54,7 +54,6 @@ public class JpaMetamodelMappingContext
 	 */
 	public JpaMetamodelMappingContext(Set<Metamodel> models) {
 
-		Assert.notNull(models, "JPA metamodel must not be null");
 		Assert.notEmpty(models, "JPA metamodel must not be empty");
 
 		this.models = new Metamodels(models);

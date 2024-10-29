@@ -184,7 +184,7 @@ abstract class QueryParameterSetterFactory {
 		@Override
 		public QueryParameterSetter create(ParameterBinding binding, DeclaredQuery declaredQuery) {
 
-			if (!(binding.getOrigin()instanceof ParameterBinding.Expression e)) {
+			if (!(binding.getOrigin() instanceof ParameterBinding.Expression e)) {
 				return null;
 			}
 
@@ -234,7 +234,7 @@ abstract class QueryParameterSetterFactory {
 			Assert.notNull(binding, "Binding must not be null");
 
 			JpaParameter parameter;
-			if (!(binding.getOrigin()instanceof MethodInvocationArgument mia)) {
+			if (!(binding.getOrigin() instanceof MethodInvocationArgument mia)) {
 				return QueryParameterSetter.NOOP;
 			}
 

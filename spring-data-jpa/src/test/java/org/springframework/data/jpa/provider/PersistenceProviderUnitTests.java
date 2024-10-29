@@ -22,6 +22,7 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 import jakarta.persistence.EntityManager;
 
 import java.util.Arrays;
+import java.util.Map;
 
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
@@ -32,6 +33,7 @@ import org.mockito.Mockito;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -48,7 +50,8 @@ class PersistenceProviderUnitTests {
 	@BeforeEach
 	void setup() {
 
-		PersistenceProvider.CACHE.clear();
+		Map<?, ?> cache = (Map<?, ?>) ReflectionTestUtils.getField(PersistenceProvider.class, "CACHE");
+		cache.clear();
 
 		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
