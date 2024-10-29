@@ -58,7 +58,6 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 		super(information, null);
 
-		Assert.notNull(proxyIdAccessor, "ProxyIdAccessor must not be null");
 		this.proxyIdAccessor = proxyIdAccessor;
 		this.metamodel = metamodel;
 	}

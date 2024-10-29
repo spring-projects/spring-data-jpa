@@ -47,7 +47,7 @@ abstract class JpaClassUtils {
 	 */
 	public static boolean isEntityManagerOfType(EntityManager em, String type) {
 
-		EntityManager entityManagerToUse = em.getDelegate()instanceof EntityManager delegate //
+		EntityManager entityManagerToUse = em.getDelegate() instanceof EntityManager delegate //
 				? delegate //
 				: em;
 

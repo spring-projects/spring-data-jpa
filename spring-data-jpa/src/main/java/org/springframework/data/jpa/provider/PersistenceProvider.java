@@ -200,7 +200,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
-	static ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
+	private static final ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
 	private final Iterable<String> entityManagerClassNames;
 	private final Iterable<String> metamodelClassNames;
 
