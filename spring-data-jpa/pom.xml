@@ -352,6 +352,16 @@
 							<version>${hibernate}</version>
 						</path>
 						<path>
+							<groupId>org.hibernate.orm</groupId>
+							<artifactId>hibernate-core</artifactId>
+							<version>${hibernate}</version>
+						</path>
+						<path>
+							<groupId>org.openjdk.jmh</groupId>
+							<artifactId>jmh-generator-annprocess</artifactId>
+							<version>${jmh}</version>
+						</path>
+						<path>
 							<groupId>jakarta.persistence</groupId>
 							<artifactId>jakarta.persistence-api</artifactId>
 							<version>${jakarta-persistence-api}</version>
