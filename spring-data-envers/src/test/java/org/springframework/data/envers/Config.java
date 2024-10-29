@@ -58,7 +58,6 @@ public class Config {
 	public AbstractEntityManagerFactoryBean entityManagerFactory() throws SQLException {
 
 		HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-		jpaVendorAdapter.setDatabase(Database.H2);
 		jpaVendorAdapter.setGenerateDdl(true);
 
 		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
