@@ -405,4 +405,5 @@ class UserRepositoryFinderTests {
 		result = userRepository.findUserByLastname(carter.getLastname());
 		assertThat(result).containsExactly(carter);
 	}
+
 }

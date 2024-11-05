@@ -42,6 +42,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class ParameterBinding {
 
@@ -213,7 +214,10 @@ class ParameterBinding {
 			this.templates = templates;
 			this.escape = escape;
 
-			this.type = value == null && Type.SIMPLE_PROPERTY.equals(part.getType()) ? Type.IS_NULL : part.getType();
+			this.type = value == null
+					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
+							? Type.IS_NULL
+							: part.getType();
 			this.ignoreCase = Part.IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
 			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
 		}
