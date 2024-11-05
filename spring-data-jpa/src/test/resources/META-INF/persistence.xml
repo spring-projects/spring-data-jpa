@@ -102,6 +102,14 @@
 		</properties>
 	</persistence-unit>
 
+	<persistence-unit name="dynamic-tests">
+		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
+		</properties>
+	</persistence-unit>
+
 	<!--  Custom PUs for metadata tests -->
 
 	<persistence-unit name="metadata">

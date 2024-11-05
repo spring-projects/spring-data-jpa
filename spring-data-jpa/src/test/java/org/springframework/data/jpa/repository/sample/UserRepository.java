@@ -75,6 +75,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 	List<User> findByLastname(String lastname);
 
+	List<User> findUserByLastname(String lastname);
+
 	/**
 	 * Redeclaration of {@link CrudRepository#findById(java.lang.Object)} to change transaction configuration.
 	 */

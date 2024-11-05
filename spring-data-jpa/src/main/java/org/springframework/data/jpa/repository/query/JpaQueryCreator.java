@@ -15,23 +15,30 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.repository.query.parser.Part.Type.*;
+import static org.springframework.data.repository.query.parser.Part.Type.IS_NOT_EMPTY;
+import static org.springframework.data.repository.query.parser.Part.Type.NOT_CONTAINING;
+import static org.springframework.data.repository.query.parser.Part.Type.NOT_LIKE;
+import static org.springframework.data.repository.query.parser.Part.Type.SIMPLE_PROPERTY;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.Bindable;
 import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
 import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.PathAndOrigin;
 import org.springframework.data.jpa.repository.query.ParameterBinding.PartTreeParameterBinding;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -56,6 +63,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Andrey Kovalev
  * @author Greg Turnquist
+ * @author Christoph Strobl
  */
 class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
 
@@ -65,8 +73,8 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 	private final PartTree tree;
 	private final EscapeCharacter escape;
 	private final EntityType<?> entityType;
-	private final From<?, ?> from;
 	private final JpqlQueryBuilder.Entity entity;
+	private final Metamodel metamodel;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -87,12 +95,12 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 		this.templates = templates;
 		this.escape = provider.getEscape();
 		this.entityType = em.getMetamodel().entity(type.getDomainType());
-		this.from = em.getCriteriaBuilder().createQuery().from(type.getDomainType());
 		this.entity = JpqlQueryBuilder.entity(returnedType.getDomainType());
+		this.metamodel = em.getMetamodel();
 	}
 
-	From<?, ?> getFrom() {
-		return from;
+	Bindable<?> getFrom() {
+		return entityType;
 	}
 
 	JpqlQueryBuilder.Entity getEntity() {
@@ -174,7 +182,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 			QueryUtils.checkSortExpression(order);
 
 			try {
-				expression = JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(entity, from,
+				expression = JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
 						PropertyPath.from(order.getProperty(), entityType.getJavaType())));
 			} catch (PropertyReferenceException e) {
 
@@ -209,12 +217,19 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 
 		if (returnedType.needsCustomConstruction()) {
 
-			Collection<String> requiredSelection = getRequiredSelection(sort, returnedType);
+			Collection<String> requiredSelection = null;
+			if (returnedType.getReturnedType().getPackageName().startsWith("java.util")
+					|| returnedType.getReturnedType().getPackageName().startsWith("jakarta.persistence")) {
+				requiredSelection = metamodel.managedType(returnedType.getDomainType()).getAttributes().stream()
+						.map(Attribute::getName).collect(Collectors.toList());
+			} else {
+				requiredSelection = getRequiredSelection(sort, returnedType);
+			}
 
 			List<PathAndOrigin> paths = new ArrayList<>(requiredSelection.size());
 			for (String selection : requiredSelection) {
-				paths.add(
-						JpqlUtils.toExpressionRecursively(entity, from, PropertyPath.from(selection, from.getJavaType()), true));
+				paths.add(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+						PropertyPath.from(selection, returnedType.getDomainType()), true));
 			}
 
 			if (useTupleQuery()) {
@@ -230,14 +245,14 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 			if (entityType.hasSingleIdAttribute()) {
 
 				SingularAttribute<?, ?> id = entityType.getId(entityType.getIdType().getJavaType());
-				return selectStep.select(
-						JpqlUtils.toExpressionRecursively(entity, from, PropertyPath.from(id.getName(), from.getJavaType()), true));
+				return selectStep.select(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+						PropertyPath.from(id.getName(), returnedType.getDomainType()), true));
 
 			} else {
 
 				List<PathAndOrigin> paths = entityType.getIdClassAttributes().stream()//
-						.map(it -> JpqlUtils.toExpressionRecursively(entity, from,
-								PropertyPath.from(it.getName(), from.getJavaType()), true))
+						.map(it -> JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+								PropertyPath.from(it.getName(), returnedType.getDomainType()), true))
 						.toList();
 				return selectStep.select(paths);
 			}
@@ -254,12 +269,12 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 		return returnedType.getInputProperties();
 	}
 
-	String render(ParameterBinding binding) {
-		return render(binding.getRequiredPosition());
+	JpqlQueryBuilder.Expression placeholder(ParameterBinding binding) {
+		return placeholder(binding.getRequiredPosition());
 	}
 
-	String render(int position) {
-		return "?" + position;
+	JpqlQueryBuilder.Expression placeholder(int position) {
+		return JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(position));
 	}
 
 	/**
@@ -304,7 +319,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 			PropertyPath property = part.getProperty();
 			Type type = part.getType();
 
-			PathAndOrigin pas = JpqlUtils.toExpressionRecursively(entity, from, property);
+			PathAndOrigin pas = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType, property);
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(pas);
 			JpqlQueryBuilder.WhereStep whereIgnoreCase = JpqlQueryBuilder.where(potentiallyIgnoreCase(pas));
 
@@ -312,25 +327,25 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 				case BETWEEN:
 					PartTreeParameterBinding first = provider.next(part);
 					ParameterBinding second = provider.next(part);
-					return where.between(render(first), render(second));
+					return where.between(placeholder(first), placeholder(second));
 				case AFTER:
 				case GREATER_THAN:
-					return where.gt(render(provider.next(part)));
+					return where.gt(placeholder(provider.next(part)));
 				case GREATER_THAN_EQUAL:
-					return where.gte(render(provider.next(part)));
+					return where.gte(placeholder(provider.next(part)));
 				case BEFORE:
 				case LESS_THAN:
-					return where.lt(render(provider.next(part)));
+					return where.lt(placeholder(provider.next(part)));
 				case LESS_THAN_EQUAL:
-					return where.lte(render(provider.next(part)));
+					return where.lte(placeholder(provider.next(part)));
 				case IS_NULL:
 					return where.isNull();
 				case IS_NOT_NULL:
 					return where.isNotNull();
 				case NOT_IN:
-					return whereIgnoreCase.notIn(render(provider.next(part, Collection.class)));
+					return whereIgnoreCase.notIn(placeholder(provider.next(part, Collection.class)));
 				case IN:
-					return whereIgnoreCase.in(render(provider.next(part, Collection.class)));
+					return whereIgnoreCase.in(placeholder(provider.next(part, Collection.class)));
 				case STARTING_WITH:
 				case ENDING_WITH:
 				case CONTAINING:
@@ -339,8 +354,8 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 					if (property.getLeafProperty().isCollection()) {
 						where = JpqlQueryBuilder.where(entity, property);
 
-						return type.equals(NOT_CONTAINING) ? where.notMemberOf(render(provider.next(part)))
-								: where.memberOf(render(provider.next(part)));
+						return type.equals(NOT_CONTAINING) ? where.notMemberOf(placeholder(provider.next(part)))
+								: where.memberOf(placeholder(provider.next(part)));
 					}
 
 				case LIKE:
@@ -348,7 +363,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 
 					PartTreeParameterBinding parameter = provider.next(part, String.class);
 					JpqlQueryBuilder.Expression parameterExpression = potentiallyIgnoreCase(part.getProperty(),
-							JpqlQueryBuilder.parameter(render(parameter)));
+							placeholder(parameter));
 					// Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
 					String escapeChar = Character.toString(escape.getEscapeCharacter());
 					return
@@ -361,16 +376,16 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 				case FALSE:
 					return where.isFalse();
 				case SIMPLE_PROPERTY:
+				case NEGATING_SIMPLE_PROPERTY:
+
 					PartTreeParameterBinding metadata = provider.next(part);
 
 					if (metadata.isIsNullParameter()) {
-						return where.isNull();
+						return type.equals(SIMPLE_PROPERTY) ? where.isNull() : where.isNotNull();
 					}
 
-					return whereIgnoreCase.eq(potentiallyIgnoreCase(property, JpqlQueryBuilder.expression(render(metadata))));
-				case NEGATING_SIMPLE_PROPERTY:
-					return whereIgnoreCase
-							.neq(potentiallyIgnoreCase(property, JpqlQueryBuilder.expression(render(provider.next(part)))));
+					JpqlQueryBuilder.Expression expression = potentiallyIgnoreCase(property, placeholder(metadata));
+					return type.equals(SIMPLE_PROPERTY) ? whereIgnoreCase.eq(expression) : whereIgnoreCase.neq(expression);
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
 
@@ -404,8 +419,8 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 		 * @param path must not be {@literal null}.
 		 * @return
 		 */
-		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(PathAndOrigin pas) {
-			return potentiallyIgnoreCase(pas.path(), JpqlQueryBuilder.expression(pas));
+		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(PathAndOrigin path) {
+			return potentiallyIgnoreCase(path.path(), JpqlQueryBuilder.expression(path));
 		}
 
 		/**

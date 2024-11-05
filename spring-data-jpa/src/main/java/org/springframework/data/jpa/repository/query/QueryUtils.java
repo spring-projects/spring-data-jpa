@@ -914,7 +914,7 @@ public abstract class QueryUtils {
 	 * @param attribute the attribute name to check.
 	 * @return true if the attribute has already been inner joined
 	 */
-	private static boolean isAlreadyInnerJoined(From<?, ?> from, String attribute) {
+	static boolean isAlreadyInnerJoined(From<?, ?> from, String attribute) {
 
 		for (Fetch<?, ?> fetch : from.getFetches()) {
 

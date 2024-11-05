@@ -386,4 +386,13 @@ class UserRepositoryFinderTests {
 		assertThat(dtos).flatExtracting(UserRepository.NameOnly::getLastname) //
 				.containsExactly("Matthews", "Beauford", "Matthews");
 	}
+
+	@Test
+	void findBySimplePropertyUsingMixedNullNonNullArgument() {
+
+		List<User> result = userRepository.findUserByLastname(null);
+		assertThat(result).isEmpty();
+		result = userRepository.findUserByLastname(carter.getLastname());
+		assertThat(result).containsExactly(carter);
+	}
 }

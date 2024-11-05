@@ -24,6 +24,8 @@ import jakarta.persistence.criteria.Root;
 
 import java.util.List;
 
+import jakarta.persistence.metamodel.Bindable;
+import jakarta.persistence.metamodel.Metamodel;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -77,11 +79,11 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 	}
 
 	@Nullable
-	public JpqlQueryBuilder.Predicate createJpqlPredicate(From<?, ?> from, JpqlQueryBuilder.Entity entity,
+	public JpqlQueryBuilder.Predicate createJpqlPredicate(Bindable<?> from, JpqlQueryBuilder.Entity entity,
 			ParameterFactory factory) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
-		return delegate.createPredicate(position, sort, new JpqlStrategy(from, entity, factory));
+		return delegate.createPredicate(position, sort, new JpqlStrategy(null, from, entity, factory));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -128,22 +130,24 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 
 	private static class JpqlStrategy implements QueryStrategy<JpqlQueryBuilder.Expression, JpqlQueryBuilder.Predicate> {
 
-		private final From<?, ?> from;
+		private final Bindable<?> from;
 		private final JpqlQueryBuilder.Entity entity;
 		private final ParameterFactory factory;
+		private final Metamodel metamodel;
 
-		public JpqlStrategy(From<?, ?> from, JpqlQueryBuilder.Entity entity, ParameterFactory factory) {
+		public JpqlStrategy(Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity, ParameterFactory factory) {
 
 			this.from = from;
 			this.entity = entity;
 			this.factory = factory;
+			this.metamodel  = metamodel;
 		}
 
 		@Override
 		public JpqlQueryBuilder.Expression createExpression(String property) {
 
-			PropertyPath path = PropertyPath.from(property, from.getJavaType());
-			return JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(entity, from, path));
+			PropertyPath path = PropertyPath.from(property, from.getBindableJavaType());
+			return JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(metamodel, entity, from, path));
 		}
 
 		@Override
