@@ -62,7 +62,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final PartTree tree;
 	private final JpaParameters parameters;
 
-	private final QueryPreparer query;
+	private final QueryPreparer queryPreparer;
 	private final QueryPreparer countQuery;
 	private final EntityManager em;
 	private final EscapeCharacter escape;
@@ -102,7 +102,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			this.tree = new PartTree(method.getName(), domainClass);
 			validate(tree, parameters, method.toString());
 			this.countQuery = new CountQueryPreparer();
-			this.query = tree.isCountProjection() ? countQuery : new QueryPreparer();
+			this.queryPreparer = tree.isCountProjection() ? countQuery : new QueryPreparer();
 
 		} catch (Exception o_O) {
 			throw new IllegalArgumentException(
@@ -112,7 +112,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
-		return query.createQuery(accessor);
+		return queryPreparer.createQuery(accessor);
 	}
 
 	@Override
@@ -210,12 +210,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class QueryPreparer {
 
-		private final Map<Sort, JpqlQueryCreator> cache = new LinkedHashMap<Sort, JpqlQueryCreator>() {
-			@Override
-			protected boolean removeEldestEntry(Map.Entry<Sort, JpqlQueryCreator> eldest) {
-				return size() > 256;
-			}
-		};
+		private final PartTreeQueryCache cache = new PartTreeQueryCache();
 
 		/**
 		 * Creates a new {@link Query} for the given parameter values.
@@ -279,7 +274,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		protected JpqlQueryCreator createCreator(Sort sort, JpaParametersParameterAccessor accessor) {
 
 			synchronized (cache) {
-				JpqlQueryCreator jpqlQueryCreator = cache.get(sort);
+				JpqlQueryCreator jpqlQueryCreator = cache.get(sort, accessor); // this caching thingy is broken due to IS NULL rendering for simple properties
 				if (jpqlQueryCreator != null) {
 					return jpqlQueryCreator;
 				}
@@ -304,7 +299,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			synchronized (cache) {
-				cache.put(sort, creator);
+				cache.put(sort, accessor, creator);
 			}
 
 			return creator;

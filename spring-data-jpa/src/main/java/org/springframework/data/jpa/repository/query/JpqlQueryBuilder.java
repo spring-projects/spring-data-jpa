@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_ASC;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DESC;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +33,9 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Predicates;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A Domain-Specific Language to build JPQL queries using Java code.
@@ -189,7 +192,7 @@ public final class JpqlQueryBuilder {
 	}
 
 	/**
-	 * Create a simple expression from a string.
+	 * Create a simple expression from a string as is.
 	 *
 	 * @param expression
 	 * @return
@@ -201,11 +204,19 @@ public final class JpqlQueryBuilder {
 		return new LiteralExpression(expression);
 	}
 
+	public static Expression stringLiteral(String literal) {
+		return new StringLiteralExpression(literal);
+	}
+
 	public static Expression parameter(String parameter) {
 
 		Assert.hasText(parameter, "Parameter must not be empty or null");
 
-		return new ParameterExpression(parameter);
+		return new ParameterExpression(new ParameterPlaceholder(parameter));
+	}
+
+	public static Expression parameter(ParameterPlaceholder placeholder) {
+		return new ParameterExpression(placeholder);
 	}
 
 	public static Expression orderBy(Expression sortExpression, Sort.Order order) {
@@ -279,12 +290,12 @@ public final class JpqlQueryBuilder {
 
 			@Override
 			public Predicate isTrue() {
-				return new LhsPredicate(rhs, "IS TRUE");
+				return new LhsPredicate(rhs, "= TRUE");
 			}
 
 			@Override
 			public Predicate isFalse() {
-				return new LhsPredicate(rhs, "IS FALSE");
+				return new LhsPredicate(rhs, "= FALSE");
 			}
 
 			@Override
@@ -309,7 +320,7 @@ public final class JpqlQueryBuilder {
 
 			@Override
 			public Predicate inMultivalued(Expression value) {
-				return new MemberOfPredicate(rhs, "IN", value);
+				return new MemberOfPredicate(rhs, "IN", value); // TODO: that does not line up in my head - ahahah
 			}
 
 			@Override
@@ -466,6 +477,42 @@ public final class JpqlQueryBuilder {
 		}
 	}
 
+	static PathAndOrigin path(Origin origin, String path) {
+
+		if(origin instanceof Entity entity) {
+
+            try {
+				PropertyPath from = PropertyPath.from(path, ClassUtils.forName(entity.entity, Entity.class.getClassLoader()));
+				return new PathAndOrigin(from, entity, false);
+			} catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+		if(origin instanceof Join join) {
+
+			Origin parent = join.source;
+			List<String> segments = new ArrayList<>();
+			segments.add(join.path);
+			while(!(parent instanceof Entity)) {
+				if(parent instanceof Join pj) {
+					parent = pj.source;
+					segments.add(pj.path);
+				} else {
+					parent = null;
+				}
+			}
+
+			if(parent instanceof Entity entity) {
+				Collections.reverse(segments);
+				segments.add(path);
+				PathAndOrigin path1 = path(parent, StringUtils.collectionToDelimitedString(segments, "."));
+				return new PathAndOrigin(path1.path().getLeafProperty(), origin, false);
+			}
+		}
+		throw new IllegalStateException(" oh no ");
+
+	}
+
 	/**
 	 * Entity selection.
 	 *
@@ -513,7 +560,9 @@ public final class JpqlQueryBuilder {
 
 		@Override
 		public String render(RenderContext context) {
-			return "new %s(%s)".formatted(resultType, multiselect.render(context));
+
+
+			return "new %s(%s)".formatted(resultType, multiselect.render(new ConstructorContext(context)));
 		}
 
 		@Override
@@ -542,7 +591,9 @@ public final class JpqlQueryBuilder {
 				}
 
 				builder.append(PathExpression.render(path, context));
-				builder.append(" ").append(path.path().getSegment());
+				if(!context.isConstructorContext()) {
+					builder.append(" ").append(path.path().getSegment());
+				}
 			}
 
 			return builder.toString();
@@ -583,7 +634,7 @@ public final class JpqlQueryBuilder {
 		 * @param other
 		 * @return a composed predicate combining this and {@code other} using the AND operator.
 		 */
-		default Predicate and(Predicate other) {
+		default Predicate and(Predicate other) { // don't like the structuring of this and the nest() thing
 			return new AndPredicate(this, other);
 		}
 
@@ -799,6 +850,22 @@ public final class JpqlQueryBuilder {
 			String alias = getAlias(source);
 			return ObjectUtils.isEmpty(source) ? fragment : alias + "." + fragment;
 		}
+
+		public boolean isConstructorContext() {
+			return false;
+		}
+	}
+
+	static class ConstructorContext extends RenderContext {
+
+		ConstructorContext(RenderContext rootContext) {
+			super(rootContext.aliases);
+		}
+
+		@Override
+		public boolean isConstructorContext() {
+			return true;
+		}
 	}
 
 	/**
@@ -807,7 +874,7 @@ public final class JpqlQueryBuilder {
 	 */
 	public interface Origin {
 
-		String getName();
+		String getName(); // TODO: mainly used along records - shoule we call this just name()?
 	}
 
 	/**
@@ -1051,11 +1118,28 @@ public final class JpqlQueryBuilder {
 		}
 	}
 
-	record ParameterExpression(String parameter) implements Expression {
+	record StringLiteralExpression(String literal) implements Expression {
 
 		@Override
 		public String render(RenderContext context) {
-			return parameter;
+			return "'%s'".formatted(literal.replaceAll("'", "''"));
+		}
+
+		public String raw() {
+			return literal;
+		}
+
+		@Override
+		public String toString() {
+			return render(RenderContext.EMPTY);
+		}
+	}
+
+	record ParameterExpression(ParameterPlaceholder parameter) implements Expression {
+
+		@Override
+		public String render(RenderContext context) {
+			return parameter.placeholder;
 		}
 
 		@Override
@@ -1158,6 +1242,8 @@ public final class JpqlQueryBuilder {
 
 		@Override
 		public String render(RenderContext context) {
+
+			//TODO: should we rather wrap it with nested or check if its a nested predicate before we call render
 			return "%s %s (%s)".formatted(path.render(context), operator, predicate.render(context));
 		}
 
@@ -1215,5 +1301,22 @@ public final class JpqlQueryBuilder {
 	 */
 	public record PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin) {
 
+	}
+
+	public record ParameterPlaceholder(String placeholder) {
+
+		public ParameterPlaceholder {
+			Assert.hasText(placeholder, "Placeholder must not be null nor empty");
+		}
+
+		public static ParameterPlaceholder indexed(int index) {
+			return new ParameterPlaceholder("?%s".formatted(index));
+		}
+
+		public static ParameterPlaceholder named(String name) {
+
+			Assert.hasText(name, "Placeholder name must not be empty");
+			return new ParameterPlaceholder(":%s".formatted(name));
+		}
 	}
 }

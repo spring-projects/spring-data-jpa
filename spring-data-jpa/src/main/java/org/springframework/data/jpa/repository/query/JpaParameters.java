@@ -63,7 +63,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		super(parametersSource, parameterFactory);
 	}
 
-	private JpaParameters(List<JpaParameter> parameters) {
+	JpaParameters(List<JpaParameter> parameters) {
 		super(parameters);
 	}
 
