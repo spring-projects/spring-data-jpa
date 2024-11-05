@@ -79,7 +79,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(getFrom(), getEntity(), value -> {
 
 			syntheticBindings.add(provider.nextSynthetic(value, scrollPosition));
-			return JpqlQueryBuilder.expression(render(counter.incrementAndGet()));
+			return placeholder(counter.incrementAndGet());
 		});
 		JpqlQueryBuilder.Predicate predicateToUse = getPredicate(predicate, keysetPredicate);
 
