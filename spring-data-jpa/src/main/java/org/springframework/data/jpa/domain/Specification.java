@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -75,6 +77,8 @@ public interface Specification<T> extends Serializable {
 	 * @return the conjunction of the specifications.
 	 * @since 2.0
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default Specification<T> and(Specification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -89,6 +93,8 @@ public interface Specification<T> extends Serializable {
 	 * @return the conjunction of the specifications.
 	 * @since 2.0
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default Specification<T> and(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -103,6 +109,8 @@ public interface Specification<T> extends Serializable {
 	 * @return the disjunction of the specifications
 	 * @since 2.0
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default Specification<T> or(Specification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -117,6 +125,8 @@ public interface Specification<T> extends Serializable {
 	 * @return the disjunction of the specifications
 	 * @since 2.0
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default Specification<T> or(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
