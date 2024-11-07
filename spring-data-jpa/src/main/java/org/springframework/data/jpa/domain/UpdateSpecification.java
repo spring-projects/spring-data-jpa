@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -31,7 +33,7 @@ import org.springframework.util.Assert;
  * Specification in the sense of Domain Driven Design to handle Criteria Updates.
  *
  * @author Mark Paluch
- * @since xxx
+ * @since 4.0
  */
 @FunctionalInterface
 public interface UpdateSpecification<T> extends Serializable {
@@ -103,6 +105,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	 * @param other the other {@link UpdateSpecification}.
 	 * @return the conjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default UpdateSpecification<T> and(UpdateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -116,6 +120,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the conjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default UpdateSpecification<T> and(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -129,6 +135,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	 * @param other the other {@link UpdateSpecification}.
 	 * @return the disjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default UpdateSpecification<T> or(UpdateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -142,6 +150,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the disjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default UpdateSpecification<T> or(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -256,6 +266,8 @@ public interface UpdateSpecification<T> extends Serializable {
 		 * @param other the other {@link UpdateOperation}.
 		 * @return the conjunction of the specifications.
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		default UpdateOperation<T> and(UpdateOperation<T> other) {
 
 			Assert.notNull(other, "Other UpdateOperation must not be null");
@@ -272,6 +284,8 @@ public interface UpdateSpecification<T> extends Serializable {
 		 * @param specification the {@link PredicateSpecification}.
 		 * @return the conjunction of the specifications.
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		default UpdateSpecification<T> where(PredicateSpecification<T> specification) {
 
 			Assert.notNull(specification, "PredicateSpecification must not be null");
@@ -288,6 +302,8 @@ public interface UpdateSpecification<T> extends Serializable {
 		 * @param specification the {@link UpdateSpecification}.
 		 * @return the conjunction of the specifications.
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		default UpdateSpecification<T> where(UpdateSpecification<T> specification) {
 
 			Assert.notNull(specification, "UpdateSpecification must not be null");
@@ -306,6 +322,7 @@ public interface UpdateSpecification<T> extends Serializable {
 		 * @param criteriaBuilder must not be {@literal null}.
 		 */
 		void apply(Root<T> root, CriteriaUpdate<T> update, CriteriaBuilder criteriaBuilder);
+
 	}
 
 }
