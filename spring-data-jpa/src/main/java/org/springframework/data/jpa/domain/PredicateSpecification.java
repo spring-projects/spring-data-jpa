@@ -23,6 +23,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -30,7 +32,7 @@ import org.springframework.util.Assert;
  * Specification in the sense of Domain Driven Design.
  *
  * @author Mark Paluch
- * @since xxx
+ * @since 4.0
  */
 public interface PredicateSpecification<T> extends Serializable {
 
@@ -54,7 +56,7 @@ public interface PredicateSpecification<T> extends Serializable {
 	 */
 	static <T> PredicateSpecification<T> where(PredicateSpecification<T> spec) {
 
-		Assert.notNull(spec, "DeleteSpecification must not be null");
+		Assert.notNull(spec, "PredicateSpecification must not be null");
 
 		return spec;
 	}
@@ -65,6 +67,8 @@ public interface PredicateSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the conjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default PredicateSpecification<T> and(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -78,6 +82,8 @@ public interface PredicateSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the disjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default PredicateSpecification<T> or(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
