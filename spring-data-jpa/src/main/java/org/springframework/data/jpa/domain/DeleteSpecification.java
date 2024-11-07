@@ -24,6 +24,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
@@ -31,7 +33,7 @@ import org.springframework.util.Assert;
  * Specification in the sense of Domain Driven Design to handle Criteria Deletes.
  *
  * @author Mark Paluch
- * @since xxx
+ * @since 4.0
  */
 @FunctionalInterface
 public interface DeleteSpecification<T> extends Serializable {
@@ -81,6 +83,8 @@ public interface DeleteSpecification<T> extends Serializable {
 	 * @param other the other {@link DeleteSpecification}.
 	 * @return the conjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default DeleteSpecification<T> and(DeleteSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -94,6 +98,8 @@ public interface DeleteSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the conjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default DeleteSpecification<T> and(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -107,6 +113,8 @@ public interface DeleteSpecification<T> extends Serializable {
 	 * @param other the other {@link DeleteSpecification}.
 	 * @return the disjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default DeleteSpecification<T> or(DeleteSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");
@@ -120,6 +128,8 @@ public interface DeleteSpecification<T> extends Serializable {
 	 * @param other the other {@link PredicateSpecification}.
 	 * @return the disjunction of the specifications.
 	 */
+	@Contract("_ -> new")
+	@CheckReturnValue
 	default DeleteSpecification<T> or(PredicateSpecification<T> other) {
 
 		Assert.notNull(other, "Other specification must not be null");

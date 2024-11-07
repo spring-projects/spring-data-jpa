@@ -32,6 +32,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -246,7 +247,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
 			 */
-
 			if (Collection.class.isInstance(ids)) {
 				query.setParameter("ids", ids);
 			} else {
@@ -731,8 +731,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass,
-			Pageable pageable) {
+	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Pageable pageable) {
 
 		return getQuery(spec, domainClass, pageable.getSort());
 	}
@@ -1019,7 +1018,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("rawtypes")
 	private static final class ByIdsSpecification<T> implements Specification<T> {
 
-		private static final long serialVersionUID = 1L;
+		private static final @Serial long serialVersionUID = 1L;
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
@@ -1030,6 +1029,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
 
 			Path<?> path = root.get(entityInformation.getIdAttribute());
@@ -1048,7 +1048,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	private static class ExampleSpecification<T> implements Specification<T> {
 
-		private static final long serialVersionUID = 1L;
+		private static final @Serial long serialVersionUID = 1L;
 
 		private final Example<T> example;
 		private final EscapeCharacter escapeCharacter;
