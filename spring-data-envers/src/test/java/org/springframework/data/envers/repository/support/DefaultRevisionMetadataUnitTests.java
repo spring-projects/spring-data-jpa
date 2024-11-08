@@ -31,10 +31,11 @@ import org.junit.jupiter.api.Test;
  * @author Benedikt Ritter
  * @author Jens Schauder
  * @author Mark Paluch
+ * @author Seungjun Choi
  */
 class DefaultRevisionMetadataUnitTests {
 
-	private static final Instant NOW = Instant.now();;
+	private static final Instant NOW = Instant.now();
 
 	@Test // #112
 	void createsLocalDateTimeFromTimestamp() {
