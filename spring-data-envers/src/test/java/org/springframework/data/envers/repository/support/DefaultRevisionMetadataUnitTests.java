@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  */
 class DefaultRevisionMetadataUnitTests {
 
-	private static final Instant NOW = Instant.now();;
+	private static final Instant NOW = Instant.now();
 
 	@Test // #112
 	void createsLocalDateTimeFromTimestamp() {
