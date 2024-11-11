@@ -36,12 +36,12 @@
 		<hibernate-65>6.5.0.CR1</hibernate-65>
 		<hibernate-65-snapshots>6.5.0-SNAPSHOT</hibernate-65-snapshots>
 		<hibernate-66-snapshots>6.6.0-SNAPSHOT</hibernate-66-snapshots>
-		<hsqldb>2.7.1</hsqldb>
-		<h2>2.2.220</h2>
+		<hsqldb>2.7.4</hsqldb>
+		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
 		<jsqlparser>4.5</jsqlparser>
-		<mysql-connector-java>8.0.33</mysql-connector-java>
-		<postgresql>42.6.0</postgresql>
+		<mysql-connector-java>9.1.0</mysql-connector-java>
+		<postgresql>42.7.4</postgresql>
 		<springdata.commons>3.2.12-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
