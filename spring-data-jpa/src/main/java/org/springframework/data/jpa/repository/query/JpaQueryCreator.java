@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Andrey Kovalev
  * @author Greg Turnquist
+ * @author Jinmyeong Kim
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -311,8 +312,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					return expression.isIsNullParameter() ? path.isNull()
 							: builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
 				case NEGATING_SIMPLE_PROPERTY:
-					return builder.notEqual(upperIfIgnoreCase(getTypedPath(root, part)),
-							upperIfIgnoreCase(provider.next(part).getExpression()));
+					ParameterMetadata<Object> negatedExpression = provider.next(part);
+					Expression<Object> negatedPath = getTypedPath(root, part);
+					return negatedExpression.isIsNullParameter() ? negatedPath.isNotNull()
+							: builder.notEqual(upperIfIgnoreCase(negatedPath), upperIfIgnoreCase(negatedExpression.getExpression()));
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
 
