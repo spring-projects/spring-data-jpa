@@ -56,6 +56,7 @@ import org.springframework.util.Assert;
  * @author Moritz Becker
  * @author Andrey Kovalev
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extends Object>, Predicate> {
 
@@ -384,7 +385,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 		}
 
 		private <T> Expression<T> getTypedPath(Root<?> root, Part part) {
-			return toExpressionRecursively(root, part.getProperty());
+			return toExpressionRecursivelyForPredicate(root, part.getProperty());
 		}
 
 		private <T> Expression<T> traversePath(Path<?> root, PropertyPath path) {
