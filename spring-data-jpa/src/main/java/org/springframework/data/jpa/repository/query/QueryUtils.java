@@ -130,7 +130,7 @@ public abstract class QueryUtils {
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
-	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
+	static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
@@ -844,8 +844,7 @@ public abstract class QueryUtils {
 		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
 	}
 
-	@Nullable
-	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
+	static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
 
@@ -974,7 +973,7 @@ public abstract class QueryUtils {
 	 * @return
 	 */
 	@Nullable
-	private static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
+	static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
 
 		if (model instanceof ManagedType<?> managedType) {
 			return managedType;

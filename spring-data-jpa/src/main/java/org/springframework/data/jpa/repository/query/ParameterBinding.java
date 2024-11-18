@@ -242,17 +242,12 @@ class ParameterBinding {
 
 			if (String.class.equals(parameterType) && !noWildcards) {
 
-				switch (type) {
-					case STARTING_WITH:
-						return String.format("%s%%", escape.escape(value.toString()));
-					case ENDING_WITH:
-						return String.format("%%%s", escape.escape(value.toString()));
-					case CONTAINING:
-					case NOT_CONTAINING:
-						return String.format("%%%s%%", escape.escape(value.toString()));
-					default:
-						return value;
-				}
+				return switch (type) {
+					case STARTING_WITH -> String.format("%s%%", escape.escape(value.toString()));
+					case ENDING_WITH -> String.format("%%%s", escape.escape(value.toString()));
+					case CONTAINING, NOT_CONTAINING -> String.format("%%%s%%", escape.escape(value.toString()));
+					default -> value;
+				};
 			}
 
 			return Collection.class.isAssignableFrom(parameterType) //
@@ -710,7 +705,7 @@ class ParameterBinding {
 		boolean isExpression();
 
 		/**
-		 * @return {@code true} if the origin is an expression.
+		 * @return {@code true} if the origin is synthetic (contributed by e.g. KeysetPagination)
 		 */
 		boolean isSynthetic();
 	}
