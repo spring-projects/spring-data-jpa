@@ -15,34 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.ELEMENT_COLLECTION;
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.MANY_TO_MANY;
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.MANY_TO_ONE;
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_MANY;
-import static jakarta.persistence.metamodel.Attribute.PersistentAttributeType.ONE_TO_ONE;
-
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
 import jakarta.persistence.metamodel.Bindable;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.PluralAttribute;
-import jakarta.persistence.metamodel.SingularAttribute;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Member;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
@@ -52,25 +34,12 @@ import org.springframework.util.StringUtils;
  */
 class JpqlUtils {
 
-	private static final Map<PersistentAttributeType, Class<? extends Annotation>> ASSOCIATION_TYPES;
-
-	static {
-		Map<PersistentAttributeType, Class<? extends Annotation>> persistentAttributeTypes = new HashMap<>();
-		persistentAttributeTypes.put(ONE_TO_ONE, OneToOne.class);
-		persistentAttributeTypes.put(ONE_TO_MANY, null);
-		persistentAttributeTypes.put(MANY_TO_ONE, ManyToOne.class);
-		persistentAttributeTypes.put(MANY_TO_MANY, null);
-		persistentAttributeTypes.put(ELEMENT_COLLECTION, null);
-
-		ASSOCIATION_TYPES = Collections.unmodifiableMap(persistentAttributeTypes);
-	}
-
-	static JpqlQueryBuilder.PathAndOrigin toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property) {
 		return toExpressionRecursively(metamodel, source, from, property, false);
 	}
 
-	static JpqlQueryBuilder.PathAndOrigin toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property, boolean isForSelection) {
 		return toExpressionRecursively(metamodel, source, from, property, isForSelection, false);
 	}
@@ -84,16 +53,13 @@ class JpqlUtils {
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
 	 * @return the expression
 	 */
-	@SuppressWarnings("unchecked")
-	static JpqlQueryBuilder.PathAndOrigin toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
 
 		String segment = property.getSegment();
 
 		boolean isLeafProperty = !property.hasNext();
-
-		boolean requiresOuterJoin = requiresOuterJoin(metamodel, source, from, property, isForSelection,
-				hasRequiredOuterJoin);
+		boolean requiresOuterJoin = requiresOuterJoin(metamodel, from, property, isForSelection, hasRequiredOuterJoin);
 
 		// if it does not require an outer join and is a leaf, simply get the segment
 		if (!requiresOuterJoin && isLeafProperty) {
@@ -103,10 +69,7 @@ class JpqlUtils {
 		// get or create the join
 		JpqlQueryBuilder.Join joinSource = requiresOuterJoin ? JpqlQueryBuilder.leftJoin(source, segment)
 				: JpqlQueryBuilder.innerJoin(source, segment);
-//		JoinType joinType = requiresOuterJoin ? JoinType.LEFT : JoinType.INNER;
-//		Join<?, ?> join = QueryUtils.getOrCreateJoin(from, segment, joinType);
 
-//
 		// if it's a leaf, return the join
 		if (isLeafProperty) {
 			return new JpqlQueryBuilder.PathAndOrigin(property, joinSource, true);
@@ -114,11 +77,11 @@ class JpqlUtils {
 
 		PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null");
 
-//		ManagedType<?> managedType = ;
-		Bindable<?> managedTypeForModel = (Bindable<?>) getManagedTypeForModel(from);
-//		Attribute<?, ?> joinAttribute = getModelForPath(metamodel, property, getManagedTypeForModel(from), null);
-		// recurse with the next property
-		return toExpressionRecursively(metamodel, joinSource, managedTypeForModel, nextProperty, isForSelection, requiresOuterJoin);
+		ManagedType<?> managedTypeForModel = QueryUtils.getManagedTypeForModel(from);
+		Attribute<?, ?> nextAttribute = getModelForPath(metamodel, property, managedTypeForModel, from);
+
+		return toExpressionRecursively(metamodel, joinSource, (Bindable<?>) nextAttribute, nextProperty, isForSelection,
+				requiresOuterJoin);
 	}
 
 	/**
@@ -127,17 +90,16 @@ class JpqlUtils {
 	 * ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999)
 	 *
 	 * @param metamodel
-	 * @param source
 	 * @param bindable
 	 * @param propertyPath
 	 * @param isForSelection
 	 * @param hasRequiredOuterJoin
 	 * @return
 	 */
-	static boolean requiresOuterJoin(Metamodel metamodel, JpqlQueryBuilder.Origin source, Bindable<?> bindable,
-			PropertyPath propertyPath, boolean isForSelection, boolean hasRequiredOuterJoin) {
+	static boolean requiresOuterJoin(Metamodel metamodel, Bindable<?> bindable, PropertyPath propertyPath,
+			boolean isForSelection, boolean hasRequiredOuterJoin) {
 
-		ManagedType<?> managedType = getManagedTypeForModel(bindable);
+		ManagedType<?> managedType = QueryUtils.getManagedTypeForModel(bindable);
 		Attribute<?, ?> attribute = getModelForPath(metamodel, propertyPath, managedType, bindable);
 
 		boolean isPluralAttribute = bindable instanceof PluralAttribute;
@@ -145,7 +107,7 @@ class JpqlUtils {
 			return isPluralAttribute;
 		}
 
-		if (!ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
+		if (!QueryUtils.ASSOCIATION_TYPES.containsKey(attribute.getPersistentAttributeType())) {
 			return false;
 		}
 
@@ -155,47 +117,14 @@ class JpqlUtils {
 		// explicit outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712
 		// and https://github.com/eclipse-ee4j/jpa-api/issues/170
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
-				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
+				&& StringUtils.hasText(QueryUtils.getAnnotationProperty(attribute, "mappedBy", ""));
 
 		boolean isLeafProperty = !propertyPath.hasNext();
 		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
 
-		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
-	}
-
-	@Nullable
-	private static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
-
-		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
-
-		if (associationAnnotation == null) {
-			return defaultValue;
-		}
-
-		Member member = attribute.getJavaMember();
-
-		if (!(member instanceof AnnotatedElement annotatedMember)) {
-			return defaultValue;
-		}
-
-		Annotation annotation = AnnotationUtils.getAnnotation(annotatedMember, associationAnnotation);
-		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
-	}
-
-	@Nullable
-	private static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
-
-		if (model instanceof ManagedType<?> managedType) {
-			return managedType;
-		}
-
-		if (!(model instanceof SingularAttribute<?, ?> singularAttribute)) {
-			return null;
-		}
-
-		return singularAttribute.getType() instanceof ManagedType<?> managedType ? managedType : null;
+		return hasRequiredOuterJoin || QueryUtils.getAnnotationProperty(attribute, "optional", true);
 	}
 
 	@Nullable

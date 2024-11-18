@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EntityManager;
@@ -38,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
@@ -52,6 +52,8 @@ import org.springframework.data.util.Lazy;
 import org.springframework.lang.Nullable;
 
 /**
+ * Unit tests for {@link JpaQueryCreator}.
+ *
  * @author Christoph Strobl
  */
 class JpaQueryCreatorTests {
@@ -61,7 +63,7 @@ class JpaQueryCreatorTests {
 
 	static List<JpqlQueryTemplates> ignoreCaseTemplates = List.of(JpqlQueryTemplates.LOWER, JpqlQueryTemplates.UPPER);
 
-	@Test
+	@Test // GH-3588
 	void simpleProperty() {
 
 		queryCreator(ORDER) //
@@ -72,7 +74,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void simpleNullProperty() {
 
 		queryCreator(ORDER) //
@@ -83,7 +85,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void negatingSimpleProperty() {
 
 		queryCreator(ORDER) //
@@ -94,7 +96,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void negatingSimpleNullProperty() {
 
 		queryCreator(ORDER) //
@@ -105,7 +107,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void simpleAnd() {
 
 		queryCreator(ORDER) //
@@ -116,7 +118,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void simpleOr() {
 
 		queryCreator(ORDER) //
@@ -127,7 +129,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void simpleAndOr() {
 
 		queryCreator(ORDER) //
@@ -139,7 +141,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void distinct() {
 
 		queryCreator(ORDER) //
@@ -150,7 +152,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void count() {
 
 		queryCreator(ORDER) //
@@ -162,7 +164,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void countWithJoins() {
 
 		queryCreator(ORDER) //
@@ -174,7 +176,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void countDistinct() {
 
 		queryCreator(ORDER) //
@@ -186,7 +188,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void simplePropertyIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -200,7 +202,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void simplePropertyAllIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -216,7 +218,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void simplePropertyMixedCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -231,7 +233,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void lessThan() {
 
 		queryCreator(ORDER) //
@@ -242,7 +244,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void lessThanEqual() {
 
 		queryCreator(ORDER) //
@@ -253,7 +255,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void greaterThan() {
 
 		queryCreator(ORDER) //
@@ -264,7 +266,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void before() {
 
 		queryCreator(ORDER) //
@@ -275,7 +277,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void after() {
 
 		queryCreator(ORDER) //
@@ -286,7 +288,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void between() {
 
 		queryCreator(ORDER) //
@@ -297,7 +299,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void isNull() {
 
 		queryCreator(ORDER) //
@@ -307,7 +309,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void isNotNull() {
 
 		queryCreator(ORDER) //
@@ -317,7 +319,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@ValueSource(strings = { "", "spring", "%spring", "spring%", "%spring%" })
 	void like(String parameterValue) {
 
@@ -330,7 +332,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void containingString() {
 
 		queryCreator(ORDER) //
@@ -342,7 +344,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void notContainingString() {
 
 		queryCreator(ORDER) //
@@ -354,7 +356,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void in() {
 
 		queryCreator(ORDER) //
@@ -366,7 +368,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void notIn() {
 
 		queryCreator(ORDER) //
@@ -378,7 +380,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void containingSingleEntryElementCollection() {
 
 		queryCreator(ORDER) //
@@ -389,7 +391,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void notContainingSingleEntryElementCollection() {
 
 		queryCreator(ORDER) //
@@ -400,7 +402,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void likeWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -415,7 +417,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@ValueSource(strings = { "", "spring", "%spring", "spring%", "%spring%" })
 	void notLike(String parameterValue) {
 
@@ -428,7 +430,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void notLikeWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -443,7 +445,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void startingWith() {
 
 		queryCreator(ORDER) //
@@ -455,7 +457,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void startingWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -470,7 +472,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void endingWith() {
 
 		queryCreator(ORDER) //
@@ -482,7 +484,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void endingWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
 
@@ -497,7 +499,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void greaterThanEqual() {
 
 		queryCreator(ORDER) //
@@ -508,7 +510,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void isTrue() {
 
 		queryCreator(ORDER) //
@@ -518,7 +520,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void isFalse() {
 
 		queryCreator(ORDER) //
@@ -528,7 +530,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void empty() {
 
 		queryCreator(ORDER) //
@@ -538,7 +540,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void notEmpty() {
 
 		queryCreator(ORDER) //
@@ -548,7 +550,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void sortBySingle() {
 
 		queryCreator(ORDER) //
@@ -559,7 +561,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void sortByMulti() {
 
 		queryCreator(ORDER) //
@@ -571,7 +573,7 @@ class JpaQueryCreatorTests {
 	}
 
 	@Disabled("should we support this?")
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
 	void sortBySingleIngoreCase(JpqlQueryTemplates ingoreCase) {
 
@@ -583,7 +585,7 @@ class JpaQueryCreatorTests {
 				ingoreCase.getIgnoreCaseOperator());
 	}
 
-	@Test
+	@Test // GH-3588
 	void matchSimpleJoin() {
 
 		queryCreator(ORDER) //
@@ -594,19 +596,19 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void matchSimpleNestedJoin() {
 
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByLineItemsProductNameIs") //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o LEFT JOIN o.lineItems l INNER JOIN l.product p WHERE p.name = ?1",
+				.expectJpql("SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE p.name = ?1",
 						Order.class.getName()) //
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void matchMultiOnNestedJoin() {
 
 		queryCreator(ORDER) //
@@ -614,12 +616,12 @@ class JpaQueryCreatorTests {
 				.withParameters(10, "spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT o FROM %s o LEFT JOIN o.lineItems l INNER JOIN l.product p WHERE l.quantity > ?1 AND p.name = ?2",
+						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE l.quantity > ?1 AND p.name = ?2",
 						Order.class.getName()) //
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void matchSameEntityMultipleTimes() {
 
 		queryCreator(ORDER) //
@@ -627,12 +629,12 @@ class JpaQueryCreatorTests {
 				.withParameters("spring", "sukrauq") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT o FROM %s o LEFT JOIN o.lineItems l INNER JOIN l.product p WHERE p.name = ?1 AND p.name != ?2",
+						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE p.name = ?1 AND p.name != ?2",
 						Order.class.getName()) //
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void matchSameEntityMultipleTimesViaDifferentProperties() {
 
 		queryCreator(ORDER) //
@@ -640,12 +642,12 @@ class JpaQueryCreatorTests {
 				.withParameters(10, "spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT o FROM %s o LEFT JOIN o.lineItems l INNER JOIN l.product p INNER JOIN l.product2 join_0 WHERE p.name = ?1 AND join_0.name = ?2",
+						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p LEFT JOIN l.product2 join_0 WHERE p.name = ?1 AND join_0.name = ?2",
 						Order.class.getName()) //
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void dtoProjection() {
 
 		queryCreator(ORDER) //
@@ -658,7 +660,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void interfaceProjection() {
 
 		queryCreator(ORDER) //
@@ -671,7 +673,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@ValueSource(classes = { Tuple.class, Map.class })
 	void tupleProjection(Class<?> resultType) {
 
@@ -685,7 +687,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest // GH-3588
 	@ValueSource(classes = { Long.class, List.class, Person.class })
 	void delete(Class<?> resultType) {
 
@@ -698,7 +700,7 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
+	@Test // GH-3588
 	void exists() {
 
 		queryCreator(PERSON) //
