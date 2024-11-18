@@ -15,10 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.repository.query.parser.Part.Type.IS_NOT_EMPTY;
-import static org.springframework.data.repository.query.parser.Part.Type.NOT_CONTAINING;
-import static org.springframework.data.repository.query.parser.Part.Type.NOT_LIKE;
-import static org.springframework.data.repository.query.parser.Part.Type.SIMPLE_PROPERTY;
+import static org.springframework.data.repository.query.parser.Part.Type.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -39,7 +36,6 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.PathAndOrigin;
 import org.springframework.data.jpa.repository.query.ParameterBinding.PartTreeParameterBinding;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.mapping.PropertyPath;
@@ -182,8 +178,8 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 			QueryUtils.checkSortExpression(order);
 
 			try {
-				expression = JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
-						PropertyPath.from(order.getProperty(), entityType.getJavaType())));
+				expression = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+						PropertyPath.from(order.getProperty(), entityType.getJavaType()));
 			} catch (PropertyReferenceException e) {
 
 				if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
@@ -226,7 +222,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 				requiredSelection = getRequiredSelection(sort, returnedType);
 			}
 
-			List<PathAndOrigin> paths = new ArrayList<>(requiredSelection.size());
+			List<JpqlQueryBuilder.PathExpression> paths = new ArrayList<>(requiredSelection.size());
 			for (String selection : requiredSelection) {
 				paths.add(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
 						PropertyPath.from(selection, returnedType.getDomainType()), true));
@@ -250,7 +246,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 
 			} else {
 
-				List<PathAndOrigin> paths = entityType.getIdClassAttributes().stream()//
+				List<JpqlQueryBuilder.PathExpression> paths = entityType.getIdClassAttributes().stream()//
 						.map(it -> JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
 								PropertyPath.from(it.getName(), returnedType.getDomainType()), true))
 						.toList();
@@ -319,7 +315,7 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 			PropertyPath property = part.getProperty();
 			Type type = part.getType();
 
-			PathAndOrigin pas = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType, property);
+			JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType, property);
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(pas);
 			JpqlQueryBuilder.WhereStep whereIgnoreCase = JpqlQueryBuilder.where(potentiallyIgnoreCase(pas));
 
@@ -419,8 +415,8 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 		 * @param path must not be {@literal null}.
 		 * @return
 		 */
-		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(PathAndOrigin path) {
-			return potentiallyIgnoreCase(path.path(), JpqlQueryBuilder.expression(path));
+		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.PathExpression path) {
+			return potentiallyIgnoreCase(path.getPropertyPath(), path);
 		}
 
 		/**
