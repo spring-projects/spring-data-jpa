@@ -21,11 +21,11 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.Bindable;
+import jakarta.persistence.metamodel.Metamodel;
 
 import java.util.List;
 
-import jakarta.persistence.metamodel.Bindable;
-import jakarta.persistence.metamodel.Metamodel;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -147,7 +147,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		public JpqlQueryBuilder.Expression createExpression(String property) {
 
 			PropertyPath path = PropertyPath.from(property, from.getBindableJavaType());
-			return JpqlQueryBuilder.expression(JpqlUtils.toExpressionRecursively(metamodel, entity, from, path));
+			return JpqlUtils.toExpressionRecursively(metamodel, entity, from, path);
 		}
 
 		@Override

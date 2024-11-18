@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_ASC;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DESC;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.springframework.data.domain.Sort;
@@ -121,12 +121,12 @@ public final class JpqlQueryBuilder {
 			}
 
 			@Override
-			public Select instantiate(String resultType, Collection<PathAndOrigin> paths) {
+			public Select instantiate(String resultType, Collection<JpqlQueryBuilder.PathExpression> paths) {
 				return new Select(postProcess(new ConstructorExpression(resultType, new Multiselect(from, paths))), from);
 			}
 
 			@Override
-			public Select select(Collection<PathAndOrigin> paths) {
+			public Select select(Collection<JpqlQueryBuilder.PathExpression> paths) {
 				return new Select(postProcess(new Multiselect(from, paths)), from);
 			}
 
@@ -177,22 +177,11 @@ public final class JpqlQueryBuilder {
 	 * @return
 	 */
 	public static Expression expression(Origin source, PropertyPath path) {
-		return expression(new PathAndOrigin(path, source, false));
+		return new PathAndOrigin(path, source, false);
 	}
 
 	/**
-	 * Create a qualified expression for a {@link PropertyPath}.
-	 *
-	 * @param source
-	 * @param path
-	 * @return
-	 */
-	public static Expression expression(PathAndOrigin pas) {
-		return new PathExpression(pas);
-	}
-
-	/**
-	 * Create a simple expression from a string as is.
+	 * Create a simple expression from a string as-is.
 	 *
 	 * @param expression
 	 * @return
@@ -204,10 +193,32 @@ public final class JpqlQueryBuilder {
 		return new LiteralExpression(expression);
 	}
 
-	public static Expression stringLiteral(String literal) {
+	/**
+	 * Create a simple numeric literal.
+	 *
+	 * @param literal
+	 * @return
+	 */
+	public static Expression literal(Number literal) {
+		return new LiteralExpression(literal.toString());
+	}
+
+	/**
+	 * Create a simple literal from a string by quoting it.
+	 *
+	 * @param literal
+	 * @return
+	 */
+	public static Expression literal(String literal) {
 		return new StringLiteralExpression(literal);
 	}
 
+	/**
+	 * A parameter placeholder.
+	 *
+	 * @param parameter
+	 * @return
+	 */
 	public static Expression parameter(String parameter) {
 
 		Assert.hasText(parameter, "Parameter must not be empty or null");
@@ -215,10 +226,23 @@ public final class JpqlQueryBuilder {
 		return new ParameterExpression(new ParameterPlaceholder(parameter));
 	}
 
+	/**
+	 * A parameter placeholder.
+	 *
+	 * @param placeholder the placeholder to use.
+	 * @return
+	 */
 	public static Expression parameter(ParameterPlaceholder placeholder) {
 		return new ParameterExpression(placeholder);
 	}
 
+	/**
+	 * Create a new ordering expression.
+	 *
+	 * @param sortExpression
+	 * @param order
+	 * @return
+	 */
 	public static Expression orderBy(Expression sortExpression, Sort.Order order) {
 		return new OrderExpression(sortExpression, order);
 	}
@@ -232,16 +256,6 @@ public final class JpqlQueryBuilder {
 	 */
 	public static WhereStep where(Origin source, PropertyPath path) {
 		return where(expression(source, path));
-	}
-
-	/**
-	 * Start building a {@link Predicate WHERE predicate} by providing the right-hand side.
-	 *
-	 * @param rhs
-	 * @return
-	 */
-	public static WhereStep where(PathAndOrigin rhs) {
-		return where(expression(rhs));
 	}
 
 	/**
@@ -316,16 +330,6 @@ public final class JpqlQueryBuilder {
 			@Override
 			public Predicate notIn(Expression value) {
 				return new InPredicate(rhs, "NOT IN", value);
-			}
-
-			@Override
-			public Predicate inMultivalued(Expression value) {
-				return new MemberOfPredicate(rhs, "IN", value); // TODO: that does not line up in my head - ahahah
-			}
-
-			@Override
-			public Predicate notInMultivalued(Expression value) {
-				return new MemberOfPredicate(rhs, "NOT IN", value);
 			}
 
 			@Override
@@ -422,7 +426,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
-		default Select instantiate(Class<?> resultType, Collection<PathAndOrigin> paths) {
+		default Select instantiate(Class<?> resultType, Collection<JpqlQueryBuilder.PathExpression> paths) {
 			return instantiate(resultType.getName(), paths);
 		}
 
@@ -433,7 +437,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
-		Select instantiate(String resultType, Collection<PathAndOrigin> paths);
+		Select instantiate(String resultType, Collection<JpqlQueryBuilder.PathExpression> paths);
 
 		/**
 		 * Specify a multi-select.
@@ -441,7 +445,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
-		Select select(Collection<PathAndOrigin> paths);
+		Select select(Collection<JpqlQueryBuilder.PathExpression> paths);
 
 		/**
 		 * Select a single attribute.
@@ -449,7 +453,7 @@ public final class JpqlQueryBuilder {
 		 * @param name
 		 * @return
 		 */
-		default Select select(PathAndOrigin path) {
+		default Select select(JpqlQueryBuilder.PathExpression path) {
 			return select(List.of(path));
 		}
 
@@ -479,22 +483,22 @@ public final class JpqlQueryBuilder {
 
 	static PathAndOrigin path(Origin origin, String path) {
 
-		if(origin instanceof Entity entity) {
+		if (origin instanceof Entity entity) {
 
-            try {
+			try {
 				PropertyPath from = PropertyPath.from(path, ClassUtils.forName(entity.entity, Entity.class.getClassLoader()));
 				return new PathAndOrigin(from, entity, false);
 			} catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-		if(origin instanceof Join join) {
+				throw new RuntimeException(e);
+			}
+		}
+		if (origin instanceof Join join) {
 
 			Origin parent = join.source;
 			List<String> segments = new ArrayList<>();
 			segments.add(join.path);
-			while(!(parent instanceof Entity)) {
-				if(parent instanceof Join pj) {
+			while (!(parent instanceof Entity)) {
+				if (parent instanceof Join pj) {
 					parent = pj.source;
 					segments.add(pj.path);
 				} else {
@@ -502,7 +506,7 @@ public final class JpqlQueryBuilder {
 				}
 			}
 
-			if(parent instanceof Entity entity) {
+			if (parent instanceof Entity) {
 				Collections.reverse(segments);
 				segments.add(path);
 				PathAndOrigin path1 = path(parent, StringUtils.collectionToDelimitedString(segments, "."));
@@ -561,7 +565,6 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String render(RenderContext context) {
 
-
 			return "new %s(%s)".formatted(resultType, multiselect.render(new ConstructorContext(context)));
 		}
 
@@ -577,22 +580,22 @@ public final class JpqlQueryBuilder {
 	 * @param source
 	 * @param paths
 	 */
-	record Multiselect(Origin source, Collection<PathAndOrigin> paths) implements Selection {
+	record Multiselect(Origin source, Collection<JpqlQueryBuilder.PathExpression> paths) implements Selection {
 
 		@Override
 		public String render(RenderContext context) {
 
 			StringBuilder builder = new StringBuilder();
 
-			for (PathAndOrigin path : paths) {
+			for (PathExpression path : paths) {
 
 				if (!builder.isEmpty()) {
 					builder.append(", ");
 				}
 
-				builder.append(PathExpression.render(path, context));
-				if(!context.isConstructorContext()) {
-					builder.append(" ").append(path.path().getSegment());
+				builder.append(path.render(context));
+				if (!context.isConstructorContext()) {
+					builder.append(" ").append(path.getPropertyPath().getSegment());
 				}
 			}
 
@@ -663,6 +666,18 @@ public final class JpqlQueryBuilder {
 	}
 
 	/**
+	 * Extension to {@link Expression} that contains a {@link PropertyPath}. Typically used to represent a selection
+	 * expression or an expression used within sorting or {@code WHERE} clauses.
+	 */
+	public interface PathExpression extends Expression {
+
+		/**
+		 * @return the associated {@link PropertyPath}.
+		 */
+		PropertyPath getPropertyPath();
+	}
+
+	/**
 	 * {@code SELECT} statement.
 	 */
 	public static class Select extends AbstractJpqlQuery {
@@ -718,7 +733,7 @@ public final class JpqlQueryBuilder {
 			StringBuilder where = new StringBuilder();
 			StringBuilder orderby = new StringBuilder();
 			StringBuilder result = new StringBuilder(
-					"SELECT %s FROM %s %s".formatted(selection.render(renderContext), entity.entity(), entity.alias()));
+					"SELECT %s FROM %s %s".formatted(selection.render(renderContext), entity.getEntity(), entity.getAlias()));
 
 			if (getWhere() != null) {
 				where.append(" WHERE ").append(getWhere().render(renderContext));
@@ -874,32 +889,100 @@ public final class JpqlQueryBuilder {
 	 */
 	public interface Origin {
 
-		String getName(); // TODO: mainly used along records - shoule we call this just name()?
+		/**
+		 * Returns the simple name of the origin (e.g. {@link Class#getSimpleName()} or JOIN path name).
+		 *
+		 * @return the simple name of the origin (e.g. {@link Class#getSimpleName()})
+		 */
+		String getName();
+	}
+
+	/**
+	 * An origin that is used to select data from. selection origins are used with paths to define where a path is
+	 * anchored.
+	 */
+	public interface Bindable {
+
+		boolean isRoot();
 	}
 
 	/**
 	 * The root entity.
-	 *
-	 * @param entity
-	 * @param simpleName
-	 * @param alias
 	 */
-	public record Entity(String entity, String simpleName, String alias) implements Origin {
+	public static final class Entity implements Origin {
+
+		private final String entity;
+		private final String simpleName;
+		private final String alias;
+
+		/**
+		 * @param entity fully-qualified entity name.
+		 * @param simpleName simple class name.
+		 * @param alias alias to use.
+		 */
+		Entity(String entity, String simpleName, String alias) {
+			this.entity = entity;
+			this.simpleName = simpleName;
+			this.alias = alias;
+		}
+
+		public String getEntity() {
+			return entity;
+		}
 
 		@Override
 		public String getName() {
 			return simpleName;
 		}
+
+		public String getAlias() {
+			return alias;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (obj == null || obj.getClass() != this.getClass()) {
+				return false;
+			}
+			var that = (Entity) obj;
+			return Objects.equals(this.entity, that.entity) && Objects.equals(this.simpleName, that.simpleName)
+					&& Objects.equals(this.alias, that.alias);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(entity, simpleName, alias);
+		}
+
+		@Override
+		public String toString() {
+			return "Entity[" + "entity=" + entity + ", " + "simpleName=" + simpleName + ", " + "alias=" + alias + ']';
+		}
+
 	}
 
 	/**
 	 * A joined entity or element collection.
-	 *
-	 * @param source
-	 * @param joinType
-	 * @param path
 	 */
-	public record Join(Origin source, String joinType, String path) implements Origin, Expression {
+	public static final class Join implements Origin, Expression {
+
+		private final Origin source;
+		private final String joinType;
+		private final String path;
+
+		/**
+		 * @param source
+		 * @param joinType
+		 * @param path
+		 */
+		Join(Origin source, String joinType, String path) {
+			this.source = source;
+			this.joinType = joinType;
+			this.path = path;
+		}
 
 		@Override
 		public String getName() {
@@ -908,25 +991,50 @@ public final class JpqlQueryBuilder {
 
 		@Override
 		public String render(RenderContext context) {
-			return "";
+			return "%s %s %s".formatted(joinType, context.getAlias(source), path);
 		}
+
+		public Origin source() {
+			return source;
+		}
+
+		public String joinType() {
+			return joinType;
+		}
+
+		public String path() {
+			return path;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (obj == null || obj.getClass() != this.getClass()) {
+				return false;
+			}
+			var that = (Join) obj;
+			return Objects.equals(this.source, that.source) && Objects.equals(this.joinType, that.joinType)
+					&& Objects.equals(this.path, that.path);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(source, joinType, path);
+		}
+
+		@Override
+		public String toString() {
+			return "Join[" + "source=" + source + ", " + "joinType=" + joinType + ", " + "path=" + path + ']';
+		}
+
 	}
 
 	/**
 	 * Fluent interface to build a {@link Predicate}.
 	 */
 	public interface WhereStep {
-
-		/**
-		 * Create a {@code BETWEEN … AND …} predicate.
-		 *
-		 * @param lower lower boundary.
-		 * @param upper upper boundary.
-		 * @return
-		 */
-		default Predicate between(String lower, String upper) {
-			return between(expression(lower), expression(upper));
-		}
 
 		/**
 		 * Create a {@code BETWEEN … AND …} predicate.
@@ -943,27 +1051,7 @@ public final class JpqlQueryBuilder {
 		 * @param value the comparison value.
 		 * @return
 		 */
-		default Predicate gt(String value) {
-			return gt(expression(value));
-		}
-
-		/**
-		 * Create a greater {@code > …} predicate.
-		 *
-		 * @param value the comparison value.
-		 * @return
-		 */
 		Predicate gt(Expression value);
-
-		/**
-		 * Create a greater-or-equals {@code >= …} predicate.
-		 *
-		 * @param value the comparison value.
-		 * @return
-		 */
-		default Predicate gte(String value) {
-			return gte(expression(value));
-		}
 
 		/**
 		 * Create a greater-or-equals {@code >= …} predicate.
@@ -979,27 +1067,7 @@ public final class JpqlQueryBuilder {
 		 * @param value the comparison value.
 		 * @return
 		 */
-		default Predicate lt(String value) {
-			return lt(expression(value));
-		}
-
-		/**
-		 * Create a less {@code < …} predicate.
-		 *
-		 * @param value the comparison value.
-		 * @return
-		 */
 		Predicate lt(Expression value);
-
-		/**
-		 * Create a less-or-equals {@code <= …} predicate.
-		 *
-		 * @param value the comparison value.
-		 * @return
-		 */
-		default Predicate lte(String value) {
-			return lte(expression(value));
-		}
 
 		/**
 		 * Create a less-or-equals {@code <= …} predicate.
@@ -1009,100 +1077,115 @@ public final class JpqlQueryBuilder {
 		 */
 		Predicate lte(Expression value);
 
+		/**
+		 * Create a {@code IS NULL} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isNull();
 
+		/**
+		 * Create a {@code IS NOT NULL} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isNotNull();
 
+		/**
+		 * Create a {@code IS TRUE} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isTrue();
 
+		/**
+		 * Create a {@code IS FALSE} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isFalse();
 
+		/**
+		 * Create a {@code IS EMPTY} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isEmpty();
 
+		/**
+		 * Create a {@code IS NOT EMPTY} predicate.
+		 *
+		 * @return
+		 */
 		Predicate isNotEmpty();
 
-		default Predicate in(String value) {
-			return in(expression(value));
-		}
-
+		/**
+		 * Create a {@code IN} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate in(Expression value);
 
-		default Predicate notIn(String value) {
-			return notIn(expression(value));
-		}
-
+		/**
+		 * Create a {@code NOT IN} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate notIn(Expression value);
 
-		default Predicate inMultivalued(String value) {
-			return inMultivalued(expression(value));
-		}
-
-		Predicate inMultivalued(Expression value);
-
-		default Predicate notInMultivalued(String value) {
-			return notInMultivalued(expression(value));
-		}
-
-		Predicate notInMultivalued(Expression value);
-
-		default Predicate memberOf(String value) {
-			return memberOf(expression(value));
-		}
-
+		/**
+		 * Create a {@code MEMBER OF &lt;collection&gt;} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate memberOf(Expression value);
 
-		default Predicate notMemberOf(String value) {
-			return notMemberOf(expression(value));
-		}
-
+		/**
+		 * Create a {@code NOT MEMBER OF &lt;collection&gt;} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate notMemberOf(Expression value);
 
 		default Predicate like(String value, String escape) {
 			return like(expression(value), escape);
 		}
 
+		/**
+		 * Create a {@code LIKE … ESCAPE} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate like(Expression value, String escape);
 
-		default Predicate notLike(String value, String escape) {
-			return notLike(expression(value), escape);
-		}
-
+		/**
+		 * Create a {@code NOT LIKE … ESCAPE} predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate notLike(Expression value, String escape);
 
-		default Predicate eq(String value) {
-			return eq(expression(value));
-		}
-
+		/**
+		 * Create a {@code =} (equals) predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate eq(Expression value);
 
-		default Predicate neq(String value) {
-			return neq(expression(value));
-		}
-
+		/**
+		 * Create a {@code &lt;&gt;} (not equals) predicate.
+		 *
+		 * @param value
+		 * @return
+		 */
 		Predicate neq(Expression value);
-	}
-
-	record PathExpression(PathAndOrigin pas) implements Expression {
-
-		@Override
-		public String render(RenderContext context) {
-			return render(pas, context);
-
-		}
-
-		public static String render(PathAndOrigin pas, RenderContext context) {
-
-			if (pas.path().hasNext() || !pas.onTheJoin()) {
-				return context.prefixWithAlias(pas.origin(), pas.path().toDotPath());
-			} else {
-				return context.getAlias(pas.origin());
-			}
-		}
-
-		@Override
-		public String toString() {
-			return render(RenderContext.EMPTY);
-		}
 	}
 
 	record LiteralExpression(String expression) implements Expression {
@@ -1243,7 +1326,7 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String render(RenderContext context) {
 
-			//TODO: should we rather wrap it with nested or check if its a nested predicate before we call render
+			// TODO: should we rather wrap it with nested or check if its a nested predicate before we call render
 			return "%s %s (%s)".formatted(path.render(context), operator, predicate.render(context));
 		}
 
@@ -1299,20 +1382,51 @@ public final class JpqlQueryBuilder {
 	 * @param origin
 	 * @param onTheJoin whether the path should target the join itself instead of matching {@link PropertyPath}.
 	 */
-	public record PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin) {
+	record PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin) implements PathExpression {
 
+		@Override
+		public PropertyPath getPropertyPath() {
+			return path;
+		}
+
+		@Override
+		public String render(RenderContext context) {
+
+			if (path().hasNext() || !onTheJoin()) {
+				return context.prefixWithAlias(origin(), path().toDotPath());
+			} else {
+				return context.getAlias(origin());
+			}
+		}
 	}
 
+	/**
+	 * Value object capturing parameter placeholder.
+	 *
+	 * @param placeholder
+	 */
 	public record ParameterPlaceholder(String placeholder) {
 
 		public ParameterPlaceholder {
 			Assert.hasText(placeholder, "Placeholder must not be null nor empty");
 		}
 
+		/**
+		 * Factory method to create a parameter placeholder using a parameter {@code index}.
+		 *
+		 * @param index the parameter index.
+		 * @return an indexed parameter placeholder.
+		 */
 		public static ParameterPlaceholder indexed(int index) {
 			return new ParameterPlaceholder("?%s".formatted(index));
 		}
 
+		/**
+		 * Factory method to create a parameter placeholder using a parameter {@code name}.
+		 *
+		 * @param name the parameter name.
+		 * @return a named parameter placeholder.
+		 */
 		public static ParameterPlaceholder named(String name) {
 
 			Assert.hasText(name, "Placeholder name must not be empty");
