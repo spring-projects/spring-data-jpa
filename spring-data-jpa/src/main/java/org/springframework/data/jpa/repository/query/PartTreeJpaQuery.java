@@ -22,9 +22,10 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaQuery;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
@@ -57,6 +58,7 @@ import org.springframework.util.Assert;
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
+	private static final Logger log = LoggerFactory.getLogger(PartTreeJpaQuery.class);
 	private final JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
 
 	private final PartTree tree;
@@ -201,7 +203,6 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		return type == Type.IN || type == Type.NOT_IN;
 	}
 
-
 	/**
 	 * Query preparer to create {@link CriteriaQuery} instances and potentially cache them.
 	 *
@@ -221,6 +222,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			JpqlQueryCreator creator = createCreator(sort, accessor);
 			String jpql = creator.createQuery(sort);
 			Query query;
+
+			if (log.isDebugEnabled()) {
+				log.debug(String.format("%s: Derived query for query method [%s]: '%s'", getClass().getSimpleName(),
+						getQueryMethod(), jpql));
+			}
 
 			try {
 				query = creator.useTupleQuery() ? em.createQuery(jpql, Tuple.class) : em.createQuery(jpql);
@@ -273,11 +279,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		protected JpqlQueryCreator createCreator(Sort sort, JpaParametersParameterAccessor accessor) {
 
+			JpqlQueryCreator jpqlQueryCreator;
 			synchronized (cache) {
-				JpqlQueryCreator jpqlQueryCreator = cache.get(sort, accessor); // this caching thingy is broken due to IS NULL rendering for simple properties
-				if (jpqlQueryCreator != null) {
-					return jpqlQueryCreator;
-				}
+				jpqlQueryCreator = cache.get(sort, accessor); // this caching thingy is broken due to IS NULL rendering for
+																											// simple properties
+			}
+
+			if (jpqlQueryCreator != null) {
+				return jpqlQueryCreator;
 			}
 
 			EntityManager entityManager = getEntityManager();

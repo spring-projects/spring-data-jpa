@@ -48,24 +48,26 @@ import org.springframework.test.util.ReflectionTestUtils;
 class ParameterMetadataProviderIntegrationTests {
 
 	@PersistenceContext EntityManager em;
-	/*  TODO
+
 	@Test // DATAJPA-758
-	void forwardsParameterNameIfTransparentlyNamed() throws Exception {
+	void usesIndexedParametersForExplicityNamedParameters() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByFirstname", String.class));
-		ParameterMetadata<Object> metadata = provider.next(new Part("firstname", User.class));
+		ParameterBinding.PartTreeParameterBinding metadata = provider.next(new Part("firstname", User.class));
 
-		assertThat(metadata.getName()).isEqualTo("name");
+		assertThat(metadata.getName()).isNull();
+		assertThat(metadata.getPosition()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-758
-	void forwardsParameterNameIfExplicitlyAnnotated() throws Exception {
+	void usesIndexedParameters() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByLastname", String.class));
-		ParameterMetadata<Object> metadata = provider.next(new Part("lastname", User.class));
+		ParameterBinding.PartTreeParameterBinding metadata = provider.next(new Part("lastname", User.class));
 
-		assertThat(metadata.getExpression().getName()).isNull();
-	} */
+		assertThat(metadata.getName()).isNull();
+		assertThat(metadata.getPosition()).isEqualTo(1);
+	}
 
 	@Test // DATAJPA-772
 	void doesNotApplyLikeExpansionOnNonStringProperties() throws Exception {

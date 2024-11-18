@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.jpa.repository.query.JpqlQueryBuilder.*;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -28,26 +28,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.AbstractJpqlQuery;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.Entity;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.Expression;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.Join;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.OrderExpression;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.Origin;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.PathAndOrigin;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.Predicate;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.RenderContext;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.SelectStep;
-import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.WhereStep;
 
 /**
+ * Unit tests for {@link JpqlQueryBuilder}.
+ *
  * @author Christoph Strobl
  */
 class JpqlQueryBuilderUnitTests {
 
-	@Test
+	@Test // GH-3588
 	void placeholdersRenderCorrectly() {
 
 		assertThat(JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(1)).render(RenderContext.EMPTY)).isEqualTo("?1");
@@ -56,89 +45,88 @@ class JpqlQueryBuilderUnitTests {
 		assertThat(JpqlQueryBuilder.parameter("?1").render(RenderContext.EMPTY)).isEqualTo("?1");
 	}
 
-	@Test
-	void placeholdersErrorOnInvaludInput() {
+	@Test // GH-3588
+	void placeholdersErrorOnInvalidInput() {
 		assertThatExceptionOfType(IllegalArgumentException.class)
 				.isThrownBy(() -> JpqlQueryBuilder.parameter((String) null));
 		assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> JpqlQueryBuilder.parameter(""));
 	}
 
-	@Test
+	@Test // GH-3588
 	void stringLiteralRendersAsQuotedString() {
 
-		assertThat(JpqlQueryBuilder.stringLiteral("literal").render(RenderContext.EMPTY)).isEqualTo("'literal'");
+		assertThat(literal("literal").render(RenderContext.EMPTY)).isEqualTo("'literal'");
 
 		/* JPA Spec - 4.6.1 Literals:
 		   > A string literal that includes a single quote is represented by two single quotes--for example: 'literal''s'. */
-		assertThat(JpqlQueryBuilder.stringLiteral("literal's").render(RenderContext.EMPTY)).isEqualTo("'literal''s'");
+		assertThat(literal("literal's").render(RenderContext.EMPTY)).isEqualTo("'literal''s'");
 	}
 
-	@Test
+	@Test // GH-3588
 	void entity() {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
-		assertThat(entity.alias()).isEqualTo("o");
-		assertThat(entity.entity()).isEqualTo(Order.class.getName());
-		assertThat(entity.getName()).isEqualTo(Order.class.getSimpleName()); // TODO: this really confusing
-		assertThat(entity.simpleName()).isEqualTo(Order.class.getSimpleName());
+		assertThat(entity.getAlias()).isEqualTo("o");
+		assertThat(entity.getEntity()).isEqualTo(Order.class.getName());
+		assertThat(entity.getName()).isEqualTo(Order.class.getSimpleName());
 	}
 
-	@Test
+	@Test // GH-3588
 	void literalExpressionRendersAsIs() {
-		Expression expression = JpqlQueryBuilder.expression("CONCAT(person.lastName, ‘, ’, person.firstName))");
+		Expression expression = expression("CONCAT(person.lastName, ‘, ’, person.firstName))");
 		assertThat(expression.render(RenderContext.EMPTY)).isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName))");
 	}
 
-	@Test
+	@Test // GH-3588
 	void xxx() {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 		PathAndOrigin orderDate = JpqlQueryBuilder.path(entity, "date");
 
-		String fragment = JpqlQueryBuilder.where(orderDate).eq("{d '2024-11-05'}").render(ctx(entity));
+		String fragment = JpqlQueryBuilder.where(orderDate).eq(expression("{d '2024-11-05'}")).render(ctx(entity));
 
 		assertThat(fragment).isEqualTo("o.date = {d '2024-11-05'}");
-
-		// JpqlQueryBuilder.where(PathAndOrigin)
 	}
 
-	@Test
+	@Test // GH-3588
 	void predicateRendering() {
-
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
+		RenderContext context = ctx(entity);
 
-		assertThat(where.between("'AT'", "'DE'").render(ctx(entity))).isEqualTo("o.country BETWEEN 'AT' AND 'DE'");
-		assertThat(where.eq("'AT'").render(ctx(entity))).isEqualTo("o.country = 'AT'");
-		assertThat(where.eq(JpqlQueryBuilder.stringLiteral("AT")).render(ctx(entity))).isEqualTo("o.country = 'AT'");
-		assertThat(where.gt("'AT'").render(ctx(entity))).isEqualTo("o.country > 'AT'");
-		assertThat(where.gte("'AT'").render(ctx(entity))).isEqualTo("o.country >= 'AT'");
+		assertThat(where.between(expression("'AT'"), expression("'DE'")).render(context))
+				.isEqualTo("o.country BETWEEN 'AT' AND 'DE'");
+		assertThat(where.eq(expression("'AT'")).render(context)).isEqualTo("o.country = 'AT'");
+		assertThat(where.eq(literal("AT")).render(context)).isEqualTo("o.country = 'AT'");
+		assertThat(where.gt(expression("'AT'")).render(context)).isEqualTo("o.country > 'AT'");
+		assertThat(where.gte(expression("'AT'")).render(context)).isEqualTo("o.country >= 'AT'");
+
 		// TODO: that is really really bad
 		// lange namen
-		assertThat(where.in("'AT', 'DE'").render(ctx(entity))).isEqualTo("o.country IN ('AT', 'DE')");
+		assertThat(where.in(expression("'AT', 'DE'")).render(context)).isEqualTo("o.country IN ('AT', 'DE')");
 
 		// 1 in age - cleanup what is not used - remove everything eles
 		// assertThat(where.inMultivalued("'AT', 'DE'").render(ctx(entity))).isEqualTo("o.country IN ('AT', 'DE')"); //
-		assertThat(where.isEmpty().render(ctx(entity))).isEqualTo("o.country IS EMPTY");
-		assertThat(where.isNotEmpty().render(ctx(entity))).isEqualTo("o.country IS NOT EMPTY");
-		assertThat(where.isTrue().render(ctx(entity))).isEqualTo("o.country = TRUE");
-		assertThat(where.isFalse().render(ctx(entity))).isEqualTo("o.country = FALSE");
-		assertThat(where.isNull().render(ctx(entity))).isEqualTo("o.country IS NULL");
-		assertThat(where.isNotNull().render(ctx(entity))).isEqualTo("o.country IS NOT NULL");
-		assertThat(where.like("'\\_%'", "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(ctx(entity)))
+		assertThat(where.isEmpty().render(context)).isEqualTo("o.country IS EMPTY");
+		assertThat(where.isNotEmpty().render(context)).isEqualTo("o.country IS NOT EMPTY");
+		assertThat(where.isTrue().render(context)).isEqualTo("o.country = TRUE");
+		assertThat(where.isFalse().render(context)).isEqualTo("o.country = FALSE");
+		assertThat(where.isNull().render(context)).isEqualTo("o.country IS NULL");
+		assertThat(where.isNotNull().render(context)).isEqualTo("o.country IS NOT NULL");
+		assertThat(where.like("'\\_%'", "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(context))
 				.isEqualTo("o.country LIKE '\\_%' ESCAPE '\\'");
-		assertThat(where.notLike("'\\_%'", "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(ctx(entity)))
+		assertThat(where.notLike(expression("'\\_%'"), "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(context))
 				.isEqualTo("o.country NOT LIKE '\\_%' ESCAPE '\\'");
-		assertThat(where.lt("'AT'").render(ctx(entity))).isEqualTo("o.country < 'AT'");
-		assertThat(where.lte("'AT'").render(ctx(entity))).isEqualTo("o.country <= 'AT'");
-		assertThat(where.memberOf("'AT'").render(ctx(entity))).isEqualTo("'AT' MEMBER OF o.country");
+		assertThat(where.lt(expression("'AT'")).render(context)).isEqualTo("o.country < 'AT'");
+		assertThat(where.lte(expression("'AT'")).render(context)).isEqualTo("o.country <= 'AT'");
+		assertThat(where.memberOf(expression("'AT'")).render(context)).isEqualTo("'AT' MEMBER OF o.country");
 		// TODO: can we have this where.value(foo).memberOf(pathAndOrigin);
-		assertThat(where.notMemberOf("'AT'").render(ctx(entity))).isEqualTo("'AT' NOT MEMBER OF o.country");
-		assertThat(where.neq("'AT'").render(ctx(entity))).isEqualTo("o.country != 'AT'");
+		assertThat(where.notMemberOf(expression("'AT'")).render(context)).isEqualTo("'AT' NOT MEMBER OF o.country");
+		assertThat(where.neq(expression("'AT'")).render(context)).isEqualTo("o.country != 'AT'");
 	}
 
-	@Test
+	@Test // GH-3588
 	void selectRendering() {
 
 		// make sure things are immutable
@@ -147,25 +135,12 @@ class JpqlQueryBuilderUnitTests {
 		assertThat(select.count().render()).startsWith("SELECT COUNT(o)");
 		assertThat(select.distinct().entity().render()).startsWith("SELECT DISTINCT o ");
 		assertThat(select.distinct().count().render()).startsWith("SELECT COUNT(DISTINCT o) ");
-		assertThat(JpqlQueryBuilder.selectFrom(Order.class).select(JpqlQueryBuilder.path(JpqlQueryBuilder.entity(Order.class), "country")).render())
-			.startsWith("SELECT o.country ");
+		assertThat(JpqlQueryBuilder.selectFrom(Order.class)
+				.select(JpqlQueryBuilder.path(JpqlQueryBuilder.entity(Order.class), "country")).render())
+				.startsWith("SELECT o.country ");
 	}
 
-//	@Test
-//	void sorting() {
-//
-//		JpqlQueryBuilder.orderBy(new OrderExpression() , Sort.Order.asc("country"));
-//
-//		Entity entity = JpqlQueryBuilder.entity(Order.class);
-//
-//		AbstractJpqlQuery query = JpqlQueryBuilder.selectFrom(Order.class)
-//			.entity()
-//			.orderBy()
-//			.where(context -> "1 = 1");
-//
-//	}
-
-	@Test
+	@Test // GH-3588
 	void joins() {
 
 		Entity entity = JpqlQueryBuilder.entity(LineItem.class);
@@ -175,14 +150,14 @@ class JpqlQueryBuilderUnitTests {
 		PathAndOrigin productName = JpqlQueryBuilder.path(li_pr, "name");
 		PathAndOrigin personName = JpqlQueryBuilder.path(li_pr2, "name");
 
-		String fragment = JpqlQueryBuilder.where(productName).eq(JpqlQueryBuilder.stringLiteral("ex30"))
-				.and(JpqlQueryBuilder.where(personName).eq(JpqlQueryBuilder.stringLiteral("ex40"))).render(ctx(entity));
+		String fragment = JpqlQueryBuilder.where(productName).eq(literal("ex30"))
+				.and(JpqlQueryBuilder.where(personName).eq(literal("ex40"))).render(ctx(entity));
 
 		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'ex40'");
 	}
 
-	@Test
-	void x2() {
+	@Test // GH-3588
+	void joinOnPaths() {
 
 		Entity entity = JpqlQueryBuilder.entity(LineItem.class);
 		Join li_pr = JpqlQueryBuilder.innerJoin(entity, "product");
@@ -191,36 +166,17 @@ class JpqlQueryBuilderUnitTests {
 		PathAndOrigin productName = JpqlQueryBuilder.path(li_pr, "name");
 		PathAndOrigin personName = JpqlQueryBuilder.path(li_pe, "name");
 
-		String fragment = JpqlQueryBuilder.where(productName).eq(JpqlQueryBuilder.stringLiteral("ex30"))
-				.and(JpqlQueryBuilder.where(personName).eq(JpqlQueryBuilder.stringLiteral("cstrobl"))).render(ctx(entity));
-
-		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'cstrobl'");
-	}
-
-	@Test
-	void x3() {
-
-		Entity entity = JpqlQueryBuilder.entity(LineItem.class);
-		Join li_pr = JpqlQueryBuilder.innerJoin(entity, "product");
-		Join li_pe = JpqlQueryBuilder.innerJoin(entity, "person");
-
-		PathAndOrigin productName = JpqlQueryBuilder.path(li_pr, "name");
-		PathAndOrigin personName = JpqlQueryBuilder.path(li_pe, "name");
-
-		// JpqlQueryBuilder.and("x = y", "a = b"); -> x = y AND a = b
-
-		// JpqlQueryBuilder.nested(JpqlQueryBuilder.and("x = y", "a = b")) (x = y AND a = b)
-
-		String fragment = JpqlQueryBuilder.where(productName).eq(JpqlQueryBuilder.stringLiteral("ex30"))
-				.and(JpqlQueryBuilder.where(personName).eq(JpqlQueryBuilder.stringLiteral("cstrobl"))).render(ctx(entity));
+		String fragment = JpqlQueryBuilder.where(productName).eq(literal("ex30"))
+				.and(JpqlQueryBuilder.where(personName).eq(literal("cstrobl"))).render(ctx(entity));
 
 		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'cstrobl'");
 	}
 
 	static RenderContext ctx(Entity... entities) {
+
 		Map<Origin, String> aliases = new LinkedHashMap<>(entities.length);
 		for (Entity entity : entities) {
-			aliases.put(entity, entity.alias());
+			aliases.put(entity, entity.getAlias());
 		}
 
 		return new RenderContext(aliases);
