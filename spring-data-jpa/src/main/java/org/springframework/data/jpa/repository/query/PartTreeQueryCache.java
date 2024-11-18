@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.HashMap;
+import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -25,11 +25,13 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
+ * Cache for PartTree queries.
+ *
  * @author Christoph Strobl
  */
 class PartTreeQueryCache {
 
-	private final Map<CacheKey, JpqlQueryCreator> cache = new LinkedHashMap<CacheKey, JpqlQueryCreator>() {
+	private final Map<CacheKey, JpqlQueryCreator> cache = new LinkedHashMap<>() {
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<CacheKey, JpqlQueryCreator> eldest) {
 			return size() > 256;
@@ -49,9 +51,14 @@ class PartTreeQueryCache {
 	static class CacheKey {
 
 		private final Sort sort;
-		private final Map<Integer, Nulled> params;
 
-		public CacheKey(Sort sort, Map<Integer, Nulled> params) {
+		/**
+		 * Bitset of null/non-null parameter values. A 0 bit means the parameter value is {@code null}, a 1 bit means the
+		 * parameter is not {@code null}.
+		 */
+		private final BitSet params;
+
+		public CacheKey(Sort sort, BitSet params) {
 			this.sort = sort;
 			this.params = params;
 		}
@@ -59,20 +66,22 @@ class PartTreeQueryCache {
 		static CacheKey of(Sort sort, JpaParametersParameterAccessor accessor) {
 
 			Object[] values = accessor.getValues();
+
 			if (ObjectUtils.isEmpty(values)) {
-				return new CacheKey(sort, Map.of());
+				return new CacheKey(sort, new BitSet());
 			}
 
 			return new CacheKey(sort, toNullableMap(values));
 		}
 
-		static Map<Integer, Nulled> toNullableMap(Object[] args) {
+		static BitSet toNullableMap(Object[] args) {
 
-			Map<Integer, Nulled> paramMap = new HashMap<>(args.length);
+			BitSet bitSet = new BitSet(args.length);
 			for (int i = 0; i < args.length; i++) {
-				paramMap.put(i, args[i] != null ? Nulled.NO : Nulled.YES);
+				bitSet.set(i, args[i] != null);
 			}
-			return paramMap;
+
+			return bitSet;
 		}
 
 		@Override
@@ -91,10 +100,6 @@ class PartTreeQueryCache {
 		public int hashCode() {
 			return Objects.hash(sort, params);
 		}
-	}
-
-	enum Nulled {
-		YES, NO
 	}
 
 }
