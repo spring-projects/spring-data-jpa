@@ -94,25 +94,6 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		 * Creates a new {@link JpaParameter}.
 		 *
 		 * @param parameter must not be {@literal null}.
-		 * @deprecated since 3.2.1
-		 */
-		@Deprecated(since = "3.2.1", forRemoval = true)
-		protected JpaParameter(MethodParameter parameter) {
-
-			super(parameter);
-
-			this.annotation = parameter.getParameterAnnotation(Temporal.class);
-			this.temporalType = null;
-			if (!isDateParameter() && hasTemporalParamAnnotation()) {
-				throw new IllegalArgumentException(
-						Temporal.class.getSimpleName() + " annotation is only allowed on Date parameter");
-			}
-		}
-
-		/**
-		 * Creates a new {@link JpaParameter}.
-		 *
-		 * @param parameter must not be {@literal null}.
 		 */
 		protected JpaParameter(MethodParameter parameter, TypeInformation<?> domainType) {
 

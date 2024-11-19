@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
@@ -31,8 +30,6 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.lang.Nullable;
@@ -261,28 +258,6 @@ public final class JpaQueryLookupStrategy {
 
 			return createStrategy.resolveQuery(method, queryRewriter, em, namedQueries);
 		}
-	}
-
-	/**
-	 * Creates a {@link QueryLookupStrategy} for the given {@link EntityManager} and {@link Key}.
-	 *
-	 * @param em must not be {@literal null}.
-	 * @param queryMethodFactory must not be {@literal null}.
-	 * @param key may be {@literal null}.
-	 * @param evaluationContextProvider must not be {@literal null}.
-	 * @param escape must not be {@literal null}.
-	 * @deprecated since 3.4, use
-	 *             {@link #create(EntityManager, JpaQueryMethodFactory, Key, ValueExpressionDelegate, QueryRewriterProvider, EscapeCharacter)}
-	 *             instead.
-	 */
-	@Deprecated(since = "3.4")
-	public static QueryLookupStrategy create(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
-			@Nullable Key key, QueryMethodEvaluationContextProvider evaluationContextProvider,
-			QueryRewriterProvider queryRewriterProvider, EscapeCharacter escape) {
-		return create(em, queryMethodFactory, key,
-				new ValueExpressionDelegate(new QueryMethodValueEvaluationContextAccessor(new StandardEnvironment(),
-						evaluationContextProvider.getEvaluationContextProvider()), ValueExpressionDelegate.create()),
-				queryRewriterProvider, escape);
 	}
 
 	/**
