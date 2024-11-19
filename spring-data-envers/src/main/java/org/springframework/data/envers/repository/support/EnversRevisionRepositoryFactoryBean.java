@@ -15,11 +15,12 @@
  */
 package org.springframework.data.envers.repository.support;
 
-import java.util.Optional;
-
 import jakarta.persistence.EntityManager;
 
+import java.util.Optional;
+
 import org.hibernate.envers.DefaultRevisionEntity;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -94,7 +95,7 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 		@Override
 		protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
 
-			Object fragmentImplementation = getTargetRepositoryViaReflection( //
+			Object fragmentImplementation = instantiateClass( //
 					EnversRevisionRepositoryImpl.class, //
 					getEntityInformation(metadata.getDomainType()), //
 					revisionEntityInformation, //
