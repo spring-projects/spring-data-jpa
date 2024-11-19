@@ -129,7 +129,6 @@ public class Jpa21Utils {
 		Assert.notNull(em, "EntityManager must not be null");
 		Assert.notNull(jpaEntityGraph, "JpaEntityGraph must not be null");
 		Assert.notNull(entityType, "Entity type must not be null");
-		Assert.isTrue(jpaEntityGraph.isAdHocEntityGraph(), "The given " + jpaEntityGraph + " is not dynamic");
 
 		EntityGraph<?> entityGraph = em.createEntityGraph(entityType);
 		configureFetchGraphFrom(jpaEntityGraph, entityGraph);
