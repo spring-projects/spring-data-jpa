@@ -212,7 +212,7 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		QUser user = QUser.user;
 
 		Page<User> page = predicateExecutor.findAll(user.firstname.isNotNull(),
-				new QPageRequest(0, 10, new QSort(user.firstname.asc())));
+				QPageRequest.of(0, 10, new QSort(user.firstname.asc())));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
@@ -223,7 +223,7 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		QUser user = QUser.user;
 
 		Page<User> page = predicateExecutor.findAll(user.firstname.isNotNull(),
-				new QPageRequest(0, 10, user.firstname.asc()));
+				QPageRequest.of(0, 10, user.firstname.asc()));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
@@ -237,7 +237,7 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		QUser user = QUser.user;
 
 		Page<User> page = predicateExecutor.findAll(user.firstname.isNotNull(),
-				new QPageRequest(0, 10, user.manager.firstname.asc()));
+				QPageRequest.of(0, 10, user.manager.firstname.asc()));
 
 		assertThat(page.getContent()).containsExactly(carter, dave, oliver);
 	}
