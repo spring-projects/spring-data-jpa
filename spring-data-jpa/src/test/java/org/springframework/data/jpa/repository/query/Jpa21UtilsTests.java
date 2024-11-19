@@ -50,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Christoph Strobl
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -164,6 +165,15 @@ class Jpa21UtilsTests {
 		assertThatExceptionOfType(Exception.class).isThrownBy(() -> Jpa21Utils.configureFetchGraphFrom(
 				new JpaEntityGraph("name", EntityGraphType.FETCH, new String[] { "¯\\_(ツ)_/¯" }),
 				em.createEntityGraph(User.class)));
+	}
+
+	@Test // GH-3682
+	void allowsEmptyGraph() {
+
+		EntityGraph<User> graph = em.createEntityGraph(User.class);
+		Jpa21Utils.configureFetchGraphFrom(new JpaEntityGraph("User.NoNamedEntityGraphAvailable", EntityGraphType.FETCH, new String[0]), graph);
+
+		Assertions.assertThat(graph.getAttributeNodes()).isEmpty();
 	}
 
 	/**
