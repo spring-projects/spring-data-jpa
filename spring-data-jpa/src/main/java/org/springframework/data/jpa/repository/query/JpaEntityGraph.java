@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -29,11 +28,10 @@ import org.springframework.util.StringUtils;
  *
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 1.6
  */
 public class JpaEntityGraph {
-
-	private static String[] EMPTY_ATTRIBUTE_PATHS = {};
 
 	private final String name;
 	private final EntityGraphType type;
@@ -46,8 +44,8 @@ public class JpaEntityGraph {
 	 * @param nameFallback must not be {@literal null} or empty.
 	 */
 	public JpaEntityGraph(EntityGraph entityGraph, String nameFallback) {
-		this(StringUtils.hasText(entityGraph.value()) ? entityGraph.value() : nameFallback, entityGraph.type(), entityGraph
-				.attributePaths());
+		this(StringUtils.hasText(entityGraph.value()) ? entityGraph.value() : nameFallback, entityGraph.type(),
+				entityGraph.attributePaths());
 	}
 
 	/**
@@ -65,7 +63,7 @@ public class JpaEntityGraph {
 
 		this.name = name;
 		this.type = type;
-		this.attributePaths = Arrays.asList(attributePaths == null ? EMPTY_ATTRIBUTE_PATHS : attributePaths);
+		this.attributePaths = attributePaths != null ? List.of(attributePaths) : List.of();
 	}
 
 	/**
@@ -99,9 +97,11 @@ public class JpaEntityGraph {
 	/**
 	 * Return {@literal true} if this {@link JpaEntityGraph} needs to be generated on-the-fly.
 	 *
-	 * @return
+	 * @return {@literal true} if {@link #attributePaths} is not empty.
 	 * @since 1.9
+	 * @deprecated since 3.5 as the used evaluation does not represent wether a {@link JpaEntityGraph} is dynamic or not.
 	 */
+	@Deprecated(since = "3.5", forRemoval = true)
 	public boolean isAdHocEntityGraph() {
 		return !attributePaths.isEmpty();
 	}
