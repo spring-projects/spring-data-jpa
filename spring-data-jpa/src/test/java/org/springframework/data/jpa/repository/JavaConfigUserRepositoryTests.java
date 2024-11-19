@@ -15,14 +15,15 @@
  */
 package org.springframework.data.jpa.repository;
 
-import java.io.IOException;
-import java.util.Collections;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
+import java.io.IOException;
+import java.util.Collections;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -42,8 +43,7 @@ import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
-import org.springframework.data.repository.query.ExtensionAwareQueryMethodEvaluationContextProvider;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.spel.ExtensionAwareEvaluationContextProvider;
 import org.springframework.data.spel.spi.EvaluationContextExtension;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
@@ -72,7 +72,7 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 		@Bean
 		public UserRepository userRepository() throws Exception {
 
-			QueryMethodEvaluationContextProvider evaluationContextProvider = new ExtensionAwareQueryMethodEvaluationContextProvider(
+			ExtensionAwareEvaluationContextProvider evaluationContextProvider = new ExtensionAwareEvaluationContextProvider(
 					applicationContext);
 
 			JpaRepositoryFactoryBean<UserRepository, User, Integer> factory = new JpaRepositoryFactoryBean<>(
