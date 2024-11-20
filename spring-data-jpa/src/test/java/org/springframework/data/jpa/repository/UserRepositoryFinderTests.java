@@ -58,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @see QueryLookupStrategy
  */
 @ExtendWith(SpringExtension.class)
@@ -385,5 +386,23 @@ class UserRepositoryFinderTests {
 				.containsExactly("Dave", "Carter", "Oliver August");
 		assertThat(dtos).flatExtracting(UserRepository.NameOnly::getLastname) //
 				.containsExactly("Matthews", "Beauford", "Matthews");
+	}
+
+	@Test // GH-3675
+	void findBySimplePropertyUsingMixedNullNonNullArgument() {
+
+		List<User> result = userRepository.findUserByLastname(null);
+		assertThat(result).isEmpty();
+		result = userRepository.findUserByLastname(carter.getLastname());
+		assertThat(result).containsExactly(carter);
+	}
+
+	@Test // GH-3675
+	void findByNegatingSimplePropertyUsingMixedNullNonNullArgument() {
+
+		List<User> result = userRepository.findByLastnameNot(null);
+		assertThat(result).isNotEmpty();
+		result = userRepository.findUserByLastname(carter.getLastname());
+		assertThat(result).containsExactly(carter);
 	}
 }

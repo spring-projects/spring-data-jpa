@@ -307,15 +307,18 @@ public class JpaQueryCreator extends AbstractQueryCreator<CriteriaQuery<? extend
 					Expression<Boolean> falsePath = getTypedPath(root, part);
 					return builder.isFalse(falsePath);
 				case SIMPLE_PROPERTY:
+				case NEGATING_SIMPLE_PROPERTY:
+
 					ParameterMetadata<Object> expression = provider.next(part);
 					Expression<Object> path = getTypedPath(root, part);
-					return expression.isIsNullParameter() ? path.isNull()
-							: builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
-				case NEGATING_SIMPLE_PROPERTY:
-					ParameterMetadata<Object> negatedExpression = provider.next(part);
-					Expression<Object> negatedPath = getTypedPath(root, part);
-					return negatedExpression.isIsNullParameter() ? negatedPath.isNotNull()
-							: builder.notEqual(upperIfIgnoreCase(negatedPath), upperIfIgnoreCase(negatedExpression.getExpression()));
+
+					if (expression.isIsNullParameter()) {
+						return type.equals(SIMPLE_PROPERTY) ? path.isNull() : path.isNotNull();
+					} else {
+						return type.equals(SIMPLE_PROPERTY)
+								? builder.equal(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()))
+								: builder.notEqual(upperIfIgnoreCase(path), upperIfIgnoreCase(expression.getExpression()));
+					}
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
 

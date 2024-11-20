@@ -48,6 +48,7 @@ import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.querydsl.ListQuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -74,6 +75,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 */
 	@QueryHints({ @QueryHint(name = "foo", value = "bar") })
 	List<User> findByLastname(String lastname);
+
+	List<User> findUserByLastname(@Nullable String lastname);
 
 	/**
 	 * Redeclaration of {@link CrudRepository#findById(java.lang.Object)} to change transaction configuration.
@@ -177,7 +180,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByLastnameNotLike(String lastname);
 
-	List<User> findByLastnameNot(String lastname);
+	List<User> findByLastnameNot(@Nullable String lastname);
 
 	List<User> findByManagerLastname(String name);
 

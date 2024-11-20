@@ -37,6 +37,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +61,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Michael Cramer
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Christoph Strobl
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -100,20 +103,21 @@ class PartTreeJpaQueryIntegrationTests {
 		testIgnoreCase("findByIdAllIgnoringCase", 3);
 	}
 
-	@Test // DATAJPA-121
-	@Disabled // HHH-15432
-	void recreatesQueryIfNullValueIsGiven() throws Exception {
+	@ParameterizedTest // DATAJPA-121, GH-3675
+	@ValueSource(strings = { "Firstname", "FirstnameNot" })
+	void recreatesQueryIfNullValueIsGiven(String criteria) throws Exception {
 
-		JpaQueryMethod queryMethod = getQueryMethod("findByFirstname", String.class, Pageable.class);
+		JpaQueryMethod queryMethod = getQueryMethod("findBy%s".formatted(criteria), String.class, Pageable.class);
 		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
 
 		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { "Matthews", PageRequest.of(0, 1) }));
-
-		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("firstname=:param0");
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
+				.contains("firstname %s :".formatted(criteria.endsWith("Not") ? "<>" : "="));
 
 		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { null, PageRequest.of(0, 1) }));
 
-		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).endsWith("firstname is null");
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
+				.endsWithIgnoringCase("firstname %s NULL".formatted(criteria.endsWith("Not") ? "IS NOT" : "IS"));
 	}
 
 	@Test // DATAJPA-920
@@ -276,6 +280,8 @@ class PartTreeJpaQueryIntegrationTests {
 	interface UserRepository extends Repository<User, Integer> {
 
 		Page<User> findByFirstname(String firstname, Pageable pageable);
+
+		Page<User> findByFirstnameNot(String firstname, Pageable pageable);
 
 		User findByIdIgnoringCase(Integer id);
 

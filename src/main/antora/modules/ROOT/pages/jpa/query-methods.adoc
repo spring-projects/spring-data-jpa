@@ -60,7 +60,7 @@ The following table describes the keywords supported for JPA and what a method c
 |`EndingWith`|`findByFirstnameEndingWith`|`… where x.firstname like ?1` (parameter bound with prepended `%`)
 |`Containing`|`findByFirstnameContaining`|`… where x.firstname like ?1` (parameter bound wrapped in `%`)
 |`OrderBy`|`findByAgeOrderByLastnameDesc`|`… where x.age = ?1 order by x.lastname desc`
-|`Not`|`findByLastnameNot`|`… where x.lastname <> ?1`
+|`Not`|`findByLastnameNot`|`… where x.lastname <> ?1` (or `… where x.lastname IS NOT NULL` if the argument is `null`)
 |`In`|`findByAgeIn(Collection<Age> ages)`|`… where x.age in ?1`
 |`NotIn`|`findByAgeNotIn(Collection<Age> ages)`|`… where x.age not in ?1`
 |`True`|`findByActiveTrue()`|`… where x.active = true`
