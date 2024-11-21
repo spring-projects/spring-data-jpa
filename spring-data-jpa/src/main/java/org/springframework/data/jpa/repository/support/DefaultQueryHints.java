@@ -15,10 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.EntityManager;
+
 import java.util.Optional;
 import java.util.function.BiConsumer;
-
-import jakarta.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
@@ -99,7 +99,7 @@ class DefaultQueryHints implements QueryHints {
 		return Optionals
 				.mapIfAllPresent(entityManager, metadata.getEntityGraph(),
 						(em, graph) -> Jpa21Utils.getFetchGraphHint(em, getEntityGraph(graph), information.getJavaType()))
-				.orElse(new MutableQueryHints());
+				.orElseGet(MutableQueryHints::new);
 	}
 
 	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {

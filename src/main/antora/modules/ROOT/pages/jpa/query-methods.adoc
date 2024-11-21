@@ -824,7 +824,7 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
 
 It is also possible to define ad hoc entity graphs by using `@EntityGraph`. The provided `attributePaths` are translated into the according `EntityGraph` without needing to explicitly add `@NamedEntityGraph` to your domain types, as shown in the following example:
 
-.Using AD-HOC entity graph definition on an repository query method.
+.Using ad-hoc entity graph definitions on a repository query method
 ====
 [source, java]
 ----

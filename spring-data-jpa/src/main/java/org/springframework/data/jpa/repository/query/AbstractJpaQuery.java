@@ -256,7 +256,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
 		if (entityGraph != null) {
-			QueryHints hints = Jpa21Utils.getFetchGraphHint(em, method.getEntityGraph(),
+			QueryHints hints = Jpa21Utils.getFetchGraphHint(em, entityGraph,
 					getQueryMethod().getEntityInformation().getJavaType());
 
 			hints.forEach(query::setHint);
