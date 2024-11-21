@@ -68,7 +68,7 @@ The following table describes the keywords supported for JPA and what a method c
 |`IgnoreCase`|`findByFirstnameIgnoreCase`|`… where UPPER(x.firstname) = UPPER(?1)`
 |===============
 
-NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check xref:repositories/query-keywords-reference.adoc[Repository query keywords].
+NOTE: `In` and `NotIn` also take any subclass of `Iterable` as a parameter as well as arrays or varargs. For other syntactical versions of the same logical operator, check xref:repositories/query-keywords-reference.adoc[Repository query keywords].
 
 [WARNING]
 ====
