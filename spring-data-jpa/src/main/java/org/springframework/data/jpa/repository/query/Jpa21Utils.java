@@ -15,24 +15,21 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Subgraph;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.support.MutableQueryHints;
 import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -48,37 +45,15 @@ import org.springframework.util.StringUtils;
  */
 public class Jpa21Utils {
 
-	private static final @Nullable Method GET_ENTITY_GRAPH_METHOD;
-	private static final boolean JPA21_AVAILABLE = ClassUtils.isPresent("jakarta.persistence.NamedEntityGraph",
-			Jpa21Utils.class.getClassLoader());
-
-	static {
-
-		if (JPA21_AVAILABLE) {
-			GET_ENTITY_GRAPH_METHOD = ReflectionUtils.findMethod(EntityManager.class, "getEntityGraph", String.class);
-		} else {
-			GET_ENTITY_GRAPH_METHOD = null;
-		}
-	}
-
 	private Jpa21Utils() {
 		// prevent instantiation
 	}
 
-	public static QueryHints getFetchGraphHint(EntityManager em, @Nullable JpaEntityGraph entityGraph,
-			Class<?> entityType) {
+	public static QueryHints getFetchGraphHint(EntityManager em, JpaEntityGraph entityGraph, Class<?> entityType) {
 
 		MutableQueryHints result = new MutableQueryHints();
 
-		if (entityGraph == null) {
-			return result;
-		}
-
 		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraph, entityType);
-
-		if (graph == null) {
-			return result;
-		}
 
 		result.add(entityGraph.getType().getKey(), graph);
 		return result;
@@ -94,24 +69,21 @@ public class Jpa21Utils {
 	 * @param entityType must not be {@literal null}.
 	 * @return the {@link EntityGraph} described by the given {@code entityGraph}.
 	 */
-	@Nullable
 	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, JpaEntityGraph jpaEntityGraph, Class<?> entityType) {
 
 		Assert.notNull(em, "EntityManager must not be null");
 		Assert.notNull(jpaEntityGraph, "EntityGraph must not be null");
 		Assert.notNull(entityType, "EntityType must not be null");
 
-		Assert.isTrue(JPA21_AVAILABLE, "The EntityGraph-Feature requires at least a JPA 2.1 persistence provider");
-		Assert.isTrue(GET_ENTITY_GRAPH_METHOD != null,
-				"It seems that you have the JPA 2.1 API but a JPA 2.0 implementation on the classpath");
+		if (StringUtils.hasText(jpaEntityGraph.getName())) {
 
-		try {
-			// first check whether an entityGraph with that name is already registered.
-			return em.getEntityGraph(jpaEntityGraph.getName());
-		} catch (Exception ex) {
-			// try to create and dynamically register the entityGraph
-			return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+			try {
+				// check whether an entityGraph with that name is already registered.
+				return em.getEntityGraph(jpaEntityGraph.getName());
+			} catch (Exception ignore) {}
 		}
+
+		return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
 	}
 
 	/**
