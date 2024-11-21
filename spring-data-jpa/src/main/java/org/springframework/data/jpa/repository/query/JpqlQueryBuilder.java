@@ -450,7 +450,7 @@ public final class JpqlQueryBuilder {
 		/**
 		 * Select a single attribute.
 		 *
-		 * @param name
+		 * @param path
 		 * @return
 		 */
 		default Select select(JpqlQueryBuilder.PathExpression path) {
