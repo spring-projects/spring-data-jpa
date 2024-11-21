@@ -279,12 +279,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		protected JpqlQueryCreator createCreator(Sort sort, JpaParametersParameterAccessor accessor) {
 
-			JpqlQueryCreator jpqlQueryCreator;
-			synchronized (cache) {
-				jpqlQueryCreator = cache.get(sort, accessor); // this caching thingy is broken due to IS NULL rendering for
-																											// simple properties
-			}
-
+			JpqlQueryCreator jpqlQueryCreator = cache.get(sort, accessor); // this caching thingy is broken due to IS NULL
+																																			// rendering for
 			if (jpqlQueryCreator != null) {
 				return jpqlQueryCreator;
 			}
@@ -307,9 +303,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				return creator;
 			}
 
-			synchronized (cache) {
-				cache.put(sort, accessor, creator);
-			}
+			cache.put(sort, accessor, creator);
 
 			return creator;
 		}
@@ -377,13 +371,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	 */
 	private class CountQueryPreparer extends QueryPreparer {
 
-		private volatile JpqlQueryCreator cached;
+		private final PartTreeQueryCache cache = new PartTreeQueryCache();
 
 		@Override
 		protected JpqlQueryCreator createCreator(Sort sort, JpaParametersParameterAccessor accessor) {
 
-			JpqlQueryCreator cached = this.cached;
-
+			JpqlQueryCreator cached = cache.get(Sort.unsorted(), accessor);
 			if (cached != null) {
 				return cached;
 			}
@@ -393,7 +386,9 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 					getQueryMethod().getResultProcessor().getReturnedType(), provider, templates, em);
 
 			if (!accessor.getParameters().hasDynamicProjection()) {
-				return this.cached = new CacheableJpqlCountQueryCreator(creator);
+				cached = new CacheableJpqlCountQueryCreator(creator);
+				cache.put(Sort.unsorted(), accessor, cached);
+				return cached;
 			}
 
 			return creator;

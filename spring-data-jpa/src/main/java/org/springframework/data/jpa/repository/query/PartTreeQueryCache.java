@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -31,12 +32,12 @@ import org.springframework.util.ObjectUtils;
  */
 class PartTreeQueryCache {
 
-	private final Map<CacheKey, JpqlQueryCreator> cache = new LinkedHashMap<>() {
+	private final Map<CacheKey, JpqlQueryCreator> cache = Collections.synchronizedMap(new LinkedHashMap<>() {
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<CacheKey, JpqlQueryCreator> eldest) {
 			return size() > 256;
 		}
-	};
+	});
 
 	@Nullable
 	JpqlQueryCreator get(Sort sort, JpaParametersParameterAccessor accessor) {
