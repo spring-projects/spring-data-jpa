@@ -15,18 +15,24 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.domain.Sort.Direction.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 import jakarta.persistence.EntityManager;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Limit;
@@ -45,6 +51,9 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.IdOnly;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.repository.sample.UserRepository.RolesAndFirstname;
+import org.springframework.data.jpa.repository.sample.UserRepository.UserExcerpt;
+import org.springframework.data.jpa.repository.sample.UserRepository.UserRoleCountDtoProjection;
+import org.springframework.data.jpa.repository.sample.UserRepository.UserRoleCountInterfaceProjection;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -247,9 +256,9 @@ class UserRepositoryFinderTests {
 	@Test // GH-3409
 	void executesWindowQueryWithPageable() {
 
-		Window<User> first = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(0,1));
+		Window<User> first = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(0, 1));
 
-		Window<User> next = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(1,1));
+		Window<User> next = userRepository.findByLastnameOrderByFirstname("Matthews", PageRequest.of(1, 1));
 
 		assertThat(first).containsExactly(dave);
 		assertThat(next).containsExactly(oliver);
@@ -406,21 +415,92 @@ class UserRepositoryFinderTests {
 		assertThat(result).containsExactly(carter);
 	}
 
-    @Test // GH-3076
-    void dtoProjectionShouldApplyConstructorExpressionRewriting() {
+	@Test // GH-3076
+	void dtoProjectionShouldApplyConstructorExpressionRewriting() {
 
-        List<UserRepository.UserExcerpt> dtos = userRepository.findRecordProjection();
+		List<UserExcerpt> dtos = userRepository.findRecordProjection();
 
-        assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
-            .contains("Dave", "Carter", "Oliver August");
-    }
+		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
+				.contains("Dave", "Carter", "Oliver August");
+	}
 
-    @Test // GH-3076
-    void dtoMultiselectProjectionShouldApplyConstructorExpressionRewriting() {
+	@Test // GH-3076
+	void dtoMultiselectProjectionShouldApplyConstructorExpressionRewriting() {
 
-        List<UserRepository.UserExcerpt> dtos = userRepository.findMultiselectRecordProjection();
+		List<UserExcerpt> dtos = userRepository.findMultiselectRecordProjection();
 
-        assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
-            .contains("Dave", "Carter", "Oliver August");
-    }
+		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
+				.contains("Dave", "Carter", "Oliver August");
+	}
+
+	@Test // GH-3076
+	void dynamicDtoProjection() {
+
+		List<UserExcerpt> dtos = userRepository.findRecordProjection(UserExcerpt.class);
+
+		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
+				.contains("Dave", "Carter", "Oliver August");
+	}
+
+	@Test // GH-3076
+	void dtoProjectionWithEntityAndAggregatedValue() {
+
+		Map<String, User> musicians = Map.of(carter.getFirstname(), carter, dave.getFirstname(), dave,
+				oliver.getFirstname(), oliver);
+
+		assertThat(userRepository.dtoProjectionEntityAndAggregatedValue()).allSatisfy(projection -> {
+			assertThat(projection.user()).isIn(musicians.values());
+			assertThat(projection.roleCount()).isCloseTo(musicians.get(projection.user().getFirstname()).getRoles().size(),
+					Offset.offset(0L));
+		});
+	}
+
+	@Test // GH-3076
+	void interfaceProjectionWithEntityAndAggregatedValue() {
+
+		Map<String, User> musicians = Map.of(carter.getFirstname(), carter, dave.getFirstname(), dave,
+				oliver.getFirstname(), oliver);
+
+		assertThat(userRepository.interfaceProjectionEntityAndAggregatedValue()).allSatisfy(projection -> {
+			assertThat(projection.getUser()).isIn(musicians.values());
+			assertThat(projection.getRoleCount())
+					.isCloseTo(musicians.get(projection.getUser().getFirstname()).getRoles().size(), Offset.offset(0L));
+		});
+	}
+
+	@Test // GH-3076
+	void rawMapProjectionWithEntityAndAggregatedValue() {
+
+		Map<String, User> musicians = Map.of(carter.getFirstname(), carter, dave.getFirstname(), dave,
+				oliver.getFirstname(), oliver);
+
+		assertThat(userRepository.rawMapProjectionEntityAndAggregatedValue()).allSatisfy(projection -> {
+			assertThat(projection.get("user")).isIn(musicians.values());
+			assertThat(projection).containsKey("roleCount");
+		});
+	}
+
+	@Test // GH-3076
+	void dtoProjectionWithEntityAndAggregatedValueWithPageable() {
+
+		Map<String, User> musicians = Map.of(carter.getFirstname(), carter, dave.getFirstname(), dave,
+				oliver.getFirstname(), oliver);
+
+		assertThat(
+				userRepository.dtoProjectionEntityAndAggregatedValue(PageRequest.of(0, 10).withSort(Sort.by("firstname"))))
+				.allSatisfy(projection -> {
+					assertThat(projection.user()).isIn(musicians.values());
+					assertThat(projection.roleCount())
+							.isCloseTo(musicians.get(projection.user().getFirstname()).getRoles().size(), Offset.offset(0L));
+				});
+	}
+
+	@ParameterizedTest // GH-3076
+	@ValueSource(classes = { UserRoleCountDtoProjection.class, UserRoleCountInterfaceProjection.class })
+	<T> void dynamicProjectionWithEntityAndAggregated(Class<T> resultType) {
+
+		assertThat(userRepository.findMultiselectRecordDynamicProjection(resultType)).hasSize(3)
+				.hasOnlyElementsOfType(resultType);
+	}
+
 }

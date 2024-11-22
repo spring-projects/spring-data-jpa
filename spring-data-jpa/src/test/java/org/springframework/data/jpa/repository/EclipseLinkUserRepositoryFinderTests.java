@@ -36,4 +36,8 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Override
 	void executesInKeywordForPageCorrectly() {}
 
+	@Disabled
+	@Override
+	void rawMapProjectionWithEntityAndAggregatedValue() {}
+
 }

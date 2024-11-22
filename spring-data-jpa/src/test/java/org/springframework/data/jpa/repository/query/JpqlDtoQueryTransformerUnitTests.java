@@ -49,6 +49,21 @@ class JpqlDtoQueryTransformerUnitTests {
 				"SELECT new org.springframework.data.jpa.repository.query.JpqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar) from Person p");
 	}
 
+//	@Test // GH-3076
+//	void xxx() {
+//
+//		JpaQueryMethod method = getMethod("dtoProjection2");
+//		JpqlSortedQueryTransformer transformer = new JpqlSortedQueryTransformer(Sort.unsorted(), null,
+//			method.getResultProcessor().getReturnedType());
+//
+//		JpaQueryEnhancer.JpqlQueryParser parser = JpaQueryEnhancer.JpqlQueryParser.parseQuery("select u.foo, u.bar, count(r) from User u left outer join u.role r group by u");
+//
+//		QueryTokenStream visit = transformer.visit(parser.getContext());
+//
+//		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
+//			"select new org.springframework.data.jpa.repository.query.JpqlDtoQueryTransformerUnitTests$MyRecord2(u.foo, u.bar, count(r)) from User u left outer join u.role r group by u");
+//	}
+
 	@Test // GH-3076
 	void shouldRewriteQueriesWithSubselect() {
 
@@ -100,6 +115,7 @@ class JpqlDtoQueryTransformerUnitTests {
 	interface MyRepo extends Repository<Person, String> {
 
 		MyRecord dtoProjection();
+		MyRecord2 dtoProjection2();
 	}
 
 	record Person(String id) {
@@ -107,6 +123,10 @@ class JpqlDtoQueryTransformerUnitTests {
 	}
 
 	record MyRecord(String foo, String bar) {
+
+	}
+
+	record MyRecord2(String foo, String bar, Integer count) {
 
 	}
 }
