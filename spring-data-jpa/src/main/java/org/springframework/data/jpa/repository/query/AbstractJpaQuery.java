@@ -23,6 +23,8 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,6 +53,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
@@ -352,6 +355,24 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 					return value;
 				}
 			}
+
+			if(type.isProjecting() && !type.getReturnedType().isInterface() && !type.getInputProperties().isEmpty()) {
+				List<Object> ctorArgs = new ArrayList<>(type.getInputProperties().size());
+				type.getInputProperties().forEach(it -> {
+					ctorArgs.add(tuple.get(it));
+				});
+                try {
+                    return type.getReturnedType().getConstructor(ctorArgs.stream().map(Object::getClass).toArray(Class<?>[]::new)).newInstance(ctorArgs.toArray());
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
 		}

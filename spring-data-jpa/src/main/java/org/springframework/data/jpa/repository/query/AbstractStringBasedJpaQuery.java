@@ -119,7 +119,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		Sort sort = accessor.getSort();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		String sortedQueryString = getSortedQueryString(sort, processor.getReturnedType());
+
+		String sortedQueryString = null;
+		if(querySortRewriter.equals(NoOpQuerySortRewriter.INSTANCE) && accessor.findDynamicProjection() != null && !accessor.findDynamicProjection().isInterface()) {
+			sortedQueryString = getSortedQueryString(new ProjectingSortRewriter(), query, sort, processor.getReturnedType());
+		} else {
+			 sortedQueryString = getSortedQueryString(sort, processor.getReturnedType());
+		}
 
 		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), processor.getReturnedType());
 
@@ -132,6 +138,10 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	String getSortedQueryString(Sort sort, ReturnedType returnedType) {
 		return querySortRewriter.getSorted(query, sort, returnedType);
+	}
+
+	private static String getSortedQueryString(QuerySortRewriter rewriter, DeclaredQuery query, Sort sort, ReturnedType returnedType) {
+		return rewriter.getSorted(query, sort, returnedType);
 	}
 
 	@Override
