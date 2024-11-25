@@ -29,6 +29,7 @@ import jakarta.persistence.criteria.Fetch;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Attribute.PersistentAttributeType;
@@ -727,16 +728,23 @@ public abstract class QueryUtils {
 		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
 		Expression<?> expression = toExpressionRecursively(from, property);
 
-		if (order.getNullHandling() != Sort.NullHandling.NATIVE) {
-			throw new UnsupportedOperationException("Applying Null Precedence using Criteria Queries is not yet supported.");
-		}
+		Nulls nulls = toNulls(order.getNullHandling());
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
 			Expression<String> upper = cb.lower((Expression<String>) expression);
-			return order.isAscending() ? cb.asc(upper) : cb.desc(upper);
+			return order.isAscending() ? cb.asc(upper, nulls) : cb.desc(upper, nulls);
 		} else {
-			return order.isAscending() ? cb.asc(expression) : cb.desc(expression);
+			return order.isAscending() ? cb.asc(expression, nulls) : cb.desc(expression, nulls);
 		}
+	}
+
+	private static Nulls toNulls(Sort.NullHandling nullHandling) {
+
+		return switch (nullHandling) {
+			case NULLS_LAST -> Nulls.LAST;
+			case NULLS_FIRST -> Nulls.FIRST;
+			case NATIVE -> Nulls.NONE;
+		};
 	}
 
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {

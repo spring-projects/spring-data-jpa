@@ -34,6 +34,7 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
@@ -353,8 +354,8 @@ class QueryUtilsIntegrationTests {
 		assertThat(orders).hasSize(1);
 	}
 
-	@Test // GH-3529
-	void nullPrecedenceThroughCriteriaApiNotYetSupported() {
+	@Test // GH-3529, GH-3587
+	void queryUtilsConsidersNullPrecedence() {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<User> query = builder.createQuery(User.class);
@@ -363,8 +364,10 @@ class QueryUtilsIntegrationTests {
 
 		Sort sort = Sort.by(Sort.Order.desc("manager").nullsFirst());
 
-		assertThatExceptionOfType(UnsupportedOperationException.class)
-				.isThrownBy(() -> QueryUtils.toOrders(sort, join, builder));
+		List<jakarta.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
+		for (jakarta.persistence.criteria.Order order : orders) {
+			assertThat(order.getNullPrecedence()).isEqualTo(Nulls.FIRST);
+		}
 	}
 
 	/**
