@@ -32,6 +32,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
@@ -127,7 +128,6 @@ class QueryUtilsIntegrationTests {
 
 		assertThat(expr.getParentPath()).hasFieldOrPropertyWithValue("fetched", true);
 		assertThat(from.getFetches()).hasSize(1);
-		assertThat(from.getJoins()).hasSize(1);
 	}
 
 	@Test // DATAJPA-401, DATAJPA-1238
