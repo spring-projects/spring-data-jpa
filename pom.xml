@@ -37,7 +37,7 @@
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
-		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
+		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 		<jsqlparser>5.0</jsqlparser>
 		<mysql-connector-java>9.1.0</mysql-connector-java>
 		<postgresql>42.7.4</postgresql>
