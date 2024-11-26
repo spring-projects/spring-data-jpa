@@ -21,6 +21,9 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -31,6 +34,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  * @since 3.1
  */
 class HqlSpecificationTests {
@@ -331,6 +335,177 @@ class HqlSpecificationTests {
 				""");
 	}
 
+	@Test // GH-3689
+	void generic() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE FOO(x).bar RESPECT NULLS
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE FOO(x).bar IGNORE NULLS
+				""");
+	}
+
+	@Test // GH-3689
+	void size() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE SIZE(x) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void collectionAggregate() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE MAXELEMENT(foo) > MINELEMENT(bar)
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE MININDEX(foo) > MAXINDEX(bar)
+				""");
+	}
+
+	@Test // GH-3689
+	void trunc() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(x) = TRUNCATE(y)
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, 'foo') = TRUNCATE(e, 'bar')
+				""");
+	}
+
+	@ParameterizedTest // GH-3689
+	@ValueSource(strings = { "YYYY", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
+			"NANOSECOND", "EPOCH" })
+	void trunc(String truncation) {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, %1$s) = TRUNCATE(e, %1$s)
+				""".formatted(truncation));
+	}
+
+	@Test // GH-3689
+	void format() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE FORMAT(x AS 'foo') = FORMAT(x AS 'bar')
+				""");
+	}
+
+	@Test // GH-3689
+	void collate() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE COLLATE(x AS foo) = COLLATE(x AS foo.bar)
+				""");
+	}
+
+	@Test // GH-3689
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1 FOR 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1) " + //
+				"from Call c");
+	}
+
+	@Test // GH-3689
+	void overlay() {
+
+		assertQuery("select OVERLAY(c.number PLACING 1 FROM 2) " + //
+				"from Call c ");
+
+		assertQuery("select OVERLAY(p.number PLACING 1 FROM 2 FOR 3) " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void pad() {
+
+		assertQuery("select PAD(c.number WITH 1 LEADING) " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 TRAILING) " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 LEADING '0') " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 TRAILING '0') " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void position() {
+
+		assertQuery("select POSITION(c.number IN 'foo') " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT DATE, CURRENT_DATE() " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT TIME, CURRENT_TIME() " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT TIMESTAMP, CURRENT_TIMESTAMP() " + //
+				"from Call c ");
+
+		assertQuery("select INSTANT, CURRENT_INSTANT() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL DATE, LOCAL_DATE() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL TIME, LOCAL_TIME() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL DATETIME, LOCAL_DATETIME() " + //
+				"from Call c ");
+
+		assertQuery("select OFFSET DATETIME, OFFSET_DATETIME() " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void cube() {
+
+		assertQuery("select CUBE(foo), CUBE(foo, bar) " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void rollup() {
+
+		assertQuery("select ROLLUP(foo), ROLLUP(foo, bar) " + //
+				"from Call c ");
+	}
+
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
@@ -381,6 +556,80 @@ class HqlSpecificationTests {
 				    FROM Employee spouseEmp
 				        WHERE spouseEmp = emp.spouse)
 				""");
+	}
+
+	@Test // GH-3689
+	void everyAll() {
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE EVERY (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL (foo > 1) OVER (PARTITION BY bar)
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL VALUES (foo) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL ELEMENTS (foo) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void anySome() {
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE SOME (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY (foo > 1) OVER (PARTITION BY bar)
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY VALUES (foo) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void listAgg() {
+
+		assertQuery("select listagg(p.number, ', ') within group (order by p.type, p.number) " + //
+				"from Phone p " + //
+				"group by p.person");
 	}
 
 	@Test
@@ -1119,9 +1368,6 @@ class HqlSpecificationTests {
 		assertQuery("select concat(p.number, ' : ', cast(c.duration as string)) " + //
 				"from Call c " + //
 				"join c.phone p");
-		assertQuery("select substring(p.number, 1, 2) " + //
-				"from Call c " + //
-				"join c.phone p");
 		assertQuery("select upper(p.name) " + //
 				"from Person p ");
 		assertQuery("select lower(p.name) " + //
@@ -1450,9 +1696,6 @@ class HqlSpecificationTests {
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		assertQuery("select listagg(p.number, ', ') within group (order by p.type, p.number) " + //
-				"from Phone p " + //
-				"group by p.person");
 		assertQuery("select sum(c.duration) " + //
 				"from Call c ");
 		assertQuery("select p.name, sum(c.duration) " + //
