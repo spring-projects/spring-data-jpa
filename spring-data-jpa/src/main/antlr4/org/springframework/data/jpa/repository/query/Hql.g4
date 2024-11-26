@@ -147,7 +147,7 @@ deleteStatement
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-insert
 insertStatement
-    : INSERT INTO? targetEntity targetFields (queryExpression | valuesList)
+    : INSERT INTO? targetEntity targetFields (queryExpression | valuesList) conflictClause?
     ;
 
 // Already defined underneath updateStatement
@@ -165,6 +165,23 @@ valuesList
 
 values
     : '(' expression (',' expression)* ')'
+    ;
+
+/**
+ * a 'conflict' clause in an 'insert' statement
+ */
+conflictClause
+    : ON CONFLICT conflictTarget? DO conflictAction
+    ;
+
+conflictTarget
+    : ON CONSTRAINT identifier
+    | '(' simplePath (',' simplePath)* ')'
+    ;
+
+conflictAction
+    : NOTHING
+    | UPDATE setClause whereClause?
     ;
 
 instantiation
@@ -921,7 +938,11 @@ CURRENT_DATE                : C U R R E N T '_' D A T E;
 CURRENT_INSTANT             : C U R R E N T '_' I N S T A N T;
 CURRENT_TIME                : C U R R E N T '_' T I M E;
 CURRENT_TIMESTAMP           : C U R R E N T '_' T I M E S T A M P;
+CONFLICT                    : C O N F L I C T;
+CONSTRAINT                  : C O N S T R A I N T;
+COLUMN                      : C O L U M N;
 CYCLE                       : C Y C L E;
+DO                          : D O;
 DATE                        : D A T E;
 DATETIME                    : D A T E T I M E ;
 DAY                         : D A Y;
@@ -1009,6 +1030,7 @@ NEW                         : N E W;
 NEXT                        : N E X T;
 NO                          : N O;
 NOT                         : N O T;
+NOTHING                     : N O T H I N G;
 NULL                        : N U L L;
 NULLS                       : N U L L S;
 OBJECT                      : O B J E C T;

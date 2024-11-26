@@ -983,6 +983,29 @@ class HqlSpecificationTests {
 				""");
 	}
 
+	@Test // GH-3689
+	void insertQueries() {
+
+		assertQuery("insert Person (id, name) values (100L, 'Jane Doe')");
+
+		assertQuery("insert Person (id, name) values " + //
+				"(101L, 'J A Doe III'), " + //
+				"(102L, 'J X Doe'), " + //
+				"(103L, 'John Doe, Jr')");
+
+		assertQuery("insert into Partner (id, name) " + //
+				"select p.id, p.name from Person p ");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT (range) DO UPDATE  SET price = :price, type = :priceType");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT ON CONSTRAINT foo DO UPDATE  SET price = :price, type = :priceType");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT ON CONSTRAINT foo DO NOTHING");
+	}
+
 	@Test
 	void hqlQueries() {
 
@@ -1000,15 +1023,7 @@ class HqlSpecificationTests {
 		assertQuery("update versioned Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		assertQuery("insert Person (id, name) " + //
-				"values (100L, 'Jane Doe')");
-		assertQuery("insert Person (id, name) " + //
-				"values (101L, 'J A Doe III'), " + //
-				"(102L, 'J X Doe'), " + //
-				"(103L, 'John Doe, Jr')");
-		assertQuery("insert into Partner (id, name) " + //
-				"select p.id, p.name " + //
-				"from Person p ");
+
 		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe'");
