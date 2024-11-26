@@ -188,10 +188,6 @@ instantiation
     : NEW instantiationTarget '(' instantiationArguments ')'
     ;
 
-alias
-    : AS? identifier // spec says IDENTIFIER but clearly does NOT mean a reserved word
-    ;
-
 groupedItem
     : identifier
     | INTEGER_LITERAL
@@ -354,6 +350,17 @@ dateTimeLiteral
     | INSTANT
     ;
 
+/**
+ * A field that may be extracted from a date, time, or datetime
+ */
+extractField
+    : datetimeField
+    | dayField
+    | weekField
+    | timeZoneField
+    | dateOrTimeField
+    ;
+
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-duration-literals
 datetimeField
     : YEAR
@@ -366,6 +373,27 @@ datetimeField
     | SECOND
     | NANOSECOND
     | EPOCH
+    ;
+
+dayField
+    : DAY OF MONTH
+    | DAY OF WEEK
+    | DAY OF YEAR
+    ;
+
+weekField
+    : WEEK OF MONTH
+    | WEEK OF YEAR
+    ;
+
+timeZoneField
+    : OFFSET (HOUR | MINUTE)?
+    | TIMEZONE_HOUR | TIMEZONE_MINUTE
+    ;
+
+dateOrTimeField
+    : DATE
+    | TIME
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-binary-literals
@@ -416,11 +444,6 @@ primaryExpression
 // TBD
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-path-expressions
-identificationVariable
-    : identifier
-    | simplePath
-    ;
-
 path
     : treatedPath pathContinutation?
     | generalPathFragment
@@ -467,112 +490,498 @@ caseWhenPredicateClause
     ;
 
 // Functions
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exp-functions
+/**
+ * A function invocation that may occur in an arbitrary expression
+ */
 function
-    : functionName '(' (functionArguments | ASTERISK)?  ')' pathContinutation? filterClause? withinGroup? overClause? # GenericFunction
-    | functionName '(' subquery ')'                                                                       # FunctionWithSubquery
-    | castFunction                                                                                        # CastFunctionInvocation
-    | extractFunction                                                                                     # ExtractFunctionInvocation
-    | trimFunction                                                                                        # TrimFunctionInvocation
-    | everyFunction                                                                                       # EveryFunctionInvocation
-    | anyFunction                                                                                         # AnyFunctionInvocation
-    | treatedPath                                                                                         # TreatedPathInvocation
+    : standardFunction                           # StandardFunctionInvocation
+    | aggregateFunction                          # AggregateFunctionInvocation
+    | collectionSizeFunction                     # CollectionSizeFunctionInvocation
+    | collectionAggregateFunction                # CollectionAggregateFunctionInvocation
+    | collectionFunctionMisuse                   # CollectionFunctionMisuseInvocation
+    | jpaNonstandardFunction                     # JpaNonstandardFunctionInvocation
+    | columnFunction                             # ColumnFunctionInvocation
+    | genericFunction                            # GenericFunctionInvocation
     ;
 
-functionArguments
-    : DISTINCT?  expressionOrPredicate (',' expressionOrPredicate)*
+/**
+ * Any function with an irregular syntax for the argument list
+ *
+ * These are all inspired by the syntax of ANSI SQL
+ */
+standardFunction
+    : castFunction
+    | treatedPath
+    | extractFunction
+    | truncFunction
+    | formatFunction
+    | collateFunction
+    | substringFunction
+    | overlayFunction
+    | trimFunction
+    | padFunction
+    | positionFunction
+    | currentDateFunction
+    | currentTimeFunction
+    | currentTimestampFunction
+    | instantFunction
+    | localDateFunction
+    | localTimeFunction
+    | localDateTimeFunction
+    | offsetDateTimeFunction
+    | cube
+    | rollup
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-aggregate-functions-filter
-filterClause
-    : FILTER '(' whereClause ')'
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-aggregate-functions-orderedset
-withinGroup
-    : WITHIN GROUP '(' orderByClause ')'
-    ;
-
-overClause
-    : OVER '(' partitionClause? orderByClause? frameClause? ')'
-    ;
-
-partitionClause
-    : PARTITION BY expression (',' expression)*
-    ;
-
-frameClause
-    : (RANGE|ROWS|GROUPS) frameStart frameExclusion?
-    | (RANGE|ROWS|GROUPS) BETWEEN frameStart AND frameEnd frameExclusion?
-    ;
-
-frameStart
-    : UNBOUNDED PRECEDING   # UnboundedPrecedingFrameStart
-    | expression PRECEDING  # ExpressionPrecedingFrameStart
-    | CURRENT ROW           # CurrentRowFrameStart
-    | expression FOLLOWING  # ExpressionFollowingFrameStart
-    ;
-
-frameExclusion
-    : EXCLUDE CURRENT ROW   # CurrentRowFrameExclusion
-    | EXCLUDE GROUP         # GroupFrameExclusion
-    | EXCLUDE TIES          # TiesFrameExclusion
-    | EXCLUDE NO OTHERS     # NoOthersFrameExclusion
-    ;
-
-frameEnd
-    : expression PRECEDING  # ExpressionPrecedingFrameEnd
-    | CURRENT ROW           # CurrentRowFrameEnd
-    | expression FOLLOWING  # ExpressionFollowingFrameEnd
-    | UNBOUNDED FOLLOWING   # UnboundedFollowingFrameEnd
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-functions
+/**
+ * The 'cast()' function for typecasting
+ */
 castFunction
     : CAST '(' expression AS castTarget ')'
     ;
 
+/**
+ * The target type for a typecast: a typename, together with length or precision/scale
+ */
 castTarget
     : castTargetType ('(' INTEGER_LITERAL (',' INTEGER_LITERAL)? ')')?
     ;
 
+/**
+ * The name of the target type in a typecast
+ *
+ * Like the 'entityName' rule, we have a specialized dotIdentifierSequence rule
+ */
 castTargetType
     returns [String fullTargetName]
     : (i=identifier { $fullTargetName = _localctx.i.getText(); }) ('.' c=identifier { $fullTargetName += ("." + _localctx.c.getText() ); })*
     ;
 
-extractFunction
-    : EXTRACT '(' expression FROM expression ')'
-    | dateTimeFunction '(' expression ')'
+/**
+ * The two formats for the 'substring() function: one defined by JPQL, the other by ANSI SQL
+ */
+substringFunction
+    : SUBSTRING '(' expression ',' substringFunctionStartArgument (',' substringFunctionLengthArgument)? ')'
+    | SUBSTRING '(' expression FROM substringFunctionStartArgument (FOR substringFunctionLengthArgument)? ')'
     ;
 
+substringFunctionStartArgument
+    : expression
+    ;
+
+substringFunctionLengthArgument
+    : expression
+    ;
+
+/**
+ * The ANSI SQL-style 'trim()' function
+ */
 trimFunction
-    : TRIM '(' (LEADING | TRAILING | BOTH)? stringLiteral? FROM? expression ')'
+    : TRIM '(' trimSpecification? trimCharacter? FROM? expression ')'
     ;
 
-dateTimeFunction
-    : d=(YEAR
-    | MONTH
-    | DAY
-    | WEEK
-    | QUARTER
-    | HOUR
-    | MINUTE
-    | SECOND
-    | NANOSECOND
-    | EPOCH)
+trimSpecification
+    : LEADING
+    | TRAILING
+    | BOTH
     ;
 
+trimCharacter
+    : stringLiteral
+    | parameter
+    ;
+
+/**
+ * A 'pad()' function inspired by 'trim()'
+ */
+padFunction
+    : PAD '(' expression WITH padLength padSpecification padCharacter? ')'
+    ;
+
+padSpecification
+    : LEADING
+    | TRAILING
+    ;
+
+padCharacter
+    : stringLiteral
+    ;
+
+padLength
+    : expression
+    ;
+
+/**
+ * The ANSI SQL-style 'position()' function
+ */
+positionFunction
+    : POSITION '(' positionFunctionPatternArgument IN positionFunctionStringArgument ')'
+    ;
+
+positionFunctionPatternArgument
+    : expression
+    ;
+
+positionFunctionStringArgument
+    : expression
+    ;
+
+/**
+ * The ANSI SQL-style 'overlay()' function
+ */
+overlayFunction
+    : OVERLAY '(' overlayFunctionStringArgument PLACING overlayFunctionReplacementArgument FROM overlayFunctionStartArgument (FOR overlayFunctionLengthArgument)? ')'
+    ;
+
+overlayFunctionStringArgument
+    : expression
+    ;
+
+overlayFunctionReplacementArgument
+    : expression
+    ;
+
+overlayFunctionStartArgument
+    : expression
+    ;
+
+overlayFunctionLengthArgument
+    : expression
+    ;
+
+/**
+ * The deprecated current_date function required by JPQL
+ */
+currentDateFunction
+    : CURRENT_DATE ('(' ')')?
+    | CURRENT DATE
+    ;
+
+/**
+ * The deprecated current_time function required by JPQL
+ */
+currentTimeFunction
+    : CURRENT_TIME ('(' ')')?
+    | CURRENT TIME
+    ;
+
+/**
+ * The deprecated current_timestamp function required by JPQL
+ */
+currentTimestampFunction
+    : CURRENT_TIMESTAMP ('(' ')')?
+    | CURRENT TIMESTAMP
+    ;
+
+/**
+ * The instant function, and deprecated current_instant function
+ */
+instantFunction
+    : CURRENT_INSTANT ('(' ')')? //deprecated legacy syntax
+    | INSTANT
+    ;
+
+/**
+ * The 'local datetime' function (or literal if you prefer)
+ */
+localDateTimeFunction
+    : LOCAL_DATETIME ('(' ')')?
+    | LOCAL DATETIME
+    ;
+
+/**
+ * The 'offset datetime' function (or literal if you prefer)
+ */
+offsetDateTimeFunction
+    : OFFSET_DATETIME ('(' ')')?
+    | OFFSET DATETIME
+    ;
+
+/**
+ * The 'local date' function (or literal if you prefer)
+ */
+localDateFunction
+    : LOCAL_DATE ('(' ')')?
+    | LOCAL DATE
+    ;
+
+/**
+ * The 'local time' function (or literal if you prefer)
+ */
+localTimeFunction
+    : LOCAL_TIME ('(' ')')?
+    | LOCAL TIME
+    ;
+
+/**
+ * The 'format()' function for formatting dates and times according to a pattern
+ */
+formatFunction
+    : FORMAT '(' expression AS format ')'
+    ;
+
+/**
+ * The name of a database-defined collation
+ *
+ * Certain databases allow a period in a collation name
+ */
+collation
+    : simplePath
+    ;
+
+/**
+ * The special 'collate()' functions
+ */
+collateFunction
+    : COLLATE '(' expression AS collation ')'
+    ;
+
+/**
+ * The 'cube()' function specific to the 'group by' clause
+ */
+cube
+    : CUBE '(' expressionOrPredicate (',' expressionOrPredicate)* ')'
+    ;
+
+/**
+ * The 'rollup()' function specific to the 'group by' clause
+ */
+rollup
+    : ROLLUP '(' expressionOrPredicate (',' expressionOrPredicate)* ')'
+    ;
+
+/**
+ * A format pattern, with a syntax inspired by by java.time.format.DateTimeFormatter
+ *
+ * see 'Dialect.appendDatetimeFormat()'
+ */
+format
+    : stringLiteral
+    ;
+
+/**
+ * The 'extract()' function for extracting fields of dates, times, and datetimes
+ */
+extractFunction
+    : EXTRACT '(' extractField FROM expression ')'
+    | datetimeField '(' expression ')'
+    ;
+
+/**
+ * The 'trunc()' function for truncating both numeric and datetime values
+ */
+truncFunction
+    : (TRUNC | TRUNCATE) '(' expression (',' (datetimeField | expression))? ')'
+    ;
+
+/**
+ * A syntax for calling user-defined or native database functions, required by JPQL
+ */
+jpaNonstandardFunction
+    : FUNCTION '(' jpaNonstandardFunctionName (AS castTarget)? (',' genericFunctionArguments)? ')'
+    ;
+
+/**
+ * The name of a user-defined or native database function, given as a quoted string
+ */
+jpaNonstandardFunctionName
+    : stringLiteral
+    | identifier
+    ;
+
+columnFunction
+    : COLUMN '(' path '.' jpaNonstandardFunctionName (AS castTarget)? ')'
+    ;
+
+/**
+ * Any function invocation that follows the regular syntax
+ *
+ * The function name, followed by a parenthesized list of ','-separated expressions
+ */
+genericFunction
+    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')' pathContinutation?
+      nthSideClause? nullsClause? withinGroupClause? filterClause? overClause?
+    ;
+
+/**
+ * The name of a generic function, which may contain periods and quoted identifiers
+ *
+ * Names of generic functions are resolved against the SqmFunctionRegistry
+ */
+genericFunctionName
+    : simplePath
+    ;
+
+/**
+ * The arguments of a generic function
+ */
+genericFunctionArguments
+    : (DISTINCT | datetimeField ',')? expressionOrPredicate (',' expressionOrPredicate)*
+    ;
+
+/**
+ * The special 'size()' function defined by JPQL
+ */
+collectionSizeFunction
+    : SIZE '(' path ')'
+    ;
+
+/**
+ * Special rule for 'max(elements())`, 'avg(keys())', 'sum(indices())`, etc., as defined by HQL
+ * Also the deprecated 'maxindex()', 'maxelement()', 'minindex()', 'minelement()' functions from old HQL
+ */
+collectionAggregateFunction
+    : (MAX|MIN|SUM|AVG) '(' elementsValuesQuantifier '(' path ')' ')'    # ElementAggregateFunction
+    | (MAX|MIN|SUM|AVG) '(' indicesKeysQuantifier '(' path ')' ')'    # IndexAggregateFunction
+    | (MAXELEMENT|MINELEMENT) '(' path ')'                                            # ElementAggregateFunction
+    | (MAXINDEX|MININDEX) '(' path ')'                                                # IndexAggregateFunction
+    ;
+
+/**
+ * To accommodate the misuse of elements() and indices() in the select clause
+ *
+ * (At some stage in the history of HQL, someone mixed them up with value() and index(),
+ *  and so we have tests that insist they're interchangeable. Ugh.)
+ */
+collectionFunctionMisuse
+    : elementsValuesQuantifier '(' path ')'
+    | indicesKeysQuantifier '(' path ')'
+    ;
+
+/**
+ * The special 'every()', 'all()', 'any()' and 'some()' functions defined by HQL
+ *
+ * May be applied to a subquery or collection reference, or may occur as an aggregate function in the 'select' clause
+ */
+aggregateFunction
+    : everyFunction
+    | anyFunction
+    | listaggFunction
+    ;
+
+/**
+ * The functions 'every()' and 'all()' are synonyms
+ */
 everyFunction
-    : every=(EVERY | ALL) '(' predicate ')'
-    | every=(EVERY | ALL) '(' subquery ')'
-    | every=(EVERY | ALL) (ELEMENTS | INDICES) '(' simplePath ')'
+    : everyAllQuantifier '(' predicate ')' filterClause? overClause?
+    | everyAllQuantifier '(' subquery ')'
+    | everyAllQuantifier collectionQuantifier '(' simplePath ')'
     ;
 
+/**
+ * The functions 'any()' and 'some()' are synonyms
+ */
 anyFunction
-    : any=(ANY | SOME) '(' predicate ')'
-    | any=(ANY | SOME) '(' subquery ')'
-    | any=(ANY | SOME) (ELEMENTS | INDICES) '(' simplePath ')'
+    : anySomeQuantifier '(' predicate ')' filterClause? overClause?
+    | anySomeQuantifier '(' subquery ')'
+    | anySomeQuantifier collectionQuantifier '(' simplePath ')'
+    ;
+
+everyAllQuantifier
+    : EVERY
+    | ALL
+    ;
+
+anySomeQuantifier
+    : ANY
+    | SOME
+    ;
+
+/**
+ * The 'listagg()' ordered set-aggregate function
+ */
+listaggFunction
+    : LISTAGG '(' DISTINCT? expressionOrPredicate ',' expressionOrPredicate onOverflowClause? ')'
+      withinGroupClause? filterClause? overClause?
+    ;
+
+/**
+ * A 'on overflow' clause: what to do when the text data type used for 'listagg' overflows
+ */
+onOverflowClause
+    : ON OVERFLOW (ERROR | TRUNCATE expression? (WITH|WITHOUT) COUNT)
+    ;
+
+/**
+ * A 'within group' clause: defines the order in which the ordered set-aggregate function should work
+ */
+withinGroupClause
+    : WITHIN GROUP '(' orderByClause ')'
+    ;
+
+/**
+ * A 'filter' clause: a restriction applied to an aggregate function
+ */
+filterClause
+    : FILTER '(' whereClause ')'
+    ;
+
+/**
+ * A `nulls` clause: what should a value access window function do when encountering a `null`
+ */
+nullsClause
+    : RESPECT NULLS
+    | IGNORE NULLS
+    ;
+
+/**
+ * A `nulls` clause: what should a value access window function do when encountering a `null`
+ */
+nthSideClause
+    : FROM FIRST
+    | FROM LAST
+    ;
+
+/**
+ * A 'over' clause: the specification of a window within which the function should act
+ */
+overClause
+    : OVER '(' partitionClause? orderByClause? frameClause? ')'
+    ;
+
+/**
+ * A 'partition' clause: the specification the group within which a function should act in a window
+ */
+partitionClause
+    : PARTITION BY expression (',' expression)*
+    ;
+
+/**
+ * A 'frame' clause: the specification the content of the window
+ */
+frameClause
+    : (RANGE|ROWS|GROUPS) frameStart frameExclusion?
+    | (RANGE|ROWS|GROUPS) BETWEEN frameStart AND frameEnd frameExclusion?
+    ;
+
+/**
+ * The start of the window content
+ */
+frameStart
+    : CURRENT ROW
+    | UNBOUNDED PRECEDING
+    | expression PRECEDING
+    | expression FOLLOWING
+    ;
+
+/**
+ * The end of the window content
+ */
+frameEnd
+    : CURRENT ROW
+    | UNBOUNDED FOLLOWING
+    | expression PRECEDING
+    | expression FOLLOWING
+    ;
+
+/**
+ * A 'exclusion' clause: the specification what to exclude from the window content
+ */
+frameExclusion
+    : EXCLUDE CURRENT ROW
+    | EXCLUDE GROUP
+    | EXCLUDE TIES
+    | EXCLUDE NO OTHERS
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-treat-type
@@ -606,6 +1015,21 @@ predicate
 expressionOrPredicate
     : expression
     | predicate
+    ;
+
+collectionQuantifier
+    : elementsValuesQuantifier
+    | indicesKeysQuantifier
+    ;
+
+elementsValuesQuantifier
+    : ELEMENTS
+    | VALUES
+    ;
+
+indicesKeysQuantifier
+    : INDICES
+    | KEYS
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-relational-comparisons
@@ -689,10 +1113,6 @@ entityName
 
 identifier
     : reservedWord
-    ;
-
-character
-    : CHARACTER
     ;
 
 functionName
@@ -938,7 +1358,11 @@ CURRENT_DATE                : C U R R E N T '_' D A T E;
 CURRENT_INSTANT             : C U R R E N T '_' I N S T A N T;
 CURRENT_TIME                : C U R R E N T '_' T I M E;
 CURRENT_TIMESTAMP           : C U R R E N T '_' T I M E S T A M P;
+CONFLICT                    : C O N F L I C T;
+CONSTRAINT                  : C O N S T R A I N T;
+COLUMN                      : C O L U M N;
 CYCLE                       : C Y C L E;
+DO                          : D O;
 DATE                        : D A T E;
 DATETIME                    : D A T E T I M E ;
 DAY                         : D A Y;
@@ -994,6 +1418,7 @@ INTO                        : I N T O;
 IS                          : I S;
 JOIN                        : J O I N;
 KEY                         : K E Y;
+KEYS                        : K E Y S;
 LAST                        : L A S T;
 LATERAL                     : L A T E R A L;
 LEADING                     : L E A D I N G;
@@ -1026,6 +1451,7 @@ NEW                         : N E W;
 NEXT                        : N E X T;
 NO                          : N O;
 NOT                         : N O T;
+NOTHING                     : N O T H I N G;
 NULL                        : N U L L;
 NULLS                       : N U L L S;
 OBJECT                      : O B J E C T;
@@ -1109,4 +1535,3 @@ BINARY_LITERAL              : [xX] '\'' HEX_DIGIT+ '\''
                             ;
 
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
-
