@@ -147,7 +147,7 @@ deleteStatement
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-insert
 insertStatement
-    : INSERT INTO? targetEntity targetFields (queryExpression | valuesList)
+    : INSERT INTO? targetEntity targetFields (queryExpression | valuesList) conflictClause?
     ;
 
 // Already defined underneath updateStatement
@@ -165,6 +165,23 @@ valuesList
 
 values
     : '(' expression (',' expression)* ')'
+    ;
+
+/**
+ * a 'conflict' clause in an 'insert' statement
+ */
+conflictClause
+    : ON CONFLICT conflictTarget? DO conflictAction
+    ;
+
+conflictTarget
+    : ON CONSTRAINT identifier
+    | '(' simplePath (',' simplePath)* ')'
+    ;
+
+conflictAction
+    : NOTHING
+    | UPDATE setClause whereClause?
     ;
 
 instantiation
