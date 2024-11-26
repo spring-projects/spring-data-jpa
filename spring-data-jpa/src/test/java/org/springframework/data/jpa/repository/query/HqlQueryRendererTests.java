@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -1551,9 +1552,11 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT o FROM Order o WHERE CAST(:userId AS java.util.UUID) IS NULL OR o.user.id = :userId");
 	}
 
-	@Test // GH-3025
-	void durationLiteralsShouldWork() {
-		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE (ce.endDate - ce.startDate) > 5 MINUTE");
+	@ParameterizedTest // GH-3025
+	@ValueSource(strings = { "YEAR", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
+			"NANOSECOND", "EPOCH" })
+	void durationLiteralsShouldWork(String dtField) {
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE (ce.endDate - ce.startDate) > 5 %s".formatted(dtField));
 	}
 
 	@Test // GH-3025
