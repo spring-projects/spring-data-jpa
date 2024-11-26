@@ -24,6 +24,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
@@ -545,6 +546,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.appendExpression(visit(ctx.valuesList()));
 		}
 
+		if (ctx.conflictClause() != null) {
+			builder.appendExpression(visit(ctx.conflictClause()));
+		}
+
 		return builder;
 	}
 
@@ -579,6 +584,66 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.append(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
 		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitConflictClause(HqlParser.ConflictClauseContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.ON()));
+		builder.append(QueryTokens.expression(ctx.CONFLICT()));
+
+		if (ctx.conflictTarget() != null) {
+			builder.appendExpression(visit(ctx.conflictTarget()));
+		}
+
+		builder.append(QueryTokens.expression(ctx.DO()));
+		builder.appendExpression(visit(ctx.conflictAction()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitConflictTarget(HqlParser.ConflictTargetContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.identifier() != null) {
+
+			builder.append(QueryTokens.expression(ctx.ON()));
+			builder.append(QueryTokens.expression(ctx.CONSTRAINT()));
+			builder.appendExpression(visit(ctx.identifier()));
+		}
+
+		if (!ObjectUtils.isEmpty(ctx.simplePath())) {
+
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(QueryTokenStream.concat(ctx.simplePath(), this::visit, TOKEN_COMMA));
+
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitConflictAction(HqlParser.ConflictActionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.NOTHING() != null) {
+			builder.append(QueryTokens.expression(ctx.NOTHING()));
+		} else {
+			builder.append(QueryTokens.expression(ctx.UPDATE()));
+			builder.appendExpression(visit(ctx.setClause()));
+
+			if (ctx.whereClause() != null) {
+				builder.appendExpression(visit(ctx.whereClause()));
+			}
+		}
 
 		return builder;
 	}
