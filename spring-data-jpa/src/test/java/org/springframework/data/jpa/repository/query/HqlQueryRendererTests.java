@@ -1664,14 +1664,14 @@ class HqlQueryRendererTests {
 				from Element a
 				where a.erstelltDurch = :variable
 				order by mutationAm desc nulls last
-					""");
+				""");
 	}
 
 	@Test // GH-2964
 	void roundFunctionShouldWorkLikeAnyOtherFunction() {
 
 		assertQuery("""
-				select round(count(ri)*100/max(ri.receipt.positions), 0) as perc
+				select round(count(ri) * 100 / max(ri.receipt.positions), 0) as perc
 				from StockOrderItem oi
 				right join StockReceiptItem ri
 				on ri.article = oi.article
