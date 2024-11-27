@@ -24,7 +24,6 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRenderer
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed EQL query by applying
@@ -54,7 +53,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelect_statement(EqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelect_statement(EqlParser.Select_statementContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -73,12 +72,10 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
-		doVisitOrderBy(builder, ctx, ObjectUtils.isEmpty(ctx.setOperator()) ? this.sort : Sort.unsorted());
-
-		for (int i = 0; i < ctx.setOperator().size(); i++) {
-
-			builder.appendExpression(visit(ctx.setOperator(i)));
-			builder.appendExpression(visit(ctx.select_statement(i)));
+		if (ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		} else {
+			doVisitOrderBy(builder, ctx);
 		}
 
 		return builder;
@@ -104,7 +101,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
 	}
 
-	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx, Sort sort) {
+	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx) {
 
 		if (ctx.orderby_clause() != null) {
 			QueryTokenStream existingOrder = visit(ctx.orderby_clause());

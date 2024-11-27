@@ -98,6 +98,7 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address");
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address a ORDER BY a.city");
+		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address AS a ORDER BY a.city");
 	}
 
 	@Test
@@ -116,6 +117,16 @@ class EqlComplianceTests {
 	void subselectsInFromClause() {
 		assertQuery(
 				"SELECT e, c.city FROM Employee e, (SELECT DISTINCT a.city FROM Address a) c WHERE e.address.city = c.city");
+	}
+
+	@Test // GH-3277
+	void numericLiterals() {
+
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234");
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234L");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14F");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14e32D");
 	}
 
 	@Test
@@ -442,7 +453,7 @@ class EqlComplianceTests {
 
 	@ParameterizedTest // GH-3136
 	@ValueSource(strings = { "STRING", "INTEGER", "FLOAT", "DOUBLE" })
-	void jpqlCast(String targetType) {
+	void cast(String targetType) {
 		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
 	}
 
@@ -462,4 +473,5 @@ class EqlComplianceTests {
 	void stringConcatWithPipes() {
 		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
 	}
+
 }

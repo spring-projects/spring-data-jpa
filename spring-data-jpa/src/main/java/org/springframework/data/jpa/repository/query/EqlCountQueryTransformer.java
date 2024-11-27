@@ -42,7 +42,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelect_statement(EqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelect_statement(EqlParser.Select_statementContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -92,7 +92,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 		return builder;
 	}
 
-	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
+	private QueryTokenStream getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
 
 		QueryRendererBuilder nested = new QueryRendererBuilder();
 		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);

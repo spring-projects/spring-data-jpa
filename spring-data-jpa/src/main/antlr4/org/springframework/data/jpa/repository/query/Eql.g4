@@ -43,13 +43,17 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (setOperator select_statement)*
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
     ;
 
 setOperator
     : UNION ALL?
     | INTERSECT ALL?
     | EXCEPT ALL?
+    ;
+
+set_fuction
+    : setOperator select_statement
     ;
 
 update_statement
@@ -675,6 +679,7 @@ constructor_name
 
 literal
     : STRINGLITERAL
+    | JAVASTRINGLITERAL
     | INTLITERAL
     | FLOATLITERAL
     | LONGLITERAL
@@ -848,9 +853,9 @@ reserved_word
        |OR
        |ORDER
        |OUTER
+       |POWER
        |REPLACE
        |RIGHT
-       |POWER
        |ROUND
        |SELECT
        |SET
@@ -1021,6 +1026,7 @@ NOT_EQUAL                   : '<>' | '!=' ;
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
+JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 STRINGLITERAL               : '\'' (~ ('\'' | '\\')|'\\')* '\'' ;
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;

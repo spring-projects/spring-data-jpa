@@ -327,6 +327,38 @@ class JpqlSpecificationTests {
 				""");
 	}
 
+	@Test // GH-3136
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+	}
+
+	@Test // GH-3136
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT_DATE " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIME " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIMESTAMP " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATE " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_TIME " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATETIME " + //
+				"from Call c ");
+	}
+
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
