@@ -63,11 +63,11 @@ class EqlDtoQueryTransformerUnitTests {
 	void shouldNotTranslateConstructorExpressionQuery() {
 
 		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser
-				.parseQuery("SELECT NEW String(p) from Person p");
+				.parseQuery("SELECT NEW Foo(p) from Person p");
 
 		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo("SELECT NEW String(p) from Person p");
+		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo("SELECT NEW Foo(p) from Person p");
 	}
 
 	@Test
