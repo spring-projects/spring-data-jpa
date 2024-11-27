@@ -31,7 +31,6 @@ class QueryTokens {
 	/**
 	 * Commonly use tokens.
 	 */
-	static final QueryToken TOKEN_NONE = token("");
 	static final QueryToken TOKEN_COMMA = token(", ");
 	static final QueryToken TOKEN_SPACE = token(" ");
 	static final QueryToken TOKEN_DOT = token(".");
@@ -58,15 +57,9 @@ class QueryTokens {
 	static final QueryToken TOKEN_WITH = expression("WITH");
 	static final QueryToken TOKEN_NOT = expression("NOT");
 	static final QueryToken TOKEN_MATERIALIZED = expression("materialized");
-	static final QueryToken TOKEN_NULLS = expression("NULLS");
-	static final QueryToken TOKEN_FIRST = expression("FIRST");
-	static final QueryToken TOKEN_LAST = expression("LAST");
 
 	/**
 	 * Creates a {@link QueryToken token} from an ANTLR {@link TerminalNode}.
-	 *
-	 * @param node
-	 * @return
 	 */
 	static QueryToken token(TerminalNode node) {
 		return token(node.getText());
@@ -74,9 +67,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a {@link QueryToken token} from an ANTLR {@link Token}.
-	 *
-	 * @param token
-	 * @return
 	 */
 	static QueryToken token(Token token) {
 		return token(token.getText());
@@ -84,9 +74,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a {@link QueryToken token} from a string {@code token}.
-	 *
-	 * @param token
-	 * @return
 	 */
 	static QueryToken token(String token) {
 		return new SimpleQueryToken(token);
@@ -94,9 +81,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a ventilated token that is embedded in spaces.
-	 *
-	 * @param token
-	 * @return
 	 */
 	static QueryToken ventilated(Token token) {
 		return new SimpleQueryToken(" " + token.getText() + " ");
@@ -104,9 +88,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a {@link QueryToken expression} from an ANTLR {@link TerminalNode}.
-	 *
-	 * @param node
-	 * @return
 	 */
 	static QueryToken expression(TerminalNode node) {
 		return expression(node.getText());
@@ -114,9 +95,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a {@link QueryToken expression} from an ANTLR {@link Token}.
-	 *
-	 * @param token
-	 * @return
 	 */
 	static QueryToken expression(Token token) {
 		return expression(token.getText());
@@ -124,9 +102,6 @@ class QueryTokens {
 
 	/**
 	 * Creates a {@link QueryToken token} from a string {@code expression}.
-	 *
-	 * @param expression
-	 * @return
 	 */
 	static QueryToken expression(String expression) {
 		return new ExpressionToken(expression);

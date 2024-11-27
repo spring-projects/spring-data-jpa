@@ -134,7 +134,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		QueryTokenStream tokens = super.visitSelect_item(ctx);
 
 		if (ctx.result_variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
@@ -146,7 +146,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoin(ctx);
 
 		if (!tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
