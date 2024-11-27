@@ -38,6 +38,7 @@ import org.springframework.util.CompositeIterator;
  * </ul>
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 abstract class QueryRenderer implements QueryTokenStream {
 
@@ -243,7 +244,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 			for (QueryRenderer queryRenderer : nested) {
 
 				if (lastAppended != null && (lastExpression || queryRenderer.isExpression()) && !builder.isEmpty()
-						&& !lastAppended.endsWith(" ")) {
+						&& (!lastAppended.endsWith(" ") && !lastAppended.endsWith("("))) {
 					builder.append(' ');
 				}
 

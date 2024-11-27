@@ -1090,7 +1090,7 @@ class HqlQueryTransformerTests {
 						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
 	}
 
-	@Test // GH-3269
+	@Test // GH-3269, GH-3689
 	void createsCountQueryUsingAliasCorrectly() {
 
 		assertCountQuery("select distinct 1 as x from Employee", "select count(distinct 1) from Employee AS __");
@@ -1102,6 +1102,7 @@ class HqlQueryTransformerTests {
 				"select count(distinct a, b, sum(amount), d) from Employee AS __ GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n",
 				"select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
+		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee", "select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
 	}
 
 	@Test // GH-3427

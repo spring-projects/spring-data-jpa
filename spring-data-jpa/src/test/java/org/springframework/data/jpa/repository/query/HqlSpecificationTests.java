@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -35,6 +34,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 3.1
  */
 class HqlSpecificationTests {
@@ -335,18 +335,15 @@ class HqlSpecificationTests {
 				""");
 	}
 
-	@Test // GH-3689
-	void generic() {
+	@ParameterizedTest // GH-3689
+	@ValueSource(strings = { "RESPECT NULLS", "IGNORE NULLS" })
+	void generic(String nullHandling) {
 
+		// not in the official documentation but supported in the grammar.
 		assertQuery("""
 				SELECT e FROM Employee e
-				WHERE FOO(x).bar RESPECT NULLS
-				""");
-
-		assertQuery("""
-				SELECT e FROM Employee e
-				WHERE FOO(x).bar IGNORE NULLS
-				""");
+				WHERE FOO(x).bar %s
+				""".formatted(nullHandling));
 	}
 
 	@Test // GH-3689
@@ -355,6 +352,11 @@ class HqlSpecificationTests {
 		assertQuery("""
 				SELECT e FROM Employee e
 				WHERE SIZE(x) > 1
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE SIZE(e.skills) > 1
 				""");
 	}
 
@@ -384,10 +386,15 @@ class HqlSpecificationTests {
 				SELECT e FROM Employee e
 				WHERE TRUNC(e, 'foo') = TRUNCATE(e, 'bar')
 				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, 'YEAR') = TRUNCATE(LOCAL DATETIME, 'YEAR')
+				""");
 	}
 
 	@ParameterizedTest // GH-3689
-	@ValueSource(strings = { "YYYY", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
+	@ValueSource(strings = { "YEAR", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
 			"NANOSECOND", "EPOCH" })
 	void trunc(String truncation) {
 
@@ -402,7 +409,17 @@ class HqlSpecificationTests {
 
 		assertQuery("""
 				SELECT e FROM Employee e
-				WHERE FORMAT(x AS 'foo') = FORMAT(x AS 'bar')
+				WHERE FORMAT(x AS 'yyyy') = FORMAT(e.hiringDate AS 'yyyy')
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE e.hiringDate = format(LOCAL DATETIME as 'yyyy-MM-dd')
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE e.hiringDate = format(LOCAL_DATE() as 'yyyy-MM-dd')
 				""");
 	}
 
@@ -411,7 +428,7 @@ class HqlSpecificationTests {
 
 		assertQuery("""
 				SELECT e FROM Employee e
-				WHERE COLLATE(x AS foo) = COLLATE(x AS foo.bar)
+				WHERE COLLATE(x AS ucs_basic) = COLLATE(e.name AS ucs_basic)
 				""");
 	}
 
@@ -424,10 +441,19 @@ class HqlSpecificationTests {
 		assertQuery("select substring(c.number, 1) " + //
 				"from Call c");
 
+		assertQuery("select substring(c.number, 1, position('/0' in c.number)) " + //
+				"from Call c");
+
 		assertQuery("select substring(c.number FROM 1 FOR 2) " + //
 				"from Call c");
 
 		assertQuery("select substring(c.number FROM 1) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1 FOR position('/0' in c.number)) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1) AS shortNumber " + //
 				"from Call c");
 	}
 
@@ -462,6 +488,9 @@ class HqlSpecificationTests {
 
 		assertQuery("select POSITION(c.number IN 'foo') " + //
 				"from Call c ");
+
+		assertQuery("select POSITION(c.number IN 'foo') + 1 AS pos " + //
+			"from Call c ");
 	}
 
 	@Test // GH-3689
@@ -490,6 +519,9 @@ class HqlSpecificationTests {
 
 		assertQuery("select OFFSET DATETIME, OFFSET_DATETIME() " + //
 				"from Call c ");
+
+		assertQuery("select OFFSET DATETIME AS offsetDatetime, OFFSET_DATETIME() AS offset_datetime " + //
+				"from Call c ");
 	}
 
 	@Test // GH-3689
@@ -497,6 +529,8 @@ class HqlSpecificationTests {
 
 		assertQuery("select CUBE(foo), CUBE(foo, bar) " + //
 				"from Call c ");
+
+		assertQuery("select c.callerId from Call c GROUP BY CUBE(state, province)");
 	}
 
 	@Test // GH-3689
@@ -504,6 +538,8 @@ class HqlSpecificationTests {
 
 		assertQuery("select ROLLUP(foo), ROLLUP(foo, bar) " + //
 				"from Call c ");
+
+		assertQuery("select c.callerId from Call c GROUP BY ROLLUP(state, province)");
 	}
 
 	@Test
@@ -710,16 +746,13 @@ class HqlSpecificationTests {
 				""");
 	}
 
-	@Test // GH-3628
-	void functionInvocationWithIsBoolean() {
+	@ParameterizedTest // GH-3628
+	@ValueSource(strings = { "is true", "is not true", "is false", "is not false" })
+	void functionInvocationWithIsBoolean(String booleanComparison) {
 
 		assertQuery("""
-				from RoleTmpl where find_in_set(:appId, appIds) is true
-				""");
-
-		assertQuery("""
-				from RoleTmpl where find_in_set(:appId, appIds) is false
-				""");
+				from RoleTmpl where find_in_set(:appId, appIds) %s
+				""".formatted(booleanComparison));
 	}
 
 	@Test
@@ -1094,20 +1127,36 @@ class HqlSpecificationTests {
 				""");
 	}
 
-	@Test // GH-3628
-	void distinctFromPredicate() {
+	@ParameterizedTest // GH-3628
+	@ValueSource(strings = { "IS DISTINCT FROM", "IS NOT DISTINCT FROM" })
+	void distinctFromPredicate(String distinctFrom) {
 
 		assertQuery("""
 				SELECT c
 				FROM Customer c
-				WHERE c.orders IS DISTINCT FROM c.payments
-				""");
+				WHERE c.orders %s c.payments
+				""".formatted(distinctFrom));
 
 		assertQuery("""
 				SELECT c
 				FROM Customer c
-				WHERE c.orders IS NOT DISTINCT FROM c.payments
-				""");
+				WHERE c.orders %s c.payments
+				""".formatted(distinctFrom));
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				GROUP BY c.lastname
+				HAVING c.orders %s c.payments
+				""".formatted(distinctFrom));
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE EXISTS (SELECT c2
+				    FROM Customer c2
+				        WHERE c2.orders %s c.orders)
+				""".formatted(distinctFrom));
 	}
 
 	@Test
@@ -1576,7 +1625,7 @@ class HqlSpecificationTests {
 		assertQuery("select longest.duration " + //
 				"from Phone p " + //
 				"left join lateral (" + //
-				"  select c.duration as duration " + //
+				"select c.duration as duration " + //
 				"  from p.calls c" + //
 				"  order by c.duration desc" + //
 				"  limit 1 " + //
