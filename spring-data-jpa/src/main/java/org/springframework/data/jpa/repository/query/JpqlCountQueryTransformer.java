@@ -44,16 +44,6 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 	@Override
 	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
 
-		if(ctx.select_query() != null) {
-			return visitSelect_query(ctx.select_query());
-		}
-
-		return QueryTokenStream.empty();
-	}
-
-	@Override
-	public QueryTokenStream visitSelect_query(JpqlParser.Select_queryContext ctx) {
-
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.select_clause()));
@@ -68,7 +58,7 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 		if (ctx.having_clause() != null) {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
-		if(ctx.set_fuction() != null) {
+		if (ctx.set_fuction() != null) {
 			builder.appendExpression(visit(ctx.set_fuction()));
 		}
 
