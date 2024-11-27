@@ -20,9 +20,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.springframework.lang.Nullable;
 import org.springframework.util.CompositeIterator;
 
 /**
@@ -44,9 +44,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
 	 * Creates a QueryRenderer from a {@link QueryToken}.
-	 *
-	 * @param token
-	 * @return
 	 */
 	static QueryRenderer from(QueryToken token) {
 		return QueryRenderer.from(Collections.singletonList(token));
@@ -54,9 +51,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
 	 * Creates a QueryRenderer from a collection of {@link QueryToken}.
-	 *
-	 * @param tokens
-	 * @return
 	 */
 	static QueryRenderer from(Collection<? extends QueryToken> tokens) {
 		List<QueryToken> tokensToUse = new ArrayList<>(Math.max(tokens.size(), 32));
@@ -66,9 +60,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
 	 * Creates a QueryRenderer from a {@link QueryTokenStream}.
-	 *
-	 * @param tokens
-	 * @return
 	 */
 	static QueryRenderer from(QueryTokenStream tokens) {
 
@@ -85,8 +76,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
 	 * Creates a new empty {@link QueryRenderer}.
-	 *
-	 * @return
 	 */
 	public static QueryRenderer empty() {
 		return EmptyQueryRenderer.INSTANCE;
@@ -94,8 +83,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
 	 * Creates a new {@link QueryRendererBuilder}.
-	 *
-	 * @return
 	 */
 	static QueryRendererBuilder builder() {
 		return new QueryRendererBuilder();
@@ -144,14 +131,11 @@ abstract class QueryRenderer implements QueryTokenStream {
 			results.append(token.value());
 		}
 
-		return results.toString();
+		return results != null ? results.toString() : "";
 	}
 
 	/**
 	 * Append a {@link QueryRenderer} to create a composed renderer.
-	 *
-	 * @param tokens
-	 * @return
 	 */
 	QueryRenderer append(QueryTokenStream tokens) {
 
@@ -180,7 +164,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 		return render();
 	}
 
-	public static QueryRenderer expression(QueryTokenStream tokenStream) {
+	public static QueryRenderer ofExpression(QueryTokenStream tokenStream) {
 
 		if (tokenStream instanceof QueryRendererBuilder builder) {
 			tokenStream = builder.current;
@@ -258,9 +242,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		/**
 		 * Append a {@link QueryRenderer} to create a composed renderer.
-		 *
-		 * @param tokens
-		 * @return
 		 */
 		QueryRenderer append(QueryTokenStream tokens) {
 
@@ -290,6 +271,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 
 			for (int i = nested.size() - 1; i > -1; i--) {
@@ -386,11 +368,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getFirst() {
 			return tokens.isEmpty() ? null : tokens.get(0);
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 			return tokens.isEmpty() ? null : tokens.get(tokens.size() - 1);
 		}
@@ -407,7 +391,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		@Override
 		public boolean isExpression() {
-			return !tokens.isEmpty() && getLast().isExpression();
+			return !tokens.isEmpty() && getRequiredLast().isExpression();
 		}
 
 		/**
@@ -418,7 +402,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 		 */
 		static String render(Object tokens) {
 
-			if (tokens instanceof Collection tpr) {
+			if (tokens instanceof Collection<?> tpr) {
 				return render(tpr);
 			}
 
@@ -454,11 +438,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getFirst() {
 			return tokens.getFirst();
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 			return tokens.getLast();
 		}
@@ -475,7 +461,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		@Override
 		public boolean isExpression() {
-			return !tokens.isEmpty() && tokens.getLast().isExpression();
+			return !tokens.isEmpty() && tokens.getRequiredLast().isExpression();
 		}
 	}
 
@@ -487,67 +473,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		protected QueryRenderer current = QueryRenderer.empty();
 
 		/**
-		 * Compose a {@link QueryRendererBuilder} from a collection of inline elements that can be mapped to
-		 * {@link QueryRendererBuilder}.
-		 *
-		 * @param elements
-		 * @param visitor
-		 * @param separator
-		 * @return
-		 * @param <T>
-		 */
-		public static <T> QueryRendererBuilder concat(Collection<T> elements, Function<T, QueryRendererBuilder> visitor,
-				QueryToken separator) {
-			return concat(elements, visitor, QueryRendererBuilder::toInline, separator);
-		}
-
-		/**
-		 * Compose a {@link QueryRendererBuilder} from a collection of expression elements that can be mapped to
-		 * {@link QueryRendererBuilder}.
-		 *
-		 * @param elements
-		 * @param visitor
-		 * @param separator
-		 * @return
-		 * @param <T>
-		 */
-		public static <T> QueryRendererBuilder concatExpressions(Collection<T> elements,
-				Function<T, QueryRendererBuilder> visitor, QueryToken separator) {
-			return concat(elements, visitor, QueryRendererBuilder::toExpression, separator);
-		}
-
-		/**
-		 * Compose a {@link QueryRendererBuilder} from a collection of elements that can be mapped to
-		 * {@link QueryRendererBuilder}.
-		 *
-		 * @param elements
-		 * @param visitor
-		 * @param postProcess post-processing function to convert {@link QueryRendererBuilder} into {@link QueryRenderer}.
-		 * @param separator
-		 * @return
-		 * @param <T>
-		 */
-		public static <T> QueryRendererBuilder concat(Collection<T> elements, Function<T, QueryRendererBuilder> visitor,
-				Function<QueryRendererBuilder, QueryRenderer> postProcess, QueryToken separator) {
-
-			QueryRendererBuilder builder = new QueryRendererBuilder();
-			for (T element : elements) {
-				if (!builder.isEmpty()) {
-					builder.append(separator);
-				}
-				builder.append(postProcess.apply(visitor.apply(element)));
-			}
-
-			return builder;
-		}
-
-		/**
 		 * Create and initialize a QueryRendererBuilder from a {@link QueryTokens.SimpleQueryToken}.
 		 *
 		 * @param token
 		 * @return
 		 */
-		public static QueryRendererBuilder from(QueryToken token) {
+		public static QueryRendererBuilder builder(QueryToken token) {
 			return new QueryRendererBuilder().append(token);
 		}
 
@@ -627,7 +558,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 				return this;
 			}
 
-			current = current.append(QueryRenderer.expression(tokens));
+			current = current.append(QueryRenderer.ofExpression(tokens));
 
 			return this;
 		}
@@ -643,11 +574,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getFirst() {
 			return current.getFirst();
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 			return current.getLast();
 		}
@@ -657,11 +590,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 			return current.isExpression();
 		}
 
-		/**
-		 * Return whet the builder is empty.
-		 *
-		 * @return
-		 */
 		@Override
 		public boolean isEmpty() {
 			return current.isEmpty();
@@ -684,19 +612,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		public QueryRenderer build() {
 			return current;
-		}
-
-		QueryRenderer toExpression() {
-
-			if (current instanceof ExpressionRenderer) {
-				return current;
-			}
-
-			return QueryRenderer.expression(current);
-		}
-
-		public QueryRenderer toInline() {
-			return new InlineRenderer(current);
 		}
 
 	}
@@ -730,11 +645,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getFirst() {
 			return delegate.getFirst();
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 			return delegate.getLast();
 		}
@@ -784,11 +701,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getFirst() {
 			return delegate.getFirst();
 		}
 
 		@Override
+		@Nullable
 		public QueryToken getLast() {
 			return delegate.getLast();
 		}
