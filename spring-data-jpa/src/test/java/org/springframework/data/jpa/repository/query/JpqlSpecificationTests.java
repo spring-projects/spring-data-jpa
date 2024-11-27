@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -331,6 +332,38 @@ class JpqlSpecificationTests {
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
 				""");
+	}
+
+	@Test // GH-3136
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+	}
+
+	@Test // GH-3136
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT_DATE " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIME " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIMESTAMP " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATE " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_TIME " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATETIME " + //
+				"from Call c ");
 	}
 
 	@Test
