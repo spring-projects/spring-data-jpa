@@ -109,7 +109,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		QueryTokenStream tokens = super.visitSelect_item(ctx);
 
 		if (ctx.result_variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
@@ -121,7 +121,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoin(ctx);
 
 		if (!tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
