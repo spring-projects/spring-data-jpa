@@ -696,19 +696,19 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitConstructor_item(EqlParser.Constructor_itemContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
 		if (ctx.single_valued_path_expression() != null) {
-			builder.append(visit(ctx.single_valued_path_expression()));
+			return visit(ctx.single_valued_path_expression());
 		} else if (ctx.scalar_expression() != null) {
-			builder.append(visit(ctx.scalar_expression()));
+			return visit(ctx.scalar_expression());
 		} else if (ctx.aggregate_expression() != null) {
-			builder.append(visit(ctx.aggregate_expression()));
+			return visit(ctx.aggregate_expression());
 		} else if (ctx.identification_variable() != null) {
-			builder.append(visit(ctx.identification_variable()));
+			return visit(ctx.identification_variable());
+		} else if (ctx.literal() != null) {
+			return visit(ctx.literal());
 		}
 
-		return builder;
+		return QueryTokenStream.empty();
 	}
 
 	@Override
