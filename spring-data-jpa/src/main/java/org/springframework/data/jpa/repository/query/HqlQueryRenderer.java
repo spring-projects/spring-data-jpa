@@ -107,7 +107,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitWithClause(HqlParser.WithClauseContext ctx) {
 
-		QueryRendererBuilder builder = QueryRendererBuilder.from(TOKEN_WITH);
+		QueryRendererBuilder builder = QueryRendererBuilder.builder(TOKEN_WITH);
 		builder.append(QueryTokenStream.concatExpressions(ctx.cte(), this::visit, TOKEN_COMMA));
 
 		return builder;
@@ -661,7 +661,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.INTEGER_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -693,7 +693,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.identifier() != null) {
 			return visit(ctx.identifier());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.INTEGER_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 		} else if (ctx.expression() != null) {
 			return visit(ctx.expression());
 		} else {
@@ -705,9 +705,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitSortDirection(HqlParser.SortDirectionContext ctx) {
 
 		if (ctx.ASC() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.ASC()));
+			return QueryTokenStream.ofToken(ctx.ASC());
 		} else if (ctx.DESC() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.DESC()));
+			return QueryTokenStream.ofToken(ctx.DESC());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -771,9 +771,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		}
 
 		if (ctx.parameterOrIntegerLiteral() != null) {
-			builder.append(visit(ctx.parameterOrIntegerLiteral()));
+			builder.appendExpression(visit(ctx.parameterOrIntegerLiteral()));
 		} else if (ctx.parameterOrNumberLiteral() != null) {
-			builder.append(visit(ctx.parameterOrNumberLiteral()));
+			builder.appendExpression(visit(ctx.parameterOrNumberLiteral()));
 		}
 
 		if (ctx.ROW() != null) {
@@ -1022,13 +1022,13 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitLiteral(HqlParser.LiteralContext ctx) {
 
 		if (ctx.NULL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.NULL()));
+			return QueryTokenStream.ofToken(ctx.NULL());
 		} else if (ctx.booleanLiteral() != null) {
 			return visit(ctx.booleanLiteral());
 		} else if (ctx.JAVA_STRING_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.JAVA_STRING_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.JAVA_STRING_LITERAL());
 		} else if (ctx.STRING_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.STRING_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 		} else if (ctx.numericLiteral() != null) {
 			return visit(ctx.numericLiteral());
 		} else if (ctx.temporalLiteral() != null) {
@@ -1048,9 +1048,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitBooleanLiteral(HqlParser.BooleanLiteralContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.TRUE()));
+			return QueryTokenStream.ofToken(ctx.TRUE());
 		} else if (ctx.FALSE() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.FALSE()));
+			return QueryTokenStream.ofToken(ctx.FALSE());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -1060,19 +1060,19 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
 
 		if (ctx.INTEGER_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 		} else if (ctx.LONG_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.LONG_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.LONG_LITERAL());
 		} else if (ctx.BIG_INTEGER_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.BIG_INTEGER_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.BIG_INTEGER_LITERAL());
 		} else if (ctx.FLOAT_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.FLOAT_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.FLOAT_LITERAL());
 		} else if (ctx.DOUBLE_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.DOUBLE_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.DOUBLE_LITERAL());
 		} else if (ctx.BIG_DECIMAL_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.BIG_DECIMAL_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.BIG_DECIMAL_LITERAL());
 		} else if (ctx.HEX_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.HEX_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.HEX_LITERAL());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -1444,25 +1444,25 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitDatetimeField(HqlParser.DatetimeFieldContext ctx) {
 
 		if (ctx.YEAR() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.YEAR()));
+			return QueryTokenStream.ofToken(ctx.YEAR());
 		} else if (ctx.MONTH() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.MONTH()));
+			return QueryTokenStream.ofToken(ctx.MONTH());
 		} else if (ctx.DAY() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.DAY()));
+			return QueryTokenStream.ofToken(ctx.DAY());
 		} else if (ctx.WEEK() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.WEEK()));
+			return QueryTokenStream.ofToken(ctx.WEEK());
 		} else if (ctx.QUARTER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.QUARTER()));
+			return QueryTokenStream.ofToken(ctx.QUARTER());
 		} else if (ctx.HOUR() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.HOUR()));
+			return QueryTokenStream.ofToken(ctx.HOUR());
 		} else if (ctx.MINUTE() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.MINUTE()));
+			return QueryTokenStream.ofToken(ctx.MINUTE());
 		} else if (ctx.SECOND() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.SECOND()));
+			return QueryTokenStream.ofToken(ctx.SECOND());
 		} else if (ctx.NANOSECOND() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.NANOSECOND()));
+			return QueryTokenStream.ofToken(ctx.NANOSECOND());
 		} else if (ctx.EPOCH() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.EPOCH()));
+			return QueryTokenStream.ofToken(ctx.EPOCH());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -1540,7 +1540,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitDateOrTimeField(HqlParser.DateOrTimeFieldContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.expression(ctx.DATE() != null ? ctx.DATE() : ctx.TIME()));
+		return QueryTokenStream.ofToken(ctx.DATE() != null ? ctx.DATE() : ctx.TIME());
 	}
 
 	@Override
@@ -1553,11 +1553,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		} else if (ctx.HEX_LITERAL() != null) {
 
 			builder.append(TOKEN_OPEN_BRACE);
-
-			builder.append(QueryTokenStream.concat(ctx.HEX_LITERAL(), it -> {
-				return QueryRendererBuilder.from(QueryTokens.token(it));
-			}, TOKEN_COMMA));
-
+			builder.append(QueryTokenStream.concat(ctx.HEX_LITERAL(), QueryTokenStream::ofToken, TOKEN_COMMA));
 			builder.append(TOKEN_CLOSE_BRACE);
 		}
 
@@ -1734,7 +1730,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.expression()));
+		builder.appendExpression(visit(ctx.expression()));
 		builder.appendExpression(visit(ctx.datetimeField()));
 
 		return builder;
@@ -2156,12 +2152,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitPadSpecification(HqlParser.PadSpecificationContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.LEADING() != null ? ctx.LEADING() : ctx.TRAILING()));
+		return QueryTokenStream.ofToken(ctx.LEADING() != null ? ctx.LEADING() : ctx.TRAILING());
 	}
 
 	@Override
 	public QueryTokenStream visitPadCharacter(HqlParser.PadCharacterContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
@@ -2173,12 +2169,16 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitPositionFunction(HqlParser.PositionFunctionContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder nested = QueryRenderer.builder();
 
 		builder.append(QueryTokens.token(ctx.POSITION()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.append(visit(ctx.positionFunctionPatternArgument()));
-		builder.append(QueryTokens.expression(ctx.IN()));
-		builder.appendInline(visit(ctx.positionFunctionStringArgument()));
+
+		nested.appendExpression(visit(ctx.positionFunctionPatternArgument()));
+		nested.append(QueryTokens.expression(ctx.IN()));
+		nested.append(visit(ctx.positionFunctionStringArgument()));
+
+		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
@@ -2201,7 +2201,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.append(QueryTokens.token(ctx.OVERLAY()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.append(visit(ctx.overlayFunctionStringArgument()));
+		builder.appendExpression(visit(ctx.overlayFunctionStringArgument()));
 		builder.append(QueryTokens.expression(ctx.PLACING()));
 		builder.append(visit(ctx.overlayFunctionReplacementArgument()));
 		builder.append(QueryTokens.expression(ctx.FROM()));
@@ -2435,7 +2435,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitFormat(HqlParser.FormatContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
@@ -2497,7 +2497,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.identifier());
 		}
 
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
@@ -2996,10 +2996,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.append(QueryTokens.expression(ctx.CASE()));
 		builder.append(visit(ctx.expressionOrPredicate(0)));
-
-		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
-			builder.append(visit(caseWhenExpressionClauseContext));
-		});
+		builder.appendExpression(QueryTokenStream.concat(ctx.caseWhenExpressionClause(), this::visit, TOKEN_SPACE));
 
 		if (ctx.ELSE() != null) {
 
@@ -3242,7 +3239,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitCastTargetType(HqlParser.CastTargetTypeContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.expression(ctx.fullTargetName));
+		return QueryTokenStream.from(QueryTokens.token(ctx.fullTargetName));
 	}
 
 	@Override
@@ -3259,7 +3256,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 			nested.appendExpression(visit(ctx.extractField()));
 			nested.append(QueryTokens.expression(ctx.FROM()));
-			nested.append(visit(ctx.expression()));
+			nested.appendExpression(visit(ctx.expression()));
 
 			builder.appendInline(nested);
 			builder.append(TOKEN_CLOSE_PAREN);
@@ -3349,7 +3346,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitTrimCharacter(HqlParser.TrimCharacterContext ctx) {
 
 		if (ctx.STRING_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 		}
 
 		return visit(ctx.parameter());
@@ -3499,11 +3496,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitElementValueQuantifier(HqlParser.ElementValueQuantifierContext ctx) {
 
 		if (ctx.ELEMENT() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.ELEMENT()));
+			return QueryTokenStream.ofToken(ctx.ELEMENT());
 		}
 
 		if (ctx.VALUE() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.VALUE()));
+			return QueryTokenStream.ofToken(ctx.VALUE());
 		}
 
 		return QueryTokenStream.empty();
@@ -3513,11 +3510,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitIndexKeyQuantifier(HqlParser.IndexKeyQuantifierContext ctx) {
 
 		if (ctx.INDEX() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.INDEX()));
+			return QueryTokenStream.ofToken(ctx.INDEX());
 		}
 
 		if (ctx.KEY() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.KEY()));
+			return QueryTokenStream.ofToken(ctx.KEY());
 		}
 
 		return QueryTokenStream.empty();
@@ -3861,11 +3858,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitInstantiationTarget(HqlParser.InstantiationTargetContext ctx) {
 
 		if (ctx.LIST() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.LIST()));
+			return QueryTokenStream.ofToken(ctx.LIST());
 		} else if (ctx.MAP() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.MAP()));
+			return QueryTokenStream.ofToken(ctx.MAP());
 		} else if (ctx.simplePath() != null) {
-
 			return visit(ctx.simplePath());
 		} else {
 			return QueryTokenStream.empty();
@@ -3901,7 +3897,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.parameter() != null) {
 			return visit(ctx.parameter());
 		} else if (ctx.INTEGER_LITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -3967,15 +3963,15 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.nakedIdentifier() != null) {
 			return visit(ctx.nakedIdentifier());
 		} else if (ctx.FULL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.FULL()));
+			return QueryTokenStream.ofToken(ctx.FULL());
 		} else if (ctx.LEFT() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.LEFT()));
+			return QueryTokenStream.ofToken(ctx.LEFT());
 		} else if (ctx.INNER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.INNER()));
+			return QueryTokenStream.ofToken(ctx.INNER());
 		} else if (ctx.OUTER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.OUTER()));
+			return QueryTokenStream.ofToken(ctx.OUTER());
 		} else if (ctx.RIGHT() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.RIGHT()));
+			return QueryTokenStream.ofToken(ctx.RIGHT());
 		}
 
 		return QueryTokenStream.empty();
@@ -3985,11 +3981,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitNakedIdentifier(HqlParser.NakedIdentifierContext ctx) {
 
 		if (ctx.IDENTIFIER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.IDENTIFIER()));
+			return QueryTokenStream.ofToken(ctx.IDENTIFIER());
 		} else if (ctx.QUOTED_IDENTIFIER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.QUOTED_IDENTIFIER()));
+			return QueryTokenStream.ofToken(ctx.QUOTED_IDENTIFIER());
 		} else {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.f));
+			return QueryTokenStream.ofToken(ctx.f);
 		}
 	}
 
