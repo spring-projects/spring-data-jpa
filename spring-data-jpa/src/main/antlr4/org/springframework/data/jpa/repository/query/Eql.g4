@@ -215,6 +215,7 @@ constructor_item
     | scalar_expression
     | aggregate_expression
     | identification_variable
+    | literal
     ;
 
 aggregate_expression
