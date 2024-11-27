@@ -106,7 +106,8 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
-	@DisabledOnHibernate("6")
+	@DisabledOnHibernate(value = "7",
+			disabledReason = "class org.hibernate.metamodel.model.domain.internal.EntityTypeImpl cannot be cast to class org.hibernate.query.OutputableType (org.hibernate.metamodel.model.domain.internal.EntityTypeImpl and org.hibernate.query.OutputableType are in unnamed module of loader 'app')")
 	@Test // 2256
 	void testSingleEntityFromResultSet() {
 
