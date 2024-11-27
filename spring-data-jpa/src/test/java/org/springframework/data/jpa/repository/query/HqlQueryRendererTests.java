@@ -1556,7 +1556,10 @@ class HqlQueryRendererTests {
 	@ValueSource(strings = { "YEAR", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
 			"NANOSECOND", "EPOCH" })
 	void durationLiteralsShouldWork(String dtField) {
+
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE (ce.endDate - ce.startDate) > 5 %s".formatted(dtField));
+		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.text LIKE :text GROUP BY year(cd.date) HAVING (ce.endDate - ce.startDate) > 5 %s".formatted(dtField));
+		assertQuery("SELECT ce.id as id, cd.startDate + 5 %s AS summedDate FROM CalendarEvent ce".formatted(dtField));
 	}
 
 	@Test // GH-3025
