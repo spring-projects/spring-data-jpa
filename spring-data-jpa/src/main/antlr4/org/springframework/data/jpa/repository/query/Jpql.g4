@@ -43,10 +43,6 @@ ql_statement
     ;
 
 select_statement
-    : select_query
-    ;
-
-select_query
     : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
     ;
 
@@ -57,11 +53,7 @@ setOperator
     ;
 
 set_fuction
-    : setOperator set_function_select
-    ;
-
-set_function_select
-    : select_query
+    : setOperator select_statement
     ;
 
 update_statement
@@ -95,7 +87,7 @@ join
     ;
 
 fetch_join
-    : join_spec FETCH join_association_path_expression
+    : join_spec FETCH join_association_path_expression AS? identification_variable? join_condition?
     ;
 
 join_spec
@@ -315,7 +307,7 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
-    | cast_expression
+    | cast_function
     | entity_type_expression
     ;
 
@@ -446,6 +438,7 @@ arithmetic_primary
     | functions_returning_numerics
     | aggregate_expression
     | case_expression
+    | cast_function
     | function_invocation
     | '(' subquery ')'
     ;
@@ -458,7 +451,6 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
-    | string_expression op='||' string_expression
     | '(' subquery ')'
     | string_expression '||' string_expression
     ;
@@ -544,8 +536,8 @@ functions_returning_strings
     | SUBSTRING '(' string_expression ',' arithmetic_expression (',' arithmetic_expression)? ')'
     | TRIM '(' ((trim_specification)? (trim_character)? FROM)? string_expression ')'
     | LOWER '(' string_expression ')'
-    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
     | UPPER '(' string_expression ')'
+    | REPLACE '(' string_expression ',' string_expression ',' string_expression ')'
     | LEFT '(' string_expression ',' arithmetic_expression ')'
     | RIGHT '(' string_expression ',' arithmetic_expression ')'
     ;
@@ -556,6 +548,9 @@ trim_specification
     | BOTH
     ;
 
+cast_function
+    : CAST '(' single_valued_path_expression (identification_variable)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    ;
 
 function_invocation
     : FUNCTION '(' function_name (',' function_arg)* ')'
@@ -620,9 +615,6 @@ nullif_expression
     : NULLIF '(' scalar_expression ',' scalar_expression ')'
     ;
 
-cast_expression
-    : CAST '(' string_expression AS type_literal ')'
-    ;
 
 /*******************
     Gaps in the spec.
@@ -636,6 +628,7 @@ trim_character
 identification_variable
     : IDENTIFICATION_VARIABLE
     | f=(COUNT
+    | AS
     | DATE
     | FROM
     | INNER
@@ -651,6 +644,7 @@ identification_variable
     | TIME
     | TYPE
     | VALUE)
+    | type_literal
     ;
 
 constructor_name
@@ -678,6 +672,9 @@ pattern_value
 
 date_time_timestamp_literal
     : STRINGLITERAL
+    | DATELITERAL
+    | TIMELITERAL
+    | TIMESTAMPLITERAL
     ;
 
 entity_type_literal
@@ -974,9 +971,10 @@ ON                          : O N;
 OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
+POWER                       : P O W E R;
+REGEXP                      : R E G E X P;
 REPLACE                     : R E P L A C E;
 RIGHT                       : R I G H T;
-POWER                       : P O W E R;
 ROUND                       : R O U N D;
 SELECT                      : S E L E C T;
 SET                         : S E T;
@@ -1006,8 +1004,11 @@ NOT_EQUAL                   : '<>' | '!=' ;
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
-STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
+STRINGLITERAL               : '\'' (~ ('\'' | '\\')|'\\')* '\'' ;
 JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;
-LONGLITERAL                  : ('0' .. '9')+L ;
+LONGLITERAL                 : ('0' .. '9')+ L;
+DATELITERAL                 : '{' D STRINGLITERAL '}';
+TIMELITERAL                 : '{' T STRINGLITERAL '}';
+TIMESTAMPLITERAL            : '{' T S STRINGLITERAL '}';

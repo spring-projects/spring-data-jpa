@@ -1024,6 +1024,59 @@ class EqlQueryRendererTests {
 		assertQuery("select e.power.id from MyEntity e");
 	}
 
+	@Test // GH-3136
+	void doublePipeShouldBeValidAsAStringConcatOperator() {
+
+		assertQuery("""
+				select e.name || ' ' || e.title
+				from Employee e
+				""");
+	}
+
+	@Test // GH-3136
+	void combinedSelectStatementsShouldWork() {
+
+		assertQuery("""
+				select e from Employee e where e.last_name = 'Baggins'
+				intersect
+				select e from Employee e where e.first_name = 'Samwise'
+				union
+				select e from Employee e where e.home = 'The Shire'
+				except
+				select e from Employee e where e.home = 'Isengard'
+				""");
+	}
+
+	@Disabled
+	@Test // GH-3136
+	void additionalStringOperationsShouldWork() {
+
+		assertQuery("""
+				select
+					replace(e.name, 'Baggins', 'Proudfeet'),
+					left(e.role, 4),
+					right(e.home, 5),
+					cast(e.distance_from_home, int)
+				from Employee e
+				""");
+	}
+
+	@Test // GH-3136
+	void orderByWithNullsFirstOrLastShouldWork() {
+
+		assertQuery("""
+				select a
+				from Element a
+				order by mutationAm desc nulls first
+				""");
+
+		assertQuery("""
+				select a
+				from Element a
+				order by mutationAm desc nulls last
+				""");
+	}
+
 	@ParameterizedTest // GH-3342
 	@ValueSource(strings = { "select 1 from User u", "select -1 from User u", "select +1 from User u",
 			"select +1 * -100 from User u", "select count(u) * -0.7f from User u",
@@ -1064,4 +1117,5 @@ class EqlQueryRendererTests {
 		assertQuery("select f from FooEntity f where upper(f.name) IN :names");
 		assertQuery("select f from FooEntity f where f.size IN :sizes");
 	}
+
 }
