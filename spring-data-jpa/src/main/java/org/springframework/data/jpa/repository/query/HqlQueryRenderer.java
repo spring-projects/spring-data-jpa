@@ -1309,7 +1309,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitGenericTemporalLiteralText(HqlParser.GenericTemporalLiteralTextContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
@@ -1338,12 +1338,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitGeneralizedLiteralType(HqlParser.GeneralizedLiteralTypeContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitGeneralizedLiteralText(HqlParser.GeneralizedLiteralTextContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
@@ -1414,37 +1414,37 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitYear(HqlParser.YearContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitMonth(HqlParser.MonthContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitDay(HqlParser.DayContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitHour(HqlParser.HourContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitMinute(HqlParser.MinuteContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitSecond(HqlParser.SecondContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.INTEGER_LITERAL());
 	}
 
 	@Override
 	public QueryTokenStream visitZoneId(HqlParser.ZoneIdContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+		return QueryTokenStream.ofToken(ctx.STRING_LITERAL());
 	}
 
 	@Override
