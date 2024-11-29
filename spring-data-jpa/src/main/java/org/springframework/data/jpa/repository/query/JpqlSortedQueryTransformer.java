@@ -67,7 +67,11 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
-		doVisitOrderBy(builder, ctx);
+		if(ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		} else {
+			doVisitOrderBy(builder, ctx);
+		}
 
 		return builder;
 	}
@@ -105,7 +109,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		QueryTokenStream tokens = super.visitSelect_item(ctx);
 
 		if (ctx.result_variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
@@ -117,9 +121,10 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoin(ctx);
 
 		if (!tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
 	}
+
 }

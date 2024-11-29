@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa-parent</artifactId>
-	<version>4.0.0-SNAPSHOT</version>
+	<version>4.0.0-GH-3673-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data JPA Parent</name>
@@ -28,16 +28,13 @@
 
 	<properties>
 		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
-		<eclipselink>4.0.4</eclipselink>
-		<eclipselink-next>4.0.5-SNAPSHOT</eclipselink-next>
-		<hibernate>6.6.2.Final</hibernate>
-		<hibernate-62>6.2.31.Final</hibernate-62>
-		<hibernate-66-snapshots>6.6.3-SNAPSHOT</hibernate-66-snapshots>
-		<hibernate-70>7.0.0.Beta1</hibernate-70>
+		<eclipselink>5.0.0-B04</eclipselink>
+		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
+		<hibernate>7.0.0.Beta1</hibernate>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
-		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
+		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 		<jsqlparser>5.0</jsqlparser>
 		<mysql-connector-java>9.1.0</mysql-connector-java>
 		<postgresql>42.7.4</postgresql>
@@ -47,7 +44,6 @@
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-
 	</properties>
 
 	<modules>
@@ -58,43 +54,6 @@
 
 
 	<profiles>
-		<profile>
-			<id>hibernate-62</id>
-			<properties>
-				<hibernate>${hibernate-62}</hibernate>
-			</properties>
-		</profile>
-		<profile>
-			<id>hibernate-66-snapshots</id>
-			<properties>
-				<hibernate>${hibernate-66-snapshots}</hibernate>
-			</properties>
-			<repositories>
-				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-					<releases>
-						<enabled>false</enabled>
-					</releases>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-70</id>
-			<properties>
-				<hibernate>${hibernate-70}</hibernate>
-				<jakarta-persistence-api>3.2.0-M2</jakarta-persistence-api>
-			</properties>
-			<repositories>
-				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-					<releases>
-						<enabled>false</enabled>
-					</releases>
-				</repository>
-			</repositories>
-		</profile>
 		<profile>
 			<id>hibernate-70-snapshots</id>
 			<properties>

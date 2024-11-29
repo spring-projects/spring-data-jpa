@@ -87,7 +87,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoinPath(ctx);
 
 		if (ctx.variable() != null && !isSubquery(ctx)) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
@@ -99,7 +99,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoinSubquery(ctx);
 
 		if (ctx.variable() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;
@@ -111,7 +111,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryTokenStream tokens = super.visitVariable(ctx);
 
 		if (ctx.identifier() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;

@@ -24,7 +24,10 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.springframework.data.jpa.repository.query.JpqlParser.NullsPrecedenceContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Reserved_wordContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Set_fuctionContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Type_literalContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.util.ObjectUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
@@ -77,6 +80,10 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.orderby_clause() != null) {
 			builder.appendExpression(visit(ctx.orderby_clause()));
+		}
+
+		if (ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
 		}
 
 		return builder;
@@ -146,15 +153,10 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			JpqlParser.Identification_variable_declarationContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.appendExpression(visit(ctx.range_variable_declaration()));
 
-		ctx.join().forEach(joinContext -> {
-			builder.append(visit(joinContext));
-		});
-
-		ctx.fetch_join().forEach(fetchJoinContext -> {
-			builder.append(visit(fetchJoinContext));
-		});
+		builder.append(visit(ctx.range_variable_declaration()));
+		builder.appendExpression(QueryTokenStream.concat(ctx.join(), this::visit, TOKEN_SPACE));
+		builder.appendExpression(QueryTokenStream.concat(ctx.fetch_join(), this::visit, TOKEN_SPACE));
 
 		return builder;
 	}
@@ -180,14 +182,19 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.join_spec()));
-		builder.append(visit(ctx.join_association_path_expression()));
+		builder.appendExpression(visit(ctx.join_spec()));
+		builder.appendExpression(visit(ctx.join_association_path_expression()));
+
 		if (ctx.AS() != null) {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
-		builder.append(visit(ctx.identification_variable()));
+
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
+
 		if (ctx.join_condition() != null) {
-			builder.append(visit(ctx.join_condition()));
+			builder.appendExpression(visit(ctx.join_condition()));
 		}
 
 		return builder;
@@ -198,9 +205,19 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.join_spec()));
+		builder.appendExpression(visit(ctx.join_spec()));
 		builder.append(QueryTokens.expression(ctx.FETCH()));
-		builder.append(visit(ctx.join_association_path_expression()));
+		builder.appendExpression(visit(ctx.join_association_path_expression()));
+
+		if (ctx.AS() != null) {
+			builder.append(QueryTokens.expression(ctx.AS()));
+		}
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
+		if (ctx.join_condition() != null) {
+			builder.appendExpression(visit(ctx.join_condition()));
+		}
 
 		return builder;
 	}
@@ -251,23 +268,25 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 				builder.appendExpression(visit(ctx.join_single_valued_path_expression()));
 			}
 		} else {
+			QueryRendererBuilder nested = QueryRenderer.builder();
+
 			if (ctx.join_collection_valued_path_expression() != null) {
 
-				builder.append(QueryTokens.token(ctx.TREAT()));
-				builder.append(TOKEN_OPEN_PAREN);
-				builder.appendInline(visit(ctx.join_collection_valued_path_expression()));
-				builder.append(QueryTokens.expression(ctx.AS()));
-				builder.appendInline(visit(ctx.subtype()));
-				builder.append(TOKEN_CLOSE_PAREN);
+				nested.appendExpression(visit(ctx.join_collection_valued_path_expression()));
+				nested.append(QueryTokens.expression(ctx.AS()));
+				nested.appendExpression(visit(ctx.subtype()));
+
 			} else if (ctx.join_single_valued_path_expression() != null) {
 
-				builder.append(QueryTokens.token(ctx.TREAT()));
-				builder.append(TOKEN_OPEN_PAREN);
-				builder.appendInline(visit(ctx.join_single_valued_path_expression()));
-				builder.append(QueryTokens.expression(ctx.AS()));
-				builder.appendInline(visit(ctx.subtype()));
-				builder.append(TOKEN_CLOSE_PAREN);
+				nested.appendExpression(visit(ctx.join_single_valued_path_expression()));
+				nested.append(QueryTokens.expression(ctx.AS()));
+				nested.appendExpression(visit(ctx.subtype()));
 			}
+
+			builder.append(QueryTokens.token(ctx.TREAT()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(nested);
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
 		return builder;
@@ -427,12 +446,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitTreated_subpath(JpqlParser.Treated_subpathContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder nested = QueryRenderer.builder();
+
+		nested.appendExpression(visit(ctx.general_subpath()));
+		nested.append(QueryTokens.expression(ctx.AS()));
+		nested.appendExpression(visit(ctx.subtype()));
 
 		builder.append(QueryTokens.token(ctx.TREAT()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.appendInline(visit(ctx.general_subpath()));
-		builder.append(QueryTokens.expression(ctx.AS()));
-		builder.appendInline(visit(ctx.subtype()));
+		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
@@ -544,7 +566,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		} else if (ctx.simple_entity_expression() != null) {
 			return visit(ctx.simple_entity_expression());
 		} else if (ctx.NULL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.NULL()));
+			return QueryTokenStream.ofToken(ctx.NULL());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -791,8 +813,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.ASC() != null) {
 			builder.append(QueryTokens.expression(ctx.ASC()));
-		}
-		if (ctx.DESC() != null) {
+		} else if (ctx.DESC() != null) {
 			builder.append(QueryTokens.expression(ctx.DESC()));
 		}
 
@@ -808,12 +829,44 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(TOKEN_NULLS);
+		builder.append(QueryTokens.expression(ctx.NULLS()));
 
 		if (ctx.FIRST() != null) {
-			builder.append(TOKEN_FIRST);
+			builder.append(QueryTokens.expression(ctx.FIRST()));
 		} else if (ctx.LAST() != null) {
-			builder.append(TOKEN_LAST);
+			builder.append(QueryTokens.expression(ctx.LAST()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSet_fuction(Set_fuctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.setOperator() != null) {
+			builder.append(visit(ctx.setOperator()));
+		}
+
+		builder.appendExpression(visit(ctx.select_statement()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSetOperator(JpqlParser.SetOperatorContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.INTERSECT() != null) {
+			builder.append(QueryTokens.expression(ctx.INTERSECT()));
+		} else if (ctx.UNION() != null) {
+			builder.append(QueryTokens.expression(ctx.UNION()));
+		} else if (ctx.EXCEPT() != null) {
+			builder.append(QueryTokens.expression(ctx.EXCEPT()));
+		} else if (ctx.ALL() != null) {
+			builder.append(QueryTokens.expression(ctx.ALL()));
 		}
 
 		return builder;
@@ -931,6 +984,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.case_expression());
 		} else if (ctx.entity_type_expression() != null) {
 			return visit(ctx.entity_type_expression());
+		} else if (ctx.cast_function() != null) {
+			return (visit(ctx.cast_function()));
 		}
 
 		return QueryTokenStream.empty();
@@ -1154,9 +1209,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		}
 
 		builder.append(QueryTokens.expression(ctx.IS()));
+
 		if (ctx.NOT() != null) {
 			builder.append(QueryTokens.expression(ctx.NOT()));
 		}
+
 		builder.append(QueryTokens.expression(ctx.NULL()));
 
 		return builder;
@@ -1339,7 +1396,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitComparison_operator(JpqlParser.Comparison_operatorContext ctx) {
-		return QueryRenderer.from(QueryTokens.token(ctx.op));
+		return QueryTokenStream.ofToken(ctx.op);
 	}
 
 	@Override
@@ -1410,6 +1467,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(visit(ctx.aggregate_expression()));
 		} else if (ctx.case_expression() != null) {
 			builder.append(visit(ctx.case_expression()));
+		} else if (ctx.cast_function() != null) {
+			builder.append(visit(ctx.cast_function()));
 		} else if (ctx.function_invocation() != null) {
 			builder.append(visit(ctx.function_invocation()));
 		} else if (ctx.subquery() != null) {
@@ -1446,6 +1505,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.subquery()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (!ObjectUtils.isEmpty(ctx.string_expression())) {
+
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_DOUBLE_PIPE);
+			builder.appendExpression(visit(ctx.string_expression(1)));
 		}
 
 		return builder;
@@ -1689,6 +1753,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.identification_variable()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.extract_datetime_field() != null) {
+			builder.append(visit(ctx.extract_datetime_field()));
 		}
 
 		return builder;
@@ -1716,6 +1782,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			} else if (ctx.DATETIME() != null) {
 				builder.append(QueryTokens.expression(ctx.DATETIME()));
 			}
+		} else if (ctx.extract_datetime_part() != null) {
+			builder.append(visit(ctx.extract_datetime_part()));
 		}
 
 		return builder;
@@ -1737,22 +1805,26 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.token(ctx.SUBSTRING()));
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.append(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
 			builder.appendInline(QueryTokenStream.concat(ctx.arithmetic_expression(), this::visit, TOKEN_COMMA));
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.TRIM() != null) {
 
 			builder.append(QueryTokens.token(ctx.TRIM()));
 			builder.append(TOKEN_OPEN_PAREN);
+
+			QueryRendererBuilder nested = QueryRenderer.builder();
 			if (ctx.trim_specification() != null) {
-				builder.appendExpression(visit(ctx.trim_specification()));
+				nested.appendExpression(visit(ctx.trim_specification()));
 			}
 			if (ctx.trim_character() != null) {
-				builder.appendExpression(visit(ctx.trim_character()));
+				nested.appendExpression(visit(ctx.trim_character()));
 			}
 			if (ctx.FROM() != null) {
-				builder.append(QueryTokens.expression(ctx.FROM()));
+				nested.append(QueryTokens.expression(ctx.FROM()));
 			}
-			builder.append(visit(ctx.string_expression(0)));
+			nested.append(visit(ctx.string_expression(0)));
+			builder.appendInline(nested);
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.LOWER() != null) {
 
@@ -1766,6 +1838,29 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.append(visit(ctx.string_expression(0)));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.LEFT() != null) {
+			builder.append(QueryTokens.token(ctx.LEFT()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.arithmetic_expression(0)));
+			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.RIGHT() != null) {
+			builder.append(QueryTokens.token(ctx.RIGHT()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.arithmetic_expression(0)));
+			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.REPLACE() != null) {
+			builder.append(QueryTokens.token(ctx.REPLACE()));
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(visit(ctx.string_expression(0)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.string_expression(1)));
+			builder.append(TOKEN_COMMA);
+			builder.appendInline(visit(ctx.string_expression(2)));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
 		return builder;
@@ -1775,12 +1870,34 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitTrim_specification(JpqlParser.Trim_specificationContext ctx) {
 
 		if (ctx.LEADING() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.LEADING()));
+			return QueryTokenStream.ofToken(ctx.LEADING());
 		} else if (ctx.TRAILING() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.TRAILING()));
+			return QueryTokenStream.ofToken(ctx.TRAILING());
 		} else {
-			return QueryRenderer.from(QueryTokens.expression(ctx.BOTH()));
+			return QueryTokenStream.ofToken(ctx.BOTH());
 		}
+	}
+
+	@Override
+	public QueryTokenStream visitCast_function(JpqlParser.Cast_functionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.CAST()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.single_valued_path_expression()));
+		builder.append(TOKEN_SPACE);
+		builder.appendInline(QueryTokenStream.concat(ctx.identification_variable(), this::visit, TOKEN_SPACE));
+
+		if (!ObjectUtils.isEmpty(ctx.numeric_literal())) {
+
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.appendInline(QueryTokenStream.concat(ctx.numeric_literal(), this::visit, TOKEN_COMMA));
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
 	}
 
 	@Override
@@ -1804,12 +1921,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitExtract_datetime_field(JpqlParser.Extract_datetime_fieldContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder nested = QueryRenderer.builder();
 
-		builder.append(QueryTokens.expression(ctx.EXTRACT()));
+		nested.appendExpression(visit(ctx.datetime_field()));
+		nested.append(QueryTokens.expression(ctx.FROM()));
+		nested.appendExpression(visit(ctx.datetime_expression()));
+
+		builder.append(QueryTokens.token(ctx.EXTRACT()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.appendExpression(visit(ctx.datetime_field()));
-		builder.append(QueryTokens.expression(ctx.FROM()));
-		builder.appendInline(visit(ctx.datetime_expression()));
+		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
@@ -1824,12 +1944,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitExtract_datetime_part(JpqlParser.Extract_datetime_partContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder nested = QueryRenderer.builder();
 
-		builder.append(QueryTokens.expression(ctx.EXTRACT()));
+		nested.appendExpression(visit(ctx.datetime_part()));
+		nested.append(QueryTokens.expression(ctx.FROM()));
+		nested.appendExpression(visit(ctx.datetime_expression()));
+
+		builder.append(QueryTokens.token(ctx.EXTRACT()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.appendExpression(visit(ctx.datetime_part()));
-		builder.append(QueryTokens.expression(ctx.FROM()));
-		builder.append(visit(ctx.datetime_expression()));
+		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
@@ -1866,6 +1989,14 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		} else {
 			return visit(ctx.nullif_expression());
 		}
+	}
+
+	@Override
+	public QueryRendererBuilder visitType_literal(Type_literalContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		ctx.children.forEach(it -> builder.append(QueryTokens.expression(it.getText())));
+		return builder;
 	}
 
 	@Override
@@ -1953,7 +2084,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(QueryTokens.expression(ctx.NULLIF()));
+		builder.append(QueryTokens.token(ctx.NULLIF()));
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.appendInline(visit(ctx.scalar_expression(0)));
 		builder.append(TOKEN_COMMA);
@@ -1967,7 +2098,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitTrim_character(JpqlParser.Trim_characterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+			return QueryTokenStream.ofToken(ctx.CHARACTER());
 		} else if (ctx.character_valued_input_parameter() != null) {
 			return visit(ctx.character_valued_input_parameter());
 		} else {
@@ -1979,9 +2110,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitIdentification_variable(JpqlParser.Identification_variableContext ctx) {
 
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.IDENTIFICATION_VARIABLE()));
+			return QueryTokenStream.ofToken(ctx.IDENTIFICATION_VARIABLE());
+		} else if (ctx.type_literal() != null) {
+			return visit(ctx.type_literal());
 		} else if (ctx.f != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.f));
+			return QueryTokenStream.ofToken(ctx.f);
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -1996,15 +2129,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitLiteral(JpqlParser.LiteralContext ctx) {
 
 		if (ctx.STRINGLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.STRINGLITERAL()));
+			return QueryTokenStream.ofToken(ctx.STRINGLITERAL());
 		} else if (ctx.JAVASTRINGLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.JAVASTRINGLITERAL()));
+			return QueryTokenStream.ofToken(ctx.JAVASTRINGLITERAL());
 		} else if (ctx.INTLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.INTLITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTLITERAL());
 		} else if (ctx.FLOATLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.FLOATLITERAL()));
+			return QueryTokenStream.ofToken(ctx.FLOATLITERAL());
 		} else if (ctx.LONGLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.LONGLITERAL()));
+			return QueryTokenStream.ofToken(ctx.LONGLITERAL());
 		} else if (ctx.boolean_literal() != null) {
 			return visit(ctx.boolean_literal());
 		} else if (ctx.entity_type_literal() != null) {
@@ -2039,7 +2172,18 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitDate_time_timestamp_literal(JpqlParser.Date_time_timestamp_literalContext ctx) {
-		return QueryRenderer.from(QueryTokens.expression(ctx.STRINGLITERAL()));
+
+		if (ctx.STRINGLITERAL() != null) {
+			return QueryTokenStream.ofToken(ctx.STRINGLITERAL());
+		} else if (ctx.DATELITERAL() != null) {
+			return QueryTokenStream.ofToken(ctx.DATELITERAL());
+		} else if (ctx.TIMELITERAL() != null) {
+			return QueryTokenStream.ofToken(ctx.TIMELITERAL());
+		} else if (ctx.TIMESTAMPLITERAL() != null) {
+			return QueryTokenStream.ofToken(ctx.TIMESTAMPLITERAL());
+		} else {
+			return QueryRenderer.builder();
+		}
 	}
 
 	@Override
@@ -2049,18 +2193,18 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitEscape_character(JpqlParser.Escape_characterContext ctx) {
-		return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+		return QueryTokenStream.ofToken(ctx.CHARACTER());
 	}
 
 	@Override
 	public QueryTokenStream visitNumeric_literal(JpqlParser.Numeric_literalContext ctx) {
 
 		if (ctx.INTLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.INTLITERAL()));
+			return QueryTokenStream.ofToken(ctx.INTLITERAL());
 		} else if (ctx.FLOATLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.FLOATLITERAL()));
+			return QueryTokenStream.ofToken(ctx.FLOATLITERAL());
 		} else if (ctx.LONGLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.LONGLITERAL()));
+			return QueryTokenStream.ofToken(ctx.LONGLITERAL());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -2070,9 +2214,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitBoolean_literal(JpqlParser.Boolean_literalContext ctx) {
 
 		if (ctx.TRUE() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.TRUE()));
+			return QueryTokenStream.ofToken(ctx.TRUE());
 		} else if (ctx.FALSE() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.FALSE()));
+			return QueryTokenStream.ofToken(ctx.FALSE());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -2087,9 +2231,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitString_literal(JpqlParser.String_literalContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+			return QueryTokenStream.ofToken(ctx.CHARACTER());
 		} else if (ctx.STRINGLITERAL() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.STRINGLITERAL()));
+			return QueryTokenStream.ofToken(ctx.STRINGLITERAL());
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -2128,7 +2272,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitEntity_name(JpqlParser.Entity_nameContext ctx) {
-		return QueryTokenStream.concat(ctx.reserved_word(), this::visitReserved_word, TOKEN_DOT);
+		return QueryTokenStream.concat(ctx.reserved_word(), this::visit, TOKEN_DOT);
 	}
 
 	@Override
@@ -2163,7 +2307,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			JpqlParser.Character_valued_input_parameterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
-			return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+			return QueryTokenStream.ofToken(ctx.CHARACTER());
 		} else if (ctx.input_parameter() != null) {
 			return visit(ctx.input_parameter());
 		} else {
@@ -2174,9 +2318,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitReserved_word(Reserved_wordContext ctx) {
 		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.IDENTIFICATION_VARIABLE()));
+			return QueryTokenStream.ofToken(ctx.IDENTIFICATION_VARIABLE());
 		} else if (ctx.f != null) {
-			return QueryRenderer.from(QueryTokens.token(ctx.f));
+			return QueryTokenStream.ofToken(ctx.f);
 		} else {
 			return QueryTokenStream.empty();
 		}
