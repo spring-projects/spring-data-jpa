@@ -25,6 +25,7 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.querydsl.QSort;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.types.EntityPath;
@@ -37,6 +38,7 @@ import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.EclipseLinkTemplates;
 import com.querydsl.jpa.HQLTemplates;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 
@@ -77,11 +79,25 @@ public class Querydsl {
 	 */
 	public <T> AbstractJPAQuery<T, JPAQuery<T>> createQuery() {
 
-        return switch (provider) {
-					case ECLIPSELINK -> new SpringDataJpaQuery<>(em, EclipseLinkTemplates.DEFAULT);
-					case HIBERNATE -> new SpringDataJpaQuery<>(em, HQLTemplates.DEFAULT);
-					default -> new SpringDataJpaQuery<>(em);
-        };
+		JPQLTemplates templates = getTemplates();
+		return templates != null ? new SpringDataJpaQuery<>(em, templates) : new SpringDataJpaQuery<>(em);
+	}
+
+	/**
+	 * Obtains the {@link JPQLTemplates} for the configured {@link EntityManager}. Can return {@literal null} to use the
+	 * default templates.
+	 *
+	 * @return the {@link JPQLTemplates} for the configured {@link EntityManager} or {@literal null} to use the default.
+	 * @since 3.5
+	 */
+	@Nullable
+	public JPQLTemplates getTemplates() {
+
+		return switch (provider) {
+			case ECLIPSELINK -> EclipseLinkTemplates.DEFAULT;
+			case HIBERNATE -> HQLTemplates.DEFAULT;
+			default -> JPQLTemplates.DEFAULT;
+		};
 	}
 
 	/**
@@ -198,11 +214,11 @@ public class Querydsl {
 
 		Assert.notNull(nullHandling, "NullHandling must not be null");
 
-        return switch (nullHandling) {
-            case NULLS_FIRST -> NullHandling.NullsFirst;
-            case NULLS_LAST -> NullHandling.NullsLast;
-            default -> NullHandling.Default;
-        };
+		return switch (nullHandling) {
+			case NULLS_FIRST -> NullHandling.NullsFirst;
+			case NULLS_LAST -> NullHandling.NullsLast;
+			default -> NullHandling.Default;
+		};
 	}
 
 	/**

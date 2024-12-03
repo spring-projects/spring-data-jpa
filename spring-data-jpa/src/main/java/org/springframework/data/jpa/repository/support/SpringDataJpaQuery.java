@@ -32,7 +32,11 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAUtil;
 
 /**
+ * Customized String-Query implementation that specifically routes tuple query creation to
+ * {@code EntityManager#createQuery(queryString, Tuple.class)}.
+ *
  * @author Mark Paluch
+ * @since 3.5
  */
 class SpringDataJpaQuery<T> extends JPAQuery<T> {
 

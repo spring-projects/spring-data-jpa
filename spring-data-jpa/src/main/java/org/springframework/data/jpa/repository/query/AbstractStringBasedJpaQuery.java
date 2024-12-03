@@ -69,8 +69,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+			@Nullable String countQueryString, QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
 
 		super(method, em);
 
@@ -99,15 +98,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		});
 
 		this.queryRewriter = queryRewriter;
-		ReturnedType returnedType = method.getResultProcessor().getReturnedType();
 
 		JpaParameters parameters = method.getParameters();
-		if ((parameters.hasPageableParameter() || parameters.hasSortParameter()) && !parameters.hasDynamicProjection()) {
-			this.querySortRewriter = new CachingQuerySortRewriter();
-		} else if (returnedType.isProjecting() && !returnedType.getReturnedType().isInterface()) {
-			this.querySortRewriter = new ProjectingSortRewriter();
+
+		if (parameters.hasDynamicProjection()) {
+			this.querySortRewriter = SimpleQuerySortRewriter.INSTANCE;
 		} else {
-			this.querySortRewriter = NoOpQuerySortRewriter.INSTANCE;
+			if (parameters.hasPageableParameter() || parameters.hasSortParameter()) {
+				this.querySortRewriter = new CachingQuerySortRewriter();
+			} else {
+				this.querySortRewriter = new UnsortedCachingQuerySortRewriter();
+			}
 		}
 
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
@@ -119,29 +120,19 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		Sort sort = accessor.getSort();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-
-		String sortedQueryString = null;
-		if(querySortRewriter.equals(NoOpQuerySortRewriter.INSTANCE) && accessor.findDynamicProjection() != null && !accessor.findDynamicProjection().isInterface()) {
-			sortedQueryString = getSortedQueryString(new ProjectingSortRewriter(), query, sort, processor.getReturnedType());
-		} else {
-			 sortedQueryString = getSortedQueryString(sort, processor.getReturnedType());
-		}
-
-		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), processor.getReturnedType());
+		ReturnedType returnedType = processor.getReturnedType();
+		String sortedQueryString = getSortedQueryString(sort, returnedType);
+		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), returnedType);
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(sortedQueryString, query);
 
-		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
+		// it is ok to reuse the binding contained in the ParameterBinder, although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
 	String getSortedQueryString(Sort sort, ReturnedType returnedType) {
 		return querySortRewriter.getSorted(query, sort, returnedType);
-	}
-
-	private static String getSortedQueryString(QuerySortRewriter rewriter, DeclaredQuery query, Sort sort, ReturnedType returnedType) {
-		return rewriter.getSorted(query, sort, returnedType);
 	}
 
 	@Override
@@ -223,8 +214,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	String applySorting(CachableQuery cachableQuery) {
 
-		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery()).rewrite(cachableQuery.getSort(),
-				cachableQuery.getReturnedType());
+		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery())
+				.rewrite(new DefaultQueryRewriteInformation(cachableQuery.getSort(), cachableQuery.getReturnedType()));
 	}
 
 	/**
@@ -237,21 +228,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * No-op query rewriter.
 	 */
-	enum NoOpQuerySortRewriter implements QuerySortRewriter {
+	enum SimpleQuerySortRewriter implements QuerySortRewriter {
 
 		INSTANCE;
 
 		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
-			if (sort.isSorted()) {
-				throw new UnsupportedOperationException("NoOpQueryCache does not support sorting");
-			}
-
-			return query.getQueryString();
+			return QueryEnhancerFactory.forQuery(query).rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
 		}
 	}
 
-	static class ProjectingSortRewriter implements QuerySortRewriter {
+	static class UnsortedCachingQuerySortRewriter implements QuerySortRewriter {
 
 		private volatile String cachedQueryString;
 
@@ -263,7 +250,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 			String cachedQueryString = this.cachedQueryString;
 			if (cachedQueryString == null) {
-				this.cachedQueryString = cachedQueryString = QueryEnhancerFactory.forQuery(query).rewrite(sort, returnedType);
+				this.cachedQueryString = cachedQueryString = QueryEnhancerFactory.forQuery(query)
+						.rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
 			}
 
 			return cachedQueryString;

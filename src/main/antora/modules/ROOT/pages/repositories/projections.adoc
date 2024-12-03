@@ -69,7 +69,7 @@ This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM U
 [WARNING]
 ====
 JPQL constructor expressions must not contain aliases for selected columns.
-While `SELECT u as user, count(u.roles) as roleCount FROM USER u ...` is a valid usecase for interface based projections that rely on column names from the returned `Tuple`, the same construct is invalid when requesting a DTO where it needs to be `SELECT u, count(u.roles) FROM USER u ...`. +
+While `SELECT u as user, count(u.roles) as roleCount FROM USER u …` is a valid query for interface-based projections that rely on column names from the returned `Tuple`, the same construct is invalid when requesting a DTO where it needs to be `SELECT u, count(u.roles) FROM USER u …`. +
 Some persistence providers may be lenient about this, others not.
 ====
 

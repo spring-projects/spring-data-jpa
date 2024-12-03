@@ -20,6 +20,8 @@ import jakarta.persistence.Tuple;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.lang.Nullable;
+
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionBase;
 import com.querydsl.core.types.ExpressionUtils;
@@ -30,6 +32,15 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.Visitor;
 import com.querydsl.jpa.JPQLSerializer;
 
+/**
+ * Expression based on a {@link Tuple}. It's a simplified variant of {@link com.querydsl.core.types.QTuple} without
+ * being a {@link com.querydsl.core.types.FactoryExpressionBase} as we do not want Querydsl to instantiate any tuples.
+ * JPA is doing that for us.
+ *
+ * @author Mark Paluch
+ * @since 3.5
+ */
+@SuppressWarnings("unchecked")
 class JakartaTuple extends ExpressionBase<Tuple> {
 
 	private final List<Expression<?>> args;
@@ -61,7 +72,8 @@ class JakartaTuple extends ExpressionBase<Tuple> {
 	}
 
 	@Override
-	public <R, C> R accept(Visitor<R, C> v, C context) {
+	@Nullable
+	public <R, C> R accept(Visitor<R, C> v, @Nullable C context) {
 
 		if (v instanceof JPQLSerializer) {
 			return Projections.tuple(args).accept(v, context);
@@ -74,8 +86,7 @@ class JakartaTuple extends ExpressionBase<Tuple> {
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
-		} else if (obj instanceof FactoryExpression) {
-			FactoryExpression<?> c = (FactoryExpression<?>) obj;
+		} else if (obj instanceof FactoryExpression<?> c) {
 			return args.equals(c.getArgs()) && getType().equals(c.getType());
 		} else {
 			return false;

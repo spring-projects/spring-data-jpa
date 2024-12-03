@@ -83,17 +83,16 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
 			Function<Predicate, Boolean> existsOperation, EntityManager entityManager, ProjectionFactory projectionFactory) {
 		this(entityPath, predicate, entityInformation, (Class<R>) entityInformation.getJavaType(), Sort.unsorted(), 0,
-				Collections.emptySet(), finder, scrollQueryFactory,
-				pagedFinder, countOperation, existsOperation, entityManager, projectionFactory);
+				Collections.emptySet(), finder, scrollQueryFactory, pagedFinder, countOperation, existsOperation, entityManager,
+				projectionFactory);
 	}
 
 	private FetchableFluentQueryByPredicate(EntityPath<?> entityPath, Predicate predicate,
 			JpaEntityInformation<S, ?> entityInformation, Class<R> resultType, Sort sort, int limit,
 			Collection<String> properties, Function<Sort, AbstractJPAQuery<?, ?>> finder,
 			ScrollQueryFactory<AbstractJPAQuery<?, ?>> scrollQueryFactory,
-			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder,
-			Function<Predicate, Long> countOperation, Function<Predicate, Boolean> existsOperation,
-			EntityManager entityManager, ProjectionFactory projectionFactory) {
+			BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder, Function<Predicate, Long> countOperation,
+			Function<Predicate, Boolean> existsOperation, EntityManager entityManager, ProjectionFactory projectionFactory) {
 
 		super(resultType, sort, limit, properties, entityInformation.getJavaType(), projectionFactory);
 		this.entityInformation = entityInformation;
@@ -142,8 +141,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		return new FetchableFluentQueryByPredicate<>(entityPath, predicate, entityInformation, resultType, sort, limit,
 				mergeProperties(properties), finder, scrollQueryFactory, pagedFinder, countOperation, existsOperation,
-				entityManager,
-				projectionFactory);
+				entityManager, projectionFactory);
 	}
 
 	@Override
@@ -296,6 +294,9 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		}
 	}
 
+	/**
+	 * @since 3.5
+	 */
 	private static class DtoProjection extends ExpressionBase<Object> {
 
 		private final Expression<?>[] projection;

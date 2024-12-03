@@ -50,7 +50,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -298,17 +297,20 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String applySorting(Sort sort) {
-		return applySorting(sort, detectAlias());
+		return doApplySorting(sort, detectAlias());
 	}
 
 	@Override
-	public String rewrite(Sort sort, ReturnedType returnedType) {
-		return applySorting(sort, primaryAlias);
+	public String rewrite(QueryRewriteInformation rewriteInformation) {
+		return doApplySorting(rewriteInformation.getSort(), primaryAlias);
 	}
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
+		return doApplySorting(sort, alias);
+	}
 
+	private String doApplySorting(Sort sort, @Nullable String alias) {
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty");
 
