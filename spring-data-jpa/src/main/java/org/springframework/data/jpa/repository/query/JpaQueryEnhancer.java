@@ -200,8 +200,9 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String rewrite(Sort sort, ReturnedType returnedType) {
-		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias(), returnedType).visit(context));
+	public String rewrite(QueryRewriteInformation rewriteInformation) {
+		return QueryRenderer.TokenRenderer.render(sortFunction
+				.apply(rewriteInformation.getSort(), detectAlias(), rewriteInformation.getReturnedType()).visit(context));
 	}
 
 	/**
@@ -319,6 +320,13 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		}
 	}
 
+	/**
+	 * Functional interface to rewrite a query considering {@link Sort} and {@link ReturnedType}. The function returns a
+	 * visitor object that can visit the parsed query tree.
+	 *
+	 * @since 3.5
+	 */
+	@FunctionalInterface
 	interface SortedQueryRewriteFunction {
 
 		ParseTreeVisitor<? extends Object> apply(Sort sort, String primaryAlias, @Nullable ReturnedType returnedType);

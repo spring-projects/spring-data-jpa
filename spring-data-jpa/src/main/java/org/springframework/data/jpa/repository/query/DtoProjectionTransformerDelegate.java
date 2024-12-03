@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * </ul>
  *
  * @author Mark Paluch
+ * @since 3.5
  */
 class DtoProjectionTransformerDelegate {
 
@@ -40,7 +41,8 @@ class DtoProjectionTransformerDelegate {
 
 	public QueryTokenStream transformSelectionList(QueryTokenStream selectionList) {
 
-		if (!returnedType.isProjecting() || selectionList.stream().anyMatch(it -> it.equals(TOKEN_NEW))) {
+		if (!returnedType.isProjecting() || returnedType.getReturnedType().isInterface()
+				|| selectionList.stream().anyMatch(it -> it.equals(TOKEN_NEW))) {
 			return selectionList;
 		}
 
