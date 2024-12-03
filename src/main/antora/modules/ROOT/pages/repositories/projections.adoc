@@ -18,8 +18,9 @@ include::{commons}@data-commons::page$repositories/projections-class.adoc[levelo
 
 [NOTE]
 ====
-Some JPA providers may require additional hints when working with <<projections.dtos,Class-based projections>> especially when using those directly with method derived queries.
-If you are facing errors like `JpaSystemException: Specified result type did not match Query selection type` make sure to provide a constructor hint via `@PersistenceCreator` to be passed on, as outlined below:
+<<projections.dtos,Class-based projection (DTO projections)>> types must declare a single constructor so that Spring Data can determine its input properties.
+If your class defines more than one constructor, then you cannot use the type without further hints for DTO projections.
+In such a case annotate the desired constructor with `@PersistenceCreator` as outlined below so that Spring Data can determine which properties to select:
 
 [source,java]
 ----
