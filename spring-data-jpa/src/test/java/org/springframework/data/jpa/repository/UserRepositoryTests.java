@@ -67,6 +67,7 @@ import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.sample.NameOnlyRecord;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
@@ -2977,6 +2978,19 @@ class UserRepositoryTests {
 
 		assertThat(result.getFirstname()).isEqualTo(user.getFirstname());
 		assertThat(result.getLastname()).isEqualTo(user.getLastname());
+	}
+
+	@Test // GH-2757
+	void supportsRecordsWithNativeQueries() {
+
+		flushTestUsers();
+
+		User user = repository.findAll().get(0);
+
+		NameOnlyRecord result = repository.findRecordProjectionByNativeQuery(user.getId());
+
+		assertThat(result.firstname()).isEqualTo(user.getFirstname());
+		assertThat(result.lastname()).isEqualTo(user.getLastname());
 	}
 
 	@Test // DATAJPA-1248
