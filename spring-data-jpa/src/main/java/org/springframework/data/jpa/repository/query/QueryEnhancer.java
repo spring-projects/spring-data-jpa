@@ -82,7 +82,7 @@ public interface QueryEnhancer {
 	 * @param sort the sort specification to apply.
 	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
 	 * @return the modified query string.
-	 * @deprecated since 3.5, use {@link #rewrite(Sort, ReturnedType)} instead.
+	 * @deprecated since 3.5, use {@link #rewrite(QueryRewriteInformation)} instead.
 	 */
 	@Deprecated(since = "3.5", forRemoval = true)
 	String applySorting(Sort sort, @Nullable String alias);
