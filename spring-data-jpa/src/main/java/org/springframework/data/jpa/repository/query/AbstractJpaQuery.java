@@ -23,6 +23,7 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -44,6 +46,8 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExe
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.data.jpa.util.JpaMetamodel;
+import org.springframework.data.mapping.PreferredConstructor;
+import org.springframework.data.mapping.model.PreferredConstructorDiscoverer;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -51,6 +55,8 @@ import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
@@ -283,9 +289,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return null;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
-				? Tuple.class //
-				: null;
+		return returnedType.isProjecting() && returnedType.getReturnedType().isInterface()
+				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+						? Tuple.class //
+						: null;
 	}
 
 	/**
@@ -304,11 +311,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected abstract Query doCreateCountQuery(JpaParametersParameterAccessor accessor);
 
-	static class TupleConverter implements Converter<Object, Object> {
+	public static class TupleConverter implements Converter<Object, Object> {
 
 		private final ReturnedType type;
 
 		private final UnaryOperator<Tuple> tupleWrapper;
+
+		private final boolean dtoProjection;
+
+		private final @Nullable PreferredConstructor<?, ?> preferredConstructor;
 
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
@@ -332,6 +343,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			this.type = type;
 			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
+			this.dtoProjection = type.isProjecting() && !type.getReturnedType().isInterface()
+					&& !type.getInputProperties().isEmpty();
+
+			if (this.dtoProjection) {
+				 this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
+			} else {
+				this.preferredConstructor = null;
+			}
 		}
 
 		@Override
@@ -352,7 +371,69 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
+			if (dtoProjection) {
+
+				Object[] ctorArgs = new Object[type.getInputProperties().size()];
+
+				boolean containsNullValue = false;
+				for (int i = 0; i < type.getInputProperties().size(); i++) {
+					Object value = tuple.get(i);
+					ctorArgs[i] = value;
+					if (!containsNullValue && value == null) {
+						containsNullValue = true;
+					}
+				}
+
+				try {
+
+					if (preferredConstructor != null && preferredConstructor.getParameterCount() == ctorArgs.length) {
+						return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
+					}
+
+					Constructor<?> ctor = null;
+
+					if (!containsNullValue) { // let's seem if we have an argument type match
+						ctor = type.getReturnedType()
+								.getConstructor(Arrays.stream(ctorArgs).map(Object::getClass).toArray(Class<?>[]::new));
+					}
+
+					if (ctor == null) { // let's see if there's more general constructor we could use that accepts our args
+						ctor = findFirstMatchingConstructor(ctorArgs);
+					}
+
+					if (ctor != null) {
+						return BeanUtils.instantiateClass(ctor, ctorArgs);
+					}
+				} catch (ReflectiveOperationException e) {
+					ReflectionUtils.handleReflectionException(e);
+				}
+			}
+
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
+		}
+
+		@Nullable
+		private Constructor<?> findFirstMatchingConstructor(Object[] ctorArgs) {
+
+			for (Constructor<?> ctor : type.getReturnedType().getDeclaredConstructors()) {
+
+				if (ctor.getParameterCount() == ctorArgs.length) {
+					boolean itsAMatch = true;
+					for (int i = 0; i < ctor.getParameterCount(); i++) {
+						if (ctorArgs[i] == null) {
+							continue;
+						}
+						if (!ClassUtils.isAssignable(ctor.getParameterTypes()[i], ctorArgs[i].getClass())) {
+							itsAMatch = false;
+							break;
+						}
+					}
+					if (itsAMatch) {
+						return ctor;
+					}
+				}
+			}
+			return null;
 		}
 
 		/**

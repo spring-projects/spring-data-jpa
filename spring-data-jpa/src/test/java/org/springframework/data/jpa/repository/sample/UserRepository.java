@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.sample;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.QueryHint;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -721,7 +723,35 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname >= (select Min(u0.firstname) from User u0)")
 	List<NameOnly> findProjectionBySubselect();
 
+	@Query("select u from User u")
+	List<UserExcerpt> findRecordProjection();
+
+	@Query("select u from User u")
+	<T> List<T> findRecordProjection(Class<T> projectionType);
+
+	@Query("select u.firstname, u.lastname from User u")
+	List<UserExcerpt> findMultiselectRecordProjection();
+
+	@UserRoleCountProjectingQuery
+	List<UserRoleCountDtoProjection> dtoProjectionEntityAndAggregatedValue();
+
+	@UserRoleCountProjectingQuery
+	Page<UserRoleCountDtoProjection> dtoProjectionEntityAndAggregatedValue(PageRequest page);
+
+	@Query("select u as user, count(r) as roleCount from User u left outer join u.roles r group by u")
+	List<UserRoleCountInterfaceProjection> interfaceProjectionEntityAndAggregatedValue();
+
+	@Query("select u as user, count(r) as roleCount from User u left outer join u.roles r group by u")
+	List<Map<String, Object>> rawMapProjectionEntityAndAggregatedValue();
+
+	@UserRoleCountProjectingQuery
+	<T> List<T> findMultiselectRecordDynamicProjection(Class<T> projectionType);
+
 	Window<User> findBy(OffsetScrollPosition position);
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Query("select u, count(r) from User u left outer join u.roles r group by u")
+	@interface UserRoleCountProjectingQuery {}
 
 	interface RolesAndFirstname {
 
@@ -745,6 +775,17 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	interface IdOnly {
 		int getId();
+	}
+
+	record UserExcerpt(String firstname, String lastname) {
+
+	}
+
+	record UserRoleCountDtoProjection(User user, Long roleCount) {}
+
+	interface UserRoleCountInterfaceProjection {
+		User getUser();
+		Long getRoleCount();
 	}
 
 }

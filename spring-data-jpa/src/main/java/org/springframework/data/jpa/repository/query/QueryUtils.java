@@ -769,7 +769,8 @@ public abstract class QueryUtils {
 		return toExpressionRecursively(from, property, false);
 	}
 
-	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection) {
+	public static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property,
+			boolean isForSelection) {
 		return toExpressionRecursively(from, property, isForSelection, false);
 	}
 

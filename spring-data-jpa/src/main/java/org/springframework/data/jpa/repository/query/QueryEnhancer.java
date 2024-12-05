@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
 /**
@@ -81,9 +82,19 @@ public interface QueryEnhancer {
 	 * @param sort the sort specification to apply.
 	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
 	 * @return the modified query string.
+	 * @deprecated since 3.5, use {@link #rewrite(QueryRewriteInformation)} instead.
 	 */
-	@Deprecated
+	@Deprecated(since = "3.5", forRemoval = true)
 	String applySorting(Sort sort, @Nullable String alias);
+
+	/**
+	 * Rewrite the query to include sorting and apply {@link ReturnedType} customizations.
+	 *
+	 * @param rewriteInformation the rewrite information to apply.
+	 * @return the modified query string.
+	 * @since 3.5
+	 */
+	String rewrite(QueryRewriteInformation rewriteInformation);
 
 	/**
 	 * Creates a count projected query from the given original query.
@@ -101,4 +112,23 @@ public interface QueryEnhancer {
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
 	 */
 	String createCountQueryFor(@Nullable String countProjection);
+
+	/**
+	 * Interface to describe the information needed to rewrite a query.
+	 *
+	 * @since 3.5
+	 */
+	interface QueryRewriteInformation {
+
+		/**
+		 * @return the sort specification to apply.
+		 */
+		Sort getSort();
+
+		/**
+		 * @return type expected to be returned by the query.
+		 */
+		ReturnedType getReturnedType();
+	}
+
 }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -38,6 +39,7 @@ import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.Assert;
 
@@ -55,13 +57,14 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		implements FluentQuery.FetchableFluentQuery<R> {
 
 	private final Specification<S> spec;
-	private final Function<Sort, TypedQuery<S>> finder;
+	private final BiFunction<ReturnedType, Sort, TypedQuery<S>> finder;
 	private final SpecificationScrollDelegate<S> scroll;
 	private final Function<Specification<S>, Long> countOperation;
 	private final Function<Specification<S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
 
-	FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Function<Sort, TypedQuery<S>> finder,
+	FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
+			BiFunction<ReturnedType, Sort, TypedQuery<S>> finder,
 			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
 			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager,
 			ProjectionFactory projectionFactory) {
@@ -70,7 +73,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
-			Sort sort, int limit, Collection<String> properties, Function<Sort, TypedQuery<S>> finder,
+			Sort sort, int limit, Collection<String> properties, BiFunction<ReturnedType, Sort, TypedQuery<S>> finder,
 			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
 			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager,
 			ProjectionFactory projectionFactory) {
@@ -106,9 +109,6 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
 
 		Assert.notNull(resultType, "Projection target type must not be null");
-		if (!resultType.isInterface()) {
-			throw new UnsupportedOperationException("Class-based DTOs are not yet supported.");
-		}
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
 				scroll, countOperation, existsOperation, entityManager, projectionFactory);
@@ -155,7 +155,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		Assert.notNull(scrollPosition, "ScrollPosition must not be null");
 
-		return scroll.scroll(sort, limit, scrollPosition).map(getConversionFunction());
+		return scroll.scroll(returnedType, sort, limit, scrollPosition).map(getConversionFunction());
 	}
 
 	@Override
@@ -183,7 +183,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private TypedQuery<S> createSortedAndProjectedQuery() {
 
-		TypedQuery<S> query = finder.apply(sort);
+		TypedQuery<S> query = finder.apply(returnedType, sort);
 
 		if (!properties.isEmpty()) {
 			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
@@ -227,16 +227,17 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	static class SpecificationScrollDelegate<T> extends ScrollDelegate<T> {
 
-		private final ScrollQueryFactory scrollFunction;
+		private final ScrollQueryFactory<TypedQuery<T>> scrollFunction;
 
-		SpecificationScrollDelegate(ScrollQueryFactory scrollQueryFactory, JpaEntityInformation<T, ?> entity) {
+		SpecificationScrollDelegate(ScrollQueryFactory<TypedQuery<T>> scrollQueryFactory,
+				JpaEntityInformation<T, ?> entity) {
 			super(entity);
 			this.scrollFunction = scrollQueryFactory;
 		}
 
-		public Window<T> scroll(Sort sort, int limit, ScrollPosition scrollPosition) {
+		public Window<T> scroll(ReturnedType returnedType, Sort sort, int limit, ScrollPosition scrollPosition) {
 
-			Query query = scrollFunction.createQuery(sort, scrollPosition);
+			Query query = scrollFunction.createQuery(returnedType, sort, scrollPosition);
 
 			if (limit > 0) {
 				query = query.setMaxResults(limit);
