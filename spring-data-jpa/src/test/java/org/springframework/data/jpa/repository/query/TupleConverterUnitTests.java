@@ -37,6 +37,7 @@ import org.mockito.quality.Strictness;
 
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery.TupleConverter;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -113,6 +114,16 @@ class TupleConverterUnitTests {
 		softly.assertAll();
 	}
 
+	@Test // GH-3076
+	void dealsWithNullsInArgumetents() {
+
+		ReturnedType returnedType = ReturnedType.of(WithPC.class, DomainType.class, new SpelAwareProxyProjectionFactory());
+
+		when(tuple.get(eq(0))).thenReturn("one");
+		when(tuple.get(eq(1))).thenReturn(null);
+		new TupleConverter(returnedType).convert(tuple);
+	}
+
 	interface SampleRepository extends CrudRepository<Object, Long> {
 		String someMethod();
 	}
@@ -175,6 +186,20 @@ class TupleConverterUnitTests {
 			public String getAlias() {
 				return value;
 			}
+		}
+	}
+
+	static class DomainType {
+		String one, two, three;
+	}
+
+	static class  WithPC {
+		String one;
+		String two;
+
+		public WithPC(String one, String two) {
+			this.one = one;
+			this.two = two;
 		}
 	}
 }

@@ -23,6 +23,7 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -345,7 +347,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 					&& !type.getInputProperties().isEmpty();
 
 			if (this.dtoProjection) {
-				this.preferredConstructor = PreferredConstructorDiscoverer.discover(String.class);
+				 this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
 			} else {
 				this.preferredConstructor = null;
 			}
@@ -373,24 +375,65 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 				Object[] ctorArgs = new Object[type.getInputProperties().size()];
 
+				boolean containsNullValue = false;
 				for (int i = 0; i < type.getInputProperties().size(); i++) {
-					ctorArgs[i] = tuple.get(i);
+					Object value = tuple.get(i);
+					ctorArgs[i] = value;
+					if (!containsNullValue && value == null) {
+						containsNullValue = true;
+					}
 				}
 
 				try {
 
-					if (preferredConstructor.getParameterCount() == ctorArgs.length) {
+					if (preferredConstructor != null && preferredConstructor.getParameterCount() == ctorArgs.length) {
 						return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
 					}
 
-					return BeanUtils.instantiateClass(type.getReturnedType()
-							.getConstructor(Arrays.stream(ctorArgs).map(Object::getClass).toArray(Class<?>[]::new)), ctorArgs);
+					Constructor<?> ctor = null;
+
+					if (!containsNullValue) { // let's seem if we have an argument type match
+						ctor = type.getReturnedType()
+								.getConstructor(Arrays.stream(ctorArgs).map(Object::getClass).toArray(Class<?>[]::new));
+					}
+
+					if (ctor == null) { // let's see if there's more general constructor we could use that accepts our args
+						ctor = findFirstMatchingConstructor(ctorArgs);
+					}
+
+					if (ctor != null) {
+						return BeanUtils.instantiateClass(ctor, ctorArgs);
+					}
 				} catch (ReflectiveOperationException e) {
 					ReflectionUtils.handleReflectionException(e);
 				}
 			}
 
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
+		}
+
+		@Nullable
+		private Constructor<?> findFirstMatchingConstructor(Object[] ctorArgs) {
+
+			for (Constructor<?> ctor : type.getReturnedType().getDeclaredConstructors()) {
+
+				if (ctor.getParameterCount() == ctorArgs.length) {
+					boolean itsAMatch = true;
+					for (int i = 0; i < ctor.getParameterCount(); i++) {
+						if (ctorArgs[i] == null) {
+							continue;
+						}
+						if (!ClassUtils.isAssignable(ctor.getParameterTypes()[i], ctorArgs[i].getClass())) {
+							itsAMatch = false;
+							break;
+						}
+					}
+					if (itsAMatch) {
+						return ctor;
+					}
+				}
+			}
+			return null;
 		}
 
 		/**
