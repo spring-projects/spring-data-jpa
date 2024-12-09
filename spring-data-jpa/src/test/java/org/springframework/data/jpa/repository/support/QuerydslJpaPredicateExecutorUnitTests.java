@@ -23,13 +23,13 @@ import jakarta.persistence.PersistenceContext;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.hibernate.LazyInitializationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -403,6 +403,16 @@ class QuerydslJpaPredicateExecutorUnitTests {
 				.containsExactlyInAnyOrder(dave.getFirstname(), oliver.getFirstname());
 	}
 
+	@Test // GH-2327
+	void findByFluentPredicateWithDtoProjection() {
+
+		List<UserProjectionDto> users = predicateExecutor.findBy(user.firstname.contains("v"),
+				q -> q.as(UserProjectionDto.class).all());
+
+		assertThat(users).extracting(UserProjectionDto::firstname).containsExactlyInAnyOrder(dave.getFirstname(),
+				oliver.getFirstname());
+	}
+
 	@Test // GH-2294
 	void findByFluentPredicateWithSortedInterfaceBasedProjection() {
 
@@ -433,31 +443,6 @@ class QuerydslJpaPredicateExecutorUnitTests {
 				q -> q.sortBy(Sort.by("firstname")).exists());
 
 		assertThat(exists).isTrue();
-	}
-
-	@Test // GH-2294
-	void fluentExamplesWithClassBasedDtosNotYetSupported() {
-
-		class UserDto {
-			String firstname;
-
-			public UserDto() {}
-
-			public String getFirstname() {
-				return this.firstname;
-			}
-
-			public void setFirstname(String firstname) {
-				this.firstname = firstname;
-			}
-
-			public String toString() {
-				return "UserDto(firstname=" + this.getFirstname() + ")";
-			}
-		}
-
-		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> predicateExecutor
-				.findBy(user.firstname.contains("v"), q -> q.as(UserDto.class).sortBy(Sort.by("firstname")).all()));
 	}
 
 	@Test // GH-2329
@@ -534,6 +519,9 @@ class QuerydslJpaPredicateExecutorUnitTests {
 
 		String getFirstname();
 
-		Set<Role> getRoles();
+		String getLastname();
+	}
+
+	public record UserProjectionDto(String firstname, String lastname) {
 	}
 }

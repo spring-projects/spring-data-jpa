@@ -53,6 +53,11 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
+	public String rewrite(QueryRewriteInformation rewriteInformation) {
+		return QueryUtils.applySorting(this.query.getQueryString(), rewriteInformation.getSort(), alias);
+	}
+
+	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
 		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection, this.query.isNativeQuery());
 	}

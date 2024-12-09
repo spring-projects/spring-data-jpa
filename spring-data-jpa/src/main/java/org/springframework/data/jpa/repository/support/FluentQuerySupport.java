@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import jakarta.persistence.Query;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,7 +24,9 @@ import java.util.function.Function;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 
 /**
@@ -41,6 +41,7 @@ import org.springframework.lang.Nullable;
  */
 abstract class FluentQuerySupport<S, R> {
 
+	protected final ReturnedType returnedType;
 	protected final Class<R> resultType;
 	protected final Sort sort;
 	protected final int limit;
@@ -51,6 +52,7 @@ abstract class FluentQuerySupport<S, R> {
 	FluentQuerySupport(Class<R> resultType, Sort sort, int limit, @Nullable Collection<String> properties,
 		Class<S> entityType, ProjectionFactory projectionFactory) {
 
+		this.returnedType = ReturnedType.of(resultType, entityType, projectionFactory);
 		this.resultType = resultType;
 		this.sort = sort;
 		this.limit = limit;
@@ -80,15 +82,20 @@ abstract class FluentQuerySupport<S, R> {
 			return (Function<Object, R>) Function.identity();
 		}
 
-		if (targetType.isInterface()) {
-			return o -> projectionFactory.createProjection(targetType, o);
+		if (returnedType.isProjecting()) {
+
+			AbstractJpaQuery.TupleConverter tupleConverter = new AbstractJpaQuery.TupleConverter(returnedType);
+
+			if (resultType.isInterface()) {
+				return o -> projectionFactory.createProjection(targetType, tupleConverter.convert(o));
+			}
 		}
 
 		return o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
 	}
 
-	interface ScrollQueryFactory {
-		Query createQuery(Sort sort, ScrollPosition scrollPosition);
+	interface ScrollQueryFactory<Q> {
+		Q createQuery(ReturnedType returnedType, Sort sort, ScrollPosition scrollPosition);
 	}
 
 }
