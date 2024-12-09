@@ -24,6 +24,7 @@ import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -56,7 +58,6 @@ import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
@@ -347,7 +348,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 					&& !type.getInputProperties().isEmpty();
 
 			if (this.dtoProjection) {
-				 this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
+				this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
 			} else {
 				this.preferredConstructor = null;
 			}
@@ -373,67 +374,97 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			if (dtoProjection) {
 
-				Object[] ctorArgs = new Object[type.getInputProperties().size()];
-
-				boolean containsNullValue = false;
-				for (int i = 0; i < type.getInputProperties().size(); i++) {
-					Object value = tuple.get(i);
-					ctorArgs[i] = value;
-					if (!containsNullValue && value == null) {
-						containsNullValue = true;
-					}
+				Object[] ctorArgs = new Object[elements.size()];
+				for (int i = 0; i < ctorArgs.length; i++) {
+					ctorArgs[i] = tuple.get(i);
 				}
 
-				try {
+				List<Class<?>> argTypes = getArgumentTypes(ctorArgs);
 
-					if (preferredConstructor != null && preferredConstructor.getParameterCount() == ctorArgs.length) {
-						return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
-					}
-
-					Constructor<?> ctor = null;
-
-					if (!containsNullValue) { // let's seem if we have an argument type match
-						ctor = type.getReturnedType()
-								.getConstructor(Arrays.stream(ctorArgs).map(Object::getClass).toArray(Class<?>[]::new));
-					}
-
-					if (ctor == null) { // let's see if there's more general constructor we could use that accepts our args
-						ctor = findFirstMatchingConstructor(ctorArgs);
-					}
-
-					if (ctor != null) {
-						return BeanUtils.instantiateClass(ctor, ctorArgs);
-					}
-				} catch (ReflectiveOperationException e) {
-					ReflectionUtils.handleReflectionException(e);
+				if (preferredConstructor != null && isConstructorCompatible(preferredConstructor.getConstructor(), argTypes)) {
+					return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
 				}
+
+				return BeanUtils.instantiateClass(getFirstMatchingConstructor(ctorArgs, argTypes), ctorArgs);
 			}
 
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
 		}
 
-		@Nullable
-		private Constructor<?> findFirstMatchingConstructor(Object[] ctorArgs) {
+		private Constructor<?> getFirstMatchingConstructor(Object[] ctorArgs, List<Class<?>> argTypes) {
 
 			for (Constructor<?> ctor : type.getReturnedType().getDeclaredConstructors()) {
 
-				if (ctor.getParameterCount() == ctorArgs.length) {
-					boolean itsAMatch = true;
-					for (int i = 0; i < ctor.getParameterCount(); i++) {
-						if (ctorArgs[i] == null) {
-							continue;
-						}
-						if (!ClassUtils.isAssignable(ctor.getParameterTypes()[i], ctorArgs[i].getClass())) {
-							itsAMatch = false;
-							break;
-						}
-					}
-					if (itsAMatch) {
-						return ctor;
-					}
+				if (ctor.getParameterCount() != ctorArgs.length) {
+					continue;
+				}
+
+				if (isConstructorCompatible(ctor, argTypes)) {
+					return ctor;
 				}
 			}
-			return null;
+
+			throw new IllegalStateException(String.format(
+					"Cannot find compatible constructor for DTO projection '%s' accepting '%s'", type.getReturnedType().getName(),
+					argTypes.stream().map(Class::getName).collect(Collectors.joining(", "))));
+		}
+
+		private static List<Class<?>> getArgumentTypes(Object[] ctorArgs) {
+			List<Class<?>> argTypes = new ArrayList<>(ctorArgs.length);
+
+			for (Object ctorArg : ctorArgs) {
+				argTypes.add(ctorArg == null ? Void.class : ctorArg.getClass());
+			}
+			return argTypes;
+		}
+
+		public static boolean isConstructorCompatible(Constructor<?> constructor, List<Class<?>> argumentTypes) {
+
+			if (constructor.getParameterCount() != argumentTypes.size()) {
+				return false;
+			}
+
+			for (int i = 0; i < argumentTypes.size(); i++) {
+
+				MethodParameter methodParameter = MethodParameter.forExecutable(constructor, i);
+				Class<?> argumentType = argumentTypes.get(i);
+
+				if (!areAssignmentCompatible(methodParameter.getParameterType(), argumentType)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static boolean areAssignmentCompatible(Class<?> to, Class<?> from) {
+
+			if (from == Void.class && !to.isPrimitive()) {
+				// treat Void as the bottom type, the class of null
+				return true;
+			}
+
+			if (to.isPrimitive()) {
+
+				if (to == Short.TYPE) {
+					return from == Character.class || from == Byte.class;
+				}
+
+				if (to == Integer.TYPE) {
+					return from == Short.class || from == Character.class || from == Byte.class;
+				}
+
+				if (to == Long.TYPE) {
+					return from == Integer.class || from == Short.class || from == Character.class || from == Byte.class;
+				}
+
+				if (to == Double.TYPE) {
+					return from == Float.class;
+				}
+
+				return ClassUtils.isAssignable(to, from);
+			}
+
+			return ClassUtils.isAssignable(to, from);
 		}
 
 		/**
