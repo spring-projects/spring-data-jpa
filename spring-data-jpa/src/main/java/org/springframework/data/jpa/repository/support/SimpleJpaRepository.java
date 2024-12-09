@@ -19,7 +19,6 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -442,12 +441,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Optional<T> findOne(Specification<T> spec) {
-
-		try {
-			return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResult());
-		} catch (NoResultException e) {
-			return Optional.empty();
-		}
+		return Optional.ofNullable(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResultOrNull());
 	}
 
 	@Override
@@ -564,13 +558,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T> Optional<S> findOne(Example<S> example) {
 
-		try {
-			return Optional
-					.of(getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(), Sort.unsorted())
-							.setMaxResults(2).getSingleResult());
-		} catch (NoResultException e) {
-			return Optional.empty();
-		}
+		TypedQuery<S> query = getQuery(new ExampleSpecification<>(example, escapeCharacter), example.getProbeType(),
+				Sort.unsorted()).setMaxResults(2);
+
+		return Optional.ofNullable(query.getSingleResultOrNull());
 	}
 
 	@Override
