@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
 
@@ -87,13 +86,7 @@ public abstract class JpaQueryExecution {
 		Assert.notNull(query, "AbstractJpaQuery must not be null");
 		Assert.notNull(accessor, "JpaParametersParameterAccessor must not be null");
 
-		Object result;
-
-		try {
-			result = doExecute(query, accessor);
-		} catch (NoResultException e) {
-			return null;
-		}
+		Object result = doExecute(query, accessor);
 
 		if (result == null) {
 			return null;
@@ -221,7 +214,7 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
-			return query.createQuery(accessor).getSingleResult();
+			return query.createQuery(accessor).getSingleResultOrNull();
 		}
 	}
 
