@@ -69,8 +69,9 @@ final class NamedQuery extends AbstractJpaQuery {
 		Parameters<?, ?> parameters = method.getParameters();
 
 		if (parameters.hasSortParameter()) {
-			throw new IllegalStateException(String.format("Finder method %s is backed by a NamedQuery and must "
-					+ "not contain a sort parameter as we cannot modify the query; Use @Query instead", method));
+			throw new IllegalStateException(String.format("Query method %s is backed by a NamedQuery and must "
+					+ "not contain a sort parameter as we cannot modify the query; Use @%s(value=…) instead to apply sorting or remove the 'Sort' parameter.",
+					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
@@ -85,14 +86,14 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		if (parameters.hasPageableParameter()) {
 			LOG.warn(String.format(
-					"Finder method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied",
-					method));
+					"Query method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied; Use @%s(value=…) instead to apply sorting.",
+					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
 		String queryString = extractor.extractQueryString(query);
 
-		// TODO: Detect whether a named query is a native one.
-		this.declaredQuery = Lazy.of(() -> DeclaredQuery.of(queryString, query.toString().contains("NativeQuery")));
+		this.declaredQuery = Lazy
+				.of(() -> DeclaredQuery.of(queryString, method.isNativeQuery() || query.toString().contains("NativeQuery")));
 		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
@@ -133,7 +134,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		String queryName = method.getNamedQueryName();
 
 		if (LOG.isDebugEnabled()) {
-			LOG.debug(String.format("Looking up named query %s", queryName));
+			LOG.debug(String.format("Looking up named query '%s'", queryName));
 		}
 
 		if (!hasNamedQuery(em, queryName)) {
@@ -141,12 +142,14 @@ final class NamedQuery extends AbstractJpaQuery {
 		}
 
 		if (method.isScrollQuery()) {
-			throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
+			throw QueryCreationException.create(method, String.format(
+					"Scroll queries are not supported using String-based queries as we cannot rewrite the query string. Use @%s(value=…) instead.",
+					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
 		RepositoryQuery query = new NamedQuery(method, em);
 		if (LOG.isDebugEnabled()) {
-			LOG.debug(String.format("Found named query %s", queryName));
+			LOG.debug(String.format("Found named query '%s'", queryName));
 		}
 		return query;
 	}

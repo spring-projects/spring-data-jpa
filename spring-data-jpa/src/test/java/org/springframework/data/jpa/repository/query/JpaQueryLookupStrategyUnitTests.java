@@ -163,7 +163,7 @@ class JpaQueryLookupStrategyUnitTests {
 		assertThatIllegalStateException()
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
 				.withMessageContaining(
-						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query; Use @Query instead");
+						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query; Use @Query(value=…) instead to apply sorting or remove the 'Sort' parameter.");
 	}
 
 	@Test // GH-2018
