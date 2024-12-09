@@ -16,10 +16,14 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -35,11 +39,30 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * Creates an empty stream.
-	 *
-	 * @return
 	 */
 	static QueryTokenStream empty() {
 		return EmptyQueryTokenStream.INSTANCE;
+	}
+
+	/**
+	 * Creates a QueryTokenStream from a {@link QueryToken}.
+	 */
+	static QueryTokenStream from(QueryToken token) {
+		return QueryRenderer.from(Collections.singletonList(token));
+	}
+
+	/**
+	 * Creates an token QueryRenderer from an AST {@link TerminalNode}.
+	 */
+	static QueryTokenStream ofToken(TerminalNode node) {
+		return from(QueryTokens.token(node));
+	}
+
+	/**
+	 * Creates an token QueryRenderer from an AST {@link Token}.
+	 */
+	static QueryTokenStream ofToken(Token node) {
+		return from(QueryTokens.token(node));
 	}
 
 	/**
@@ -55,10 +78,6 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 		return concat(elements, visitor, QueryRenderer::inline, separator);
 	}
 
-	static <T> QueryTokenStream justAs(Collection<T> elements, Function<T, QueryToken> converter) {
-		return concat(elements, it-> QueryRendererBuilder.from(converter.apply(it)), QueryRenderer::inline, QueryTokens.TOKEN_SPACE);
-	}
-
 	/**
 	 * Compose a {@link QueryTokenStream} from a collection of expression elements.
 	 *
@@ -69,7 +88,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	 */
 	static <T> QueryTokenStream concatExpressions(Collection<T> elements, Function<T, QueryTokenStream> visitor,
 			QueryToken separator) {
-		return concat(elements, visitor, QueryRenderer::expression, separator);
+		return concat(elements, visitor, QueryRenderer::ofExpression, separator);
 	}
 
 	/**
@@ -128,11 +147,39 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	}
 
 	/**
+	 * @return the required first query token or throw {@link java.util.NoSuchElementException} if empty.
+	 */
+	default QueryToken getRequiredFirst() {
+
+		QueryToken first = getFirst();
+
+		if (first == null) {
+			throw new NoSuchElementException("No token in the stream");
+		}
+
+		return first;
+	}
+
+	/**
 	 * @return the last query token or {@code null} if empty.
 	 */
 	@Nullable
 	default QueryToken getLast() {
 		return CollectionUtils.lastElement(toList());
+	}
+
+	/**
+	 * @return the required last query token or throw {@link java.util.NoSuchElementException} if empty.
+	 */
+	default QueryToken getRequiredLast() {
+
+		QueryToken last = getLast();
+
+		if (last == null) {
+			throw new NoSuchElementException("No token in the stream");
+		}
+
+		return last;
 	}
 
 	/**

@@ -43,13 +43,13 @@ public class TestMetaModel implements Metamodel {
 	private final Set<Class<?>> managedTypes;
 	private final Lazy<EntityManagerFactory> entityManagerFactory = Lazy.of(this::init);
 	private final Lazy<Metamodel> metamodel = Lazy.of(() -> entityManagerFactory.get().getMetamodel());
-	private Lazy<EntityManager> enityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
+	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
 
-	TestMetaModel(Set<Class<?>> managedTypes) {
+	private TestMetaModel(Set<Class<?>> managedTypes) {
 		this("dynamic-tests", managedTypes);
 	}
 
-	TestMetaModel(String persistenceUnit, Set<Class<?>> managedTypes) {
+	private TestMetaModel(String persistenceUnit, Set<Class<?>> managedTypes) {
 		this.persistenceUnit = persistenceUnit;
 		this.managedTypes = managedTypes;
 	}
@@ -64,6 +64,11 @@ public class TestMetaModel implements Metamodel {
 
 	public <X> EntityType<X> entity(Class<X> cls) {
 		return metamodel.get().entity(cls);
+	}
+
+	@Override
+	public EntityType<?> entity(String s) {
+		return metamodel.get().entity(s);
 	}
 
 	public <X> ManagedType<X> managedType(Class<X> cls) {
@@ -87,7 +92,7 @@ public class TestMetaModel implements Metamodel {
 	}
 
 	public EntityManager entityManager() {
-		return enityManager.get();
+		return entityManager.get();
 	}
 
 	EntityManagerFactory init() {
