@@ -18,13 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.persistence.Tuple;
-import jakarta.persistence.TupleElement;
 
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +49,8 @@ import org.springframework.data.repository.query.ReturnedType;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Christoph Strobl
+ * @author Mark Paluch
  * @soundtrack James Bay - Let it go (Chaos and the Calm)
  */
 @ExtendWith(MockitoExtension.class)
@@ -115,13 +117,88 @@ class TupleConverterUnitTests {
 	}
 
 	@Test // GH-3076
-	void dealsWithNullsInArgumetents() {
+	void dealsWithNullsInArguments() {
 
 		ReturnedType returnedType = ReturnedType.of(WithPC.class, DomainType.class, new SpelAwareProxyProjectionFactory());
 
+		doReturn(List.of(element, element, element)).when(tuple).getElements();
 		when(tuple.get(eq(0))).thenReturn("one");
 		when(tuple.get(eq(1))).thenReturn(null);
-		new TupleConverter(returnedType).convert(tuple);
+		when(tuple.get(eq(2))).thenReturn(1);
+
+		Object result = new TupleConverter(returnedType).convert(tuple);
+		assertThat(result).isInstanceOf(WithPC.class);
+	}
+
+	@Test // GH-3076
+	void fallsBackToCompatibleConstructor() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two", "three"));
+
+		doReturn(List.of(element, element, element)).when(tuple).getElements();
+		when(tuple.get(eq(0))).thenReturn("one");
+		when(tuple.get(eq(1))).thenReturn(null);
+		when(tuple.get(eq(2))).thenReturn(2);
+
+		MultipleConstructors result = (MultipleConstructors) new TupleConverter(returnedType).convert(tuple);
+
+		assertThat(result.one).isEqualTo("one");
+		assertThat(result.two).isNull();
+		assertThat(result.three).isEqualTo(2);
+
+		reset(tuple);
+
+		doReturn(List.of(element, element, element)).when(tuple).getElements();
+		when(tuple.get(eq(0))).thenReturn("one");
+		when(tuple.get(eq(1))).thenReturn(null);
+		when(tuple.get(eq(2))).thenReturn('a');
+
+		result = (MultipleConstructors) new TupleConverter(returnedType).convert(tuple);
+
+		assertThat(result.one).isEqualTo("one");
+		assertThat(result.two).isNull();
+		assertThat(result.three).isEqualTo(97);
+	}
+
+	@Test // GH-3076
+	void acceptsConstructorWithCastableType() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two", "three", "four"));
+
+		doReturn(List.of(element, element, element, element)).when(tuple).getElements();
+		when(tuple.get(eq(0))).thenReturn("one");
+		when(tuple.get(eq(1))).thenReturn(null);
+		when(tuple.get(eq(2))).thenReturn((byte) 2);
+		when(tuple.get(eq(3))).thenReturn(2.1f);
+
+		MultipleConstructors result = (MultipleConstructors) new TupleConverter(returnedType).convert(tuple);
+
+		assertThat(result.one).isEqualTo("one");
+		assertThat(result.two).isNull();
+		assertThat(result.three).isEqualTo(2);
+		assertThat(result.four).isEqualTo(2, offset(0.1d));
+	}
+
+	@Test // GH-3076
+	void failsForNonResolvableConstructor() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two"));
+
+		doReturn(List.of(element, element)).when(tuple).getElements();
+		when(tuple.get(eq(0))).thenReturn(1);
+		when(tuple.get(eq(1))).thenReturn(null);
+
+		assertThatIllegalStateException().isThrownBy(() -> new TupleConverter(returnedType).convert(tuple))
+				.withMessageContaining("Cannot find compatible constructor for DTO projection");
 	}
 
 	interface SampleRepository extends CrudRepository<Object, Long> {
@@ -193,13 +270,40 @@ class TupleConverterUnitTests {
 		String one, two, three;
 	}
 
-	static class  WithPC {
+	static class WithPC {
 		String one;
 		String two;
+		long three;
 
-		public WithPC(String one, String two) {
+		public WithPC(String one, String two, long three) {
 			this.one = one;
 			this.two = two;
+			this.three = three;
 		}
+	}
+
+	static class MultipleConstructors {
+		String one;
+		String two;
+		long three;
+		double four;
+
+		public MultipleConstructors(String one) {
+			this.one = one;
+		}
+
+		public MultipleConstructors(String one, String two, long three) {
+			this.one = one;
+			this.two = two;
+			this.three = three;
+		}
+
+		public MultipleConstructors(String one, String two, short three, double four) {
+			this.one = one;
+			this.two = two;
+			this.three = three;
+			this.four = four;
+		}
+
 	}
 }
