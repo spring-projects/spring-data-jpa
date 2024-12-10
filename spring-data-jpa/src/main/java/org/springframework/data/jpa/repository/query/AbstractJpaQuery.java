@@ -23,6 +23,8 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,6 +34,8 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -44,6 +48,8 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExe
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.data.jpa.util.JpaMetamodel;
+import org.springframework.data.mapping.PreferredConstructor;
+import org.springframework.data.mapping.model.PreferredConstructorDiscoverer;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -51,6 +57,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Abstract base class to implement {@link RepositoryQuery}s.
@@ -283,9 +290,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return null;
 		}
 
-		return returnedType.isProjecting() && !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
-				? Tuple.class //
-				: null;
+		return returnedType.isProjecting() && returnedType.getReturnedType().isInterface()
+				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
+						? Tuple.class //
+						: null;
 	}
 
 	/**
@@ -304,11 +312,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected abstract Query doCreateCountQuery(JpaParametersParameterAccessor accessor);
 
-	static class TupleConverter implements Converter<Object, Object> {
+	public static class TupleConverter implements Converter<Object, Object> {
 
 		private final ReturnedType type;
 
 		private final UnaryOperator<Tuple> tupleWrapper;
+
+		private final boolean dtoProjection;
+
+		private final @Nullable PreferredConstructor<?, ?> preferredConstructor;
 
 		/**
 		 * Creates a new {@link TupleConverter} for the given {@link ReturnedType}.
@@ -332,6 +344,14 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			this.type = type;
 			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
+			this.dtoProjection = type.isProjecting() && !type.getReturnedType().isInterface()
+					&& !type.getInputProperties().isEmpty();
+
+			if (this.dtoProjection) {
+				this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
+			} else {
+				this.preferredConstructor = null;
+			}
 		}
 
 		@Override
@@ -352,7 +372,99 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				}
 			}
 
+			if (dtoProjection) {
+
+				Object[] ctorArgs = new Object[elements.size()];
+				for (int i = 0; i < ctorArgs.length; i++) {
+					ctorArgs[i] = tuple.get(i);
+				}
+
+				List<Class<?>> argTypes = getArgumentTypes(ctorArgs);
+
+				if (preferredConstructor != null && isConstructorCompatible(preferredConstructor.getConstructor(), argTypes)) {
+					return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
+				}
+
+				return BeanUtils.instantiateClass(getFirstMatchingConstructor(ctorArgs, argTypes), ctorArgs);
+			}
+
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
+		}
+
+		private Constructor<?> getFirstMatchingConstructor(Object[] ctorArgs, List<Class<?>> argTypes) {
+
+			for (Constructor<?> ctor : type.getReturnedType().getDeclaredConstructors()) {
+
+				if (ctor.getParameterCount() != ctorArgs.length) {
+					continue;
+				}
+
+				if (isConstructorCompatible(ctor, argTypes)) {
+					return ctor;
+				}
+			}
+
+			throw new IllegalStateException(String.format(
+					"Cannot find compatible constructor for DTO projection '%s' accepting '%s'", type.getReturnedType().getName(),
+					argTypes.stream().map(Class::getName).collect(Collectors.joining(", "))));
+		}
+
+		private static List<Class<?>> getArgumentTypes(Object[] ctorArgs) {
+			List<Class<?>> argTypes = new ArrayList<>(ctorArgs.length);
+
+			for (Object ctorArg : ctorArgs) {
+				argTypes.add(ctorArg == null ? Void.class : ctorArg.getClass());
+			}
+			return argTypes;
+		}
+
+		public static boolean isConstructorCompatible(Constructor<?> constructor, List<Class<?>> argumentTypes) {
+
+			if (constructor.getParameterCount() != argumentTypes.size()) {
+				return false;
+			}
+
+			for (int i = 0; i < argumentTypes.size(); i++) {
+
+				MethodParameter methodParameter = MethodParameter.forExecutable(constructor, i);
+				Class<?> argumentType = argumentTypes.get(i);
+
+				if (!areAssignmentCompatible(methodParameter.getParameterType(), argumentType)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static boolean areAssignmentCompatible(Class<?> to, Class<?> from) {
+
+			if (from == Void.class && !to.isPrimitive()) {
+				// treat Void as the bottom type, the class of null
+				return true;
+			}
+
+			if (to.isPrimitive()) {
+
+				if (to == Short.TYPE) {
+					return from == Character.class || from == Byte.class;
+				}
+
+				if (to == Integer.TYPE) {
+					return from == Short.class || from == Character.class || from == Byte.class;
+				}
+
+				if (to == Long.TYPE) {
+					return from == Integer.class || from == Short.class || from == Character.class || from == Byte.class;
+				}
+
+				if (to == Double.TYPE) {
+					return from == Float.class;
+				}
+
+				return ClassUtils.isAssignable(to, from);
+			}
+
+			return ClassUtils.isAssignable(to, from);
 		}
 
 		/**

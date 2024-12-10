@@ -297,12 +297,20 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String applySorting(Sort sort) {
-		return applySorting(sort, detectAlias());
+		return doApplySorting(sort, detectAlias());
+	}
+
+	@Override
+	public String rewrite(QueryRewriteInformation rewriteInformation) {
+		return doApplySorting(rewriteInformation.getSort(), primaryAlias);
 	}
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
+		return doApplySorting(sort, alias);
+	}
 
+	private String doApplySorting(Sort sort, @Nullable String alias) {
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty");
 

@@ -65,15 +65,8 @@ class NativeJpaQueryUnitTests {
 	@Test // GH-3546
 	void shouldApplySorting() {
 
-		NativeJpaQuery query = getQuery(TestRepo.class, "find", Sort.class);
-		String sql = query.getSortedQueryString(Sort.by("foo", "bar"));
-
-		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
-	}
-
-	private NativeJpaQuery getQuery(Class<?> repository, String method, Class<?>... args) {
-		Method respositoryMethod = ReflectionUtils.findMethod(repository, method, args);
-		RepositoryMetadata repositoryMetadata = new DefaultRepositoryMetadata(repository);
+		Method respositoryMethod = ReflectionUtils.findMethod(TestRepo.class, "find", Sort.class);
+		RepositoryMetadata repositoryMetadata = new DefaultRepositoryMetadata(TestRepo.class);
 		SpelAwareProxyProjectionFactory projectionFactory = mock(SpelAwareProxyProjectionFactory.class);
 		QueryExtractor queryExtractor = mock(QueryExtractor.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(respositoryMethod, repositoryMetadata, projectionFactory,
@@ -83,7 +76,9 @@ class NativeJpaQueryUnitTests {
 
 		NativeJpaQuery query = new NativeJpaQuery(queryMethod, em, annotation.value(), annotation.countQuery(),
 				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
-		return query;
+		String sql = query.getSortedQueryString(Sort.by("foo", "bar"), queryMethod.getResultProcessor().getReturnedType());
+
+		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}
 
 	interface TestRepo extends Repository<Object, Object> {

@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -38,6 +39,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
 	private final Sort sort;
 	private final @Nullable String primaryFromAlias;
+	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
 	HqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias) {
 
@@ -45,6 +47,16 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		this.sort = sort;
 		this.primaryFromAlias = primaryFromAlias;
+		this.dtoDelegate = null;
+	}
+
+	HqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias, @Nullable ReturnedType returnedType) {
+
+		Assert.notNull(sort, "Sort must not be null");
+
+		this.sort = sort;
+		this.primaryFromAlias = primaryFromAlias;
+		this.dtoDelegate = returnedType == null ? null : new DtoProjectionTransformerDelegate(returnedType);
 	}
 
 	@Override
@@ -79,6 +91,18 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public QueryRendererBuilder visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
 		return visitOrderedQuery(ctx, this.sort);
+	}
+
+	@Override
+	public QueryTokenStream visitSelectionList(HqlParser.SelectionListContext ctx) {
+
+		QueryTokenStream tokenStream = super.visitSelectionList(ctx);
+
+		if (dtoDelegate != null && !isSubquery(ctx)) {
+			return dtoDelegate.transformSelectionList(tokenStream);
+		}
+
+		return tokenStream;
 	}
 
 	@Override

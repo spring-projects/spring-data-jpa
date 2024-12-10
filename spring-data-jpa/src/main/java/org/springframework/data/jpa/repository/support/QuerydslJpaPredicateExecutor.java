@@ -34,7 +34,6 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
 import org.springframework.data.jpa.repository.query.KeysetScrollSpecification;
-import org.springframework.data.jpa.repository.support.FetchableFluentQueryByPredicate.PredicateScrollDelegate;
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -194,7 +193,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return select;
 		};
 
-		ScrollQueryFactory scroll = (sort, scrollPosition) -> {
+		ScrollQueryFactory<AbstractJPAQuery<?, ?>> scroll = (returnedType, sort, scrollPosition) -> {
 
 			Predicate predicateToUse = predicate;
 
@@ -220,7 +219,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 				}
 			}
 
-			return select.createQuery();
+			return select;
 		};
 
 		BiFunction<Sort, Pageable, AbstractJPAQuery<?, ?>> pagedFinder = (sort, pageable) -> {
@@ -235,10 +234,11 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		};
 
 		FetchableFluentQueryByPredicate<T, T> fluentQuery = new FetchableFluentQueryByPredicate<>( //
+				path,
 				predicate, //
-				this.entityInformation.getJavaType(), //
+				this.entityInformation, //
 				finder, //
-				new PredicateScrollDelegate<>(scroll, entityInformation), //
+				scroll, //
 				pagedFinder, //
 				this::count, //
 				this::exists, //

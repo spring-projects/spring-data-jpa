@@ -161,7 +161,9 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 				return (ID) t.get(idMetadata.getSimpleIdAttribute().getName());
 			}
 
-			return (ID) persistenceUnitUtil.getIdentifier(entity);
+			if (getJavaType().isInstance(entity)) {
+				return (ID) persistenceUnitUtil.getIdentifier(entity);
+			}
 		}
 
 		// otherwise, check if the complex id type has any partially filled fields
@@ -171,6 +173,10 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		for (SingularAttribute<? super T, ?> attribute : idMetadata) {
 
 			Object propertyValue = entityWrapper.getPropertyValue(attribute.getName());
+
+			if (idMetadata.hasSimpleId()) {
+				return (ID) propertyValue;
+			}
 
 			if (propertyValue != null) {
 				partialIdValueFound = true;

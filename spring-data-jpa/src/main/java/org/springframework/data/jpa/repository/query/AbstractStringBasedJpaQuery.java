@@ -69,8 +69,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param valueExpressionDelegate must not be {@literal null}.
 	 */
 	public AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,
-			@Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+			@Nullable String countQueryString, QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
 
 		super(method, em);
 
@@ -101,10 +100,15 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		this.queryRewriter = queryRewriter;
 
 		JpaParameters parameters = method.getParameters();
-		if (parameters.hasPageableParameter() || parameters.hasSortParameter()) {
-			this.querySortRewriter = new CachingQuerySortRewriter();
+
+		if (parameters.hasDynamicProjection()) {
+			this.querySortRewriter = SimpleQuerySortRewriter.INSTANCE;
 		} else {
-			this.querySortRewriter = NoOpQuerySortRewriter.INSTANCE;
+			if (parameters.hasPageableParameter() || parameters.hasSortParameter()) {
+				this.querySortRewriter = new CachingQuerySortRewriter();
+			} else {
+				this.querySortRewriter = new UnsortedCachingQuerySortRewriter();
+			}
 		}
 
 		Assert.isTrue(method.isNativeQuery() || !query.usesJdbcStyleParameters(),
@@ -115,21 +119,20 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		Sort sort = accessor.getSort();
-		String sortedQueryString = getSortedQueryString(sort);
-
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-
-		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), processor.getReturnedType());
+		ReturnedType returnedType = processor.getReturnedType();
+		String sortedQueryString = getSortedQueryString(sort, returnedType);
+		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), returnedType);
 
 		QueryParameterSetter.QueryMetadata metadata = metadataCache.getMetadata(sortedQueryString, query);
 
-		// it is ok to reuse the binding contained in the ParameterBinder although we create a new query String because the
+		// it is ok to reuse the binding contained in the ParameterBinder, although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
 	}
 
-	String getSortedQueryString(Sort sort) {
-		return querySortRewriter.getSorted(query, sort);
+	String getSortedQueryString(Sort sort, ReturnedType returnedType) {
+		return querySortRewriter.getSorted(query, sort, returnedType);
 	}
 
 	@Override
@@ -211,30 +214,47 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	String applySorting(CachableQuery cachableQuery) {
 
-		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery()).applySorting(cachableQuery.getSort(),
-				cachableQuery.getAlias());
+		return QueryEnhancerFactory.forQuery(cachableQuery.getDeclaredQuery())
+				.rewrite(new DefaultQueryRewriteInformation(cachableQuery.getSort(), cachableQuery.getReturnedType()));
 	}
 
 	/**
 	 * Query Sort Rewriter interface.
 	 */
 	interface QuerySortRewriter {
-		String getSorted(DeclaredQuery query, Sort sort);
+		String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType);
 	}
 
 	/**
 	 * No-op query rewriter.
 	 */
-	enum NoOpQuerySortRewriter implements QuerySortRewriter {
+	enum SimpleQuerySortRewriter implements QuerySortRewriter {
+
 		INSTANCE;
 
-		public String getSorted(DeclaredQuery query, Sort sort) {
+		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
+
+			return QueryEnhancerFactory.forQuery(query).rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
+		}
+	}
+
+	static class UnsortedCachingQuerySortRewriter implements QuerySortRewriter {
+
+		private volatile String cachedQueryString;
+
+		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
 			if (sort.isSorted()) {
 				throw new UnsupportedOperationException("NoOpQueryCache does not support sorting");
 			}
 
-			return query.getQueryString();
+			String cachedQueryString = this.cachedQueryString;
+			if (cachedQueryString == null) {
+				this.cachedQueryString = cachedQueryString = QueryEnhancerFactory.forQuery(query)
+						.rewrite(new DefaultQueryRewriteInformation(sort, returnedType));
+			}
+
+			return cachedQueryString;
 		}
 	}
 
@@ -246,14 +266,22 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		private final ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16,
 				AbstractStringBasedJpaQuery.this::applySorting);
 
+		private volatile String cachedQueryString;
+
 		@Override
-		public String getSorted(DeclaredQuery query, Sort sort) {
+		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
 			if (sort.isUnsorted()) {
-				return query.getQueryString();
+
+				String cachedQueryString = this.cachedQueryString;
+				if (cachedQueryString == null) {
+					this.cachedQueryString = cachedQueryString = queryCache.get(new CachableQuery(query, sort, returnedType));
+				}
+
+				return cachedQueryString;
 			}
 
-			return queryCache.get(new CachableQuery(query, sort));
+			return queryCache.get(new CachableQuery(query, sort, returnedType));
 		}
 	}
 
@@ -269,12 +297,14 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		private final DeclaredQuery declaredQuery;
 		private final String queryString;
 		private final Sort sort;
+		private final ReturnedType returnedType;
 
-		CachableQuery(DeclaredQuery query, Sort sort) {
+		CachableQuery(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
 			this.declaredQuery = query;
 			this.queryString = query.getQueryString();
 			this.sort = sort;
+			this.returnedType = returnedType;
 		}
 
 		DeclaredQuery getDeclaredQuery() {
@@ -285,9 +315,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return sort;
 		}
 
-		@Nullable
-		String getAlias() {
-			return declaredQuery.getAlias();
+		public ReturnedType getReturnedType() {
+			return returnedType;
 		}
 
 		@Override
