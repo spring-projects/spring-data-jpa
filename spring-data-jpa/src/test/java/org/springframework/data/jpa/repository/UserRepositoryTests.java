@@ -71,6 +71,7 @@ import org.springframework.data.jpa.repository.sample.NameOnlyRecord;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -2981,6 +2982,7 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-2757
+	@DisabledOnHibernate("6.2")
 	void supportsRecordsWithNativeQueries() {
 
 		flushTestUsers();
