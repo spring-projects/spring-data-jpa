@@ -93,5 +93,23 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 
 		hints.reflection().registerType(NamedEntityGraph.class,
 				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
+
+		if (ClassUtils.isPresent("org.hibernate.Hibernate", classLoader)) {
+
+			/*
+			   Fetching a single results causes: 
+			       java.lang.IllegalArgumentException: Class org.hibernate.query.sqm.tree.select.SqmQueryPart[] is instantiated reflectively but was never registered.Register the class by adding "unsafeAllocated" for the class in reflect-config.json.
+			       at org.graalvm.nativeimage.builder/com.oracle.svm.core.graal.snippets.SubstrateAllocationSnippets.arrayHubErrorStub(SubstrateAllocationSnippets.java:345)
+			       at org.hibernate.internal.util.collections.StandardStack.push(StandardStack.java:48)
+			       at org.hibernate.query.sqm.sql.BaseSqmToSqlAstConverter.visitQuerySpec(BaseSqmToSqlAstConverter.java:2073)
+			   
+			   both formats:
+			   - org.hibernate.query.sqm.tree.select.SqmQueryPart[]
+			   - [Lorg.hibernate.query.sqm.tree.select.SqmQueryPart;
+			   seem to be supported via reflect-config. However TypeReference does not support [L...
+			 */
+			hints.reflection().registerType(TypeReference.of("org.hibernate.query.sqm.tree.select.SqmQueryPart[]"),
+					MemberCategory.UNSAFE_ALLOCATED);
+		}
 	}
 }
