@@ -65,6 +65,7 @@ import org.springframework.util.Assert;
  * @author Donghun Shin
  * @author Greg Turnquist
  * @author Aref Behboodi
+ * @author Ngoc Nhan
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
@@ -117,7 +118,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		Assert.notNull(id, "Identifier must not be null!");
 		Assert.notNull(revisionNumber, "Revision number must not be null!");
 
-		List<Object[]> singleResult = (List<Object[]>) createBaseQuery(id) //
+		List<Object[]> singleResult = createBaseQuery(id) //
 				.add(AuditEntity.revisionNumber().eq(revisionNumber)) //
 				.getResultList();
 
