@@ -354,11 +354,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return this.query.getQueryString();
 		}
 
-		return createCountQueryFor(this.query, selectBody, countProjection);
+		return createCountQueryFor(this.query, selectBody, countProjection, primaryAlias);
 	}
 
 	private static String createCountQueryFor(DeclaredQuery query, PlainSelect selectBody,
-			@Nullable String countProjection) {
+			@Nullable String countProjection, @Nullable String primaryAlias) {
 
 		// remove order by
 		selectBody.setOrderByElements(null);
@@ -373,7 +373,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			selectBody.setDistinct(null); // reset possible distinct
 
 			Function jSqlCount = getJSqlCount(
-					Collections.singletonList(countPropertyNameForSelection(selectBody.getSelectItems(), distinct)), distinct);
+					Collections.singletonList(countPropertyNameForSelection(selectBody.getSelectItems(), distinct, primaryAlias)),
+					distinct);
 			selectBody.setSelectItems(Collections.singletonList(SelectItem.from(jSqlCount)));
 		}
 
@@ -463,7 +464,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param tableAlias the table alias which can be {@literal null}.
 	 * @return
 	 */
-	private static String countPropertyNameForSelection(List<SelectItem<?>> selectItems, boolean distinct) {
+	private static String countPropertyNameForSelection(List<SelectItem<?>> selectItems, boolean distinct,
+			@Nullable String tableAlias) {
 
 		if (onlyASingleColumnProjection(selectItems)) {
 
@@ -472,7 +474,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return column.getFullyQualifiedName();
 		}
 
-		return (distinct ? "*" : "1");
+		return distinct ? ((tableAlias != null ? tableAlias + "." : "") + "*") : "1";
 	}
 
 	/**
