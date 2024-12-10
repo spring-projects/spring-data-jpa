@@ -100,7 +100,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	private static final String ID_MUST_NOT_BE_NULL = "The given id must not be null";
 	private static final String IDS_MUST_NOT_BE_NULL = "Ids must not be null";
+	private static final String ENTITY_MUST_NOT_BE_NULL = "Entity must not be null";
 	private static final String ENTITIES_MUST_NOT_BE_NULL = "Entities must not be null";
+	private static final String EXAMPLE_MUST_NOT_BE_NULL = "Example must not be null";
+	private static final String SPECIFICATION_MUST_NOT_BE_NULL = "Specification must not be null";
+	private static final String QUERY_FUNCTION_MUST_NOT_BE_NULL = "Query function must not be null";
 
 	private final JpaEntityInformation<T, ?> entityInformation;
 	private final EntityManager entityManager;
@@ -190,7 +194,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("unchecked")
 	public void delete(T entity) {
 
-		Assert.notNull(entity, "Entity must not be null");
+		Assert.notNull(entity, ENTITY_MUST_NOT_BE_NULL);
 
 		if (entityInformation.isNew(entity)) {
 			return;
@@ -490,8 +494,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(spec, "Specification must not be null");
-		Assert.notNull(queryFunction, "Query function must not be null");
+		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
+		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
 
 		return doFindBy(spec, getDomainClass(), queryFunction);
 	}
@@ -499,8 +503,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
 			Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(spec, "Specification must not be null");
-		Assert.notNull(queryFunction, "Query function must not be null");
+		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
+		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
 
 		ScrollQueryFactory scrollFunction = (sort, scrollPosition) -> {
 
@@ -589,8 +593,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
 
-		Assert.notNull(example, "Example must not be null");
-		Assert.notNull(queryFunction, "Query function must not be null");
+		Assert.notNull(example, EXAMPLE_MUST_NOT_BE_NULL);
+		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
 
 		ExampleSpecification<S> spec = new ExampleSpecification<>(example, escapeCharacter);
 		Class<S> probeType = example.getProbeType();
@@ -617,7 +621,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public <S extends T> S save(S entity) {
 
-		Assert.notNull(entity, "Entity must not be null");
+		Assert.notNull(entity, ENTITY_MUST_NOT_BE_NULL);
 
 		if (entityInformation.isNew(entity)) {
 			entityManager.persist(entity);
@@ -990,7 +994,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 */
 		ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
 
-			Assert.notNull(example, "Example must not be null");
+			Assert.notNull(example, EXAMPLE_MUST_NOT_BE_NULL);
 			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null");
 
 			this.example = example;
