@@ -51,6 +51,22 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e ORDER BY e.foo ASC, e.bar ASC");
 	}
 
+	@Test // GH-3707
+	void countQueriesShouldConsiderPrimaryTableAlias() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("""
+				SELECT DISTINCT a.*, b.b1
+				FROM TableA a
+				  JOIN TableB b ON a.b = b.b
+				  LEFT JOIN TableC c ON b.c = c.c
+				ORDER BY b.b1, a.a1, a.a2
+				""", true));
+
+		String sql = enhancer.createCountQueryFor();
+
+		assertThat(sql).startsWith("SELECT count(DISTINCT a.*) FROM TableA a");
+	}
+
 	@Override
 	@ParameterizedTest // GH-2773
 	@MethodSource("jpqlCountQueries")
