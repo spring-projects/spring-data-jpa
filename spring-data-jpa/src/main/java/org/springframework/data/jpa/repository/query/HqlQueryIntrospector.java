@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -84,7 +84,7 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	}
 
 	private static String capturePrimaryAlias(VariableContext ctx) {
-		return ((ctx).reservedWord() != null ? ctx.reservedWord() : ctx.identifier().reservedWord()).getText();
+		return ((ctx).nakedIdentifier() != null ? ctx.nakedIdentifier() : ctx.identifier()).getText();
 	}
 
 	private static List<QueryToken> captureSelectItems(List<HqlParser.SelectionContext> selections,

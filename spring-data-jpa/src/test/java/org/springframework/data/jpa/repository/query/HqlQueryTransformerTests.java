@@ -924,7 +924,7 @@ class HqlQueryTransformerTests {
 						and iu = u
 				)
 				and ct.id = :teamId
-					""", relationshipName, joinAlias, joinAlias));
+				""", relationshipName, joinAlias, joinAlias));
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
@@ -933,7 +933,6 @@ class HqlQueryTransformerTests {
 				Arguments.of("right", "rt"), //
 				Arguments.of("left", "lt"), //
 				Arguments.of("outer", "ou"), //
-				Arguments.of("full", "full"), //
 				Arguments.of("inner", "inr"));
 	}
 

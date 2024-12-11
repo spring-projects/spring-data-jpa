@@ -37,7 +37,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
- * @author Mark Paluch, Yannick Brandt
+ * @author Mark Paluch
+ * @author Yannick Brandt
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -179,6 +180,180 @@ class HqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-3711
+	void entityTypeReference() {
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT TYPE(?0)
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void entityIdReference() {
+
+		assertQuery("""
+				SELECT ID(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT ID(e).foo
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void entityNaturalIdReference() {
+
+		assertQuery("""
+				SELECT NATURALID(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT NATURALID(e).foo
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void entityVersionReference() {
+
+		assertQuery("""
+				SELECT VERSION(e)
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void treatedNavigablePath() {
+
+		assertQuery("""
+				SELECT TREAT(e as Integer).foo
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void collectionValueNavigablePath() {
+
+		assertQuery("""
+				SELECT ELEMENT(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT ELEMENT(e).foo
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT VALUE(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT VALUE(e).foo
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void mapKeyNavigablePath() {
+
+		assertQuery("""
+				SELECT KEY(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT KEY(e).foo
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT INDEX(e)
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void toOneFkReference() {
+
+		assertQuery("""
+				SELECT FK(e)
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT FK(e.foo)
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void indexedPathAccessFragment() {
+
+		assertQuery("""
+				SELECT e.names[0]
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT e.payments[1].id
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT some_function()[0]
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT some_function()[1].id
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void slicedPathAccessFragment() {
+
+		assertQuery("""
+				SELECT e.names[0:1]
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT e.payments[1:2].id
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT some_function()[0:1]
+				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT some_function()[1:2].id
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-3711
+	void functionPathContinuation() {
+
+		assertQuery("""
+				SELECT some_function().foo
+				FROM Employee e
+				""");
+	}
+
 	@Test
 	void joinsExample1() {
 
@@ -299,7 +474,7 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
-				    """);
+				""");
 	}
 
 	@Test
@@ -308,7 +483,7 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
-				    """);
+				""");
 	}
 
 	/**
@@ -323,7 +498,7 @@ class HqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE "cost overrun"
-				    """);
+				""");
 	}
 
 	@Test
@@ -334,7 +509,7 @@ class HqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE 'cost overrun'
-				    """);
+				""");
 	}
 
 	@Test
@@ -344,7 +519,7 @@ class HqlQueryRendererTests {
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
-				    """);
+				""");
 	}
 
 	@Test
@@ -408,7 +583,7 @@ class HqlQueryRendererTests {
 				WHERE emp.salary > ALL (SELECT m.salary
 				    FROM Manager m
 				    WHERE m.department = emp.department)
-				    """);
+				""");
 	}
 
 	@Test
@@ -420,7 +595,7 @@ class HqlQueryRendererTests {
 				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
-				    """);
+				""");
 	}
 
 	@Test
@@ -488,7 +663,7 @@ class HqlQueryRendererTests {
 				         WHEN e.rating = 2 THEN e.salary * 1.05
 				         ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -501,7 +676,7 @@ class HqlQueryRendererTests {
 				                  WHEN 2 THEN e.salary * 1.05
 				                  ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -541,7 +716,7 @@ class HqlQueryRendererTests {
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN (Exempt, Contractor)
-				 """);
+				""");
 	}
 
 	@Test
@@ -1509,13 +1684,13 @@ class HqlQueryRendererTests {
 		});
 	}
 
-	@Test
+	@Test // GH-3711
 	void ceilingFunctionShouldWork() {
 		assertQuery("select ceiling(1.5) from Element a");
 	}
 
-	@Test
-	void lnFunctionSouldWork() {
+	@Test // GH-3711
+	void lnFunctionShouldWork() {
 		assertQuery("select ln(7.5) from Element a");
 	}
 
@@ -1568,8 +1743,16 @@ class HqlQueryRendererTests {
 	void durationLiteralsShouldWork(String dtField) {
 
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE (ce.endDate - ce.startDate) > 5 %s".formatted(dtField));
-		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.text LIKE :text GROUP BY year(cd.date) HAVING (ce.endDate - ce.startDate) > 5 %s".formatted(dtField));
+		assertQuery(
+				"SELECT ce.id FROM CalendarEvent ce WHERE ce.text LIKE :text GROUP BY year(cd.date) HAVING (ce.endDate - ce.startDate) > 5 %s"
+						.formatted(dtField));
 		assertQuery("SELECT ce.id as id, cd.startDate + 5 %s AS summedDate FROM CalendarEvent ce".formatted(dtField));
+	}
+
+	@ParameterizedTest // GH-3711
+	@ValueSource(strings = { "1", "1_000", "1L", "1_000L", "1bi", "1.1f", "2.2d", "2.2bd" })
+	void numberLiteralsShouldWork(String literal) {
+		assertQuery(String.format("SELECT %s FROM User u where u.id = %s", literal, literal));
 	}
 
 	@Test // GH-3025
