@@ -25,7 +25,9 @@ grammar Hql;
  * management of complex rules in the generated Visitor. Finally, there are labels applied to rule elements (op=('+'|'-')
  * to simplify the processing.
  *
- * @author Greg Turnquist, Yannick Brandt
+ * @author Greg Turnquist
+ * @author Mark Paluch
+ * @author Yannick Brandt
  * @since 3.1
  */
 }
@@ -307,9 +309,10 @@ setOperator
 // Literals
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-literals
 literal
-    : NULL
+    : STRING_LITERAL
+    | JAVA_STRING_LITERAL
+    | NULL
     | booleanLiteral
-    | stringLiteral
     | numericLiteral
     | dateTimeLiteral
     | binaryLiteral
@@ -321,19 +324,16 @@ booleanLiteral
     | FALSE
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-string-literals
-stringLiteral
-    : STRINGLITERAL
-    | JAVASTRINGLITERAL
-    | CHARACTER
-    ;
-
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-numeric-literals
 numericLiteral
-    : INTEGER_LITERAL
-    | FLOAT_LITERAL
-    | HEXLITERAL
-    ;
+	: INTEGER_LITERAL
+	| LONG_LITERAL
+	| BIG_INTEGER_LITERAL
+	| FLOAT_LITERAL
+	| DOUBLE_LITERAL
+	| BIG_DECIMAL_LITERAL
+	| HEX_LITERAL
+	;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-datetime-literals
 dateTimeLiteral
@@ -399,7 +399,7 @@ dateOrTimeField
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-binary-literals
 binaryLiteral
     : BINARY_LITERAL
-    | '{' HEXLITERAL (',' HEXLITERAL)*  '}'
+    | '{' HEX_LITERAL (',' HEX_LITERAL)*  '}'
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-enum-literals
@@ -433,19 +433,29 @@ expression
     ;
 
 primaryExpression
-    : caseList                                  # CaseExpression
-    | literal                                   # LiteralExpression
-    | parameter                                 # ParameterExpression
-    | function                                  # FunctionExpression
-    | generalPathFragment                       # GeneralPathExpression
+    : caseList                                                      # CaseExpression
+    | literal                                                       # LiteralExpression
+    | parameter                                                     # ParameterExpression
+    | entityTypeReference                                           # EntityTypeExpression
+    | entityIdReference                                             # EntityIdExpression
+    | entityVersionReference                                        # EntityVersionExpression
+    | entityNaturalIdReference                                      # EntityNaturalIdExpression
+    | syntacticDomainPath pathContinuation?                         # SyntacticPathExpression
+    | function                                                      # FunctionExpression
+    | generalPathFragment                                           # GeneralPathExpression
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-Datetime-arithmetic
-// TBD
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-path-expressions
+/**
+ * A much more complicated path expression involving operators and functions
+ *
+ * A path which needs to be resolved semantically.  This recognizes
+ * any path-like structure.  Generally, the path is semantically
+ * interpreted by the consumer of the parse-tree.  However, there
+ * are certain cases where we can syntactically recognize a navigable
+ * path; see 'syntacticNavigablePath' rule
+ */
 path
-    : treatedPath pathContinutation?
+    : syntacticDomainPath pathContinuation?
     | generalPathFragment
     ;
 
@@ -457,12 +467,118 @@ indexedPathAccessFragment
     : '[' expression ']' ('.' generalPathFragment)?
     ;
 
+/**
+ * A simple path expression
+ *
+ * - a reference to an identification variable (not case-sensitive),
+ * - followed by a list of period-separated identifiers (case-sensitive)
+ */
 simplePath
     : identifier simplePathElement*
     ;
 
+/**
+ * An element of a simple path expression: a period, and an identifier (case-sensitive)
+ */
 simplePathElement
     : '.' identifier
+    ;
+
+/**
+ * A continuation of a path expression "broken" by an operator or function
+ */
+pathContinuation
+    : '.' simplePath
+    ;
+
+/**
+ * The special function 'type()'
+ */
+entityTypeReference
+    : TYPE '(' (path | parameter) ')'
+    ;
+
+/**
+ * The special function 'id()'
+ */
+entityIdReference
+    : ID '(' path ')' pathContinuation?
+    ;
+
+/**
+ * The special function 'version()'
+ */
+entityVersionReference
+    : VERSION '(' path ')'
+    ;
+
+/**
+ * The special function 'naturalid()'
+ */
+entityNaturalIdReference
+    : NATURALID '(' path ')' pathContinuation?
+    ;
+
+/**
+ * An operator or function that may occur within a path expression
+ *
+ * Rule for cases where we syntactically know that the path is a
+ * "domain path" because it is one of these special cases:
+ *
+ *         * TREAT( path )
+ *         * ELEMENTS( path )
+ *         * INDICES( path )
+ *         * VALUE( path )
+ *         * KEY( path )
+ *         * path[ selector ]
+ *         * ARRAY_GET( embeddableArrayPath, index ).path
+ *         * COALESCE( array1, array2 )[ selector ].path
+ */
+syntacticDomainPath
+    : treatedNavigablePath
+    | collectionValueNavigablePath
+    | mapKeyNavigablePath
+    | simplePath indexedPathAccessFragment
+    | simplePath slicedPathAccessFragment
+    | toOneFkReference
+    | function pathContinuation
+    | function indexedPathAccessFragment pathContinuation?
+    | function slicedPathAccessFragment
+    ;
+
+/**
+ * The slice operator to obtain elements between the lower and upper bound.
+ */
+slicedPathAccessFragment
+    : '[' expression ':' expression ']'
+    ;
+
+/**
+ * A 'treat()' function that "breaks" a path expression
+ */
+treatedNavigablePath
+    : TREAT '(' path AS simplePath ')' pathContinuation?
+    ;
+
+/**
+ * A 'value()' function that "breaks" a path expression
+ */
+collectionValueNavigablePath
+    : elementValueQuantifier '(' path ')' pathContinuation?
+    ;
+
+/**
+ * A 'key()' or 'index()' function that "breaks" a path expression
+ */
+mapKeyNavigablePath
+    : indexKeyQuantifier '(' path ')' pathContinuation?
+    ;
+
+/**
+ * The special function 'fk()'
+ */
+toOneFkReference
+    : FK '(' path ')'
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-case-expressions
@@ -511,7 +627,7 @@ function
  */
 standardFunction
     : castFunction
-    | treatedPath
+    | treatedNavigablePath
     | extractFunction
     | truncFunction
     | formatFunction
@@ -587,7 +703,7 @@ trimSpecification
     ;
 
 trimCharacter
-    : stringLiteral
+    : STRING_LITERAL
     | parameter
     ;
 
@@ -604,7 +720,7 @@ padSpecification
     ;
 
 padCharacter
-    : stringLiteral
+    : STRING_LITERAL
     ;
 
 padLength
@@ -756,7 +872,7 @@ rollup
  * see 'Dialect.appendDatetimeFormat()'
  */
 format
-    : stringLiteral
+    : STRING_LITERAL
     ;
 
 /**
@@ -785,7 +901,7 @@ jpaNonstandardFunction
  * The name of a user-defined or native database function, given as a quoted string
  */
 jpaNonstandardFunctionName
-    : stringLiteral
+    : STRING_LITERAL
     | identifier
     ;
 
@@ -799,7 +915,7 @@ columnFunction
  * The function name, followed by a parenthesized list of ','-separated expressions
  */
 genericFunction
-    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')' pathContinutation?
+    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')' pathContinuation?
       nthSideClause? nullsClause? withinGroupClause? filterClause? overClause?
     ;
 
@@ -984,15 +1100,6 @@ frameExclusion
     | EXCLUDE NO OTHERS
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-treat-type
-treatedPath
-    : TREAT '(' path AS simplePath')' pathContinutation?
-    ;
-
-pathContinutation
-    : '.' simplePath
-    ;
-
 // Predicates
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
@@ -1027,6 +1134,16 @@ elementsValuesQuantifier
     | VALUES
     ;
 
+elementValueQuantifier
+    : ELEMENT
+    | VALUE
+    ;
+
+indexKeyQuantifier
+    : INDEX
+    | KEY
+    ;
+
 indicesKeysQuantifier
     : INDICES
     | KEYS
@@ -1045,7 +1162,7 @@ betweenExpression
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
 stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) expression (ESCAPE (stringLiteral|parameter))?
+    : expression NOT? (LIKE | ILIKE) expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL |parameter))?
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
@@ -1097,9 +1214,12 @@ parameterOrNumberLiteral
     | numericLiteral
     ;
 
+/**
+ * An identification variable (an entity alias)
+ */
 variable
     : AS identifier
-    | reservedWord
+    | nakedIdentifier
     ;
 
 parameter
@@ -1111,16 +1231,9 @@ entityName
     : identifier ('.' identifier)*
     ;
 
-identifier
-    : reservedWord
-    ;
-
-functionName
-    : reservedWord ('.' reservedWord)*
-    ;
-
-reservedWord
-    : IDENTIFICATION_VARIABLE
+nakedIdentifier
+    : IDENTIFIER
+    | QUOTED_IDENTIFIER
     | f=(ALL
     | AND
     | ANY
@@ -1133,8 +1246,10 @@ reservedWord
     | BY
     | CASE
     | CAST
-    | CEILING
     | COLLATE
+    | COLUMN
+    | CONFLICT
+    | CONSTRAINT
     | CONTAINS
     | COUNT
     | CROSS
@@ -1153,6 +1268,7 @@ reservedWord
     | DEPTH
     | DESC
     | DISTINCT
+    | DO
     | ELEMENT
     | ELEMENTS
     | ELSE
@@ -1166,18 +1282,15 @@ reservedWord
     | EXCEPT
     | EXCLUDE
     | EXISTS
-    | EXP
     | EXTRACT
-    | FALSE
     | FETCH
     | FILTER
     | FIRST
-    | FLOOR
+    | FK
     | FOLLOWING
     | FOR
     | FORMAT
     | FROM
-    | FULL
     | FUNCTION
     | GROUP
     | GROUPS
@@ -1187,10 +1300,9 @@ reservedWord
     | IGNORE
     | ILIKE
     | IN
-    | INCLUDES
     | INDEX
+    | INCLUDES
     | INDICES
-    | INNER
     | INSERT
     | INSTANT
     | INTERSECT
@@ -1199,15 +1311,14 @@ reservedWord
     | IS
     | JOIN
     | KEY
+    | KEYS
     | LAST
     | LATERAL
     | LEADING
-    | LEFT
     | LIKE
     | LIMIT
     | LIST
     | LISTAGG
-    | LN
     | LOCAL
     | LOCAL_DATE
     | LOCAL_DATETIME
@@ -1231,6 +1342,7 @@ reservedWord
     | NEXT
     | NO
     | NOT
+    | NOTHING
     | NULLS
     | OBJECT
     | OF
@@ -1241,7 +1353,6 @@ reservedWord
     | OR
     | ORDER
     | OTHERS
-    | OUTER
     | OVER
     | OVERFLOW
     | OVERLAY
@@ -1250,7 +1361,6 @@ reservedWord
     | PERCENT
     | PLACING
     | POSITION
-    | POWER
     | PRECEDING
     | QUARTER
     | RANGE
@@ -1267,7 +1377,6 @@ reservedWord
     | SOME
     | SUBSTRING
     | SUM
-    | TRUE
     | THEN
     | TIES
     | TIME
@@ -1295,7 +1404,17 @@ reservedWord
     | WITH
     | WITHIN
     | WITHOUT
-    | YEAR)
+    | YEAR
+    | ZONED)
+    ;
+
+identifier
+    : nakedIdentifier
+    | FULL
+    | INNER
+    | LEFT
+    | OUTER
+    | RIGHT
     ;
 
 /*
@@ -1334,14 +1453,20 @@ fragment X: 'x' | 'X';
 fragment Y: 'y' | 'Y';
 fragment Z: 'z' | 'Z';
 
+ASTERISK                    : '*';
+
 // The following are reserved identifiers:
 
+ID                          : I D;
+VERSION                     : V E R S I O N;
+VERSIONED                   : V E R S I O N E D;
+NATURALID                   : N A T U R A L I D;
+FK                          : F K;
 ALL                         : A L L;
 AND                         : A N D;
 ANY                         : A N Y;
 AS                          : A S;
 ASC                         : A S C;
-ASTERISK                    : '*';
 AVG                         : A V G;
 BETWEEN                     : B E T W E E N;
 BOTH                        : B O T H;
@@ -1349,7 +1474,6 @@ BREADTH                     : B R E A D T H;
 BY                          : B Y;
 CASE                        : C A S E;
 CAST                        : C A S T;
-CEILING                     : C E I L I N G;
 COLLATE                     : C O L L A T E;
 COLUMN                      : C O L U M N;
 CONFLICT                    : C O N F L I C T;
@@ -1386,14 +1510,10 @@ EVERY                       : E V E R Y;
 EXCEPT                      : E X C E P T;
 EXCLUDE                     : E X C L U D E;
 EXISTS                      : E X I S T S;
-EXP                         : E X P;
 EXTRACT                     : E X T R A C T;
-FALSE                       : F A L S E;
 FETCH                       : F E T C H;
 FILTER                      : F I L T E R;
 FIRST                       : F I R S T;
-FK                          : F K;
-FLOOR                       : F L O O R;
 FOLLOWING                   : F O L L O W I N G;
 FOR                         : F O R;
 FORMAT                      : F O R M A T;
@@ -1404,7 +1524,6 @@ GROUP                       : G R O U P;
 GROUPS                      : G R O U P S;
 HAVING                      : H A V I N G;
 HOUR                        : H O U R;
-ID                          : I D;
 IGNORE                      : I G N O R E;
 ILIKE                       : I L I K E;
 IN                          : I N;
@@ -1429,7 +1548,6 @@ LIKE                        : L I K E;
 LIMIT                       : L I M I T;
 LIST                        : L I S T;
 LISTAGG                     : L I S T A G G;
-LN                          : L N;
 LOCAL                       : L O C A L;
 LOCAL_DATE                  : L O C A L '_' D A T E ;
 LOCAL_DATETIME              : L O C A L '_' D A T E T I M E;
@@ -1448,13 +1566,11 @@ MININDEX                    : M I N I N D E X;
 MINUTE                      : M I N U T E;
 MONTH                       : M O N T H;
 NANOSECOND                  : N A N O S E C O N D;
-NATURALID                   : N A T U R A L I D;
 NEW                         : N E W;
 NEXT                        : N E X T;
 NO                          : N O;
 NOT                         : N O T;
 NOTHING                     : N O T H I N G;
-NULL                        : N U L L;
 NULLS                       : N U L L S;
 OBJECT                      : O B J E C T;
 OF                          : O F;
@@ -1474,7 +1590,6 @@ PARTITION                   : P A R T I T I O N;
 PERCENT                     : P E R C E N T;
 PLACING                     : P L A C I N G;
 POSITION                    : P O S I T I O N;
-POWER                       : P O W E R;
 PRECEDING                   : P R E C E D I N G;
 QUARTER                     : Q U A R T E R;
 RANGE                       : R A N G E;
@@ -1501,7 +1616,6 @@ TO                          : T O;
 TRAILING                    : T R A I L I N G;
 TREAT                       : T R E A T;
 TRIM                        : T R I M;
-TRUE                        : T R U E;
 TRUNC                       : T R U N C;
 TRUNCATE                    : T R U N C A T E;
 TYPE                        : T Y P E;
@@ -1511,8 +1625,6 @@ UPDATE                      : U P D A T E;
 USING                       : U S I N G;
 VALUE                       : V A L U E;
 VALUES                      : V A L U E S;
-VERSION                     : V E R S I O N;
-VERSIONED                   : V E R S I O N E D;
 WEEK                        : W E E K;
 WHEN                        : W H E N;
 WHERE                       : W H E R E;
@@ -1520,20 +1632,102 @@ WITH                        : W I T H;
 WITHIN                      : W I T H I N;
 WITHOUT                     : W I T H O U T;
 YEAR                        : Y E A R;
+ZONED                       : Z O N E D;
 
-fragment INTEGER_NUMBER     : ('0' .. '9')+ ;
-fragment FLOAT_NUMBER       : INTEGER_NUMBER+ '.'? INTEGER_NUMBER* (E [+-]? INTEGER_NUMBER)? ;
+NULL                        : N U L L;
+TRUE                        : T R U E;
+FALSE                       : F A L S E;
+
+fragment
+INTEGER_NUMBER
+    : DIGIT+
+    ;
+
+fragment
+FLOATING_POINT_NUMBER
+    : DIGIT+ '.' DIGIT* EXPONENT?
+    | '.' DIGIT+ EXPONENT?
+    | DIGIT+ EXPONENT
+    | DIGIT+
+    ;
+
+fragment
+EXPONENT : [eE] [+-]? DIGIT+;
+
 fragment HEX_DIGIT          : [0-9a-fA-F];
 
+fragment SINGLE_QUOTE : '\'';
+fragment DOUBLE_QUOTE : '"';
 
-CHARACTER                   : '\'' (~ ('\'' | '\\' )) '\'' ;
-STRINGLITERAL               : '\'' ('\'' '\'' | ~('\''))* '\'' ;
-JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
-INTEGER_LITERAL             : INTEGER_NUMBER (L | B I)? ;
-FLOAT_LITERAL               : FLOAT_NUMBER (D | F | B D)?;
-HEXLITERAL                  : '0' X HEX_DIGIT+ ;
+STRING_LITERAL : SINGLE_QUOTE ( SINGLE_QUOTE SINGLE_QUOTE | ~('\'') )* SINGLE_QUOTE;
+
+JAVA_STRING_LITERAL
+    : DOUBLE_QUOTE ( ESCAPE_SEQUENCE | ~('"') )* DOUBLE_QUOTE
+    | [jJ] SINGLE_QUOTE ( ESCAPE_SEQUENCE | ~('\'') )* SINGLE_QUOTE
+    | [jJ] DOUBLE_QUOTE ( ESCAPE_SEQUENCE | ~('\'') )* DOUBLE_QUOTE
+    ;
+
+INTEGER_LITERAL : INTEGER_NUMBER ('_' INTEGER_NUMBER)*;
+
+LONG_LITERAL : INTEGER_NUMBER  ('_' INTEGER_NUMBER)* LONG_SUFFIX;
+
+FLOAT_LITERAL : FLOATING_POINT_NUMBER FLOAT_SUFFIX;
+
+DOUBLE_LITERAL : FLOATING_POINT_NUMBER DOUBLE_SUFFIX?;
+
+BIG_INTEGER_LITERAL : INTEGER_NUMBER BIG_INTEGER_SUFFIX;
+
+BIG_DECIMAL_LITERAL : FLOATING_POINT_NUMBER BIG_DECIMAL_SUFFIX;
+
+HEX_LITERAL : '0' [xX] HEX_DIGIT+ LONG_SUFFIX?;
+
 BINARY_LITERAL              : [xX] '\'' HEX_DIGIT+ '\''
                             | [xX] '"'  HEX_DIGIT+ '"'
                             ;
 
-IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
+fragment
+LETTER : [a-zA-Z\u0080-\ufffe_$];
+
+fragment
+DIGIT : [0-9];
+
+fragment
+LONG_SUFFIX : [lL];
+
+fragment
+FLOAT_SUFFIX : [fF];
+
+fragment
+DOUBLE_SUFFIX : [dD];
+
+fragment
+BIG_DECIMAL_SUFFIX : [bB] [dD];
+
+fragment
+BIG_INTEGER_SUFFIX : [bB] [iI];
+
+// Identifiers
+IDENTIFIER
+    : LETTER (LETTER | DIGIT)*
+    ;
+
+fragment
+BACKTICK : '`';
+
+fragment BACKSLASH : '\\';
+
+fragment
+UNICODE_ESCAPE
+    : 'u' HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+    ;
+
+fragment
+ESCAPE_SEQUENCE
+    : BACKSLASH [btnfr"']
+    | BACKSLASH UNICODE_ESCAPE
+    | BACKSLASH BACKSLASH
+    ;
+
+QUOTED_IDENTIFIER
+    : BACKTICK ( ESCAPE_SEQUENCE | '\\' BACKTICK | ~([`]) )* BACKTICK
+    ;

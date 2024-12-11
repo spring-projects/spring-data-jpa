@@ -1032,8 +1032,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return QueryRendererBuilder.from(QueryTokens.expression(ctx.NULL()));
 		} else if (ctx.booleanLiteral() != null) {
 			return visit(ctx.booleanLiteral());
-		} else if (ctx.stringLiteral() != null) {
-			return visit(ctx.stringLiteral());
+		} else if (ctx.JAVA_STRING_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.expression(ctx.JAVA_STRING_LITERAL()));
+		} else if (ctx.STRING_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.expression(ctx.STRING_LITERAL()));
 		} else if (ctx.numericLiteral() != null) {
 			return visit(ctx.numericLiteral());
 		} else if (ctx.dateTimeLiteral() != null) {
@@ -1058,26 +1060,22 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitStringLiteral(HqlParser.StringLiteralContext ctx) {
-
-		if (ctx.STRINGLITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.STRINGLITERAL()));
-		} else if (ctx.CHARACTER() != null) {
-			return QueryRendererBuilder.from(QueryTokens.expression(ctx.CHARACTER()));
-		} else {
-			return QueryTokenStream.empty();
-		}
-	}
-
-	@Override
 	public QueryTokenStream visitNumericLiteral(HqlParser.NumericLiteralContext ctx) {
 
 		if (ctx.INTEGER_LITERAL() != null) {
 			return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+		} else if (ctx.LONG_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.LONG_LITERAL()));
+		} else if (ctx.BIG_INTEGER_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.BIG_INTEGER_LITERAL()));
 		} else if (ctx.FLOAT_LITERAL() != null) {
 			return QueryRendererBuilder.from(QueryTokens.token(ctx.FLOAT_LITERAL()));
-		} else if (ctx.HEXLITERAL() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.HEXLITERAL()));
+		} else if (ctx.DOUBLE_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.DOUBLE_LITERAL()));
+		} else if (ctx.BIG_DECIMAL_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.BIG_DECIMAL_LITERAL()));
+		} else if (ctx.HEX_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.HEX_LITERAL()));
 		} else {
 			return QueryTokenStream.empty();
 		}
@@ -1238,11 +1236,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.BINARY_LITERAL() != null) {
 			builder.append(QueryTokens.expression(ctx.BINARY_LITERAL()));
-		} else if (ctx.HEXLITERAL() != null) {
+		} else if (ctx.HEX_LITERAL() != null) {
 
 			builder.append(TOKEN_OPEN_BRACE);
 
-			builder.append(QueryTokenStream.concat(ctx.HEXLITERAL(), it -> {
+			builder.append(QueryTokenStream.concat(ctx.HEX_LITERAL(), it -> {
 				return QueryRendererBuilder.from(QueryTokens.token(it));
 			}, TOKEN_COMMA));
 
@@ -1426,6 +1424,195 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitEntityTypeExpression(HqlParser.EntityTypeExpressionContext ctx) {
+		return visit(ctx.entityTypeReference());
+	}
+
+	@Override
+	public QueryTokenStream visitEntityIdExpression(HqlParser.EntityIdExpressionContext ctx) {
+		return visit(ctx.entityIdReference());
+	}
+
+	@Override
+	public QueryTokenStream visitEntityVersionExpression(HqlParser.EntityVersionExpressionContext ctx) {
+		return visit(ctx.entityVersionReference());
+	}
+
+	@Override
+	public QueryTokenStream visitEntityNaturalIdExpression(HqlParser.EntityNaturalIdExpressionContext ctx) {
+		return visit(ctx.entityNaturalIdReference());
+	}
+
+	@Override
+	public QueryTokenStream visitSyntacticPathExpression(HqlParser.SyntacticPathExpressionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendInline(visit(ctx.syntacticDomainPath()));
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitPathContinuation(HqlParser.PathContinuationContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_DOT);
+		builder.append(visit(ctx.simplePath()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitEntityTypeReference(HqlParser.EntityTypeReferenceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.TYPE()));
+		builder.append(TOKEN_OPEN_PAREN);
+
+		if (ctx.path() != null) {
+			builder.appendInline(visit(ctx.path()));
+		}
+
+		if (ctx.parameter() != null) {
+			builder.appendInline(visit(ctx.parameter()));
+		}
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitEntityIdReference(HqlParser.EntityIdReferenceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.ID()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitEntityVersionReference(HqlParser.EntityVersionReferenceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.VERSION()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitEntityNaturalIdReference(HqlParser.EntityNaturalIdReferenceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.NATURALID()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSyntacticDomainPath(HqlParser.SyntacticDomainPathContext ctx) {
+
+		if (ctx.treatedNavigablePath() != null) {
+			return visit(ctx.treatedNavigablePath());
+		}
+
+		if (ctx.collectionValueNavigablePath() != null) {
+			return visit(ctx.collectionValueNavigablePath());
+		}
+
+		if (ctx.mapKeyNavigablePath() != null) {
+			return visit(ctx.mapKeyNavigablePath());
+		}
+
+		if (ctx.toOneFkReference() != null) {
+			return visit(ctx.toOneFkReference());
+		}
+
+		if (ctx.function() != null) {
+
+			QueryRendererBuilder builder = QueryRenderer.builder();
+
+			builder.append(visit(ctx.function()));
+
+			if (ctx.indexedPathAccessFragment() != null) {
+				builder.append(visit(ctx.indexedPathAccessFragment()));
+			}
+
+			if (ctx.slicedPathAccessFragment() != null) {
+				builder.append(visit(ctx.slicedPathAccessFragment()));
+			}
+
+			if (ctx.pathContinuation() != null) {
+				builder.append(visit(ctx.pathContinuation()));
+			}
+
+			return builder;
+		}
+
+		if (ctx.indexedPathAccessFragment() != null) {
+
+			QueryRendererBuilder builder = QueryRenderer.builder();
+
+			builder.append(visit(ctx.simplePath()));
+			builder.append(visit(ctx.indexedPathAccessFragment()));
+
+			return builder;
+		}
+
+		if (ctx.slicedPathAccessFragment() != null) {
+
+			QueryRendererBuilder builder = QueryRenderer.builder();
+
+			builder.append(visit(ctx.simplePath()));
+			builder.append(visit(ctx.slicedPathAccessFragment()));
+
+			return builder;
+		}
+
+		return QueryRenderer.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitSlicedPathAccessFragment(HqlParser.SlicedPathAccessFragmentContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
+		builder.appendInline(visit(ctx.expression(0)));
+		builder.append(TOKEN_COLON);
+		builder.appendInline(visit(ctx.expression(1)));
+		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
+
+		return builder;
+	}
+
+	@Override
 	public QueryTokenStream visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
 		return visit(ctx.function());
 	}
@@ -1477,10 +1664,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.castFunction() != null) {
 			return visit(ctx.castFunction());
-		}
-
-		if (ctx.treatedPath() != null) {
-			return visit(ctx.treatedPath());
 		}
 
 		if (ctx.extractFunction() != null) {
@@ -1634,7 +1817,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitPadCharacter(HqlParser.PadCharacterContext ctx) {
-		return visit(ctx.stringLiteral());
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
 	}
 
 	@Override
@@ -1908,7 +2091,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitFormat(HqlParser.FormatContext ctx) {
-		return visit(ctx.stringLiteral());
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
 	}
 
 	@Override
@@ -1970,7 +2153,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.identifier());
 		}
 
-		return visit(ctx.stringLiteral());
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
 	}
 
 	@Override
@@ -2378,12 +2561,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.treatedPath() != null) {
+		if (ctx.syntacticDomainPath() != null) {
 
-			builder.append(visit(ctx.treatedPath()));
+			builder.append(visit(ctx.syntacticDomainPath()));
 
-			if (ctx.pathContinutation() != null) {
-				builder.append(visit(ctx.pathContinutation()));
+			if (ctx.pathContinuation() != null) {
+				builder.append(visit(ctx.pathContinuation()));
 			}
 		} else if (ctx.generalPathFragment() != null) {
 			builder.append(visit(ctx.generalPathFragment()));
@@ -2549,8 +2732,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		nested.append(TOKEN_CLOSE_PAREN);
 		builder.append(nested);
 
-		if (ctx.pathContinutation() != null) {
-			builder.append(visit(ctx.pathContinutation()));
+		if (ctx.pathContinuation() != null) {
+			builder.append(visit(ctx.pathContinuation()));
 		}
 
 		if (ctx.nthSideClause() != null) {
@@ -2821,8 +3004,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitTrimCharacter(HqlParser.TrimCharacterContext ctx) {
 
-		if (ctx.stringLiteral() != null) {
-			return visit(ctx.stringLiteral());
+		if (ctx.STRING_LITERAL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
 		}
 
 		return visit(ctx.parameter());
@@ -2899,7 +3082,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitTreatedPath(HqlParser.TreatedPathContext ctx) {
+	public QueryTokenStream visitTreatedNavigablePath(HqlParser.TreatedNavigablePathContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -2914,22 +3097,86 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
-		if (ctx.pathContinutation() != null) {
-			builder.append(visit(ctx.pathContinutation()));
+		if (ctx.pathContinuation() != null) {
+			builder.append(visit(ctx.pathContinuation()));
 		}
 
 		return builder;
 	}
 
 	@Override
-	public QueryTokenStream visitPathContinutation(HqlParser.PathContinutationContext ctx) {
+	public QueryTokenStream visitCollectionValueNavigablePath(HqlParser.CollectionValueNavigablePathContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(TOKEN_DOT);
-		builder.append(visit(ctx.simplePath()));
+		builder.append(visit(ctx.elementValueQuantifier()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		if (ctx.pathContinuation() != null) {
+			builder.append(visit(ctx.pathContinuation()));
+		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitMapKeyNavigablePath(HqlParser.MapKeyNavigablePathContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.indexKeyQuantifier()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		if (ctx.pathContinuation() != null) {
+			builder.append(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitToOneFkReference(HqlParser.ToOneFkReferenceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.token(ctx.FK()));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.path()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitElementValueQuantifier(HqlParser.ElementValueQuantifierContext ctx) {
+
+		if (ctx.ELEMENT() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.ELEMENT()));
+		}
+
+		if (ctx.VALUE() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.VALUE()));
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitIndexKeyQuantifier(HqlParser.IndexKeyQuantifierContext ctx) {
+
+		if (ctx.INDEX() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.INDEX()));
+		}
+
+		if (ctx.KEY() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.KEY()));
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override
@@ -3176,8 +3423,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 			builder.append(QueryTokens.expression(ctx.ESCAPE()));
 
-			if (ctx.stringLiteral() != null) {
-				builder.appendExpression(visit(ctx.stringLiteral()));
+			if (ctx.STRING_LITERAL() != null) {
+				builder.append(QueryTokens.expression(ctx.STRING_LITERAL()));
+			} else if (ctx.JAVA_STRING_LITERAL() != null) {
+				builder.append(QueryTokens.expression(ctx.JAVA_STRING_LITERAL()));
 			} else if (ctx.parameter() != null) {
 				builder.appendExpression(visit(ctx.parameter()));
 			}
@@ -3335,8 +3584,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 			builder.append(QueryTokens.expression(ctx.AS()));
 			builder.append(visit(ctx.identifier()));
-		} else if (ctx.reservedWord() != null) {
-			builder.append(visit(ctx.reservedWord()));
+		} else if (ctx.nakedIdentifier() != null) {
+			builder.append(visit(ctx.nakedIdentifier()));
 		}
 
 		return builder;
@@ -3371,20 +3620,33 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitIdentifier(HqlParser.IdentifierContext ctx) {
 
-		if (ctx.reservedWord() != null) {
-			return visit(ctx.reservedWord());
-		} else {
-			return QueryTokenStream.empty();
+		if (ctx.nakedIdentifier() != null) {
+			return visit(ctx.nakedIdentifier());
+		} else if (ctx.FULL() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.FULL()));
+		} else if (ctx.LEFT() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.LEFT()));
+		} else if (ctx.INNER() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.INNER()));
+		} else if (ctx.OUTER() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.OUTER()));
+		} else if (ctx.RIGHT() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.RIGHT()));
 		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override
-	public QueryTokenStream visitReservedWord(HqlParser.ReservedWordContext ctx) {
+	public QueryTokenStream visitNakedIdentifier(HqlParser.NakedIdentifierContext ctx) {
 
-		if (ctx.IDENTIFICATION_VARIABLE() != null) {
-			return QueryRendererBuilder.from(QueryTokens.token(ctx.IDENTIFICATION_VARIABLE()));
+		if (ctx.IDENTIFIER() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.IDENTIFIER()));
+		} else if (ctx.QUOTED_IDENTIFIER() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.QUOTED_IDENTIFIER()));
 		} else {
 			return QueryRendererBuilder.from(QueryTokens.token(ctx.f));
 		}
 	}
+
 }
