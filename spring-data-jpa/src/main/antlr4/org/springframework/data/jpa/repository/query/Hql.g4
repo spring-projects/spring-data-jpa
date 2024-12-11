@@ -25,7 +25,7 @@ grammar Hql;
  * management of complex rules in the generated Visitor. Finally, there are labels applied to rule elements (op=('+'|'-')
  * to simplify the processing.
  *
- * @author Greg Turnquist
+ * @author Greg Turnquist, Yannick Brandt
  * @since 3.1
  */
 }
@@ -1133,6 +1133,7 @@ reservedWord
     | BY
     | CASE
     | CAST
+    | CEILING
     | COLLATE
     | CONTAINS
     | COUNT
@@ -1206,6 +1207,7 @@ reservedWord
     | LIMIT
     | LIST
     | LISTAGG
+    | LN
     | LOCAL
     | LOCAL_DATE
     | LOCAL_DATETIME

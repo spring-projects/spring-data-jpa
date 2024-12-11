@@ -37,7 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
- * @author Mark Paluch
+ * @author Mark Paluch, Yannick Brandt
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -1507,6 +1507,16 @@ class HqlQueryRendererTests {
 					on ri.article = oi.article
 					""");
 		});
+	}
+
+	@Test
+	void ceilingFunctionShouldWork() {
+		assertQuery("select ceiling(1.5) from Element a");
+	}
+
+	@Test
+	void lnFunctionSouldWork() {
+		assertQuery("select ln(7.5) from Element a");
 	}
 
 	@Test // GH-2981
