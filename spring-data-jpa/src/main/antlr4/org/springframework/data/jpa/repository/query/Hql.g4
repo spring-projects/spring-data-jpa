@@ -1133,6 +1133,7 @@ reservedWord
     | BY
     | CASE
     | CAST
+    | CEILING
     | COLLATE
     | CONTAINS
     | COUNT
@@ -1206,6 +1207,7 @@ reservedWord
     | LIMIT
     | LIST
     | LISTAGG
+    | LN
     | LOCAL
     | LOCAL_DATE
     | LOCAL_DATETIME

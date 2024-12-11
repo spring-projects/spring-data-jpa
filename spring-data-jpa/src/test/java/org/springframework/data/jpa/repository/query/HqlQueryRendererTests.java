@@ -1509,6 +1509,16 @@ class HqlQueryRendererTests {
 		});
 	}
 
+	@Test
+	void ceilingFunctionShouldWork() {
+		assertQuery("select ceiling(1.5) from Element a");
+	}
+
+	@Test
+	void lnFunctionSouldWork() {
+		assertQuery("select ln(7.5) from Element a");
+	}
+
 	@Test // GH-2981
 	void cteWithClauseShouldWork() {
 
