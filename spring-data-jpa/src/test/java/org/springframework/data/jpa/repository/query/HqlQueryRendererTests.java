@@ -37,7 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
- * @author Mark Paluch
+ * @author Mark Paluch, Yannick Brandt
  * @since 3.1
  */
 class HqlQueryRendererTests {
