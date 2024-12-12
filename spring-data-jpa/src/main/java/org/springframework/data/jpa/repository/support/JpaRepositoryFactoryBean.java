@@ -56,7 +56,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 	private JpaQueryMethodFactory queryMethodFactory;
-	private @Nullable Function<BeanFactory, QueryEnhancerSelector> queryEnhancerSelector;
+	private @Nullable Function<BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -118,23 +118,24 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 * Configures the {@link QueryEnhancerSelector} to be used. Defaults to
 	 * {@link QueryEnhancerSelector#DEFAULT_SELECTOR}.
 	 *
-	 * @param queryEnhancerSelector must not be {@literal null}.
+	 * @param queryEnhancerSelectorSource must not be {@literal null}.
 	 */
-	public void setQueryEnhancerSelector(QueryEnhancerSelector queryEnhancerSelector) {
-		this.queryEnhancerSelector = bf -> queryEnhancerSelector;
+	public void setQueryEnhancerSelectorSource(QueryEnhancerSelector queryEnhancerSelectorSource) {
+		this.queryEnhancerSelectorSource = bf -> queryEnhancerSelectorSource;
 	}
 
 	/**
 	 * Configures the {@link QueryEnhancerSelector} to be used.
 	 *
-	 * @param queryEnhancerSelector must not be {@literal null}.
+	 * @param queryEnhancerSelectorType must not be {@literal null}.
 	 */
-	public void setQueryEnhancerSelector(Class<? extends QueryEnhancerSelector> queryEnhancerSelector) {
-		this.queryEnhancerSelector = bf -> {
+	public void setQueryEnhancerSelector(Class<? extends QueryEnhancerSelector> queryEnhancerSelectorType) {
+
+		this.queryEnhancerSelectorSource = bf -> {
 
 			if (bf != null) {
 
-				ObjectProvider<? extends QueryEnhancerSelector> beanProvider = bf.getBeanProvider(queryEnhancerSelector);
+				ObjectProvider<? extends QueryEnhancerSelector> beanProvider = bf.getBeanProvider(queryEnhancerSelectorType);
 				QueryEnhancerSelector selector = beanProvider.getIfAvailable();
 
 				if (selector != null) {
@@ -142,11 +143,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 				}
 
 				if (bf instanceof AutowireCapableBeanFactory acbf) {
-					return acbf.createBean(queryEnhancerSelector);
+					return acbf.createBean(queryEnhancerSelectorType);
 				}
 			}
 
-			return BeanUtils.instantiateClass(queryEnhancerSelector);
+			return BeanUtils.instantiateClass(queryEnhancerSelectorType);
 		};
 	}
 
@@ -171,8 +172,8 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 			factory.setQueryMethodFactory(queryMethodFactory);
 		}
 
-		if (queryEnhancerSelector != null) {
-			factory.setQueryEnhancerSelector(queryEnhancerSelector.apply(beanFactory));
+		if (queryEnhancerSelectorSource != null) {
+			factory.setQueryEnhancerSelector(queryEnhancerSelectorSource.apply(beanFactory));
 		}
 
 		return factory;

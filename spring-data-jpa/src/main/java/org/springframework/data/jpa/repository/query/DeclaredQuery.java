@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2018-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@ package org.springframework.data.jpa.repository.query;
 /**
  * Interface defining the contract to represent a declared query.
  *
+ * @author Jens Schauder
+ * @author Diego Krupitza
  * @author Mark Paluch
+ * @since 2.0.3
  */
 public interface DeclaredQuery {
 
