@@ -15,45 +15,39 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.List;
+
 /**
- * Interface defining the contract to represent a declared query.
+ * A wrapper for a String representation of a query offering information about the query.
  *
  * @author Jens Schauder
  * @author Diego Krupitza
- * @author Mark Paluch
  * @since 2.0.3
  */
-public interface DeclaredQuery {
+interface IntrospectedQuery extends DeclaredQuery {
 
 	/**
-	 * Creates a DeclaredQuery for a JPQL query.
+	 * @return whether the underlying query has at least one named parameter.
+	 */
+	boolean hasNamedParameter();
+
+	/**
+	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
+	 */
+	boolean isDefaultProjection();
+
+	/**
+	 * Returns the {@link ParameterBinding}s registered.
+	 */
+	List<ParameterBinding> getParameterBindings();
+
+	/**
+	 * Returns whether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or
+	 * name.
 	 *
-	 * @param query the JPQL query string.
-	 * @return
+	 * @return Whether the query uses JDBC style parameters.
+	 * @since 2.0.6
 	 */
-	static DeclaredQuery ofJpql(String query) {
-		return new DefaultDeclaredQuery(query, false);
-	}
+	boolean usesJdbcStyleParameters();
 
-	/**
-	 * Creates a DeclaredQuery for a native query.
-	 *
-	 * @param query the native query string.
-	 * @return
-	 */
-	static DeclaredQuery ofNative(String query) {
-		return new DefaultDeclaredQuery(query, true);
-	}
-
-	/**
-	 * Returns the query string.
-	 */
-	String getQueryString();
-
-	/**
-	 * Return whether the query is a native query of not.
-	 *
-	 * @return <code>true</code> if native query otherwise <code>false</code>
-	 */
-	boolean isNativeQuery();
 }

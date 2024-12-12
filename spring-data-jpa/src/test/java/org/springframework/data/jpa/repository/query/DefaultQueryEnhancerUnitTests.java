@@ -30,8 +30,8 @@ import org.springframework.data.domain.Sort;
 public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
-	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
-		return new DefaultQueryEnhancer(declaredQuery);
+	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
+		return new DefaultQueryEnhancer(query);
 	}
 
 	@Override
@@ -42,7 +42,7 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-3546
 	void shouldApplySorting() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative("SELECT e FROM Employee e"));
 
 		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
 

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.BootstrapMode;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
@@ -181,4 +182,11 @@ public @interface EnableJpaRepositories {
 	 * @return a single character used for escaping.
 	 */
 	char escapeCharacter() default '\\';
+
+	/**
+	 * Configures the {@link QueryEnhancerSelector} to select a query enhancer for query introspection and transformation.
+	 *
+	 * @return a {@link QueryEnhancerSelector} class providing a no-args constructor.
+	 */
+	Class<? extends QueryEnhancerSelector> queryEnhancerSelector() default QueryEnhancerSelector.DefaultQueryEnhancerSelector.class;
 }
