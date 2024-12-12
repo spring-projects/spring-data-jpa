@@ -16,8 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 
 /**
  * Configuration object holding configuration information for JPA queries within a repository.
@@ -29,18 +28,15 @@ public class JpaQueryConfiguration {
 	private final QueryRewriterProvider queryRewriter;
 	private final QueryEnhancerSelector selector;
 	private final EscapeCharacter escapeCharacter;
-	private final QueryMethodEvaluationContextProvider evaluationContextProvider;
-	private final SpelExpressionParser parser;
+	private final ValueExpressionDelegate valueExpressionDelegate;
 
 	public JpaQueryConfiguration(QueryRewriterProvider queryRewriter, QueryEnhancerSelector selector,
-			QueryMethodEvaluationContextProvider evaluationContextProvider, EscapeCharacter escapeCharacter,
-			SpelExpressionParser parser) {
+			ValueExpressionDelegate valueExpressionDelegate, EscapeCharacter escapeCharacter) {
 
 		this.queryRewriter = queryRewriter;
 		this.selector = selector;
 		this.escapeCharacter = escapeCharacter;
-		this.evaluationContextProvider = evaluationContextProvider;
-		this.parser = parser;
+		this.valueExpressionDelegate = valueExpressionDelegate;
 	}
 
 	public QueryRewriter getQueryRewriter(JpaQueryMethod queryMethod) {
@@ -55,11 +51,7 @@ public class JpaQueryConfiguration {
 		return escapeCharacter;
 	}
 
-	public QueryMethodEvaluationContextProvider getEvaluationContextProvider() {
-		return evaluationContextProvider;
-	}
-
-	public SpelExpressionParser getParser() {
-		return parser;
+	public ValueExpressionDelegate getValueExpressionDelegate() {
+		return valueExpressionDelegate;
 	}
 }

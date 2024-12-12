@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 
 /**
@@ -26,12 +27,12 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @since 2.0.3
  */
-class EmptyIntrospectedQuery implements IntrospectedQuery {
+class EmptyIntrospectedQuery implements EntityQuery {
 
 	/**
 	 * An implementation implementing the NULL-Object pattern for situations where there is no query.
 	 */
-	static final IntrospectedQuery EMPTY_QUERY = new EmptyIntrospectedQuery();
+	static final EntityQuery EMPTY_QUERY = new EmptyIntrospectedQuery();
 
 	@Override
 	public boolean hasNamedParameter() {
@@ -46,11 +47,6 @@ class EmptyIntrospectedQuery implements IntrospectedQuery {
 	@Override
 	public boolean isNativeQuery() {
 		return false;
-	}
-
-	@Override
-	public String getAlias() {
-		return null;
 	}
 
 	@Override
@@ -71,6 +67,11 @@ class EmptyIntrospectedQuery implements IntrospectedQuery {
 	@Override
 	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 		return EMPTY_QUERY;
+	}
+
+	@Override
+	public String applySorting(Sort sort) {
+		return "";
 	}
 
 	@Override

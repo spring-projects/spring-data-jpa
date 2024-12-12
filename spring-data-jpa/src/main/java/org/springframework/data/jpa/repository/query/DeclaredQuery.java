@@ -28,7 +28,7 @@ public interface DeclaredQuery {
 	 * @param query the JPQL query string.
 	 * @return
 	 */
-	static DeclaredQuery jpql(String query) {
+	static DeclaredQuery ofJpql(String query) {
 		return new DefaultDeclaredQuery(query, false);
 	}
 
@@ -38,7 +38,7 @@ public interface DeclaredQuery {
 	 * @param query the native query string.
 	 * @return
 	 */
-	static DeclaredQuery nativeQuery(String query) {
+	static DeclaredQuery ofNative(String query) {
 		return new DefaultDeclaredQuery(query, true);
 	}
 

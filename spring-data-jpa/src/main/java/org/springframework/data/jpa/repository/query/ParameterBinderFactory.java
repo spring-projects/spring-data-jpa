@@ -99,8 +99,10 @@ class ParameterBinderFactory {
 
 		QueryParameterSetterFactory basicSetterFactory = QueryParameterSetterFactory.basic(parameters);
 
+		boolean usesPaging = query instanceof EntityQuery eq && eq.usesPaging();
+
 		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory),
-				!query.usesPaging());
+				!usesPaging);
 	}
 
 	private static List<ParameterBinding> getBindings(JpaParameters parameters) {

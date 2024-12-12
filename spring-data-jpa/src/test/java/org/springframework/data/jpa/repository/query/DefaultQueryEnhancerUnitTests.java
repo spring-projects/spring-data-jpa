@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Sort;
 
@@ -35,14 +35,14 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	}
 
 	@Override
-	@ParameterizedTest // GH-2511, GH-2773
+	@Test // GH-2511, GH-2773
 	@Disabled("Not properly supported by QueryUtils")
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {}
 
 	@Test // GH-3546
 	void shouldApplySorting() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative("SELECT e FROM Employee e"));
 
 		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
 

@@ -53,7 +53,8 @@ class QueryParameterSetterFactoryUnitTests {
 
 	@Test // DATAJPA-1058
 	void noExceptionWhenQueryDoesNotContainNamedParameters() {
-		setterFactory.create(binding, IntrospectedQuery.of("from Employee e", false));
+		setterFactory.create(binding,
+				EntityQuery.introspectJpql("from Employee e", QueryEnhancerSelector.DEFAULT_SELECTOR));
 	}
 
 	@Test // DATAJPA-1058
@@ -63,7 +64,8 @@ class QueryParameterSetterFactoryUnitTests {
 
 		assertThatExceptionOfType(IllegalStateException.class) //
 				.isThrownBy(() -> setterFactory.create(binding,
-						IntrospectedQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+						EntityQuery.introspectJpql("from Employee e where e.name = :NamedParameter",
+								QueryEnhancerSelector.DEFAULT_SELECTOR))) //
 				.withMessageContaining("Java 8") //
 				.withMessageContaining("@Param") //
 				.withMessageContaining("-parameters");
@@ -82,7 +84,8 @@ class QueryParameterSetterFactoryUnitTests {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(() -> setterFactory.create(binding,
-						IntrospectedQuery.of("from Employee e where e.name = :NamedParameter", false))) //
+						EntityQuery.introspectJpql("from Employee e where e.name = :NamedParameter",
+								QueryEnhancerSelector.DEFAULT_SELECTOR))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 
@@ -98,7 +101,9 @@ class QueryParameterSetterFactoryUnitTests {
 
 		assertThatExceptionOfType(IllegalArgumentException.class) //
 				.isThrownBy(
-						() -> setterFactory.create(binding, IntrospectedQuery.of("from Employee e where e.name = ?1", false))) //
+						() -> setterFactory.create(binding,
+								EntityQuery.introspectJpql("from Employee e where e.name = ?1",
+										QueryEnhancerSelector.DEFAULT_SELECTOR))) //
 				.withMessage("At least 1 parameter(s) provided but only 0 parameter(s) present in query");
 	}
 }

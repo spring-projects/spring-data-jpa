@@ -17,9 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
-
 /**
  * A wrapper for a String representation of a query offering information about the query.
  *
@@ -30,48 +27,9 @@ import org.springframework.util.ObjectUtils;
 interface IntrospectedQuery extends DeclaredQuery {
 
 	/**
-	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
-	 *
-	 * @param query might be {@literal null} or empty.
-	 * @param nativeQuery is a given query is native or not
-	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
-	 */
-	static IntrospectedQuery of(@Nullable String query, boolean nativeQuery) {
-		return of(query, nativeQuery, QueryEnhancerSelector.DEFAULT_SELECTOR);
-	}
-
-	/**
-	 * Creates a {@literal DeclaredQuery} from a query {@literal String}.
-	 *
-	 * @param query might be {@literal null} or empty.
-	 * @param nativeQuery is a given query is native or not
-	 * @param selector
-	 * @return a {@literal DeclaredQuery} instance even for a {@literal null} or empty argument.
-	 */
-	static IntrospectedQuery of(@Nullable String query, boolean nativeQuery, QueryEnhancerSelector selector) {
-		return ObjectUtils.isEmpty(query) ? EmptyIntrospectedQuery.EMPTY_QUERY
-				: new StringQuery(query, nativeQuery, selector);
-	}
-
-	/**
 	 * @return whether the underlying query has at least one named parameter.
 	 */
 	boolean hasNamedParameter();
-
-	/**
-	 * Returns the main alias used in the query.
-	 *
-	 * @return the alias
-	 */
-	@Nullable
-	String getAlias();
-
-	/**
-	 * Returns whether the query is using a constructor expression.
-	 *
-	 * @since 1.10
-	 */
-	boolean hasConstructorExpression();
 
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
@@ -82,24 +40,6 @@ interface IntrospectedQuery extends DeclaredQuery {
 	 * Returns the {@link ParameterBinding}s registered.
 	 */
 	List<ParameterBinding> getParameterBindings();
-
-	/**
-	 * Creates a new {@literal DeclaredQuery} representing a count query, i.e. a query returning the number of rows to be
-	 * expected from the original query, either derived from the query wrapped by this instance or from the information
-	 * passed as arguments.
-	 *
-	 * @param countQueryProjection an optional return type for the query.
-	 * @return a new {@literal DeclaredQuery} instance.
-	 */
-	IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection);
-
-	/**
-	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
-	 * @since 2.0.6
-	 */
-	default boolean usesPaging() {
-		return false;
-	}
 
 	/**
 	 * Returns whether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or

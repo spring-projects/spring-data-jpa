@@ -35,7 +35,7 @@ abstract class QueryEnhancerTckTests {
 	@MethodSource("nativeCountQueries") // GH-2773
 	void shouldDeriveNativeCountQuery(String query, String expected) {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery(query));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative(query));
 		String countQueryFor = enhancer.createCountQueryFor();
 
 		// lenient cleanup to allow for rendering variance
@@ -115,7 +115,7 @@ abstract class QueryEnhancerTckTests {
 	@MethodSource("jpqlCountQueries")
 	void shouldDeriveJpqlCountQuery(String query, String expected) {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.jpql(query));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofJpql(query));
 		String countQueryFor = enhancer.createCountQueryFor(null);
 
 		assertThat(countQueryFor).isEqualToIgnoringCase(expected);
@@ -174,7 +174,7 @@ abstract class QueryEnhancerTckTests {
 	@MethodSource("nativeQueriesWithVariables")
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery(query));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative(query));
 		String countQueryFor = enhancer.createCountQueryFor();
 
 		assertThat(countQueryFor).isEqualToIgnoringCase(expected);

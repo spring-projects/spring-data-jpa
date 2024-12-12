@@ -34,7 +34,6 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -53,7 +52,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -74,10 +72,7 @@ import com.querydsl.core.types.EntityPath;
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
-	private static final SpelExpressionParser PARSER = new SpelExpressionParser();
-
 	private final EntityManager entityManager;
-	private final QueryExtractor extractor;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 	private final CrudMethodMetadata crudMethodMetadata;
 
@@ -97,7 +92,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.entityManager = entityManager;
-		this.extractor = PersistenceProvider.fromEntityManager(entityManager);
+		PersistenceProvider extractor = PersistenceProvider.fromEntityManager(entityManager);
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
@@ -247,11 +242,13 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
-		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key,
-				new CachingValueExpressionDelegate(valueExpressionDelegate),
-				queryRewriterProvider, escapeCharacter));
-	}
 
+		JpaQueryConfiguration queryConfiguration = new JpaQueryConfiguration(queryRewriterProvider, queryEnhancerSelector,
+				new CachingValueExpressionDelegate(valueExpressionDelegate), escapeCharacter);
+
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key,
+				queryConfiguration));
+	}
 
 	@Override
 	@SuppressWarnings("unchecked")

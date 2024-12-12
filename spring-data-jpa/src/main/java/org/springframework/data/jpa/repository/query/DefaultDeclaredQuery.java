@@ -30,10 +30,12 @@ class DefaultDeclaredQuery implements DeclaredQuery {
 		this.nativeQuery = nativeQuery;
 	}
 
+	@Override
 	public String getQueryString() {
 		return query;
 	}
 
+	@Override
 	public boolean isNativeQuery() {
 		return nativeQuery;
 	}

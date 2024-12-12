@@ -38,7 +38,7 @@ public interface QueryEnhancerSelector {
 	 * @param query
 	 * @return
 	 */
-	QueryEnhancer select(DeclaredQuery query);
+	QueryEnhancerFactory select(DeclaredQuery query);
 
 	/**
 	 * Default {@link QueryEnhancerSelector} implementation using class-path information to determine enhancer
@@ -85,11 +85,7 @@ public interface QueryEnhancerSelector {
 		}
 
 		@Override
-		public QueryEnhancer select(DeclaredQuery query) {
-			return selectFactory(query).create(query);
-		}
-
-		private QueryEnhancerFactory selectFactory(DeclaredQuery query) {
+		public QueryEnhancerFactory select(DeclaredQuery query) {
 			return jpql.supports(query) ? jpql : nativeQuery;
 		}
 

@@ -55,8 +55,7 @@ import org.springframework.util.ReflectionUtils;
 class AbstractStringBasedJpaQueryUnitTests {
 
 	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
-			QueryEnhancerSelector.DEFAULT_SELECTOR, QueryMethodEvaluationContextProvider.DEFAULT, EscapeCharacter.DEFAULT,
-			new SpelExpressionParser());
+			QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT);
 
 	@Test // GH-3310
 	void shouldNotAttemptToAppendSortIfNoSortArgumentPresent() {
@@ -129,7 +128,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 		private final MultiValueMap<String, Arguments> capturedArguments = new LinkedMultiValueMap<>(3);
 
 		InvocationCapturingStringQueryStub(Method targetMethod, JpaQueryMethod queryMethod, String queryString,
-				@Nullable String countQueryString, JpaQueryConfiguration queryContext) {
+				@Nullable String countQueryString, JpaQueryConfiguration queryConfiguration) {
 			super(queryMethod, new Supplier<EntityManager>() {
 
 				@Override
@@ -143,7 +142,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 
 					return em;
 				}
-			}.get(), queryString, countQueryString, queryContext, ValueExpressionDelegate.create());
+			}.get(), queryString, countQueryString, queryConfiguration);
 
 			this.targetMethod = targetMethod;
 		}

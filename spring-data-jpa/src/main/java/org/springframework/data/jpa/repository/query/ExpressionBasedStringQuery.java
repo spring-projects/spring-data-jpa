@@ -68,20 +68,6 @@ class ExpressionBasedStringQuery extends StringQuery {
 	}
 
 	/**
-	 * Creates an {@link ExpressionBasedStringQuery} from a given {@link DeclaredQuery}.
-	 *
-	 * @param query the original query. Must not be {@literal null}.
-	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
-	 * @param parser Parser for resolving SpEL expressions. Must not be {@literal null}.
-	 * @param nativeQuery is a given query native or not
-	 * @return A query supporting SpEL expressions.
-	 */
-	static ExpressionBasedStringQuery from(DeclaredQuery query, JpaEntityMetadata<?> metadata,
-			ValueExpressionParser parser, boolean nativeQuery) {
-		return new ExpressionBasedStringQuery(query.getQueryString(), metadata, parser, nativeQuery);
-	}
-
-	/**
 	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Must not be {@literal null}.
@@ -125,8 +111,9 @@ class ExpressionBasedStringQuery extends StringQuery {
 		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
 	}
 
-	public static IntrospectedQuery create(String query, JpaQueryMethod method, JpaQueryConfiguration queryContext) {
-		return new ExpressionBasedStringQuery(query, method.getEntityInformation(), queryContext.getParser(),
+	public static EntityQuery create(String query, JpaQueryMethod method, JpaQueryConfiguration queryContext) {
+		return new ExpressionBasedStringQuery(query, method.getEntityInformation(),
+				queryContext.getValueExpressionDelegate().getValueExpressionParser(),
 				method.isNativeQuery(), queryContext.getSelector());
 	}
 

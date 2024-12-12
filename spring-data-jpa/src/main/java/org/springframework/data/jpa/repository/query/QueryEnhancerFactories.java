@@ -49,6 +49,7 @@ public class QueryEnhancerFactories {
 	}
 
 	enum BuiltinQueryEnhancerFactories implements QueryEnhancerFactory {
+
 		FALLBACK {
 			@Override
 			public boolean supports(DeclaredQuery query) {
@@ -60,6 +61,7 @@ public class QueryEnhancerFactories {
 				return new DefaultQueryEnhancer(query);
 			}
 		},
+
 		JSQLPARSER {
 			@Override
 			public boolean supports(DeclaredQuery query) {
@@ -75,6 +77,7 @@ public class QueryEnhancerFactories {
 				throw new IllegalStateException("JSQLParser is not available on the class path");
 			}
 		},
+
 		HQL {
 			@Override
 			public boolean supports(DeclaredQuery query) {
