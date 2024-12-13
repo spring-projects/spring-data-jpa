@@ -313,7 +313,10 @@ public abstract class JpaQueryExecution {
 
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
-			return !query.createQuery(accessor).getResultList().isEmpty();
+			return query.createQuery(accessor)
+					.getResultStream()
+					.findFirst()
+					.isPresent();
 		}
 	}
 
