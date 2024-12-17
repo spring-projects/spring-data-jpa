@@ -63,14 +63,15 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
-			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
+													   CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
-		CriteriaQuery<? extends Object> select = query.select(getCountQuery(query, builder, root));
+		CriteriaQuery<? extends Object> select = query.select(getCountQuery(builder, root));
 		return predicate == null ? select : select.where(predicate);
 	}
 
+
 	@SuppressWarnings("rawtypes")
-	private Expression getCountQuery(CriteriaQuery<?> query, CriteriaBuilder builder, Root<?> root) {
+	private Expression getCountQuery(CriteriaBuilder builder, Root<?> root) {
 		return distinct ? builder.countDistinct(root) : builder.count(root);
 	}
 }
