@@ -143,7 +143,8 @@ public final class JpaQueryLookupStrategy {
 		 *
 		 * @param em must not be {@literal null}.
 		 * @param queryMethodFactory must not be {@literal null}.
-		 * @param evaluationContextProvider must not be {@literal null}.
+		 * @param delegate must not be {@literal null}.
+		 * @param queryRewriterProvider must not be {@literal null}.
 		 */
 		public DeclaredQueryLookupStrategy(EntityManager em, JpaQueryMethodFactory queryMethodFactory,
 				ValueExpressionDelegate delegate, QueryRewriterProvider queryRewriterProvider) {

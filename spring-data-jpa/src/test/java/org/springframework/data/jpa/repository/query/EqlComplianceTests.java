@@ -20,14 +20,16 @@ import static org.assertj.core.api.Assertions.*;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
  * Tests built around examples of EQL found in the EclipseLink's docs at
  * https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL<br/>
- * With the exception of {@literal MOD} which is defined as {@literal MOD(arithmetic_expression , arithmetic_expression)},
- * but shown in tests as {@literal MOD(arithmetic_expression ? arithmetic_expression)}.
- * <br/>
+ * With the exception of {@literal MOD} which is defined as
+ * {@literal MOD(arithmetic_expression , arithmetic_expression)}, but shown in tests as
+ * {@literal MOD(arithmetic_expression ? arithmetic_expression)}. <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
  * @author Greg Turnquist
@@ -101,6 +103,7 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address");
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address a ORDER BY a.city");
+		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address AS a ORDER BY a.city");
 	}
 
 	@Test
@@ -119,6 +122,21 @@ class EqlComplianceTests {
 	void subselectsInFromClause() {
 		assertQuery(
 				"SELECT e, c.city FROM Employee e, (SELECT DISTINCT a.city FROM Address a) c WHERE e.address.city = c.city");
+	}
+
+	@Test // GH-3277
+	void numericLiterals() {
+
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234");
+		assertQuery("SELECT e FROM Employee e WHERE e.id = 1234L");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14F");
+		assertQuery("SELECT s FROM Stat s WHERE s.ratio > 3.14e32D");
+	}
+
+	@Test // GH-3308
+	void newWithStrings() {
+		assertQuery("select new com.example.demo.SampleObject(se.id, se.sampleValue, \"java\") from SampleEntity se");
 	}
 
 	@Test
@@ -414,4 +432,53 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT null OR e.active = true)");
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT NULL OR e.active = true)");
 	}
+
+	@Test // GH-3496
+	void lateralShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.lateral = :_lateral");
+		assertQuery("select te from TestEntity te where te.lateral = :lateral");
+	}
+
+	@Test // GH-3136
+	void intersect() {
+
+		assertQuery("""
+				SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode1
+				INTERSECT SELECT e FROM Employee e JOIN e.phones p WHERE p.areaCode = :areaCode2
+				""");
+	}
+
+	@Test // GH-3136
+	void except() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
+				""");
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = { "STRING", "INTEGER", "FLOAT", "DOUBLE" })
+	void cast(String targetType) {
+		assertQuery("SELECT CAST(e.salary AS %s) FROM Employee e".formatted(targetType));
+	}
+
+	@ParameterizedTest // GH-3136
+	@ValueSource(strings = { "LEFT", "RIGHT" })
+	void leftRightStringFunctions(String keyword) {
+		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
+	}
+
+	@Test // GH-3136
+	void replaceStringFunctions() {
+		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
+		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
+	}
+
+	@Test // GH-3136
+	void stringConcatWithPipes() {
+		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
+	}
+
 }

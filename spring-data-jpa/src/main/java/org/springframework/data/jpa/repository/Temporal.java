@@ -30,10 +30,12 @@ import jakarta.persistence.TemporalType;
  *
  * @author Thomas Darimont
  * @author Oliver Gierke
+ * @deprecated since 4.0. Please use {@literal java.time} types instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @Documented
+@Deprecated(since = "4.0", forRemoval = true)
 public @interface Temporal {
 
 	/**

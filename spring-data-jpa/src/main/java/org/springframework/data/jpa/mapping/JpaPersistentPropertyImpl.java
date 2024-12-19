@@ -57,13 +57,9 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	static {
 
-		Set<Class<? extends Annotation>> annotations = new HashSet<>();
-		annotations.add(OneToMany.class);
-		annotations.add(OneToOne.class);
-		annotations.add(ManyToMany.class);
-		annotations.add(ManyToOne.class);
+		Set<Class<? extends Annotation>> annotations;
 
-		ASSOCIATION_ANNOTATIONS = Collections.unmodifiableSet(annotations);
+        ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class, OneToOne.class, ManyToMany.class, ManyToOne.class);
 
 		annotations = new HashSet<>();
 		annotations.add(Id.class);
@@ -107,7 +103,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
 
-		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(it -> isAnnotationPresent(it)) //
+		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent) //
 				|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
 		this.isEntity = Lazy.of(() -> metamodel.isMappedType(getActualType()));
 	}

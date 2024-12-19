@@ -193,7 +193,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 * @param uri
 	 * @return
 	 */
-	private static String getResourcePath(URI uri) throws IOException {
+	private static String getResourcePath(URI uri) {
 
 		if (uri.isOpaque()) {
 			// e.g. jar:file:/foo/lib/somelib.jar!/com/acme/orm.xml

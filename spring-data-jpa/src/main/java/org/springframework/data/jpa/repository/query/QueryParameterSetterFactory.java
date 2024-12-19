@@ -93,7 +93,6 @@ abstract class QueryParameterSetterFactory {
 	 *
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
-	 * @param parameters must not be {@literal null}.
 	 * @return a {@link QueryParameterSetterFactory} that can handle
 	 *         {@link org.springframework.expression.spel.standard.SpelExpression}s.
 	 */
@@ -170,7 +169,6 @@ abstract class QueryParameterSetterFactory {
 		/**
 		 * @param parser must not be {@literal null}.
 		 * @param evaluationContextProvider must not be {@literal null}.
-		 * @param parameters must not be {@literal null}.
 		 */
 		ExpressionBasedQueryParameterSetterFactory(ValueExpressionParser parser,
 				ValueEvaluationContextProvider evaluationContextProvider) {

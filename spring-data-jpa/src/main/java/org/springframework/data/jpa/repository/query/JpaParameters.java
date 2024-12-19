@@ -88,6 +88,8 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	public static class JpaParameter extends Parameter {
 
 		private final @Nullable Temporal annotation;
+
+		@SuppressWarnings("deprecation")
 		private @Nullable TemporalType temporalType;
 
 		/**

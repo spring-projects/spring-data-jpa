@@ -93,9 +93,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return query.deriveCountQuery(method.getCountQueryProjection());
 		});
 
-		this.countParameterBinder = Lazy.of(() -> {
-			return this.createBinder(this.countQuery.get());
-		});
+		this.countParameterBinder = Lazy.of(() -> this.createBinder(this.countQuery.get()));
 
 		this.queryRewriter = queryRewriter;
 

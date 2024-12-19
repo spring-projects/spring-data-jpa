@@ -653,7 +653,7 @@ class ParameterBinding {
 		/**
 		 * Creates a {@link MethodInvocationArgument} object for {@code position}.
 		 *
-		 * @param position the parameter position (1-based) from the method invocation.
+		 * @param parameter the parameter from the method invocation.
 		 * @return {@link MethodInvocationArgument} object for {@code position}.
 		 */
 		static MethodInvocationArgument ofParameter(Parameter parameter) {

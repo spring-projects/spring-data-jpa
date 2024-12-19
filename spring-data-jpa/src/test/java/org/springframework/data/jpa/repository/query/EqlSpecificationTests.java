@@ -281,7 +281,7 @@ class EqlSpecificationTests {
 		assertQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
-				    """);
+				""");
 	}
 
 	@Test
@@ -290,7 +290,7 @@ class EqlSpecificationTests {
 		assertQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
-				    """);
+				""");
 	}
 
 	/**
@@ -305,7 +305,7 @@ class EqlSpecificationTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE "cost overrun"
-				    """);
+				""");
 	}
 
 	@Test
@@ -316,7 +316,7 @@ class EqlSpecificationTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE 'cost overrun'
-				    """);
+				""");
 	}
 
 	@Test
@@ -326,7 +326,39 @@ class EqlSpecificationTests {
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
-				    """);
+				""");
+	}
+
+	@Test // GH-3136
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+	}
+
+	@Test // GH-3136
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT_DATE " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIME " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIMESTAMP " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATE " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_TIME " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATETIME " + //
+				"from Call c ");
 	}
 
 	@Test
@@ -390,7 +422,7 @@ class EqlSpecificationTests {
 				WHERE emp.salary > ALL (SELECT m.salary
 				    FROM Manager m
 				    WHERE m.department = emp.department)
-				    """);
+				""");
 	}
 
 	@Test
@@ -402,7 +434,7 @@ class EqlSpecificationTests {
 				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
-				    """);
+				""");
 	}
 
 	@Test
@@ -470,7 +502,7 @@ class EqlSpecificationTests {
 				         WHEN e.rating = 2 THEN e.salary * 1.05
 				         ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -483,7 +515,7 @@ class EqlSpecificationTests {
 				                  WHEN 2 THEN e.salary * 1.05
 				                  ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -523,7 +555,7 @@ class EqlSpecificationTests {
 				SELECT e
 				 FROM Employee e
 				 WHERE TYPE(e) IN (Exempt, Contractor)
-				 """);
+				""");
 	}
 
 	@Test
