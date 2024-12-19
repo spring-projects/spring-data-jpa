@@ -46,6 +46,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * Creates a QueryTokenStream from a {@link QueryToken}.
+	 * @since 4.0
 	 */
 	static QueryTokenStream from(QueryToken token) {
 		return QueryRenderer.from(Collections.singletonList(token));
@@ -53,6 +54,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * Creates an token QueryRenderer from an AST {@link TerminalNode}.
+	 * @since 4.0
 	 */
 	static QueryTokenStream ofToken(TerminalNode node) {
 		return from(QueryTokens.token(node));
@@ -60,6 +62,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * Creates an token QueryRenderer from an AST {@link Token}.
+	 * @since 4.0
 	 */
 	static QueryTokenStream ofToken(Token node) {
 		return from(QueryTokens.token(node));
@@ -148,6 +151,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * @return the required first query token or throw {@link java.util.NoSuchElementException} if empty.
+	 * @since 4.0
 	 */
 	default QueryToken getRequiredFirst() {
 
@@ -170,6 +174,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 
 	/**
 	 * @return the required last query token or throw {@link java.util.NoSuchElementException} if empty.
+	 * @since 4.0
 	 */
 	default QueryToken getRequiredLast() {
 
