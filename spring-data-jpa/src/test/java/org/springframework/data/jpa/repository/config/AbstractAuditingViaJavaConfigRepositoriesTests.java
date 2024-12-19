@@ -20,9 +20,9 @@ import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Christoph Strobl
  */
 @ExtendWith(SpringExtension.class)
 @Transactional
@@ -111,13 +112,13 @@ public abstract class AbstractAuditingViaJavaConfigRepositoriesTests {
 		em.detach(thomas);
 		em.detach(auditor);
 
-		FixedDate.INSTANCE.setDate(new Date());
+		FixedDate.INSTANCE.setDate(Instant.now());
 
 		SampleSecurityContextHolder.getCurrent().setPrincipal(thomas);
 		auditableUserRepository.updateAllNamesToUpperCase();
 
 		// DateTime now = new DateTime(FixedDate.INSTANCE.getDate());
-		LocalDateTime now = LocalDateTime.ofInstant(FixedDate.INSTANCE.getDate().toInstant(), ZoneId.systemDefault());
+		LocalDateTime now = LocalDateTime.ofInstant(FixedDate.INSTANCE.getDate(), ZoneId.systemDefault());
 		List<AuditableUser> users = auditableUserRepository.findAll();
 
 		for (AuditableUser user : users) {
