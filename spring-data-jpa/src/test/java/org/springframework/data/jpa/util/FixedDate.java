@@ -15,24 +15,25 @@
  */
 package org.springframework.data.jpa.util;
 
-import java.util.Date;
+import java.time.Instant;
 
 /**
- * Holds a fixed {@link Date} value to use in components that have no direct connection.
+ * Holds a fixed {@link Instant} value to use in components that have no direct connection.
  *
  * @author Thomas Darimont
+ * @author Christoph Strobl
  */
 public enum FixedDate {
 
 	INSTANCE;
 
-	private Date fixedDate;
+	private Instant fixedDate;
 
-	public void setDate(Date date) {
+	public void setDate(Instant date) {
 		this.fixedDate = date;
 	}
 
-	public Date getDate() {
+	public Instant getDate() {
 		return fixedDate;
 	}
 }

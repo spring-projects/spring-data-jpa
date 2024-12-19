@@ -17,13 +17,11 @@ package org.springframework.data.jpa.domain;
 
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.Optional;
 
 import org.springframework.data.domain.Auditable;
@@ -45,14 +43,12 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	@ManyToOne //
 	private @Nullable U createdBy;
 
-	@Temporal(TemporalType.TIMESTAMP) //
-	private @Nullable Date createdDate;
+	private @Nullable Instant createdDate;
 
 	@ManyToOne //
 	private @Nullable U lastModifiedBy;
 
-	@Temporal(TemporalType.TIMESTAMP) //
-	private @Nullable Date lastModifiedDate;
+	private @Nullable Instant lastModifiedDate;
 
 	@Override
 	public Optional<U> getCreatedBy() {
@@ -67,12 +63,12 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	@Override
 	public Optional<LocalDateTime> getCreatedDate() {
 		return null == createdDate ? Optional.empty()
-				: Optional.of(LocalDateTime.ofInstant(createdDate.toInstant(), ZoneId.systemDefault()));
+				: Optional.of(LocalDateTime.ofInstant(createdDate, ZoneId.systemDefault()));
 	}
 
 	@Override
 	public void setCreatedDate(LocalDateTime createdDate) {
-		this.createdDate = Date.from(createdDate.atZone(ZoneId.systemDefault()).toInstant());
+		this.createdDate = createdDate.atZone(ZoneId.systemDefault()).toInstant();
 	}
 
 	@Override
@@ -88,11 +84,11 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	@Override
 	public Optional<LocalDateTime> getLastModifiedDate() {
 		return null == lastModifiedDate ? Optional.empty()
-				: Optional.of(LocalDateTime.ofInstant(lastModifiedDate.toInstant(), ZoneId.systemDefault()));
+				: Optional.of(LocalDateTime.ofInstant(lastModifiedDate, ZoneId.systemDefault()));
 	}
 
 	@Override
 	public void setLastModifiedDate(LocalDateTime lastModifiedDate) {
-		this.lastModifiedDate = Date.from(lastModifiedDate.atZone(ZoneId.systemDefault()).toInstant());
+		this.lastModifiedDate = lastModifiedDate.atZone(ZoneId.systemDefault()).toInstant();
 	}
 }
