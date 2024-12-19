@@ -102,7 +102,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	/**
 	 * Parses a query string with JSqlParser.
 	 *
-	 * @param query the query to parse
+	 * @param sql the query to parse
+	 * @param classOfT the query to parse
 	 * @return the parsed query
 	 */
 	static <T extends Statement> T parseStatement(String sql, Class<T> classOfT) {
@@ -560,7 +561,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * </ul>
 	 */
 	enum ParsedType {
-		DELETE, UPDATE, SELECT, INSERT, MERGE, OTHER;
+		DELETE, UPDATE, SELECT, INSERT, MERGE, OTHER
 	}
 
 	/**
