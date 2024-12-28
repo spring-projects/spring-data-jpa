@@ -38,6 +38,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Joshua Chen
  */
 public interface JpaSpecificationExecutor<T> {
 
@@ -70,6 +71,21 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return never {@literal null}.
 	 */
 	Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable);
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 * <p>
+	 * Supports counting the total number of entities matching the {@link Specification}.
+	 * <p>
+	 *
+	 * @param spec can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be
+	 *          selected.
+	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will
+	 *          be counted.
+	 * @param pageable must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.

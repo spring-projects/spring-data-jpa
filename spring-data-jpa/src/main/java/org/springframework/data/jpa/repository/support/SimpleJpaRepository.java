@@ -100,6 +100,7 @@ import org.springframework.util.Assert;
  * @author Ernst-Jan van der Laan
  * @author Diego Krupitza
  * @author Seol-JY
+ * @author Joshua Chen
  */
 @Repository
 @Transactional(readOnly = true)
@@ -456,10 +457,15 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable) {
+		return findAll(spec, spec, pageable);
+	}
+
+	@Override
+	public Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable) {
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
-				: readPage(query, getDomainClass(), pageable, spec);
+				: readPage(query, getDomainClass(), pageable, countSpec);
 	}
 
 	@Override
