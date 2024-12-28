@@ -36,6 +36,7 @@ import java.util.function.Function;
  * @author Christoph Strobl
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Joshua Chen
  */
 public interface JpaSpecificationExecutor<T> {
 
