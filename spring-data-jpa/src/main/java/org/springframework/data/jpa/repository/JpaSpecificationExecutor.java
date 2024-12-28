@@ -28,6 +28,7 @@ import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
@@ -36,6 +37,7 @@ import org.springframework.data.repository.query.FluentQuery;
  * @author Christoph Strobl
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Joshua Chen
  * @see Specification
  * @see org.springframework.data.jpa.domain.UpdateSpecification
  * @see DeleteSpecification
@@ -95,6 +97,21 @@ public interface JpaSpecificationExecutor<T> {
 	 * @see Specification#unrestricted()
 	 */
 	Page<T> findAll(Specification<T> spec, Pageable pageable);
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 * <p>
+	 * Supports counting the total number of entities matching the {@link Specification}.
+	 * <p>
+	 *
+	 * @param spec can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be
+	 *          selected.
+	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will
+	 *          be counted.
+	 * @param pageable must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
