@@ -73,12 +73,15 @@ public interface JpaSpecificationExecutor<T> {
 
 	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 * <p>
 	 * Supports counting the total number of entities matching the {@link Specification}.
 	 * <p>
 	 *
-	 * @param spec      can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be selected.
-	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will be counted.
-	 * @param pageable  must not be {@literal null}.
+	 * @param spec can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be
+	 *          selected.
+	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will
+	 *          be counted.
+	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
 	 */
 	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
