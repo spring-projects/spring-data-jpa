@@ -37,6 +37,7 @@ import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.repository.query.FluentQuery;
+import org.springframework.lang.Nullable;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
