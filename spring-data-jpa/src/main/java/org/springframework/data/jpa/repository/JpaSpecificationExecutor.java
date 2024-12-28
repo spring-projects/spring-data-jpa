@@ -18,16 +18,17 @@ package org.springframework.data.jpa.repository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.lang.Nullable;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
