@@ -18,17 +18,16 @@ package org.springframework.data.jpa.repository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.lang.Nullable;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.
@@ -69,6 +68,18 @@ public interface JpaSpecificationExecutor<T> {
 	 * @return never {@literal null}.
 	 */
 	Page<T> findAll(@Nullable Specification<T> spec, Pageable pageable);
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Specification}.
+	 * Supports counting the total number of entities matching the {@link Specification}.
+	 * <p>
+	 *
+	 * @param spec      can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be selected.
+	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will be counted.
+	 * @param pageable  must not be {@literal null}.
+	 * @return never {@literal null}.
+	 */
+	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
