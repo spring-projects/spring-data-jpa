@@ -47,6 +47,7 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
+import org.springframework.data.jpa.repository.sample.UserExcerptDto;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.IdOnly;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
@@ -431,6 +432,14 @@ class UserRepositoryFinderTests {
 
 		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
 				.contains("Dave", "Carter", "Oliver August");
+	}
+
+	@Test // GH-3726
+	void xxx() {
+
+		Page<UserExcerptDto> dtos = userRepository.findWithCTE(PageRequest.of(0, 1));
+		System.out.println("dtos: " + dtos);
+
 	}
 
 	@Test // GH-3076

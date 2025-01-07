@@ -732,6 +732,25 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u.firstname, u.lastname from User u")
 	List<UserExcerpt> findMultiselectRecordProjection();
 
+	/*
+	 WITH entities AS (
+                    SELECT
+                        e.id as id,
+                        e.number as number
+                    FROM TestEntity e
+                )
+                SELECT new com.example.demo.Result('X', c.id, c.number)
+                FROM entities c
+            """)
+	 */
+
+	@Query("""
+		WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u)
+		SELECT new org.springframework.data.jpa.repository.sample.UserExcerptDto(c.firstname, c.lastname)
+		FROM cte_select c
+""")
+	Page<UserExcerptDto> findWithCTE(Pageable page);
+
 	@UserRoleCountProjectingQuery
 	List<UserRoleCountDtoProjection> dtoProjectionEntityAndAggregatedValue();
 

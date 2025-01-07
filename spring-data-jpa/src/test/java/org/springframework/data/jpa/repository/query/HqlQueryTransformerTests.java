@@ -539,7 +539,7 @@ class HqlQueryTransformerTests {
 				""");
 
 		assertThat(countQuery).startsWith("WITH maxId AS (select max(sr.snapshot.id) snapshotId from SnapshotReference sr")
-				.endsWith("select count(m) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
+				.endsWith("select count(*) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
 	}
 
 	@Test // GH-3504

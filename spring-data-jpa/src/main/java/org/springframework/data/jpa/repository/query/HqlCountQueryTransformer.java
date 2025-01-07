@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.springframework.data.jpa.repository.query.HqlParser.CteContext;
 import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
@@ -36,6 +38,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
+	private boolean containsCTE = false;
 
 	HqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
 		this.countProjection = countProjection;
@@ -64,6 +67,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitCte(CteContext ctx) {
+		this.containsCTE = true;
+		return super.visitCte(ctx);
 	}
 
 	@Override
@@ -189,7 +198,9 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
 			} else {
-				nested.append(QueryTokens.token(primaryFromAlias));
+				// with CTE primary alias erors with hibernate
+				nested.append(containsCTE ? QueryTokens.token("*") : QueryTokens.token(primaryFromAlias));
+//				nested.append(QueryTokens.token(primaryFromAlias));
 			}
 		} else {
 			builder.append(QueryTokens.token(countProjection));
