@@ -54,7 +54,7 @@ import org.springframework.util.ObjectUtils;
  * @author Donghun Shin
  * @author Greg Turnquist
  */
-class ParameterMetadataProvider {
+public class ParameterMetadataProvider {
 
 	private final CriteriaBuilder builder;
 	private final Iterator<? extends Parameter> parameters;
@@ -191,7 +191,7 @@ class ParameterMetadataProvider {
 	 * @author Andrey Kovalev
 	 * @param <T>
 	 */
-	static class ParameterMetadata<T> {
+	public static class ParameterMetadata<T> {
 
 		static final Object PLACEHOLDER = new Object();
 

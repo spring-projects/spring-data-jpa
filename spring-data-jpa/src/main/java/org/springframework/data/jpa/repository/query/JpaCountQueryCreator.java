@@ -36,7 +36,7 @@ import org.springframework.lang.Nullable;
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
-	private boolean distinct;
+	private final boolean distinct;
 
 	/**
 	 * Creates a new {@link JpaCountQueryCreator}.
@@ -56,19 +56,17 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 
 	@Override
 	protected CriteriaQuery<? extends Object> createCriteriaQuery(CriteriaBuilder builder, ReturnedType type) {
-
 		return builder.createQuery(Long.class);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected CriteriaQuery<? extends Object> complete(@Nullable Predicate predicate, Sort sort,
-													   CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
+			CriteriaQuery<? extends Object> query, CriteriaBuilder builder, Root<?> root) {
 
 		CriteriaQuery<? extends Object> select = query.select(getCountQuery(builder, root));
 		return predicate == null ? select : select.where(predicate);
 	}
-
 
 	@SuppressWarnings("rawtypes")
 	private Expression getCountQuery(CriteriaBuilder builder, Root<?> root) {
