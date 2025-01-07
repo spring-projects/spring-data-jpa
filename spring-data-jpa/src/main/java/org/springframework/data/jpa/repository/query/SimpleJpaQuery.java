@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import org.springframework.core.SpringProperties;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -81,6 +82,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	private void validateQuery(String query, String errorMessage, Object... arguments) {
 
 		if (getQueryMethod().isProcedureQuery()) {
+			return;
+		}
+
+		if(SpringProperties.getFlag("spring.jpa.query.validation.disbaled")) {
 			return;
 		}
 

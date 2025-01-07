@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -24,6 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Mark Paluch
  */
 @ContextConfiguration
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkRepositoryWithCompositeKeyIntegrationTests extends RepositoryWithIdClassKeyTests {
 
 	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })

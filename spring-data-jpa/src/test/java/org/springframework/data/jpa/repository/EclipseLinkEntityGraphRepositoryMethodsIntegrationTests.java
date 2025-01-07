@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -24,6 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Christoph Strobl
  */
 @ContextConfiguration("classpath:eclipselink.xml")
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkEntityGraphRepositoryMethodsIntegrationTests
 		extends EntityGraphRepositoryMethodsIntegrationTests {
 

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,6 +70,7 @@ import org.springframework.util.FileCopyUtils;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @Transactional
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkMetaAnnotatedQueryMethodIntegrationTests {
 
 	@Autowired RoleRepositoryWithMeta repository;

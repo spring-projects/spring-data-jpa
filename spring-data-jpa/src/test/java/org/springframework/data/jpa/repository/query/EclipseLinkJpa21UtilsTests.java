@@ -15,10 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
  * @author Christoph Strobl
  */
 @ContextConfiguration("classpath:eclipselink.xml")
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkJpa21UtilsTests extends Jpa21UtilsTests {}

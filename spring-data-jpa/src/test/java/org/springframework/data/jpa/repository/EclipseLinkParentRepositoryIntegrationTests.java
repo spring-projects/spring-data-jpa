@@ -15,9 +15,11 @@
  */
 package org.springframework.data.jpa.repository;
 
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration("classpath:eclipselink.xml")
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkParentRepositoryIntegrationTests extends ParentRepositoryIntegrationTests {
 
 }

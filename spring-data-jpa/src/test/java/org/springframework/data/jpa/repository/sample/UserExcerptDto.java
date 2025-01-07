@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,32 +16,33 @@
 package org.springframework.data.jpa.repository.sample;
 
 /**
+ * Hibernate is still a bit picky on records so let's use a class, just in case.
+ *
  * @author Christoph Strobl
- * @since 2025/01
  */
 public class UserExcerptDto {
 
-    String firstname;
-    String lastname;
+	private String firstname;
+	private String lastname;
 
-    public UserExcerptDto(String firstname, String lastname) {
-        this.firstname = firstname;
-        this.lastname = lastname;
-    }
+	public UserExcerptDto(String firstname, String lastname) {
+		this.firstname = firstname;
+		this.lastname = lastname;
+	}
 
-    public String getFirstname() {
-        return firstname;
-    }
+	public String getFirstname() {
+		return firstname;
+	}
 
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
 
-    public String getLastname() {
-        return lastname;
-    }
+	public String getLastname() {
+		return lastname;
+	}
 
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
 }

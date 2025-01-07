@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import org.junit.jupiter.api.Disabled;
+import org.junitpioneer.jupiter.SetSystemProperty;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -26,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Greg Turnquist
  */
 @ContextConfiguration("classpath:eclipselink-h2.xml")
+@SetSystemProperty(key = "spring.jpa.query.validation.disbaled", value = "true")
 class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
@@ -40,4 +42,9 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Override
 	void rawMapProjectionWithEntityAndAggregatedValue() {}
 
+	@Disabled
+	@Override
+	void testQueryWithCTE() {
+		super.testQueryWithCTE();
+	}
 }

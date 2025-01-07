@@ -435,11 +435,10 @@ class UserRepositoryFinderTests {
 	}
 
 	@Test // GH-3726
-	void xxx() {
+	void testQueryWithCTE() {
 
-		Page<UserExcerptDto> dtos = userRepository.findWithCTE(PageRequest.of(0, 1));
-		System.out.println("dtos: " + dtos);
-
+		Page<UserExcerptDto> result = userRepository.findWithCTE(PageRequest.of(0, 1));
+		assertThat(result.getTotalElements()).isEqualTo(3);
 	}
 
 	@Test // GH-3076
