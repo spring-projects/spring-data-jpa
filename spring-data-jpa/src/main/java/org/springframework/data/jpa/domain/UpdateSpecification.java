@@ -31,6 +31,12 @@ import org.springframework.util.Assert;
 
 /**
  * Specification in the sense of Domain Driven Design to handle Criteria Updates.
+ * <p>
+ * Specifications can be composed into higher order functions from other specifications using
+ * {@link #and(UpdateSpecification)}, {@link #or(UpdateSpecification)} or factory methods such as
+ * {@link #allOf(Iterable)}. Composition considers whether one or more specifications contribute to the overall
+ * predicate by returning a {@link Predicate} or {@literal null}. Specifications returning {@literal null} are
+ * considered to not contribute to the overall predicate and their result is not considered in the final predicate.
  *
  * @author Mark Paluch
  * @since 4.0
@@ -39,27 +45,27 @@ import org.springframework.util.Assert;
 public interface UpdateSpecification<T> extends Serializable {
 
 	/**
-	 * Simple static factory method to create a specification deleting all objects.
+	 * Simple static factory method to create a specification updating all objects.
 	 *
 	 * @param <T> the type of the {@link Root} the resulting {@literal UpdateSpecification} operates on.
 	 * @return guaranteed to be not {@literal null}.
 	 */
-	static <T> UpdateSpecification<T> all() {
+	static <T> UpdateSpecification<T> unrestricted() {
 		return (root, query, builder) -> null;
 	}
 
 	/**
-	 * Simple static factory method to add some syntactic sugar around a {@literal UpdateSpecification}. For example:
+	 * Simple static factory method to add some syntactic sugar around a {@literal UpdateOperation}. For example:
 	 *
 	 * <pre class="code">
-	 * UpdateSpecification&lt;User&gt; updateLastname = UpdateSpecification
+	 * UpdateSpecification&lt;User&gt; updateLastname = UpdateOperation
 	 * 		.&lt;User&gt; update((root, update, criteriaBuilder) -> update.set("lastname", "Heisenberg"))
 	 * 		.where(userHasFirstname("Walter").and(userHasLastname("White")));
 	 *
 	 * repository.update(updateLastname);
 	 * </pre>
 	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal UpdateSpecification} operates on.
+	 * @param <T> the type of the {@link Root} the resulting {@literal UpdateOperation} operates on.
 	 * @param spec must not be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 */
@@ -172,13 +178,14 @@ public interface UpdateSpecification<T> extends Serializable {
 
 		return (root, update, builder) -> {
 
-			Predicate not = spec.toPredicate(root, update, builder);
-			return not != null ? builder.not(not) : null;
+			Predicate predicate = spec.toPredicate(root, update, builder);
+			return predicate != null ? builder.not(predicate) : null;
 		};
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link UpdateSpecification}s.
+	 * Applies an AND operation to all the given {@link UpdateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link UpdateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link UpdateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -191,7 +198,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link UpdateSpecification}s.
+	 * Applies an AND operation to all the given {@link UpdateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link UpdateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link UpdateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -201,11 +209,12 @@ public interface UpdateSpecification<T> extends Serializable {
 	static <T> UpdateSpecification<T> allOf(Iterable<UpdateSpecification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(UpdateSpecification.all(), UpdateSpecification::and);
+				.reduce(UpdateSpecification.unrestricted(), UpdateSpecification::and);
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link UpdateSpecification}s.
+	 * Applies an OR operation to all the given {@link UpdateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link UpdateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link UpdateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
@@ -218,7 +227,8 @@ public interface UpdateSpecification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link UpdateSpecification}s.
+	 * Applies an OR operation to all the given {@link UpdateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link UpdateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link UpdateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
@@ -228,7 +238,7 @@ public interface UpdateSpecification<T> extends Serializable {
 	static <T> UpdateSpecification<T> anyOf(Iterable<UpdateSpecification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(UpdateSpecification.all(), UpdateSpecification::or);
+				.reduce(UpdateSpecification.unrestricted(), UpdateSpecification::or);
 	}
 
 	/**

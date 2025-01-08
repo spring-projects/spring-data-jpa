@@ -30,6 +30,12 @@ import org.springframework.util.Assert;
 
 /**
  * Specification in the sense of Domain Driven Design.
+ * <p>
+ * Specifications can be composed into higher order functions from other specifications using
+ * {@link #and(PredicateSpecification)}, {@link #or(PredicateSpecification)} or factory methods such as
+ * {@link #allOf(Iterable)}. Composition considers whether one or more specifications contribute to the overall
+ * predicate by returning a {@link Predicate} or {@literal null}. Specifications returning {@literal null} are
+ * considered to not contribute to the overall predicate and their result is not considered in the final predicate.
  *
  * @author Mark Paluch
  * @since 4.0
@@ -42,7 +48,7 @@ public interface PredicateSpecification<T> extends Serializable {
 	 * @param <T> the type of the {@link Root} the resulting {@literal PredicateSpecification} operates on.
 	 * @return guaranteed to be not {@literal null}.
 	 */
-	static <T> PredicateSpecification<T> all() {
+	static <T> PredicateSpecification<T> unrestricted() {
 		return (root, builder) -> null;
 	}
 
@@ -104,13 +110,14 @@ public interface PredicateSpecification<T> extends Serializable {
 
 		return (root, builder) -> {
 
-			Predicate not = spec.toPredicate(root, builder);
-			return not != null ? builder.not(not) : null;
+			Predicate predicate = spec.toPredicate(root, builder);
+			return predicate != null ? builder.not(predicate) : null;
 		};
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link PredicateSpecification}s.
+	 * Applies an AND operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -123,7 +130,8 @@ public interface PredicateSpecification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link PredicateSpecification}s.
+	 * Applies an AND operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -133,11 +141,12 @@ public interface PredicateSpecification<T> extends Serializable {
 	static <T> PredicateSpecification<T> allOf(Iterable<PredicateSpecification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(PredicateSpecification.all(), PredicateSpecification::and);
+				.reduce(PredicateSpecification.unrestricted(), PredicateSpecification::and);
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link PredicateSpecification}s.
+	 * Applies an OR operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
@@ -150,7 +159,8 @@ public interface PredicateSpecification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link PredicateSpecification}s.
+	 * Applies an OR operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
+	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
@@ -160,7 +170,7 @@ public interface PredicateSpecification<T> extends Serializable {
 	static <T> PredicateSpecification<T> anyOf(Iterable<PredicateSpecification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(PredicateSpecification.all(), PredicateSpecification::or);
+				.reduce(PredicateSpecification.unrestricted(), PredicateSpecification::or);
 	}
 
 	/**
