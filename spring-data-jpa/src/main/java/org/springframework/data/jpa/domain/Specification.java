@@ -65,7 +65,9 @@ public interface Specification<T> extends Serializable {
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
+	 * @deprecated since 3.5.
 	 */
+	@Deprecated(since = "3.5.0", forRemoval = true)
 	static <T> Specification<T> where(@Nullable Specification<T> spec) {
 		return spec == null ? (root, query, builder) -> null : spec;
 	}
