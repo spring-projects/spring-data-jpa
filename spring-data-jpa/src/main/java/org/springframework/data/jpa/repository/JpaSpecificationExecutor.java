@@ -60,7 +60,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	default Optional<T> findOne(PredicateSpecification<T> spec) {
 		return findOne(Specification.where(spec));
@@ -72,7 +72,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @throws org.springframework.dao.IncorrectResultSizeDataAccessException if more than one entity found.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	Optional<T> findOne(Specification<T> spec);
 
@@ -81,7 +81,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *
 	 * @param spec must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	default List<T> findAll(PredicateSpecification<T> spec) {
 		return findAll(Specification.where(spec));
@@ -92,7 +92,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *
 	 * @param spec must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	List<T> findAll(Specification<T> spec);
 
@@ -102,7 +102,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	Page<T> findAll(Specification<T> spec, Pageable pageable);
 
@@ -128,7 +128,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 * @return never {@literal null}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	List<T> findAll(Specification<T> spec, Sort sort);
 
@@ -137,7 +137,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *
 	 * @param spec the {@link PredicateSpecification} to count instances for, must not be {@literal null}.
 	 * @return the number of instances.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	default long count(PredicateSpecification<T> spec) {
 		return count(Specification.where(spec));
@@ -148,7 +148,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *
 	 * @param spec the {@link Specification} to count instances for, must not be {@literal null}.
 	 * @return the number of instances.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	long count(Specification<T> spec);
 
@@ -158,7 +158,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link PredicateSpecification} to use for the existence check, must not be {@literal null}.
 	 * @return {@code true} if the data store contains elements that match the given {@link PredicateSpecification}
 	 *         otherwise {@code false}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	default boolean exists(PredicateSpecification<T> spec) {
 		return exists(Specification.where(spec));
@@ -170,7 +170,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link Specification} to use for the existence check, must not be {@literal null}.
 	 * @return {@code true} if the data store contains elements that match the given {@link Specification} otherwise
 	 *         {@code false}.
-	 * @see Specification#all()
+	 * @see Specification#unrestricted()
 	 */
 	boolean exists(Specification<T> spec);
 
@@ -195,7 +195,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link PredicateSpecification} to use for the delete query, must not be {@literal null}.
 	 * @return the number of entities deleted.
 	 * @since 3.0
-	 * @see PredicateSpecification#all()
+	 * @see PredicateSpecification#unrestricted()
 	 */
 	default long delete(PredicateSpecification<T> spec) {
 		return delete(DeleteSpecification.where(spec));
@@ -210,7 +210,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec the {@link UpdateSpecification} to use for the delete query must not be {@literal null}.
 	 * @return the number of entities deleted.
 	 * @since 3.0
-	 * @see DeleteSpecification#all()
+	 * @see DeleteSpecification#unrestricted()
 	 */
 	long delete(DeleteSpecification<T> spec);
 

@@ -59,7 +59,7 @@ class UpdateSpecificationUnitTests implements Serializable {
 	@Test // GH-3521
 	void allReturnsEmptyPredicate() {
 
-		UpdateSpecification<Object> specification = UpdateSpecification.all();
+		UpdateSpecification<Object> specification = UpdateSpecification.unrestricted();
 
 		assertThat(specification).isNotNull();
 		assertThat(specification.toPredicate(root, update, builder)).isNull();

@@ -59,7 +59,7 @@ class DeleteSpecificationUnitTests implements Serializable {
 	@Test // GH-3521
 	void allReturnsEmptyPredicate() {
 
-		DeleteSpecification<Object> specification = DeleteSpecification.all();
+		DeleteSpecification<Object> specification = DeleteSpecification.unrestricted();
 
 		assertThat(specification).isNotNull();
 		assertThat(specification.toPredicate(root, delete, builder)).isNull();
