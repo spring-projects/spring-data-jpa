@@ -57,7 +57,7 @@ class PredicateSpecificationUnitTests implements Serializable {
 	@Test // GH-3521
 	void allReturnsEmptyPredicate() {
 
-		PredicateSpecification<Object> specification = PredicateSpecification.all();
+		PredicateSpecification<Object> specification = PredicateSpecification.unrestricted();
 
 		assertThat(specification).isNotNull();
 		assertThat(specification.toPredicate(root, builder)).isNull();

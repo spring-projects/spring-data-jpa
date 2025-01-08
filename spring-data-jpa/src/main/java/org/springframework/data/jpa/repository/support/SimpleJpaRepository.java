@@ -392,7 +392,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public List<T> findAll() {
-		return getQuery(Specification.all(), Sort.unsorted()).getResultList();
+		return getQuery(Specification.unrestricted(), Sort.unsorted()).getResultList();
 	}
 
 	@Override
@@ -425,12 +425,12 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public List<T> findAll(Sort sort) {
-		return getQuery(Specification.all(), sort).getResultList();
+		return getQuery(Specification.unrestricted(), sort).getResultList();
 	}
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
-		return findAll(Specification.all(), pageable);
+		return findAll(Specification.unrestricted(), pageable);
 	}
 
 	@Override
@@ -1016,7 +1016,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@SuppressWarnings("rawtypes")
 	private static final class ByIdsSpecification<T> implements Specification<T> {
 
-		@Serial private static final @Serial long serialVersionUID = 1L;
+		private static final @Serial long serialVersionUID = 1L;
 
 		private final JpaEntityInformation<T, ?> entityInformation;
 
@@ -1046,7 +1046,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	private static class ExampleSpecification<T> implements Specification<T> {
 
-		@Serial private static final @Serial long serialVersionUID = 1L;
+		private static final @Serial long serialVersionUID = 1L;
 
 		private final Example<T> example;
 		private final EscapeCharacter escapeCharacter;

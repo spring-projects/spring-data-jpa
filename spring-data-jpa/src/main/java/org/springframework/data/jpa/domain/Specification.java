@@ -32,6 +32,12 @@ import org.springframework.util.Assert;
 
 /**
  * Specification in the sense of Domain Driven Design.
+ * <p>
+ * Specifications can be composed into higher order functions from other specifications using
+ * {@link #and(Specification)}, {@link #or(Specification)} or factory methods such as {@link #allOf(Iterable)}.
+ * Composition considers whether one or more specifications contribute to the overall predicate by returning a
+ * {@link Predicate} or {@literal null}. Specifications returning {@literal null} are considered to not contribute to
+ * the overall predicate and their result is not considered in the final predicate.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -51,7 +57,7 @@ public interface Specification<T> extends Serializable {
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @return guaranteed to be not {@literal null}.
 	 */
-	static <T> Specification<T> all() {
+	static <T> Specification<T> unrestricted() {
 		return (root, query, builder) -> null;
 	}
 
@@ -148,13 +154,14 @@ public interface Specification<T> extends Serializable {
 
 		return (root, query, builder) -> {
 
-			Predicate not = spec.toPredicate(root, query, builder);
-			return not != null ? builder.not(not) : null;
+			Predicate predicate = spec.toPredicate(root, query, builder);
+			return predicate != null ? builder.not(predicate) : null;
 		};
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link Specification}s.
+	 * Applies an AND operation to all the given {@link Specification}s. If {@code specifications} is empty, the resulting
+	 * {@link Specification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link Specification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -168,7 +175,8 @@ public interface Specification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an AND operation to all the given {@link Specification}s.
+	 * Applies an AND operation to all the given {@link Specification}s. If {@code specifications} is empty, the resulting
+	 * {@link Specification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link Specification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -179,11 +187,12 @@ public interface Specification<T> extends Serializable {
 	static <T> Specification<T> allOf(Iterable<Specification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(Specification.all(), Specification::and);
+				.reduce(Specification.unrestricted(), Specification::and);
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link Specification}s.
+	 * Applies an OR operation to all the given {@link Specification}s. If {@code specifications} is empty, the resulting
+	 * {@link Specification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link Specification}s to compose.
 	 * @return the disjunction of the specifications
@@ -197,7 +206,8 @@ public interface Specification<T> extends Serializable {
 	}
 
 	/**
-	 * Applies an OR operation to all the given {@link Specification}s.
+	 * Applies an OR operation to all the given {@link Specification}s. If {@code specifications} is empty, the resulting
+	 * {@link Specification} will be unrestricted applying to all objects.
 	 *
 	 * @param specifications the {@link Specification}s to compose.
 	 * @return the disjunction of the specifications
@@ -208,7 +218,7 @@ public interface Specification<T> extends Serializable {
 	static <T> Specification<T> anyOf(Iterable<Specification<T>> specifications) {
 
 		return StreamSupport.stream(specifications.spliterator(), false) //
-				.reduce(Specification.all(), Specification::or);
+				.reduce(Specification.unrestricted(), Specification::or);
 	}
 
 	/**
