@@ -594,7 +594,7 @@ class UserRepositoryTests {
 	void returnsSameListIfNoSpecGiven() {
 
 		flushTestUsers();
-		assertSameElements(repository.findAll(), repository.findAll(PredicateSpecification.all()));
+		assertSameElements(repository.findAll(), repository.findAll(PredicateSpecification.unrestricted()));
 	}
 
 	@Test
@@ -610,7 +610,7 @@ class UserRepositoryTests {
 		Pageable pageable = PageRequest.of(0, 1);
 
 		flushTestUsers();
-		assertThat(repository.findAll(Specification.all(), pageable)).isEqualTo(repository.findAll(pageable));
+		assertThat(repository.findAll(Specification.unrestricted(), pageable)).isEqualTo(repository.findAll(pageable));
 	}
 
 	@Test // GH-3521
@@ -634,7 +634,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		repository.delete(DeleteSpecification.all());
+		repository.delete(DeleteSpecification.unrestricted());
 
 		assertThat(repository.count()).isEqualTo(0L);
 	}
@@ -644,7 +644,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		repository.delete(DeleteSpecification.all());
+		repository.delete(DeleteSpecification.unrestricted());
 
 		assertThat(repository.count()).isEqualTo(0L);
 	}

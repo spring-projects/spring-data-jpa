@@ -219,7 +219,7 @@ class SimpleJpaRepositoryUnitTests {
 
 		when(query.getResultList()).thenReturn(Arrays.asList(new User(), new User()));
 
-		repo.findAll(Specification.all(), PageRequest.of(2, 1));
+		repo.findAll(Specification.unrestricted(), PageRequest.of(2, 1));
 
 		verify(metadata).getQueryHintsForCount();
 	}
