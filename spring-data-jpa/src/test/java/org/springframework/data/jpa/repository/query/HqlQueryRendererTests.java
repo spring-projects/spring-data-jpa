@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -43,12 +42,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class HqlQueryRendererTests {
 
-	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
-
 	/**
 	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
 	 */
-	private static String parseWithoutChanges(String query) {
+	static String parseWithoutChanges(String query) {
 
 		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
 		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
@@ -76,33 +73,6 @@ class HqlQueryRendererTests {
 		return original //
 				.replaceAll("[ \\t\\n]{1,}", " ") //
 				.trim();
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
-	 */
-	@Test
-	void joinExample1() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order AS o JOIN o.lineItems AS l
-				WHERE l.shipped = FALSE
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#identification-variables
-	 */
-	@Test
-	void joinExample2() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l JOIN l.product p
-				WHERE p.productType = 'office_supplies'
-				""");
 	}
 
 	/**
@@ -176,11 +146,11 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT DISTINCT l.product
-				FROM Order AS o JOIN o.lineItems l
+				FROM Order AS o JOIN o.lineItems l LEFT JOIN l.product p
 				""");
 	}
 
-	@Test // GH-3711
+	@Test // GH-3711, GH-2970
 	void entityTypeReference() {
 
 		assertQuery("""
@@ -191,6 +161,42 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT TYPE(?0)
 				FROM Employee e
+				""");
+
+		assertQuery("""
+				SELECT e
+				FROM Employee e
+				WHERE TYPE(e) IN (Exempt, Contractor)
+				""");
+
+		assertQuery("""
+				SELECT e
+				FROM Employee e
+				WHERE TYPE(e) IN (:empType1, :empType2)
+				""");
+
+		assertQuery("""
+				SELECT e
+				FROM Employee e
+				WHERE TYPE(e) IN :empTypes
+				""");
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				WHERE TYPE(e) <> Exempt
+				""");
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				WHERE TYPE(e) != Exempt
+				""");
+
+		assertQuery("""
+				SELECT TYPE(e)
+				FROM Employee e
+				WHERE TYPE(e) ^= Exempt
 				""");
 	}
 
@@ -354,6 +360,366 @@ class HqlQueryRendererTests {
 				""");
 	}
 
+	@ParameterizedTest // GH-3689
+	@ValueSource(strings = { "RESPECT NULLS", "IGNORE NULLS" })
+	void generic(String nullHandling) {
+
+		// not in the official documentation but supported in the grammar.
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE FOO(x).bar %s
+				""".formatted(nullHandling));
+	}
+
+	@Test // GH-3689
+	void size() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE SIZE(x) > 1
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE SIZE(e.skills) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void collectionAggregate() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE MAXELEMENT(foo) > MINELEMENT(bar)
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE MININDEX(foo) > MAXINDEX(bar)
+				""");
+	}
+
+	@Test // GH-3689
+	void trunc() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(x) = TRUNCATE(y)
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, 'foo') = TRUNCATE(e, 'bar')
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, 'YEAR') = TRUNCATE(LOCAL DATETIME, 'YEAR')
+				""");
+	}
+
+	@ParameterizedTest // GH-3689
+	@ValueSource(strings = { "YEAR", "MONTH", "DAY", "WEEK", "QUARTER", "HOUR", "MINUTE", "SECOND", "NANOSECOND",
+			"NANOSECOND", "EPOCH" })
+	void trunc(String truncation) {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE TRUNC(e, %1$s) = TRUNCATE(e, %1$s)
+				""".formatted(truncation));
+	}
+
+	@Test // GH-3689
+	void format() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE FORMAT(x AS 'yyyy') = FORMAT(e.hiringDate AS 'yyyy')
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE e.hiringDate = format(LOCAL DATETIME as 'yyyy-MM-dd')
+				""");
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE e.hiringDate = format(LOCAL_DATE() as 'yyyy-MM-dd')
+				""");
+	}
+
+	@Test // GH-3689
+	void collate() {
+
+		assertQuery("""
+				SELECT e FROM Employee e
+				WHERE COLLATE(x AS ucs_basic) = COLLATE(e.name AS ucs_basic)
+				""");
+	}
+
+	@Test // GH-3689
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1, position('/0' in c.number)) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1 FOR 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1 FOR position('/0' in c.number)) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number FROM 1) AS shortNumber " + //
+				"from Call c");
+	}
+
+	@Test // GH-3689
+	void overlay() {
+
+		assertQuery("select OVERLAY(c.number PLACING 1 FROM 2) " + //
+				"from Call c ");
+
+		assertQuery("select OVERLAY(p.number PLACING 1 FROM 2 FOR 3) " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void pad() {
+
+		assertQuery("select PAD(c.number WITH 1 LEADING) " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 TRAILING) " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 LEADING '0') " + //
+				"from Call c ");
+
+		assertQuery("select PAD(c.number WITH 1 TRAILING '0') " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void position() {
+
+		assertQuery("select POSITION(c.number IN 'foo') " + //
+				"from Call c ");
+
+		assertQuery("select POSITION(c.number IN 'foo') + 1 AS pos " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT DATE, CURRENT_DATE() " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT TIME, CURRENT_TIME() " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT TIMESTAMP, CURRENT_TIMESTAMP() " + //
+				"from Call c ");
+
+		assertQuery("select INSTANT, CURRENT_INSTANT() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL DATE, LOCAL_DATE() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL TIME, LOCAL_TIME() " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL DATETIME, LOCAL_DATETIME() " + //
+				"from Call c ");
+
+		assertQuery("select OFFSET DATETIME, OFFSET_DATETIME() " + //
+				"from Call c ");
+
+		assertQuery("select OFFSET DATETIME AS offsetDatetime, OFFSET_DATETIME() AS offset_datetime " + //
+				"from Call c ");
+	}
+
+	@Test // GH-3689
+	void cube() {
+
+		assertQuery("select CUBE(foo), CUBE(foo, bar) " + //
+				"from Call c ");
+
+		assertQuery("select c.callerId from Call c GROUP BY CUBE(state, province)");
+	}
+
+	@Test // GH-3689
+	void rollup() {
+
+		assertQuery("select ROLLUP(foo), ROLLUP(foo, bar) " + //
+				"from Call c ");
+
+		assertQuery("select c.callerId from Call c GROUP BY ROLLUP(state, province)");
+	}
+
+	@Test
+	void pathExpressionsNamedParametersExample() {
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.status = :stat
+				""");
+	}
+
+	@Test
+	void betweenExpressionsExample() {
+
+		assertQuery("""
+				SELECT t
+				FROM CreditCard c JOIN c.transactionHistory t
+				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
+				""");
+	}
+
+	@Test
+	void isEmptyExample() {
+
+		assertQuery("""
+				SELECT o
+				FROM Order o
+				WHERE o.lineItems IS EMPTY
+				""");
+	}
+
+	@Test
+	void memberOfExample() {
+
+		assertQuery("""
+				SELECT p
+				FROM Person p
+				WHERE 'Joe' MEMBER OF p.nicknames
+				""");
+	}
+
+	@Test
+	void existsSubSelectExample1() {
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE EXISTS (SELECT spouseEmp
+				    FROM Employee spouseEmp
+				        WHERE spouseEmp = emp.spouse)
+				""");
+	}
+
+	@Test // GH-3689
+	void everyAll() {
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE EVERY (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL (foo > 1) OVER (PARTITION BY bar)
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL VALUES(foo) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ALL ELEMENTS(foo) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void anySome() {
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE SOME (SELECT spouseEmp
+				    FROM Employee spouseEmp) > 1
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY (foo > 1) OVER (PARTITION BY bar)
+				""");
+
+		assertQuery("""
+				SELECT DISTINCT emp
+				FROM Employee emp
+				WHERE ANY VALUES(foo) > 1
+				""");
+	}
+
+	@Test // GH-3689
+	void listAgg() {
+
+		assertQuery("select listagg(p.number, ', ') within group (order by p.type, p.number) " + //
+				"from Phone p " + //
+				"group by p.person");
+	}
+
+	/**
+	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
+	 */
+	@Test
+	void joinExample1() {
+
+		assertQuery("""
+				SELECT DISTINCT o
+				FROM Order AS o JOIN o.lineItems AS l
+				WHERE l.shipped = FALSE
+				""");
+	}
+
+	/**
+	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
+	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#identification-variables
+	 */
+	@Test
+	void joinExample2() {
+
+		assertQuery("""
+				SELECT DISTINCT o
+				FROM Order o JOIN o.lineItems l JOIN l.product p
+				WHERE p.productType = 'office_supplies'
+				""");
+	}
+
 	@Test
 	void joinsExample1() {
 
@@ -378,7 +744,6 @@ class HqlQueryRendererTests {
 				""");
 	}
 
-	@Disabled("Deprecated syntax dating back to EJB-QL prior to EJB 3, required by JPA, never documented in Hibernate")
 	@Test
 	void joinsInExample() {
 
@@ -454,7 +819,7 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT DISTINCT o
-				FROM Order o , IN(o.lineItems) l
+				FROM Order o, IN(o.lineItems) l
 				WHERE l.product.productType = 'office_supplies'
 				""");
 	}
@@ -490,8 +855,7 @@ class HqlQueryRendererTests {
 	 * @see #fromClauseDowncastingExample3fixed()
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
-	void fromClauseDowncastingExample3_SPEC_BUG() {
+	void fromClauseDowncastingExample3() {
 
 		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
@@ -499,10 +863,6 @@ class HqlQueryRendererTests {
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE "cost overrun"
 				""");
-	}
-
-	@Test
-	void fromClauseDowncastingExample3fixed() {
 
 		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
@@ -519,58 +879,6 @@ class HqlQueryRendererTests {
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
-				""");
-	}
-
-	@Test
-	void pathExpressionsNamedParametersExample() {
-
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE c.status = :stat
-				""");
-	}
-
-	@Test
-	void betweenExpressionsExample() {
-
-		assertQuery("""
-				SELECT t
-				FROM CreditCard c JOIN c.transactionHistory t
-				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
-				""");
-	}
-
-	@Test
-	void isEmptyExample() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.lineItems IS EMPTY
-				""");
-	}
-
-	@Test
-	void memberOfExample() {
-
-		assertQuery("""
-				SELECT p
-				FROM Person p
-				WHERE 'Joe' MEMBER OF p.nicknames
-				""");
-	}
-
-	@Test
-	void existsSubSelectExample1() {
-
-		assertQuery("""
-				SELECT DISTINCT emp
-				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
-				    FROM Employee spouseEmp
-				        WHERE spouseEmp = emp.spouse)
 				""");
 	}
 
@@ -633,8 +941,7 @@ class HqlQueryRendererTests {
 	 * @see #functionInvocationExampleWithCorrection()
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
-	void functionInvocationExample_SPEC_BUG() {
+	void functionInvocationExample() {
 
 		assertQuery("""
 				SELECT c
@@ -651,6 +958,15 @@ class HqlQueryRendererTests {
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
 				""");
+	}
+
+	@ParameterizedTest // GH-3628
+	@ValueSource(strings = { "is true", "is not true", "is false", "is not false" })
+	void functionInvocationWithIsBoolean(String booleanComparison) {
+
+		assertQuery("""
+				from RoleTmpl where find_in_set(:appId, appIds) %s
+				""".formatted(booleanComparison));
 	}
 
 	@Test
@@ -710,59 +1026,93 @@ class HqlQueryRendererTests {
 	}
 
 	@Test
-	void theRest() {
+	void collectionIsEmpty() {
 
 		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (Exempt, Contractor)
+				DELETE
+				FROM Customer c
+				WHERE c.status = 'inactive'
+				AND c.orders IS EMPTY
+				""");
+
+		assertQuery("""
+				DELETE
+				FROM Customer c
+				WHERE c.status = 'inactive'
+				AND c.orders IS NOT EMPTY
 				""");
 	}
 
-	@Test
-	void theRest2() {
+	@Test // GH-3628
+	void booleanPredicate() {
 
 		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (:empType1, :empType2)
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS TRUE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT TRUE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS FALSE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT FALSE
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NULL
+				""");
+
+		assertQuery("""
+				SELECT c
+				FROM Customer c
+				WHERE c.orders IS NOT NULL
 				""");
 	}
 
-	@Test
-	void theRest3() {
+	@ParameterizedTest // GH-3628
+	@ValueSource(strings = { "IS DISTINCT FROM", "IS NOT DISTINCT FROM" })
+	void distinctFromPredicate(String distinctFrom) {
 
 		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN :empTypes
-				""");
-	}
-
-	@Test
-	void theRest4() {
+				SELECT c
+				FROM Customer c
+				WHERE c.orders %s c.payments
+				""".formatted(distinctFrom));
 
 		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) <> Exempt
-				""");
-	}
-
-	@Test // GH-2970
-	void alternateNotEqualsShouldAlsoWork() {
+				SELECT c
+				FROM Customer c
+				WHERE c.orders %s c.payments
+				""".formatted(distinctFrom));
 
 		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) != Exempt
-				""");
+				SELECT c
+				FROM Customer c
+				GROUP BY c.lastname
+				HAVING c.orders %s c.payments
+				""".formatted(distinctFrom));
 
 		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) ^= Exempt
-				""");
+				SELECT c
+				FROM Customer c
+				WHERE EXISTS (SELECT c2
+				    FROM Customer c2
+				        WHERE c2.orders %s c.orders)
+				""".formatted(distinctFrom));
 	}
 
 	@Test
@@ -967,7 +1317,7 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT p.product_name
-				FROM Order o , IN(o.lineItems) l JOIN o.customer c
+				FROM Order o, IN(o.lineItems) l JOIN o.customer c
 				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
 				ORDER BY o.quantity
 				""");
@@ -1116,85 +1466,108 @@ class HqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-3689
+	void insertQueries() {
+
+		assertQuery("insert Person (id, name) values (100L, 'Jane Doe')");
+
+		assertQuery("insert Person (id, name) values " + //
+				"(101L, 'J A Doe III'), " + //
+				"(102L, 'J X Doe'), " + //
+				"(103L, 'John Doe, Jr')");
+
+		assertQuery("insert into Partner (id, name) " + //
+				"select p.id, p.name from Person p ");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT (range) DO UPDATE  SET price = :price, type = :priceType");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT ON CONSTRAINT foo DO UPDATE  SET price = :price, type = :priceType");
+
+		assertQuery("INSERT INTO AggregationPrice (range, price, type) " + "VALUES (:range, :price, :priceType) "
+				+ "ON CONFLICT ON CONSTRAINT foo DO NOTHING");
+	}
+
 	@Test
 	void hqlQueries() {
 
-		parseWithoutChanges("from Person");
-		parseWithoutChanges("select local datetime");
-		parseWithoutChanges("from Person p select p.name");
-		parseWithoutChanges("update Person set nickName = 'Nacho' " + //
+		assertQuery("from Person");
+		assertQuery("select local datetime");
+		assertQuery("from Person p select p.name");
+		assertQuery("update Person set nickName = 'Nacho' " + //
 				"where name = 'Ignacio'");
-		parseWithoutChanges("update Person p " + //
+		assertQuery("update Person p " + //
 				"set p.name = :newName " + //
 				"where p.name = :oldName");
-		parseWithoutChanges("update Person " + //
+		assertQuery("update Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parseWithoutChanges("update versioned Person " + //
+		assertQuery("update versioned Person " + //
 				"set name = :newName " + //
 				"where name = :oldName");
-		parseWithoutChanges("insert Person (id, name) " + //
+		assertQuery("insert Person (id, name) " + //
 				"values (100L, 'Jane Doe')");
-		parseWithoutChanges("insert Person (id, name) " + //
+		assertQuery("insert Person (id, name) " + //
 				"values (101L, 'J A Doe III'), " + //
 				"(102L, 'J X Doe'), " + //
 				"(103L, 'John Doe, Jr')");
-		parseWithoutChanges("insert into Partner (id, name) " + //
+		assertQuery("insert into Partner (id, name) " + //
 				"select p.id, p.name " + //
 				"from Person p ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe'");
 
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name ilike 'Joe'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Joe''s'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 100.5F");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration > 1e+2F");
-		parseWithoutChanges("from Phone ph " + //
+		assertQuery("from Phone ph " + //
 				"where ph.type = LAND_LINE");
-		parseWithoutChanges("select java.lang.Math.PI");
-		parseWithoutChanges("select 'Customer ' || p.name " + //
+		assertQuery("select java.lang.Math.PI");
+		assertQuery("select 'Customer ' || p.name " + //
 				"from Person p " + //
 				"where p.id = 1");
-		parseWithoutChanges("select sum(ch.duration) * :multiplier " + //
+		assertQuery("select sum(ch.duration) * :multiplier " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = 1L ");
-		parseWithoutChanges("select year(local date) - year(p.createdOn) " + //
+		assertQuery("select year(local date) - year(p.createdOn) " + //
 				"from Person p " + //
 				"where p.id = 1L");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where year(local date) - year(p.createdOn) > 1");
-		parseWithoutChanges("select " + //
+		assertQuery("select " + //
 				"	case p.nickName " + //
 				"	when 'NA' " + //
 				"	then '<no nick name>' " + //
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		assertQuery("select " + //
 				"	case " + //
 				"	when p.nickName is null " + //
 				"	then " + //
@@ -1206,336 +1579,336 @@ class HqlQueryRendererTests {
 				"	else p.nickName " + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		assertQuery("select " + //
 				"	case when p.nickName is null " + //
 				"		 then p.id * 1000 " + //
 				"		 else p.id " + //
 				"	end " + //
 				"from Person p " + //
 				"order by p.id");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = CreditCardPayment");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = :type");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where length(treat(p as CreditCardPayment).cardNumber) between 16 and 20");
-		parseWithoutChanges("select nullif(p.nickName, p.name) " + //
+		assertQuery("select nullif(p.nickName, p.name) " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		assertQuery("select " + //
 				"	case" + //
 				"	when p.nickName = p.name" + //
 				"	then null" + //
 				"	else p.nickName" + //
 				"	end " + //
 				"from Person p");
-		parseWithoutChanges("select coalesce(p.nickName, '<no nick name>') " + //
+		assertQuery("select coalesce(p.nickName, '<no nick name>') " + //
 				"from Person p");
-		parseWithoutChanges("select coalesce(p.nickName, p.name, '<no nick name>') " + //
+		assertQuery("select coalesce(p.nickName, p.name, '<no nick name>') " + //
 				"from Person p");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where size(p.phones) >= 2");
-		parseWithoutChanges("select concat(p.number, ' : ' , cast(c.duration as string)) " + //
+		assertQuery("select concat(p.number, ' : ', cast(c.duration as string)) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parseWithoutChanges("select substring(p.number, 1, 2) " + //
+		assertQuery("select substring(p.number, 1, 2) " + //
 				"from Call c " + //
 				"join c.phone p");
-		parseWithoutChanges("select upper(p.name) " + //
+		assertQuery("select upper(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select lower(p.name) " + //
+		assertQuery("select lower(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select trim(p.name) " + //
+		assertQuery("select trim(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select trim(leading ' ' from p.name) " + //
+		assertQuery("select trim(leading ' ' from p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select length(p.name) " + //
+		assertQuery("select length(p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select locate('John', p.name) " + //
+		assertQuery("select locate('John', p.name) " + //
 				"from Person p ");
-		parseWithoutChanges("select abs(c.duration) " + //
+		assertQuery("select abs(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select mod(c.duration, 10) " + //
+		assertQuery("select mod(c.duration, 10) " + //
 				"from Call c ");
-		parseWithoutChanges("select sqrt(c.duration) " + //
+		assertQuery("select sqrt(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select cast(c.duration as String) " + //
+		assertQuery("select cast(c.duration as String) " + //
 				"from Call c ");
-		parseWithoutChanges("select str(c.timestamp) " + //
+		assertQuery("select str(c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select str(cast(duration as float) / 60, 4, 2) " + //
+		assertQuery("select str(cast(duration as float) / 60, 4, 2) " + //
 				"from Call c ");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where extract(date from c.timestamp) = local date");
-		parseWithoutChanges("select extract(year from c.timestamp) " + //
+		assertQuery("select extract(year from c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select year(c.timestamp) " + //
+		assertQuery("select year(c.timestamp) " + //
 				"from Call c ");
-		parseWithoutChanges("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
+		assertQuery("select var_samp(c.duration) as sampvar, var_pop(c.duration) as popvar " + //
 				"from Call c ");
-		parseWithoutChanges("select bit_length(c.phone.number) " + //
+		assertQuery("select bit_length(c.phone.number) " + //
 				"from Call c ");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration < 30 ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'John%' ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.createdOn > '1950-01-01' ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where p.type = 'MOBILE' ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where p.completed = true ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) = WireTransferPayment ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p, Phone ph " + //
 				"where p.person = ph.person ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"join p.phones ph " + //
 				"where p.id = 1L and index(ph) between 0 and 3");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.createdOn between '1999-01-01' and '2001-01-02'");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"where c.duration between 5 and 20");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name between 'H' and 'M'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.nickName is not null");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.nickName is null");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Jo%'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name not like 'Jo%'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.name like 'Dr|_%' escape '|'");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p " + //
 				"where type(p) in (CreditCardPayment, WireTransferPayment)");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where type in ('MOBILE', 'LAND_LINE')");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where type in :types");
-		parseWithoutChanges("select distinct p " + //
+		assertQuery("select distinct p " + //
 				"from Phone p " + //
-				"where p.person.id in (" + //
-				"	select py.person.id " + //
+				"where p.person.id in " + //
+				"(select py.person.id " + //
 				"	from Payment py" + //
-				"	where py.completed = true and py.amount > 50 " + //
+				"	where py.completed = true and py.amount > 50" + //
 				")");
-		parseWithoutChanges("select distinct p " + //
+		assertQuery("select distinct p " + //
 				"from Phone p " + //
-				"where p.person in (" + //
-				"	select py.person " + //
+				"where p.person in " + //
+				"(select py.person " + //
 				"	from Payment py" + //
-				"	where py.completed = true and py.amount > 50 " + //
+				"	where py.completed = true and py.amount > 50" + //
 				")");
-		parseWithoutChanges("select distinct p " + //
+		assertQuery("select distinct p " + //
 				"from Payment p " + //
 				"where (p.amount, p.completed) in (" + //
-				"	(50, true)," + //
+				"(50, true)," + //
 				"	(100, true)," + //
 				"	(5, false)" + //
 				")");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where 1 in indices(p.phones)");
-		parseWithoutChanges("select distinct p.person " + //
+		assertQuery("select distinct p.person " + //
 				"from Phone p " + //
 				"join p.calls c " + //
-				"where 50 > all (" + //
-				"	select duration" + //
+				"where 50 > all " + //
+				"(select duration" + //
 				"	from Call" + //
-				"	where phone = p " + //
+				"	where phone = p" + //
 				") ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where local date > all elements(p.repairTimestamps)");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where :phone = some elements(p.phones)");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where :phone member of p.phones");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where exists elements(p.phones)");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is empty");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.phones is not empty");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where 'Home address' member of p.addresses");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where 'Home address' not member of p.addresses");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from org.hibernate.userguide.model.Person p");
-		parseWithoutChanges("select distinct pr, ph " + //
+		assertQuery("select distinct pr, ph " + //
 				"from Person pr, Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parseWithoutChanges("select distinct pr1 " + //
+		assertQuery("select distinct pr1 " + //
 				"from Person pr1, Person pr2 " + //
 				"where pr1.id <> pr2.id " + //
 				"  and pr1.address = pr2.address " + //
 				"  and pr1.createdOn < pr2.createdOn");
-		parseWithoutChanges("select distinct pr, ph " + //
+		assertQuery("select distinct pr, ph " + //
 				"from Person pr cross join Phone ph " + //
 				"where ph.person = pr and ph is not null");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Payment p ");
-		parseWithoutChanges("select d.owner, d.payed " + //
-				"from (" + //
-				"  select p.person as owner, c.payment is not null as payed " + //
+		assertQuery("select d.owner, d.payed " + //
+				"from " + //
+				"(select p.person as owner, c.payment is not null as payed " + //
 				"  from Call c " + //
 				"  join c.phone p " + //
 				"  where p.number = :phoneNumber) d");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"join Phone ph on ph.person = pr " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"inner join pr.phones ph " + //
 				"where ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left outer join pr.phones ph " + //
 				"where ph is null " + //
 				"   or ph.type = :phoneType");
-		parseWithoutChanges("select pr.name, ph.number " + //
+		assertQuery("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph with ph.type = :phoneType ");
-		parseWithoutChanges("select pr.name, ph.number " + //
+		assertQuery("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph on ph.type = :phoneType ");
-		parseWithoutChanges("select distinct pr " + //
+		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left join fetch pr.phones ");
-		parseWithoutChanges("select a, ccp " + //
+		assertQuery("select a, ccp " + //
 				"from Account a " + //
 				"join treat(a.payments as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parseWithoutChanges("select c, ccp " + //
+		assertQuery("select c, ccp " + //
 				"from Call c " + //
 				"join treat(c.payment as CreditCardPayment) ccp " + //
 				"where length(ccp.cardNumber) between 16 and 20");
-		parseWithoutChanges("select longest.duration " + //
+		assertQuery("select longest.duration " + //
 				"from Phone p " + //
-				"left join lateral (" + //
-				"  select c.duration as duration " + //
+				"left join lateral " + //
+				"(select c.duration as duration " + //
 				"  from p.calls c" + //
 				"  order by c.duration desc" + //
 				"  limit 1 " + //
 				"  ) longest " + //
 				"where p.number = :phoneNumber");
-		parseWithoutChanges("select ph " + //
+		assertQuery("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address ");
-		parseWithoutChanges("select ph " + //
+		assertQuery("select ph " + //
 				"from Phone ph " + //
 				"join ph.person pr " + //
 				"where pr.address = :address ");
-		parseWithoutChanges("select ph " + //
+		assertQuery("select ph " + //
 				"from Phone ph " + //
 				"where ph.person.address = :address " + //
 				"  and ph.person.createdOn > :timestamp");
-		parseWithoutChanges("select ph " + //
+		assertQuery("select ph " + //
 				"from Phone ph " + //
 				"inner join ph.person pr " + //
 				"where pr.address = :address " + //
 				"  and pr.createdOn > :timestamp");
-		parseWithoutChanges("select ph " + //
+		assertQuery("select ph " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.calls c " + //
 				"where pr.address = :address " + //
 				"  and c.duration > :duration");
-		parseWithoutChanges("select ch " + //
+		assertQuery("select ch " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select value(ch) " + //
+		assertQuery("select value(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ch) " + //
+		assertQuery("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ch) " + //
+		assertQuery("select key(ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select entry(ch) " + //
+		assertQuery("select entry (ch) " + //
 				"from Phone ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select sum(ch.duration) " + //
+		assertQuery("select sum(ch.duration) " + //
 				"from Person pr " + //
 				"join pr.phones ph " + //
 				"join ph.callHistory ch " + //
 				"where ph.id = :id " + //
 				"  and index(ph) = :phoneIndex");
-		parseWithoutChanges("select value(ph.callHistory) " + //
+		assertQuery("select value(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select key(ph.callHistory) " + //
+		assertQuery("select key(ph.callHistory) " + //
 				"from Phone ph " + //
 				"where ph.id = :id ");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.phones[0].type = LAND_LINE");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where p.addresses['HOME'] = :address");
-		parseWithoutChanges("select pr " + //
+		assertQuery("select pr " + //
 				"from Person pr " + //
 				"where pr.phones[max(indices(pr.phones))].type = 'LAND_LINE'");
-		parseWithoutChanges("select p.name, p.nickName " + //
+		assertQuery("select p.name, p.nickName " + //
 				"from Person p ");
-		parseWithoutChanges("select p.name as name, p.nickName as nickName " + //
+		assertQuery("select p.name as name, p.nickName as nickName " + //
 				"from Person p ");
-		parseWithoutChanges("select new org.hibernate.userguide.hql.CallStatistics(" + //
-				"	count(c), " + //
+		assertQuery("select new org.hibernate.userguide.hql.CallStatistics" + //
+				"(count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
 				"	max(c.duration), " + //
@@ -1543,100 +1916,99 @@ class HqlQueryRendererTests {
 				"	1" + //
 				")  " + //
 				"from Call c ");
-		parseWithoutChanges("select new map(" + //
-				"	p.number as phoneNumber , " + //
+		assertQuery("select new map(" + //
+				"p.number as phoneNumber, " + //
 				"	sum(c.duration) as totalDuration, " + //
-				"	avg(c.duration) as averageDuration " + //
+				"	avg(c.duration) as averageDuration" + //
 				")  " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number ");
-		parseWithoutChanges("select new list(" + //
-				"	p.number, " + //
-				"	c.duration " + //
-				")  " + //
+		assertQuery("select new list(" + //
+				"p.number, " + //
+				"	c.duration) " + //
 				"from Call c " + //
 				"join c.phone p ");
-		parseWithoutChanges("select distinct p.lastName " + //
+		assertQuery("select distinct p.lastName " + //
 				"from Person p");
-		parseWithoutChanges("select " + //
+		assertQuery("select " + //
 				"	count(c), " + //
 				"	sum(c.duration), " + //
 				"	min(c.duration), " + //
 				"	max(c.duration), " + //
 				"	avg(c.duration)  " + //
 				"from Call c ");
-		parseWithoutChanges("select count(distinct c.phone) " + //
+		assertQuery("select count(distinct c.phone) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.number, count(c) " + //
+		assertQuery("select p.number, count(c) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where max(elements(p.calls)) = :call");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"where min(elements(p.calls)) = :call");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"where max(indices(p.phones)) = 0");
-		parseWithoutChanges("select count(c) filter (where c.duration < 30) " + //
+		assertQuery("select count(c) filter (where c.duration < 30) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.number, count(c) filter (where c.duration < 30) " + //
+		assertQuery("select p.number, count(c) filter (where c.duration < 30) " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"group by p.number");
-		parseWithoutChanges("select listagg(p.number, ', ') within group (order by p.type,p.number) " + //
+		assertQuery("select listagg(p.number, ', ') within group (order by p.type, p.number) " + //
 				"from Phone p " + //
 				"group by p.person");
-		parseWithoutChanges("select sum(c.duration) " + //
+		assertQuery("select sum(c.duration) " + //
 				"from Call c ");
-		parseWithoutChanges("select p.name, sum(c.duration) " + //
+		assertQuery("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name");
-		parseWithoutChanges("select p, sum(c.duration) " + //
+		assertQuery("select p, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p");
-		parseWithoutChanges("select p.name, sum(c.duration) " + //
+		assertQuery("select p.name, sum(c.duration) " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"having sum(c.duration) > 1000");
-		parseWithoutChanges("select p.name from Person p " + //
+		assertQuery("select p.name from Person p " + //
 				"union " + //
 				"select p.nickName from Person p where p.nickName is not null");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Person p " + //
 				"order by p.name");
-		parseWithoutChanges("select p.name, sum(c.duration) as total " + //
+		assertQuery("select p.name, sum(c.duration) as total " + //
 				"from Call c " + //
 				"join c.phone ph " + //
 				"join ph.person p " + //
 				"group by p.name " + //
 				"order by total");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"limit 50");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"fetch first 50 rows only");
-		parseWithoutChanges("select c " + //
+		assertQuery("select c " + //
 				"from Call c " + //
 				"join c.phone p " + //
 				"order by p.number " + //
 				"offset 10 rows " + //
 				"fetch first 50 rows with ties");
-		parseWithoutChanges("select p " + //
+		assertQuery("select p " + //
 				"from Phone p " + //
 				"join fetch p.calls " + //
 				"order by p " + //
@@ -1945,7 +2317,7 @@ class HqlQueryRendererTests {
 	}
 
 	@ParameterizedTest // GH-3136
-	@ValueSource(strings = {"LEFT", "RIGHT"})
+	@ValueSource(strings = { "LEFT", "RIGHT" })
 	void leftRightStringFunctions(String keyword) {
 		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
 	}
