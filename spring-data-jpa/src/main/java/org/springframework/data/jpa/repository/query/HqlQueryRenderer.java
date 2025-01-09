@@ -329,8 +329,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.appendExpression(visit(ctx.fromRoot()));
-		builder.appendInline(QueryTokenStream.concat(ctx.joinSpecifier(), this::visit, TOKEN_SPACE));
+		builder.appendInline(visit(ctx.fromRoot()));
+		builder.appendInline(QueryTokenStream.concat(ctx.joinSpecifier(), this::visit, EMPTY_TOKEN));
 
 		return builder;
 	}
@@ -389,6 +389,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
+		builder.append(TOKEN_SPACE);
 		builder.append(visit(ctx.joinType()));
 		builder.append(QueryTokens.expression(ctx.JOIN()));
 
@@ -746,7 +747,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.OFFSET()));
-		builder.append(visit(ctx.parameterOrIntegerLiteral()));
+		builder.appendExpression(visit(ctx.parameterOrIntegerLiteral()));
 
 		if (ctx.ROW() != null) {
 			builder.append(QueryTokens.expression(ctx.ROW()));
@@ -3377,7 +3378,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else {
 
-			builder.appendExpression(visit(ctx.collectionQuantifier()));
+			builder.append(visit(ctx.collectionQuantifier()));
 
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.simplePath()));
@@ -3412,7 +3413,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else {
 
-			builder.appendExpression(visit(ctx.collectionQuantifier()));
+			builder.append(visit(ctx.collectionQuantifier()));
 
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.simplePath()));
@@ -3801,9 +3802,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.simplePath() != null) {
 
 			if (ctx.ELEMENTS() != null) {
-				builder.append(QueryTokens.expression(ctx.ELEMENTS()));
+				builder.append(QueryTokens.token(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				builder.append(QueryTokens.expression(ctx.INDICES()));
+				builder.append(QueryTokens.token(ctx.INDICES()));
 			}
 
 			builder.append(TOKEN_OPEN_PAREN);
@@ -3836,9 +3837,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.EXISTS()));
 
 			if (ctx.ELEMENTS() != null) {
-				builder.append(QueryTokens.expression(ctx.ELEMENTS()));
+				builder.append(QueryTokens.token(ctx.ELEMENTS()));
 			} else if (ctx.INDICES() != null) {
-				builder.append(QueryTokens.expression(ctx.INDICES()));
+				builder.append(QueryTokens.token(ctx.INDICES()));
 			}
 
 			builder.append(TOKEN_OPEN_PAREN);
