@@ -1038,8 +1038,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return QueryRendererBuilder.from(QueryTokens.expression(ctx.STRING_LITERAL()));
 		} else if (ctx.numericLiteral() != null) {
 			return visit(ctx.numericLiteral());
-		} else if (ctx.dateTimeLiteral() != null) {
-			return visit(ctx.dateTimeLiteral());
+		} else if (ctx.temporalLiteral() != null) {
+			return visit(ctx.temporalLiteral());
+		} else if (ctx.arrayLiteral() != null) {
+			return visit(ctx.arrayLiteral());
+		} else if (ctx.generalizedLiteral() != null) {
+			return visit(ctx.generalizedLiteral());
 		} else if (ctx.binaryLiteral() != null) {
 			return visit(ctx.binaryLiteral());
 		} else {
@@ -1084,46 +1088,363 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
 
+		if (ctx.localDateTimeLiteral() != null) {
+			return visit(ctx.localDateTimeLiteral());
+		}
+
+		if (ctx.offsetDateTimeLiteral() != null) {
+			return visit(ctx.offsetDateTimeLiteral());
+		}
+
+		if (ctx.zonedDateTimeLiteral() != null) {
+			return visit(ctx.zonedDateTimeLiteral());
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitLocalDateTimeLiteral(HqlParser.LocalDateTimeLiteralContext ctx) {
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.LOCAL_DATE() != null) {
-			builder.append(QueryTokens.expression(ctx.LOCAL_DATE()));
-		} else if (ctx.LOCAL_TIME() != null) {
-			builder.append(QueryTokens.expression(ctx.LOCAL_TIME()));
-		} else if (ctx.LOCAL_DATETIME() != null) {
-			builder.append(QueryTokens.expression(ctx.LOCAL_DATETIME()));
-		} else if (ctx.CURRENT_DATE() != null) {
-			builder.append(QueryTokens.expression(ctx.CURRENT_DATE()));
-		} else if (ctx.CURRENT_TIME() != null) {
-			builder.append(QueryTokens.expression(ctx.CURRENT_TIME()));
-		} else if (ctx.CURRENT_TIMESTAMP() != null) {
-			builder.append(QueryTokens.expression(ctx.CURRENT_TIMESTAMP()));
-		} else if (ctx.OFFSET_DATETIME() != null) {
-			builder.append(QueryTokens.expression(ctx.OFFSET_DATETIME()));
-		} else {
-
+		if (ctx.DATETIME() != null) {
 			if (ctx.LOCAL() != null) {
 				builder.append(QueryTokens.expression(ctx.LOCAL()));
-			} else if (ctx.CURRENT() != null) {
-				builder.append(QueryTokens.expression(ctx.CURRENT()));
-			} else if (ctx.OFFSET() != null) {
-				builder.append(QueryTokens.expression(ctx.OFFSET()));
 			}
-
-			if (ctx.DATE() != null) {
-				builder.append(QueryTokens.expression(ctx.DATE()));
-			} else if (ctx.TIME() != null) {
-				builder.append(QueryTokens.expression(ctx.TIME()));
-			} else if (ctx.DATETIME() != null) {
-				builder.append(QueryTokens.expression(ctx.DATETIME()));
-			}
-
-			if (ctx.INSTANT() != null) {
-				builder.append(QueryTokens.expression(ctx.INSTANT()));
-			}
+			builder.append(QueryTokens.expression(ctx.DATETIME()));
+			builder.append(visit(ctx.localDateTime()));
+		} else {
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.localDateTime()));
+			builder.append(TOKEN_CLOSE_PAREN);
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitZonedDateTimeLiteral(HqlParser.ZonedDateTimeLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.DATETIME() != null) {
+			if (ctx.ZONED() != null) {
+				builder.append(QueryTokens.expression(ctx.ZONED()));
+			}
+			builder.append(QueryTokens.expression(ctx.DATETIME()));
+			builder.append(visit(ctx.zonedDateTime()));
+		} else {
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.zonedDateTime()));
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOffsetDateTimeLiteral(HqlParser.OffsetDateTimeLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.DATETIME() != null) {
+			if (ctx.OFFSET() != null) {
+				builder.append(QueryTokens.expression(ctx.OFFSET()));
+			}
+			builder.append(QueryTokens.expression(ctx.DATETIME()));
+			builder.append(visit(ctx.offsetDateTimeWithMinutes()));
+		} else {
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.offsetDateTime()));
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitDateLiteral(HqlParser.DateLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.DATE() != null) {
+			if (ctx.LOCAL() != null) {
+				builder.append(QueryTokens.expression(ctx.LOCAL()));
+			}
+			builder.append(QueryTokens.expression(ctx.DATE()));
+			builder.append(visit(ctx.date()));
+		} else {
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.date()));
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitTimeLiteral(HqlParser.TimeLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.TIME() != null) {
+			if (ctx.LOCAL() != null) {
+				builder.append(QueryTokens.expression(ctx.LOCAL()));
+			}
+			builder.append(QueryTokens.expression(ctx.TIME()));
+			builder.append(visit(ctx.time()));
+		} else {
+			builder.append(TOKEN_OPEN_PAREN);
+			builder.append(visit(ctx.time()));
+			builder.append(TOKEN_CLOSE_PAREN);
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitDateTime(HqlParser.DateTimeContext ctx) {
+
+		if (ctx.localDateTime() != null) {
+			return visit(ctx.localDateTime());
+		}
+
+		if (ctx.offsetDateTime() != null) {
+			return visit(ctx.offsetDateTime());
+		}
+
+		if (ctx.zonedDateTime() != null) {
+			return visit(ctx.zonedDateTime());
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitLocalDateTime(HqlParser.LocalDateTimeContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.date()));
+		builder.appendExpression(visit(ctx.time()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitZonedDateTime(HqlParser.ZonedDateTimeContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.date()));
+		builder.appendExpression(visit(ctx.time()));
+		builder.appendExpression(visit(ctx.zoneId()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOffsetDateTime(HqlParser.OffsetDateTimeContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.date()));
+		builder.appendInline(visit(ctx.time()));
+		builder.appendInline(visit(ctx.offset()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOffsetDateTimeWithMinutes(HqlParser.OffsetDateTimeWithMinutesContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.date()));
+		builder.appendInline(visit(ctx.time()));
+		builder.appendInline(visit(ctx.offsetWithMinutes()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitJdbcTimestampLiteral(HqlParser.JdbcTimestampLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_OPEN_BRACE);
+		builder.append(QueryTokens.token("ts"));
+		builder.append(visit(ctx.dateTime() != null ? ctx.dateTime() : ctx.genericTemporalLiteralText()));
+		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitJdbcDateLiteral(HqlParser.JdbcDateLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_OPEN_BRACE);
+		builder.append(QueryTokens.token("d"));
+		builder.append(visit(ctx.date() != null ? ctx.date() : ctx.genericTemporalLiteralText()));
+		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitJdbcTimeLiteral(HqlParser.JdbcTimeLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_OPEN_BRACE);
+		builder.append(QueryTokens.token("t"));
+		builder.append(visit(ctx.time() != null ? ctx.time() : ctx.genericTemporalLiteralText()));
+		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitGenericTemporalLiteralText(HqlParser.GenericTemporalLiteralTextContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitArrayLiteral(HqlParser.ArrayLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
+		builder.append(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitGeneralizedLiteral(HqlParser.GeneralizedLiteralContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(visit(ctx.generalizedLiteralType()));
+		builder.append(TOKEN_COLON);
+		builder.append(visit(ctx.generalizedLiteralText()));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitGeneralizedLiteralType(HqlParser.GeneralizedLiteralTypeContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitGeneralizedLiteralText(HqlParser.GeneralizedLiteralTextContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitDate(HqlParser.DateContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(visit(ctx.year()));
+		builder.append(TOKEN_DASH);
+		builder.append(visit(ctx.month()));
+		builder.append(TOKEN_DASH);
+		builder.append(visit(ctx.day()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitTime(HqlParser.TimeContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(visit(ctx.hour()));
+		builder.append(TOKEN_COLON);
+		builder.append(visit(ctx.minute()));
+
+		if (ctx.second() != null) {
+			builder.append(TOKEN_COLON);
+			builder.append(visit(ctx.second()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOffset(HqlParser.OffsetContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		if (ctx.MINUS() != null) {
+			builder.append(QueryTokens.token(ctx.MINUS()));
+		} else if (ctx.PLUS() != null) {
+			builder.append(QueryTokens.token(ctx.PLUS()));
+		}
+		builder.append(visit(ctx.hour()));
+
+		if (ctx.minute() != null) {
+			builder.append(TOKEN_COLON);
+			builder.append(visit(ctx.minute()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOffsetWithMinutes(HqlParser.OffsetWithMinutesContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.MINUS() != null) {
+			builder.append(QueryTokens.token(ctx.MINUS()));
+		} else if (ctx.PLUS() != null) {
+			builder.append(QueryTokens.token(ctx.PLUS()));
+		}
+
+		builder.append(visit(ctx.hour()));
+		builder.append(TOKEN_COLON);
+		builder.append(visit(ctx.minute()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitYear(HqlParser.YearContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitMonth(HqlParser.MonthContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitDay(HqlParser.DayContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitHour(HqlParser.HourContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitMinute(HqlParser.MinuteContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitSecond(HqlParser.SecondContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.INTEGER_LITERAL()));
+	}
+
+	@Override
+	public QueryTokenStream visitZoneId(HqlParser.ZoneIdContext ctx) {
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.STRING_LITERAL()));
 	}
 
 	@Override
@@ -1248,6 +1569,36 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitTemporalLiteral(HqlParser.TemporalLiteralContext ctx) {
+
+		if (ctx.dateTimeLiteral() != null) {
+			return visit(ctx.dateTimeLiteral());
+		}
+
+		if (ctx.dateLiteral() != null) {
+			return visit(ctx.dateLiteral());
+		}
+
+		if (ctx.timeLiteral() != null) {
+			return visit(ctx.timeLiteral());
+		}
+
+		if (ctx.jdbcTimestampLiteral() != null) {
+			return visit(ctx.jdbcTimestampLiteral());
+		}
+
+		if (ctx.jdbcDateLiteral() != null) {
+			return visit(ctx.jdbcDateLiteral());
+		}
+
+		if (ctx.jdbcTimeLiteral() != null) {
+			return visit(ctx.jdbcTimeLiteral());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override

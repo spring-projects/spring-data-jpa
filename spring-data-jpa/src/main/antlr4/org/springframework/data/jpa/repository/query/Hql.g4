@@ -314,8 +314,10 @@ literal
     | NULL
     | booleanLiteral
     | numericLiteral
-    | dateTimeLiteral
     | binaryLiteral
+    | temporalLiteral
+    | arrayLiteral
+    | generalizedLiteral
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-boolean-literals
@@ -326,29 +328,156 @@ booleanLiteral
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-numeric-literals
 numericLiteral
-	: INTEGER_LITERAL
-	| LONG_LITERAL
-	| BIG_INTEGER_LITERAL
-	| FLOAT_LITERAL
-	| DOUBLE_LITERAL
-	| BIG_DECIMAL_LITERAL
-	| HEX_LITERAL
-	;
+    : INTEGER_LITERAL
+    | LONG_LITERAL
+    | BIG_INTEGER_LITERAL
+    | FLOAT_LITERAL
+    | DOUBLE_LITERAL
+    | BIG_DECIMAL_LITERAL
+    | HEX_LITERAL
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-datetime-literals
+/**
+ * A literal datetime, in braces, or with the 'datetime' keyword
+ */
 dateTimeLiteral
-    : LOCAL_DATE
-    | LOCAL_TIME
-    | LOCAL_DATETIME
-    | CURRENT_DATE
-    | CURRENT_TIME
-    | CURRENT_TIMESTAMP
-    | OFFSET_DATETIME
-    | (LOCAL | CURRENT) DATE
-    | (LOCAL | CURRENT) TIME
-    | (LOCAL | CURRENT | OFFSET) DATETIME
-    | INSTANT
+    : localDateTimeLiteral
+    | zonedDateTimeLiteral
+    | offsetDateTimeLiteral
     ;
+
+localDateTimeLiteral
+    : '(' localDateTime ')'
+    | LOCAL? DATETIME localDateTime
+    ;
+
+zonedDateTimeLiteral
+    : '(' zonedDateTime ')'
+    | ZONED? DATETIME zonedDateTime
+    ;
+
+offsetDateTimeLiteral
+    : '(' offsetDateTime ')'
+    | OFFSET? DATETIME offsetDateTimeWithMinutes
+    ;
+/**
+ * A literal date, in braces, or with the 'date' keyword
+ */
+dateLiteral
+    : '(' date ')'
+    | LOCAL? DATE date
+    ;
+
+/**
+ * A literal time, in braces, or with the 'time' keyword
+ */
+timeLiteral
+    : '(' time ')'
+    | LOCAL? TIME time
+    ;
+
+/**
+ * A literal datetime
+ */
+ dateTime
+     : localDateTime
+     | zonedDateTime
+     | offsetDateTime
+     ;
+
+localDateTime
+    : date time
+    ;
+
+zonedDateTime
+    : date time zoneId
+    ;
+
+offsetDateTime
+    : date time offset
+    ;
+
+offsetDateTimeWithMinutes
+    : date time offsetWithMinutes
+    ;
+
+/**
+ * A JDBC-style timestamp escape, as required by JPQL
+ */
+jdbcTimestampLiteral
+    : TIMESTAMP_ESCAPE_START (dateTime | genericTemporalLiteralText) '}'
+    ;
+
+/**
+ * A JDBC-style date escape, as required by JPQL
+ */
+jdbcDateLiteral
+    : DATE_ESCAPE_START (date | genericTemporalLiteralText) '}'
+    ;
+
+/**
+ * A JDBC-style time escape, as required by JPQL
+ */
+jdbcTimeLiteral
+    : TIME_ESCAPE_START (time | genericTemporalLiteralText) '}'
+    ;
+
+genericTemporalLiteralText
+    : STRING_LITERAL
+    ;
+
+/**
+ * A generic format for specifying literal values of arbitary types
+ */
+arrayLiteral
+    : '[' (expression (',' expression)*)? ']'
+    ;
+
+/**
+ * A generic format for specifying literal values of arbitary types
+ */
+generalizedLiteral
+    : '(' generalizedLiteralType ':' generalizedLiteralText ')'
+    ;
+
+generalizedLiteralType : STRING_LITERAL;
+generalizedLiteralText : STRING_LITERAL;
+
+/**
+ * A literal date
+ */
+date
+    : year '-' month '-' day
+    ;
+
+/**
+ * A literal time
+ */
+time
+    : hour ':' minute (':' second)?
+    ;
+
+/**
+ * A literal offset
+ */
+offset
+    : (PLUS | MINUS) hour (':' minute)?
+    ;
+
+offsetWithMinutes
+    : (PLUS | MINUS) hour ':' minute
+    ;
+
+year: INTEGER_LITERAL;
+month: INTEGER_LITERAL;
+day: INTEGER_LITERAL;
+hour: INTEGER_LITERAL;
+minute: INTEGER_LITERAL;
+second: INTEGER_LITERAL | DOUBLE_LITERAL;
+zoneId
+    : IDENTIFIER ('/' IDENTIFIER)?
+    | STRING_LITERAL;
 
 /**
  * A field that may be extracted from a date, time, or datetime
@@ -402,8 +531,17 @@ binaryLiteral
     | '{' HEX_LITERAL (',' HEX_LITERAL)*  '}'
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-enum-literals
-// TBD
+/**
+ * A literal date, time, or datetime, in HQL syntax, or as a JDBC-style "escape" syntax
+ */
+temporalLiteral
+    : dateTimeLiteral
+    | dateLiteral
+    | timeLiteral
+    | jdbcTimestampLiteral
+    | jdbcDateLiteral
+    | jdbcTimeLiteral
+    ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-java-constants
 // TBD
@@ -1684,6 +1822,16 @@ HEX_LITERAL : '0' [xX] HEX_DIGIT+ LONG_SUFFIX?;
 BINARY_LITERAL              : [xX] '\'' HEX_DIGIT+ '\''
                             | [xX] '"'  HEX_DIGIT+ '"'
                             ;
+
+// ESCAPE start tokens
+TIMESTAMP_ESCAPE_START : '{ts';
+DATE_ESCAPE_START : '{d';
+TIME_ESCAPE_START : '{t';
+
+PLUS : '+';
+MINUS : '-';
+
+
 
 fragment
 LETTER : [a-zA-Z\u0080-\ufffe_$];

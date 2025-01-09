@@ -47,6 +47,7 @@ class QueryTokens {
 	static final QueryToken TOKEN_OPEN_SQUARE_BRACKET = token("[");
 	static final QueryToken TOKEN_CLOSE_SQUARE_BRACKET = token("]");
 	static final QueryToken TOKEN_COLON = token(":");
+	static final QueryToken TOKEN_DASH = token("-");
 	static final QueryToken TOKEN_QUESTION_MARK = token("?");
 	static final QueryToken TOKEN_OPEN_BRACE = token("{");
 	static final QueryToken TOKEN_CLOSE_BRACE = token("}");
