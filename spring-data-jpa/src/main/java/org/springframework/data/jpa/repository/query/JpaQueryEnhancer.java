@@ -71,7 +71,13 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		Lexer lexer = lexerFactoryFunction.apply(CharStreams.fromString(query));
 		P parser = parserFactoryFunction.apply(new CommonTokenStream(lexer));
 
-		configureParser(query, lexer, parser);
+		String grammar = lexer.getGrammarFileName();
+		int dot = grammar.lastIndexOf('.');
+		if (dot != -1) {
+			grammar = grammar.substring(0, dot);
+		}
+
+		configureParser(query, grammar.toUpperCase(), lexer, parser);
 
 		return parseFunction.apply(parser);
 	}
@@ -83,9 +89,9 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @param lexer
 	 * @param parser
 	 */
-	static void configureParser(String query, Lexer lexer, Parser parser) {
+	static void configureParser(String query, String grammar, Lexer lexer, Parser parser) {
 
-		BadJpqlGrammarErrorListener errorListener = new BadJpqlGrammarErrorListener(query);
+		BadJpqlGrammarErrorListener errorListener = new BadJpqlGrammarErrorListener(query, grammar);
 
 		lexer.removeErrorListeners();
 		lexer.addErrorListener(errorListener);

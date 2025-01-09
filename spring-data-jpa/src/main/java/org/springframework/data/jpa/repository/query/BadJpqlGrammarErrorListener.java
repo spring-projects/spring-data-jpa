@@ -29,14 +29,21 @@ class BadJpqlGrammarErrorListener extends BaseErrorListener {
 
 	private final String query;
 
+	private final String grammar;
+
 	BadJpqlGrammarErrorListener(String query) {
+		this(query, "JPQL");
+	}
+
+	BadJpqlGrammarErrorListener(String query, String grammar) {
 		this.query = query;
+		this.grammar = grammar;
 	}
 
 	@Override
 	public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
 			String msg, RecognitionException e) {
-		throw new BadJpqlGrammarException("Line " + line + ":" + charPositionInLine + " " + msg, query, null);
+		throw new BadJpqlGrammarException("Line " + line + ":" + charPositionInLine + " " + msg, grammar, query, null);
 	}
 
 }

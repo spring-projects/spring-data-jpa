@@ -30,7 +30,11 @@ public class BadJpqlGrammarException extends InvalidDataAccessResourceUsageExcep
 	private final String jpql;
 
 	public BadJpqlGrammarException(String message, String jpql, @Nullable Throwable cause) {
-		super(message + "; Bad JPQL grammar [" + jpql + "]", cause);
+		this(message, jpql, "JPQL", cause);
+	}
+
+	BadJpqlGrammarException(String message, String grammar, String jpql, @Nullable Throwable cause) {
+		super(message + "; Bad " + grammar + " grammar [" + jpql + "]", cause);
 		this.jpql = jpql;
 	}
 
