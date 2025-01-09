@@ -80,7 +80,7 @@ class QueryEnhancerUnitTests {
 	@MethodSource("detectsAliasWithUCorrectlySource")
 	void detectsAliasWithUCorrectly(DeclaredQuery query, String alias) {
 
-		assumeThat(query.getQueryString()).as("JsqlParser does not support simple JPA syntax.")
+		assumeThat(query.getQueryString()).as("JsqlParser does not support simple JPA syntax")
 				.doesNotStartWithIgnoringCase("from");
 
 		assertThat(getEnhancer(query).detectAlias()).isEqualTo(alias);
