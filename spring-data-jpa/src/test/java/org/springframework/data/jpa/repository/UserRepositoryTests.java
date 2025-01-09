@@ -802,9 +802,6 @@ class UserRepositoryTests {
 		assertThat(repository.findByActiveFalse()).containsOnly(firstUser);
 	}
 
-	/**
-	 * Ignored until the query declaration is supported by OpenJPA.
-	 */
 	@Test
 	void executesAnnotatedCollectionMethodCorrectly() {
 
@@ -1617,11 +1614,7 @@ class UserRepositoryTests {
 		assertThat(repository.deleteByLastname("dorfuaeB")).isEmpty();
 	}
 
-	/**
-	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2484">OPENJPA-2484</a>
-	 */
 	@Test // DATAJPA-505
-	@Disabled
 	void findBinaryDataByIdJpaQl() throws Exception {
 
 		byte[] data = "Woho!!".getBytes("UTF-8");

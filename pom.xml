@@ -195,7 +195,6 @@
 							</includes>
 							<excludes>
 								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/OpenJpa*</exclude>
 								<exclude>**/EclipseLink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
