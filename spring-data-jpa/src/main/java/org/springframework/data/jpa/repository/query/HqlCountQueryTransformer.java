@@ -160,6 +160,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
+		builder.append(TOKEN_SPACE);
 		builder.appendExpression(visit(ctx.joinType()));
 		builder.append(QueryTokens.expression(ctx.JOIN()));
 

@@ -31,6 +31,7 @@ class QueryTokens {
 	/**
 	 * Commonly use tokens.
 	 */
+	static final QueryToken EMPTY_TOKEN = token("");
 	static final QueryToken TOKEN_COMMA = token(", ");
 	static final QueryToken TOKEN_SPACE = token(" ");
 	static final QueryToken TOKEN_DOT = token(".");
