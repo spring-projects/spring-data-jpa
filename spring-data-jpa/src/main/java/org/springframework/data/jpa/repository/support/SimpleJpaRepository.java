@@ -19,20 +19,17 @@ import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.Parameter;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
-import jakarta.persistence.criteria.ParameterExpression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Selection;
 
-import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -262,7 +259,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
 			 */
-						Collection<ID> idCollection = toCollection(ids);
+			Collection<ID> idCollection = toCollection(ids);
 			query.setParameter("ids", idCollection);
 
 			applyQueryHints(query);
@@ -426,10 +423,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Collection<ID> idCollection = toCollection(ids);
 
-		ByIdsSpecification<T> specification = new ByIdsSpecification<>(entityInformation);
-		TypedQuery<T> query = getQuery(specification, Sort.unsorted());
+		TypedQuery<T> query = getQuery((root, q, criteriaBuilder) -> {
 
-		return query.setParameter(specification.parameter, idCollection).getResultList();
+			Path<?> path = root.get(entityInformation.getIdAttribute());
+			return path.in(idCollection);
+
+		}, Sort.unsorted());
+
+		return query.getResultList();
 	}
 
 	@Override
@@ -1084,37 +1085,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	/**
-	 * Specification that gives access to the {@link Parameter} instance used to bind the ids for
-	 * {@link SimpleJpaRepository#findAllById(Iterable)}. Workaround for OpenJPA not binding collections to in-clauses
-	 * correctly when using by-name binding.
-	 *
-	 * @author Oliver Gierke
-	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2018?focusedCommentId=13924055">OPENJPA-2018</a>
-	 */
-	@SuppressWarnings("rawtypes")
-	private static final class ByIdsSpecification<T> implements Specification<T> {
-
-		private static final @Serial long serialVersionUID = 1L;
-
-		private final JpaEntityInformation<T, ?> entityInformation;
-
-		@Nullable ParameterExpression<Collection<?>> parameter;
-
-		ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation) {
-			this.entityInformation = entityInformation;
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
-
-			Path<?> path = root.get(entityInformation.getIdAttribute());
-			parameter = (ParameterExpression<Collection<?>>) (ParameterExpression) cb.parameter(Collection.class);
-			return path.in(parameter);
-		}
-	}
-
-	/**
 	 * {@link Specification} that gives access to the {@link Predicate} instance representing the values contained in the
 	 * {@link Example}.
 	 *
@@ -1122,12 +1092,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @author Christoph Strobl
 	 * @since 1.10
 	 */
-	private static class ExampleSpecification<T> implements Specification<T> {
-
-		private static final @Serial long serialVersionUID = 1L;
-
-		private final Example<T> example;
-		private final EscapeCharacter escapeCharacter;
+	private record ExampleSpecification<T>(Example<T> example,
+			EscapeCharacter escapeCharacter) implements Specification<T> {
 
 		/**
 		 * Creates new {@link ExampleSpecification}.
@@ -1135,13 +1101,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		 * @param example the example to base the specification of. Must not be {@literal null}.
 		 * @param escapeCharacter the escape character to use for like expressions. Must not be {@literal null}.
 		 */
-		ExampleSpecification(Example<T> example, EscapeCharacter escapeCharacter) {
+		private ExampleSpecification {
 
 			Assert.notNull(example, EXAMPLE_MUST_NOT_BE_NULL);
 			Assert.notNull(escapeCharacter, "EscapeCharacter must not be null");
 
-			this.example = example;
-			this.escapeCharacter = escapeCharacter;
 		}
 
 		@Override
