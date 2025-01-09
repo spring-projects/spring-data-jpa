@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Metamodel tests using OpenJPA.
+ * Metamodel tests using Eclipselink.
  *
  * @author Oliver Gierke
  */
