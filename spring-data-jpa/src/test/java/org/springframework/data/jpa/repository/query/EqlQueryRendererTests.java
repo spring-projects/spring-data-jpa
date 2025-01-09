@@ -337,6 +337,38 @@ class EqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-3136
+	void substring() {
+
+		assertQuery("select substring(c.number, 1, 2) " + //
+				"from Call c");
+
+		assertQuery("select substring(c.number, 1) " + //
+				"from Call c");
+	}
+
+	@Test // GH-3136
+	void currentDateFunctions() {
+
+		assertQuery("select CURRENT_DATE " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIME " + //
+				"from Call c ");
+
+		assertQuery("select CURRENT_TIMESTAMP " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATE " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_TIME " + //
+				"from Call c ");
+
+		assertQuery("select LOCAL_DATETIME " + //
+				"from Call c ");
+	}
+
 	@Test
 	void pathExpressionsNamedParametersExample() {
 
@@ -448,18 +480,13 @@ class EqlQueryRendererTests {
 	 * @see #functionInvocationExampleWithCorrection()
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
-	void functionInvocationExample_SPEC_BUG() {
+	void functionInvocationExample() {
 
 		assertQuery("""
 				SELECT c
 				FROM Customer c
 				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
 				""");
-	}
-
-	@Test
-	void functionInvocationExampleWithCorrection() {
 
 		assertQuery("""
 				SELECT c
