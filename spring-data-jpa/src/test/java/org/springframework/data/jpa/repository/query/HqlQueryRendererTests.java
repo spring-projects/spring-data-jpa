@@ -1749,6 +1749,36 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT ce.id as id, cd.startDate + 5 %s AS summedDate FROM CalendarEvent ce".formatted(dtField));
 	}
 
+	@Test // GH-3739
+	void dateTimeLiterals() {
+
+		assertQuery("SELECT e FROM  Employee e WHERE e.startDate = {d'2012-01-03'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.startTime = {t'09:00:00'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts'2012-01-03 09:00:00'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts'something weird'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00+1}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00-1}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00+1:00}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00-1:00}");
+
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = OFFSET DATETIME 2012-01-03 09:00:00+1:01");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = OFFSET DATETIME 2012-01-03 09:00:00-1:01");
+	}
+
+	@Test
+	void literals() {
+
+		assertQuery("SELECT e FROM  Employee e WHERE e.name = 'Bob'");
+		assertQuery("SELECT e FROM  Employee e WHERE e.names = [e.firstName, e.lastName]");
+		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234");
+		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234L");
+		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14F");
+		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
+		assertQuery("SELECT e FROM  Employee e WHERE e.active = TRUE");
+		assertQuery("SELECT e FROM  Employee e WHERE e.gender = org.acme.Gender.MALE");
+		assertQuery("UPDATE Employee e SET e.manager = NULL WHERE e.manager = :manager");
+	}
+
 	@ParameterizedTest // GH-3711
 	@ValueSource(strings = { "1", "1_000", "1L", "1_000L", "1bi", "1.1f", "2.2d", "2.2bd" })
 	void numberLiteralsShouldWork(String literal) {
