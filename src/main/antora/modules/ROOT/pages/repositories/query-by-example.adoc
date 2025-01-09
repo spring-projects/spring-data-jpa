@@ -1,3 +1,4 @@
+:support-qbe-collection: false
 include::{commons}@data-commons::page$query-by-example.adoc[]
 
 [[query-by-example.running]]
