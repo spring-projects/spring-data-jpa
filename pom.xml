@@ -31,8 +31,8 @@
 		<eclipselink>4.0.4</eclipselink>
 		<eclipselink-next>4.0.5-SNAPSHOT</eclipselink-next>
 		<hibernate>6.6.4.Final</hibernate>
-		<hibernate-62>6.2.31.Final</hibernate-62>
-		<hibernate-66-snapshots>6.6.3-SNAPSHOT</hibernate-66-snapshots>
+		<hibernate-62>6.2.32.Final</hibernate-62>
+		<hibernate-66-snapshots>6.6.5-SNAPSHOT</hibernate-66-snapshots>
 		<hibernate-70>7.0.0.Beta1</hibernate-70>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
