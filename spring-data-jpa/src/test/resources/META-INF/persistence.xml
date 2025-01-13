@@ -4,6 +4,7 @@
 			 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_2.xsd"
 			 version="3.2">
 	<persistence-unit name="spring-data-jpa">
+		<mapping-file>META-INF/orm.xml</mapping-file>
 		<class>org.springframework.data.jpa.domain.AbstractPersistable</class>
 		<class>org.springframework.data.jpa.domain.AbstractAuditable</class>
 		<class>org.springframework.data.jpa.domain.sample.AbstractAnnotatedAuditable</class>
@@ -69,6 +70,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
@@ -78,6 +80,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.cdi.Person</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
@@ -95,6 +98,7 @@
 	<!-- DATAJPA-476 -->
 	<persistence-unit name="merchant">
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Merchant</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Address</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Employee</class>
@@ -122,6 +126,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
@@ -140,6 +145,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
@@ -164,6 +170,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
@@ -181,6 +188,7 @@
 		<class>org.springframework.data.jpa.domain.sample.MailMessage</class>
 		<class>org.springframework.data.jpa.domain.sample.MailSender</class>
 		<class>org.springframework.data.jpa.domain.sample.MailUser</class>
+		<class>org.springframework.data.jpa.domain.sample.Role</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$Sample</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
