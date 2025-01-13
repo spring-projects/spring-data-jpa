@@ -36,6 +36,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
+	private boolean containsCTE = false;
 
 	HqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
 		this.countProjection = countProjection;
@@ -64,6 +65,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitCte(HqlParser.CteContext ctx) {
+		this.containsCTE = true;
+		return super.visitCte(ctx);
 	}
 
 	@Override
@@ -189,7 +196,9 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
 			} else {
-				nested.append(QueryTokens.token(primaryFromAlias));
+
+				// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
+				nested.append(containsCTE ? QueryTokens.token("*") : QueryTokens.token(primaryFromAlias));
 			}
 		} else {
 			builder.append(QueryTokens.token(countProjection));
