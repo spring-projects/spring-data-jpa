@@ -27,10 +27,10 @@
 	</parent>
 
 	<properties>
-		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
+		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.0-B05</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.0.0.Beta1</hibernate>
+		<hibernate>7.0.0.Beta3</hibernate>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
