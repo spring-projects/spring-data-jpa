@@ -86,13 +86,11 @@ class HqlQueryTransformerTests {
 
 		assertThat(createQueryFor(original, Sort.unsorted())).isEqualTo(original);
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
 	}
 
 	@Test
@@ -149,6 +147,24 @@ class HqlQueryTransformerTests {
 
 		// then
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test // GH-3726
+	void shouldCreateCountQueryForCTE() {
+
+		// given
+		var original = """
+				WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u)
+						SELECT new org.springframework.data.jpa.repository.sample.UserExcerptDto(c.firstname, c.lastname)
+						FROM cte_select c
+				""";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualToIgnoringWhitespace(
+				"WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u) SELECT count(*) FROM cte_select c");
 	}
 
 	@Test
@@ -539,7 +555,7 @@ class HqlQueryTransformerTests {
 				""");
 
 		assertThat(countQuery).startsWith("WITH maxId AS (select max(sr.snapshot.id) snapshotId from SnapshotReference sr")
-				.endsWith("select count(m) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
+				.endsWith("select count(*) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
 	}
 
 	@Test // GH-3504
@@ -1039,8 +1055,7 @@ class HqlQueryTransformerTests {
 			""", """
 			delete MyEntity AS mes
 			where mes.col = 'test'
-			"""
-	}) // GH-2977, GH-3649
+			""" }) // GH-2977, GH-3649
 	void isSubqueryThrowsException(String query) {
 		assertThat(createQueryFor(query, Sort.unsorted())).isEqualToIgnoringWhitespace(query);
 	}
@@ -1101,7 +1116,8 @@ class HqlQueryTransformerTests {
 				"select count(distinct a, b, sum(amount), d) from Employee AS __ GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n",
 				"select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
-		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee", "select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
+		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee",
+				"select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
 	}
 
 	@Test // GH-3427
