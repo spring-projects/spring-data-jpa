@@ -43,12 +43,13 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 	private final @Nullable String primaryFromAlias;
 	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
-	EqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias, @Nullable ReturnedType returnedType) {
+	EqlSortedQueryTransformer(Sort sort, QueryInformation queryInformation, @Nullable ReturnedType returnedType) {
 
 		Assert.notNull(sort, "Sort must not be null");
+		Assert.notNull(queryInformation, "ParsedHqlQueryInformation must not be null");
 
 		this.sort = sort;
-		this.primaryFromAlias = primaryFromAlias;
+		this.primaryFromAlias = queryInformation.getAlias();
 		this.dtoDelegate = returnedType == null ? null : new DtoProjectionTransformerDelegate(returnedType);
 	}
 

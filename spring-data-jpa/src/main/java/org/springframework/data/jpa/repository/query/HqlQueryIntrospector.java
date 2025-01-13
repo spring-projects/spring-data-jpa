@@ -30,7 +30,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
-class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector {
+class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector<HibernateQueryInformation> {
 
 	private final HqlQueryRenderer renderer = new HqlQueryRenderer();
 
@@ -38,20 +38,12 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	private @Nullable List<QueryToken> projection;
 	private boolean projectionProcessed;
 	private boolean hasConstructorExpression = false;
+	private boolean hasCte = false;
 
 	@Override
-	public String getAlias() {
-		return primaryFromAlias;
-	}
-
-	@Override
-	public List<QueryToken> getProjection() {
-		return projection == null ? Collections.emptyList() : projection;
-	}
-
-	@Override
-	public boolean hasConstructorExpression() {
-		return hasConstructorExpression;
+	public HibernateQueryInformation getParsedQueryInformation() {
+		return new HibernateQueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
+				hasConstructorExpression, hasCte);
 	}
 
 	@Override
@@ -63,6 +55,12 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 		}
 
 		return super.visitSelectClause(ctx);
+	}
+
+	@Override
+	public Void visitCte(HqlParser.CteContext ctx) {
+		this.hasCte = true;
+		return super.visitCte(ctx);
 	}
 
 	@Override

@@ -35,15 +35,13 @@ import org.springframework.data.repository.core.support.DefaultRepositoryMetadat
 class HqlDtoQueryTransformerUnitTests {
 
 	JpaQueryMethod method = getMethod("dtoProjection");
-	HqlSortedQueryTransformer transformer = new HqlSortedQueryTransformer(Sort.unsorted(), null,
-			method.getResultProcessor().getReturnedType());
 
 	@Test // GH-3076
 	void shouldTranslateSingleProjectionToDto() {
 
 		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser.parseQuery("SELECT p from Person p");
 
-		QueryTokenStream visit = transformer.visit(parser.getContext());
+		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
 				"SELECT new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar) from Person p");
@@ -55,7 +53,7 @@ class HqlDtoQueryTransformerUnitTests {
 		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
 				.parseQuery("select u from User u left outer join u.roles r where r in (select r from Role r)");
 
-		QueryTokenStream visit = transformer.visit(parser.getContext());
+		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
 				"select new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(u.foo, u.bar) from User u left outer join u.roles r where r in (select r from Role r)");
@@ -67,7 +65,7 @@ class HqlDtoQueryTransformerUnitTests {
 		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
 				.parseQuery("SELECT NEW String(p) from Person p");
 
-		QueryTokenStream visit = transformer.visit(parser.getContext());
+		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo("SELECT NEW String(p) from Person p");
 	}
@@ -78,7 +76,7 @@ class HqlDtoQueryTransformerUnitTests {
 		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
 				.parseQuery("SELECT p.foo, p.bar, sum(p.age) from Person p");
 
-		QueryTokenStream visit = transformer.visit(parser.getContext());
+		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
 				"SELECT new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar, sum(p.age)) from Person p");
@@ -95,6 +93,11 @@ class HqlDtoQueryTransformerUnitTests {
 		} catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private HqlSortedQueryTransformer getTransformer(JpaQueryEnhancer.HqlQueryParser parser) {
+		return new HqlSortedQueryTransformer(Sort.unsorted(), parser.getQueryInformation(),
+				method.getResultProcessor().getReturnedType());
 	}
 
 	interface MyRepo extends Repository<Person, String> {

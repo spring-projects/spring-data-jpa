@@ -36,10 +36,9 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
 
-	EqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
-
+	EqlCountQueryTransformer(@Nullable String countProjection, QueryInformation queryInformation) {
 		this.countProjection = countProjection;
-		this.primaryFromAlias = primaryFromAlias;
+		this.primaryFromAlias = queryInformation.getAlias();
 	}
 
 	@Override

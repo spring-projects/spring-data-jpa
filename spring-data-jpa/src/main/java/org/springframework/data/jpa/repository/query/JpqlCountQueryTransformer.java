@@ -36,9 +36,9 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
 
-	JpqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
+	JpqlCountQueryTransformer(@Nullable String countProjection, QueryInformation queryInformation) {
 		this.countProjection = countProjection;
-		this.primaryFromAlias = primaryFromAlias;
+		this.primaryFromAlias = queryInformation.getAlias();
 	}
 
 	@Override

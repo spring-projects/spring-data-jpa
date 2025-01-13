@@ -41,21 +41,14 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 	private final @Nullable String primaryFromAlias;
 	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
-	HqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias) {
+	HqlSortedQueryTransformer(Sort sort, HibernateQueryInformation queryInformation,
+			@Nullable ReturnedType returnedType) {
 
 		Assert.notNull(sort, "Sort must not be null");
+		Assert.notNull(queryInformation, "ParsedHqlQueryInformation must not be null");
 
 		this.sort = sort;
-		this.primaryFromAlias = primaryFromAlias;
-		this.dtoDelegate = null;
-	}
-
-	HqlSortedQueryTransformer(Sort sort, @Nullable String primaryFromAlias, @Nullable ReturnedType returnedType) {
-
-		Assert.notNull(sort, "Sort must not be null");
-
-		this.sort = sort;
-		this.primaryFromAlias = primaryFromAlias;
+		this.primaryFromAlias = queryInformation.getAlias();
 		this.dtoDelegate = returnedType == null ? null : new DtoProjectionTransformerDelegate(returnedType);
 	}
 

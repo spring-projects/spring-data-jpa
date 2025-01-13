@@ -36,11 +36,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
-	private boolean containsCTE = false;
+	private final boolean containsCTE;
 
-	HqlCountQueryTransformer(@Nullable String countProjection, @Nullable String primaryFromAlias) {
+	HqlCountQueryTransformer(@Nullable String countProjection, HibernateQueryInformation queryInformation) {
 		this.countProjection = countProjection;
-		this.primaryFromAlias = primaryFromAlias;
+		this.primaryFromAlias = queryInformation.getAlias();
+		this.containsCTE = queryInformation.hasCte();
 	}
 
 	@Override
@@ -65,12 +66,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		}
 
 		return builder;
-	}
-
-	@Override
-	public QueryTokenStream visitCte(HqlParser.CteContext ctx) {
-		this.containsCTE = true;
-		return super.visitCte(ctx);
 	}
 
 	@Override

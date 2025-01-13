@@ -44,25 +44,27 @@ import org.springframework.util.Assert;
  * @see HqlQueryParser
  * @see EqlQueryParser
  */
-class JpaQueryEnhancer implements QueryEnhancer {
+@SuppressWarnings("removal")
+class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 
 	private final ParserRuleContext context;
-	private final ParsedQueryIntrospector introspector;
+	private final Q queryInformation;
 	private final String projection;
-	private final SortedQueryRewriteFunction sortFunction;
-	private final BiFunction<String, String, ParseTreeVisitor<? extends Object>> countQueryFunction;
+	private final SortedQueryRewriteFunction<Q> sortFunction;
+	private final BiFunction<String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction;
 
-	JpaQueryEnhancer(ParserRuleContext context, ParsedQueryIntrospector introspector,
-			SortedQueryRewriteFunction sortFunction,
-			BiFunction<String, String, ParseTreeVisitor<? extends Object>> countQueryFunction) {
+	JpaQueryEnhancer(ParserRuleContext context, ParsedQueryIntrospector<Q> introspector,
+			SortedQueryRewriteFunction<Q> sortFunction,
+			BiFunction<String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction) {
 
 		this.context = context;
-		this.introspector = introspector;
 		this.sortFunction = sortFunction;
 		this.countQueryFunction = countQueryFunction;
-		this.introspector.visit(context);
+		introspector.visit(context);
 
-		List<QueryToken> tokens = introspector.getProjection();
+		this.queryInformation = introspector.getParsedQueryInformation();
+
+		List<QueryToken> tokens = queryInformation.getProjection();
 		this.projection = tokens.isEmpty() ? "" : new QueryRenderer.TokenRenderer(tokens).render();
 	}
 
@@ -86,9 +88,10 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	/**
 	 * Apply common configuration (SLL prediction for performance, our own error listeners).
 	 *
-	 * @param query
-	 * @param lexer
-	 * @param parser
+	 * @param query the query input to parse.
+	 * @param grammar name of the grammar.
+	 * @param lexer lexer to configure.
+	 * @param parser parser to configure.
 	 */
 	static void configureParser(String query, String grammar, Lexer lexer, Parser parser) {
 
@@ -109,7 +112,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using JPQL.
 	 */
-	public static JpaQueryEnhancer forJpql(DeclaredQuery query) {
+	public static JpaQueryEnhancer<QueryInformation> forJpql(DeclaredQuery query) {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
@@ -122,7 +125,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using HQL.
 	 */
-	public static JpaQueryEnhancer forHql(DeclaredQuery query) {
+	public static JpaQueryEnhancer<HibernateQueryInformation> forHql(DeclaredQuery query) {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
@@ -136,15 +139,25 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @return a new {@link JpaQueryEnhancer} using EQL.
 	 * @since 3.2
 	 */
-	public static JpaQueryEnhancer forEql(DeclaredQuery query) {
+	public static JpaQueryEnhancer<QueryInformation> forEql(DeclaredQuery query) {
 
 		Assert.notNull(query, "DeclaredQuery must not be null!");
 
 		return EqlQueryParser.parseQuery(query.getQueryString());
 	}
 
+	/**
+	 * @return the parser context (AST) representing the parsed query.
+	 */
 	ParserRuleContext getContext() {
 		return context;
+	}
+
+	/**
+	 * @return the parsed query information.
+	 */
+	Q getQueryInformation() {
+		return queryInformation;
 	}
 
 	/**
@@ -154,7 +167,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public boolean hasConstructorExpression() {
-		return this.introspector.hasConstructorExpression();
+		return this.queryInformation.hasConstructorExpression();
 	}
 
 	/**
@@ -163,7 +176,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String detectAlias() {
-		return this.introspector.getAlias();
+		return this.queryInformation.getAlias();
 	}
 
 	/**
@@ -176,8 +189,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	}
 
 	/**
-	 * Since the {@link JpaQueryParser} can already fully transform sorted and count queries by itself, this is a
-	 * placeholder method.
+	 * Since the parser can already fully transform sorted and count queries by itself, this is a placeholder method.
 	 *
 	 * @return empty set
 	 */
@@ -202,13 +214,14 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String applySorting(Sort sort) {
-		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, detectAlias(), null).visit(context));
+		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, this.queryInformation, null).visit(context));
 	}
 
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
-		return QueryRenderer.TokenRenderer.render(sortFunction
-				.apply(rewriteInformation.getSort(), detectAlias(), rewriteInformation.getReturnedType()).visit(context));
+		return QueryRenderer.TokenRenderer.render(
+				sortFunction.apply(rewriteInformation.getSort(), this.queryInformation, rewriteInformation.getReturnedType())
+						.visit(context));
 	}
 
 	/**
@@ -240,7 +253,21 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 */
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
-		return QueryRenderer.TokenRenderer.render(countQueryFunction.apply(countProjection, detectAlias()).visit(context));
+		return QueryRenderer.TokenRenderer
+				.render(countQueryFunction.apply(countProjection, this.queryInformation).visit(context));
+	}
+
+	/**
+	 * Functional interface to rewrite a query considering {@link Sort} and {@link ReturnedType}. The function returns a
+	 * visitor object that can visit the parsed query tree.
+	 *
+	 * @since 3.5
+	 */
+	@FunctionalInterface
+	interface SortedQueryRewriteFunction<Q> {
+
+		ParseTreeVisitor<QueryTokenStream> apply(Sort sort, Q queryInformation, @Nullable ReturnedType returnedType);
+
 	}
 
 	/**
@@ -251,7 +278,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @author Mark Paluch
 	 * @since 3.1
 	 */
-	static class HqlQueryParser extends JpaQueryEnhancer {
+	static class HqlQueryParser extends JpaQueryEnhancer<HibernateQueryInformation> {
 
 		private HqlQueryParser(String query) {
 			super(parse(query, HqlLexer::new, HqlParser::new, HqlParser::start), new HqlQueryIntrospector(),
@@ -261,9 +288,9 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		/**
 		 * Parse a HQL query.
 		 *
-		 * @param query
+		 * @param query the query to parse.
 		 * @return the query parser.
-		 * @throws BadJpqlGrammarException
+		 * @throws BadJpqlGrammarException in case of malformed query.
 		 */
 		public static HqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
 			return new HqlQueryParser(query);
@@ -279,7 +306,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @author Mark Paluch
 	 * @since 3.2
 	 */
-	static class EqlQueryParser extends JpaQueryEnhancer {
+	static class EqlQueryParser extends JpaQueryEnhancer<QueryInformation> {
 
 		private EqlQueryParser(String query) {
 			super(parse(query, EqlLexer::new, EqlParser::new, EqlParser::start), new EqlQueryIntrospector(),
@@ -289,9 +316,9 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		/**
 		 * Parse a EQL query.
 		 *
-		 * @param query
+		 * @param query the query to parse.
 		 * @return the query parser.
-		 * @throws BadJpqlGrammarException
+		 * @throws BadJpqlGrammarException in case of malformed query.
 		 */
 		public static EqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
 			return new EqlQueryParser(query);
@@ -307,7 +334,7 @@ class JpaQueryEnhancer implements QueryEnhancer {
 	 * @author Mark Paluch
 	 * @since 3.1
 	 */
-	static class JpqlQueryParser extends JpaQueryEnhancer {
+	static class JpqlQueryParser extends JpaQueryEnhancer<QueryInformation> {
 
 		private JpqlQueryParser(String query) {
 			super(parse(query, JpqlLexer::new, JpqlParser::new, JpqlParser::start), new JpqlQueryIntrospector(),
@@ -317,25 +344,13 @@ class JpaQueryEnhancer implements QueryEnhancer {
 		/**
 		 * Parse a JPQL query.
 		 *
-		 * @param query
+		 * @param query the query to parse.
 		 * @return the query parser.
-		 * @throws BadJpqlGrammarException
+		 * @throws BadJpqlGrammarException in case of malformed query.
 		 */
 		public static JpqlQueryParser parseQuery(String query) throws BadJpqlGrammarException {
 			return new JpqlQueryParser(query);
 		}
 	}
 
-	/**
-	 * Functional interface to rewrite a query considering {@link Sort} and {@link ReturnedType}. The function returns a
-	 * visitor object that can visit the parsed query tree.
-	 *
-	 * @since 3.5
-	 */
-	@FunctionalInterface
-	interface SortedQueryRewriteFunction {
-
-		ParseTreeVisitor<? extends Object> apply(Sort sort, String primaryAlias, @Nullable ReturnedType returnedType);
-
-	}
 }

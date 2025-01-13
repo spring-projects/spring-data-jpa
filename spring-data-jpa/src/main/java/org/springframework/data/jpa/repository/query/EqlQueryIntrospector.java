@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_COMMA;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  */
 @SuppressWarnings("UnreachableCode")
-class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIntrospector {
+class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIntrospector<QueryInformation> {
 
 	private final EqlQueryRenderer renderer = new EqlQueryRenderer();
 
@@ -41,18 +41,9 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	private boolean hasConstructorExpression = false;
 
 	@Override
-	public String getAlias() {
-		return primaryFromAlias;
-	}
-
-	@Override
-	public List<QueryToken> getProjection() {
-		return projection == null ? Collections.emptyList() : projection;
-	}
-
-	@Override
-	public boolean hasConstructorExpression() {
-		return hasConstructorExpression;
+	public QueryInformation getParsedQueryInformation() {
+		return new QueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
+				hasConstructorExpression);
 	}
 
 	@Override

@@ -15,19 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import org.springframework.lang.Nullable;
 
 /**
  * Interface defining an introspector for String-queries providing details about the primary table alias, the primary
  * selection projection and whether the query makes use of constructor expressions.
  *
  * @author Mark Paluch
+ * @since 3.5
  */
-interface ParsedQueryIntrospector {
+interface ParsedQueryIntrospector<I extends QueryInformation> {
 
 	/**
 	 * Visit the parsed tree to introspect the AST tree.
@@ -38,20 +35,10 @@ interface ParsedQueryIntrospector {
 	Void visit(ParseTree tree);
 
 	/**
-	 * Primary table alias. Contains the first table name/table alias in case multiple tables are specified in the query.
+	 * Returns the parsed query information. The information is available after the {@link #visit(ParseTree)
+	 * introspection} has been completed.
 	 *
-	 * @return
+	 * @return parsed query information.
 	 */
-	@Nullable
-	String getAlias();
-
-	/**
-	 * @return the primary selection.
-	 */
-	List<QueryToken> getProjection();
-
-	/**
-	 * @return {@code true} if the query uses a constructor expression.
-	 */
-	boolean hasConstructorExpression();
+	I getParsedQueryInformation();
 }
