@@ -71,6 +71,42 @@ class QueryTransformers {
 			return new CountSelectionTokenStream(target, containsNew);
 		}
 
+		/**
+		 * Filter constructor expression and return the selection list of the constructor.
+		 *
+		 * @return the selection list of the constructor without {@code NEW}, class name, and the first level of
+		 *         parentheses.
+		 * @since 3.5.2
+		 */
+		public CountSelectionTokenStream withoutConstructorExpression() {
+
+			if (!requiresPrimaryAlias()) {
+				return this;
+			}
+
+			List<QueryToken> target = new ArrayList<>(size());
+			int nestingLevel = 0;
+
+			for (QueryToken token : this) {
+
+				if (token.equals(TOKEN_OPEN_PAREN)) {
+					nestingLevel++;
+					continue;
+				}
+
+				if (token.equals(TOKEN_CLOSE_PAREN)) {
+					nestingLevel--;
+					continue;
+				}
+
+				if (nestingLevel > 0) {
+					target.add(token);
+				}
+			}
+
+			return new CountSelectionTokenStream(target, requiresPrimaryAlias());
+		}
+
 		@Override
 		public Iterator<QueryToken> iterator() {
 			return tokens.iterator();

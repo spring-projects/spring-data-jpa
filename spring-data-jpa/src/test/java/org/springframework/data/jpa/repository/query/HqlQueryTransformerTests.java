@@ -41,6 +41,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class HqlQueryTransformerTests {
 
@@ -182,6 +183,12 @@ class HqlQueryTransformerTests {
 
 	@Test
 	void createsCountQueryCorrectly() {
+
+		assertCountQuery("SELECT id FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT p.id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id FROM Person p", "SELECT count(id) FROM Person p");
+		assertCountQuery("SELECT id, name FROM Person", "SELECT count(*) FROM Person");
+		assertCountQuery("SELECT id, name FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -204,6 +211,9 @@ class HqlQueryTransformerTests {
 
 		assertCountQuery("select distinct new com.example.User(u.name) from User u where u.foo = ?1",
 				"select count(distinct u) from User u where u.foo = ?1");
+
+		assertCountQuery("select distinct new com.example.User(name, lastname) from User where foo = ?1",
+				"select count(distinct name, lastname) from User where foo = ?1");
 	}
 
 	@Test
@@ -913,7 +923,7 @@ class HqlQueryTransformerTests {
 	void countQueryShouldWorkEvenWithoutExplicitAlias() {
 
 		assertCountQuery("FROM BookError WHERE portal = :portal",
-				"select count(__) FROM BookError AS __ WHERE portal = :portal");
+				"select count(__) FROM BookError WHERE portal = :portal");
 
 		assertCountQuery("FROM BookError b WHERE portal = :portal",
 				"select count(b) FROM BookError b WHERE portal = :portal");
@@ -1107,15 +1117,15 @@ class HqlQueryTransformerTests {
 	@Test // GH-3269, GH-3689
 	void createsCountQueryUsingAliasCorrectly() {
 
-		assertCountQuery("select distinct 1 as x from Employee", "select count(distinct 1) from Employee AS __");
-		assertCountQuery("SELECT DISTINCT abc AS x FROM T", "SELECT count(DISTINCT abc) FROM T AS __");
-		assertCountQuery("select distinct a as x, b as y from Employee", "select count(distinct a, b) from Employee AS __");
+		assertCountQuery("select distinct 1 as x from Employee", "select count(distinct 1) from Employee");
+		assertCountQuery("SELECT DISTINCT abc AS x FROM T", "SELECT count(DISTINCT abc) FROM T");
+		assertCountQuery("select distinct a as x, b as y from Employee", "select count(distinct a, b) from Employee");
 		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n",
-				"select count(distinct sum(amount)) from Employee AS __ GROUP BY n");
+				"select count(distinct sum(amount)) from Employee GROUP BY n");
 		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n",
-				"select count(distinct a, b, sum(amount), d) from Employee AS __ GROUP BY n");
+				"select count(distinct a, b, sum(amount), d) from Employee GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n",
-				"select count(distinct a, count(b)) from Employee AS __ GROUP BY n");
+				"select count(distinct a, count(b)) from Employee GROUP BY n");
 		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee",
 				"select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
 	}
