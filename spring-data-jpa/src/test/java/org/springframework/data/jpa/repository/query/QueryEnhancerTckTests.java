@@ -69,6 +69,10 @@ abstract class QueryEnhancerTckTests {
 						"select count(u) from User as u"),
 
 				Arguments.of( //
+						"SELECT id FROM Person", //
+						"select count(id) from Person"),
+
+				Arguments.of( //
 						"SELECT u FROM User u where u.foo.bar = ?", //
 						"select count(u) FROM User u where u.foo.bar = ?"),
 

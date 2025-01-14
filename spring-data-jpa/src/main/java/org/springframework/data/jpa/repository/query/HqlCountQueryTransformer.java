@@ -127,11 +127,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 			if (ctx.variable() != null) {
 				builder.appendExpression(visit(ctx.variable()));
-
-			} else {
-
-				builder.append(TOKEN_AS);
-				builder.append(TOKEN_DOUBLE_UNDERSCORE);
 			}
 		} else if (ctx.subquery() != null) {
 
@@ -186,14 +181,26 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		boolean usesDistinct = ctx.DISTINCT() != null;
 		QueryRendererBuilder nested = QueryRenderer.builder();
 		if (countProjection == null) {
+			QueryTokenStream selection = visit(ctx.selectionList());
 			if (usesDistinct) {
 
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
+				nested.append(getDistinctCountSelection(selection));
 			} else {
 
 				// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
-				nested.append(containsCTE ? QueryTokens.token("*") : QueryTokens.token(primaryFromAlias));
+				if (containsCTE) {
+					nested.append(QueryTokens.token("*"));
+				} else {
+
+					if (selection.size() == 1) {
+						nested.append(selection);
+					} else if (primaryFromAlias != null) {
+						nested.append(QueryTokens.token(primaryFromAlias));
+					} else {
+						nested.append(QueryTokens.token("*"));
+					}
+				}
 			}
 		} else {
 			builder.append(QueryTokens.token(countProjection));
@@ -244,6 +251,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	}
 
 	private QueryRendererBuilder visitSubQuerySelectClause(SelectClauseContext ctx, QueryRendererBuilder builder) {
+
 		if (ctx.DISTINCT() != null) {
 			builder.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
@@ -258,8 +266,13 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
-			// constructor
-			nested.append(QueryTokens.token(primaryFromAlias));
+
+			if (primaryFromAlias != null) {
+				// constructor
+				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				nested.append(countSelection.withoutConstructorExpression());
+			}
 		} else {
 			// keep all the select items to distinct against
 			nested.append(selectionListbuilder);
