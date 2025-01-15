@@ -193,9 +193,10 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return select;
 		};
 
-		ScrollQueryFactory<AbstractJPAQuery<?, ?>> scroll = (returnedType, sort, scrollPosition) -> {
+		ScrollQueryFactory<AbstractJPAQuery<?, ?>> scroll = (q, scrollPosition) -> {
 
 			Predicate predicateToUse = predicate;
+			Sort sort = q.sort;
 
 			if (scrollPosition instanceof KeysetScrollPosition keyset) {
 

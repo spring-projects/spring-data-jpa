@@ -286,7 +286,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		public Window<T> scroll(ReturnedType returnedType, Sort sort, int limit, ScrollPosition scrollPosition) {
 
-			AbstractJPAQuery<?, ?> query = scrollFunction.createQuery(returnedType, sort, scrollPosition);
+			AbstractJPAQuery<?, ?> query = scrollFunction.createQuery(FetchableFluentQueryByPredicate.this, scrollPosition);
 
 			applyQuerySettings(returnedType, limit, query, scrollPosition);
 

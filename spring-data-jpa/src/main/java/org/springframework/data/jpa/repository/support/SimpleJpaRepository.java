@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.data.domain.Example;
@@ -513,9 +512,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
 		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
 
-		ScrollQueryFactory<TypedQuery<T>> scrollFunction = (returnedType, sort, scrollPosition) -> {
+		ScrollQueryFactory<TypedQuery<T>> scrollFunction = (q, scrollPosition) -> {
 
 			Specification<T> specToUse = spec;
+			Sort sort = q.sort;
 
 			if (scrollPosition instanceof KeysetScrollPosition keyset) {
 				KeysetScrollSpecification<T> keysetSpec = new KeysetScrollSpecification<>(keyset, sort, entityInformation);
@@ -523,7 +523,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 				specToUse = specToUse.and(keysetSpec);
 			}
 
-			TypedQuery<T> query = getQuery(returnedType, specToUse, domainClass, sort, scrollPosition);
+			TypedQuery<T> query = getQuery(q.returnedType, specToUse, domainClass, sort, q.properties, scrollPosition);
 
 			if (scrollPosition instanceof OffsetScrollPosition offset) {
 				if (!offset.isInitial()) {
@@ -534,8 +534,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			return query;
 		};
 
-		BiFunction<ReturnedType, Sort, TypedQuery<T>> finder = (returnedType, sort) -> getQuery(returnedType, spec,
-				domainClass, sort, null);
+		Function<FluentQuerySupport<?, ?>, TypedQuery<T>> finder = (q) -> getQuery(q.returnedType, spec, domainClass,
+				q.sort, q.properties, null);
 
 		SpecificationScrollDelegate<T> scrollDelegate = new SpecificationScrollDelegate<>(scrollFunction,
 				entityInformation);
@@ -756,7 +756,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param sort must not be {@literal null}.
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
-		return getQuery(ReturnedType.of(domainClass, domainClass, projectionFactory), spec, domainClass, sort, null);
+		return getQuery(ReturnedType.of(domainClass, domainClass, projectionFactory), spec, domainClass, sort,
+				Collections.emptySet(), null);
 	}
 
 	/**
@@ -766,19 +767,25 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
+	 * @param inputProperties must not be {@literal null}.
+	 * @param scrollPosition must not be {@literal null}.
 	 */
 	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec,
-			Class<S> domainClass, Sort sort, @Nullable ScrollPosition scrollPosition) {
+			Class<S> domainClass, Sort sort, Collection<String> inputProperties, @Nullable ScrollPosition scrollPosition) {
 
 		Assert.notNull(spec, "Specification must not be null");
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query;
 
-		List<String> inputProperties = returnedType.getInputProperties();
+		boolean interfaceProjection = returnedType.getReturnedType().isInterface();
+
+		if (returnedType.needsCustomConstruction() && (inputProperties.isEmpty() || !interfaceProjection)) {
+			inputProperties = returnedType.getInputProperties();
+		}
 
 		if (returnedType.needsCustomConstruction()) {
-			query = (CriteriaQuery) (returnedType.getReturnedType().isInterface() ? builder.createTupleQuery()
+			query = (CriteriaQuery) (interfaceProjection ? builder.createTupleQuery()
 					: builder.createQuery(returnedType.getReturnedType()));
 		} else {
 			query = builder.createQuery(domainClass);
@@ -790,7 +797,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 			Collection<String> requiredSelection;
 
-			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
+			if (scrollPosition instanceof KeysetScrollPosition && interfaceProjection) {
 				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
 			} else {
 				requiredSelection = inputProperties;

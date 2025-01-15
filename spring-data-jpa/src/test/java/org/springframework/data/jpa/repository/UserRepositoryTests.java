@@ -2718,7 +2718,7 @@ class UserRepositoryTests {
 		assertThat(page1.getContent()).containsExactly(fourthUser);
 	}
 
-	@Test // GH-2274
+	@Test // GH-2274, GH-3716
 	void findByFluentSpecificationWithInterfaceBasedProjection() {
 
 		flushTestUsers();
@@ -2728,6 +2728,14 @@ class UserRepositoryTests {
 
 		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname)
 				.containsExactlyInAnyOrder(firstUser.getFirstname(), thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		assertThat(users).extracting(UserProjectionInterfaceBased::getLastname).doesNotContainNull();
+
+		users = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.as(UserProjectionInterfaceBased.class).project("firstname").all());
+
+		assertThat(users).extracting(UserProjectionInterfaceBased::getFirstname).doesNotContainNull();
+		assertThat(users).extracting(UserProjectionInterfaceBased::getLastname).containsExactly(null, null, null);
 	}
 
 	@Test // GH-2327
@@ -2736,6 +2744,12 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		List<UserDto> users = repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).all());
+
+		assertThat(users).extracting(UserDto::firstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
+				thirdUser.getFirstname(), fourthUser.getFirstname());
+
+		// project is a no-op for DTO projections as we must use the constructor as input properties
+		users = repository.findBy(userHasFirstnameLike("v"), q -> q.as(UserDto.class).project("lastname").all());
 
 		assertThat(users).extracting(UserDto::firstname).containsExactlyInAnyOrder(firstUser.getFirstname(),
 				thirdUser.getFirstname(), fourthUser.getFirstname());
@@ -3497,6 +3511,8 @@ class UserRepositoryTests {
 
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
+
+		String getLastname();
 	}
 
 	record UserDto(Integer id, String firstname, String lastname, String emailAddress) {
