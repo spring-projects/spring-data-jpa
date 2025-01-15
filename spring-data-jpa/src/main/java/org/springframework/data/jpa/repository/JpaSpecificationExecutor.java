@@ -155,7 +155,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *
 	 * @param spec the {@link UpdateSpecification} to use for the update query must not be {@literal null}.
 	 * @return the number of entities deleted.
-	 * @since xxx
+	 * @since 4.0
 	 */
 	long update(UpdateSpecification<T> spec);
 
@@ -194,7 +194,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @param spec must not be null.
 	 * @param queryFunction the query function defining projection, sorting, and the result type
 	 * @return all entities matching the given Example.
-	 * @since xxx
+	 * @since 4.0
 	 */
 	default <S extends T, R> R findBy(PredicateSpecification<T> spec,
 			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
