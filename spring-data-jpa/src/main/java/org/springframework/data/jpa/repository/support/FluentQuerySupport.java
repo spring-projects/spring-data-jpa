@@ -95,7 +95,7 @@ abstract class FluentQuerySupport<S, R> {
 	}
 
 	interface ScrollQueryFactory<Q> {
-		Q createQuery(ReturnedType returnedType, Sort sort, ScrollPosition scrollPosition);
+		Q createQuery(FluentQuerySupport<?, ?> query, ScrollPosition scrollPosition);
 	}
 
 }
