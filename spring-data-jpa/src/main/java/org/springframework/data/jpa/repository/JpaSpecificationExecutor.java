@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -122,11 +123,16 @@ public interface JpaSpecificationExecutor<T> {
 	/**
 	 * Returns entities matching the given {@link Specification} applying the {@code queryFunction} that defines the query
 	 * and its result type.
+	 * <p>
+	 * The query object used with {@code queryFunction} is only valid inside the {@code findBy(…)} method call. This
+	 * requires the query function to return a query result and not the {@link FluentQuery} object itself to ensure the
+	 * query is executed inside the {@code findBy(…)} method.
 	 *
 	 * @param spec must not be null.
 	 * @param queryFunction the query function defining projection, sorting, and the result type
-	 * @return all entities matching the given Example.
+	 * @return all entities matching the given specification.
 	 * @since 3.0
+	 * @throws InvalidDataAccessApiUsageException if the query function returns the {@link FluentQuery} instance.
 	 */
 	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
 

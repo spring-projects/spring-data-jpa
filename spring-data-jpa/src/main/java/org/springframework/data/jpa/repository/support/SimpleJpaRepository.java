@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
@@ -62,6 +63,7 @@ import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
@@ -539,7 +541,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass,
 				finder, scrollDelegate, this::count, this::exists, this.entityManager, getProjectionFactory());
 
-		return queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
+		R result = queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
+
+		if (result instanceof FluentQuery<?>) {
+			throw new InvalidDataAccessApiUsageException(
+					"findBy(…) queries must result a query result and not the FluentQuery object to ensure that queries are executed within the scope of the findBy(…) method");
+		}
+
+		return result;
 	}
 
 	@Override
