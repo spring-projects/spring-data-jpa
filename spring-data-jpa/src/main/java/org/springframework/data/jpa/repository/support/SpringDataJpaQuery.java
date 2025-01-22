@@ -19,6 +19,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.lang.Nullable;
@@ -76,8 +77,13 @@ class SpringDataJpaQuery<T> extends JPAQuery<T> {
 			query.setFlushMode(flushMode);
 		}
 
-		for (Map.Entry<String, Object> entry : hints.entrySet()) {
-			query.setHint(entry.getKey(), entry.getValue());
+		for (Map.Entry<String, ?> entry : hints.entrySet()) {
+
+			if (entry.getValue() instanceof Collection<?> c) {
+				c.forEach((value) -> query.setHint(entry.getKey(), value));
+			} else {
+				query.setHint(entry.getKey(), entry.getValue());
+			}
 		}
 
 		// set transformer, if necessary and possible
