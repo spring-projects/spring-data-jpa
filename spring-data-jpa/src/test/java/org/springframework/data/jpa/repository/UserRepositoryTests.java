@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -2406,6 +2407,14 @@ class UserRepositoryTests {
 		assertThat(users).containsExactly(thirdUser, firstUser, fourthUser);
 	}
 
+	@Test // GH-3294
+	void findByFluentFailsReturningFluentQuery() {
+
+		User prototype = new User();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.findBy(of(prototype), Function.identity()));
+	}
+
 	@Test // GH-2294
 	void findByFluentExampleFirstValue() {
 
@@ -2503,13 +2512,13 @@ class UserRepositoryTests {
 		prototype.setFirstname("v");
 
 		List<UserProjectionUsingSpEL> users = repository.findBy(
-			of(prototype,
-				matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
-					GenericPropertyMatcher::contains)), //
-			q -> q.as(UserProjectionUsingSpEL.class).all());
+				of(prototype,
+						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
+								GenericPropertyMatcher::contains)), //
+				q -> q.as(UserProjectionUsingSpEL.class).all());
 
 		assertThat(users).extracting(UserProjectionUsingSpEL::hello)
-			.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
+				.contains(new GreetingsFrom().groot(firstUser.getFirstname()));
 	}
 
 	@Test // GH-2294
