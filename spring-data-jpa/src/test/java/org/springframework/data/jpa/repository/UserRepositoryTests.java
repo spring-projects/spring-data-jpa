@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -2425,6 +2426,14 @@ class UserRepositoryTests {
 				q -> q.sortBy(Sort.by("firstname")).all());
 
 		assertThat(users).containsExactly(thirdUser, firstUser, fourthUser);
+	}
+
+	@Test // GH-3294
+	void findByFluentFailsReturningFluentQuery() {
+
+		User prototype = new User();
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> repository.findBy(of(prototype), Function.identity()));
 	}
 
 	@Test // GH-2294
