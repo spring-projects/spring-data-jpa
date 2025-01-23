@@ -40,16 +40,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -292,9 +283,8 @@ public abstract class QueryUtils {
 		Set<String> selectionAliases = getFunctionAliases(query);
 		selectionAliases.addAll(getFieldAliases(query));
 
-		String orderClauses = sort.stream()
-			.map(order -> getOrderClause(joinAliases, selectionAliases, alias, order))
-			.collect(Collectors.joining(", "));
+		String orderClauses = sort.stream().map(order -> getOrderClause(joinAliases, selectionAliases, alias, order))
+				.collect(Collectors.joining(", "));
 
 		builder.append(orderClauses);
 
@@ -532,7 +522,6 @@ public abstract class QueryUtils {
 	 * @param entityManager must not be {@literal null}.
 	 * @return Guaranteed to be not {@literal null}.
 	 */
-
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
 
 		Assert.notNull(queryString, "Querystring must not be null");
@@ -546,30 +535,8 @@ public abstract class QueryUtils {
 		}
 
 		String alias = detectAlias(queryString);
-		StringBuilder builder = new StringBuilder(queryString);
-		builder.append(" where");
-
-		int i = 0;
-
-		while (iterator.hasNext()) {
-
-			iterator.next();
-
-			builder.append(String.format(" %s = ?%d", alias, ++i));
-
-			if (iterator.hasNext()) {
-				builder.append(" or");
-			}
-		}
-
-		Query query = entityManager.createQuery(builder.toString());
-
-		iterator = entities.iterator();
-		i = 0;
-
-		while (iterator.hasNext()) {
-			query.setParameter(++i, iterator.next());
-		}
+		Query query = entityManager.createQuery("%s where %s IN (?1)".formatted(queryString, alias));
+		query.setParameter(1, entities instanceof Collection<T> ? entities : Streamable.of(entities).toList());
 
 		return query;
 	}

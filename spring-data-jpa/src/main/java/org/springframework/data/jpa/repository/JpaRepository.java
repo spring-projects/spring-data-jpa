@@ -15,9 +15,9 @@
  */
 package org.springframework.data.jpa.repository;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
+
+import java.util.List;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
@@ -38,7 +38,8 @@ import org.springframework.data.repository.query.QueryByExampleExecutor;
  * @author Jens Schauder
  */
 @NoRepositoryBean
-public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
+public interface JpaRepository<T, ID>
+		extends ListCrudRepository<T, ID>, ListPagingAndSortingRepository<T, ID>, QueryByExampleExecutor<T> {
 
 	/**
 	 * Flushes all pending changes to the database.
@@ -66,6 +67,8 @@ public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPag
 	 * Deletes the given entities in a batch which means it will create a single query. This kind of operation leaves JPAs
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
+	 * <p>
+	 * It will also NOT honor cascade semantics of JPA, nor will it emit JPA lifecycle events.
 	 *
 	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @deprecated Use {@link #deleteAllInBatch(Iterable)} instead.
@@ -80,8 +83,8 @@ public interface JpaRepository<T, ID> extends ListCrudRepository<T, ID>, ListPag
 	 * first level cache and the database out of sync. Consider flushing the {@link EntityManager} before calling this
 	 * method.
 	 * <p>
-	 * It will also NOT honor cascade semantics of JPA, nor will it emit JPA  lifecycle events.
-	 *</p>
+	 * It will also NOT honor cascade semantics of JPA, nor will it emit JPA lifecycle events.
+	 *
 	 * @param entities entities to be deleted. Must not be {@literal null}.
 	 * @since 2.5
 	 */
