@@ -506,7 +506,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public <S extends T, R> R findBy(Specification<T> spec, Function<FetchableFluentQuery<S>, R> queryFunction) {
+	public <S extends T, R> R findBy(Specification<T> spec,
+			Function<? super SpecificationFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
 		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
@@ -515,7 +516,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private <S extends T, R> R doFindBy(Specification<T> spec, Class<T> domainClass,
-			Function<FetchableFluentQuery<S>, R> queryFunction) {
+			Function<? super SpecificationFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
 		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
@@ -550,7 +551,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		FetchableFluentQueryBySpecification<?, T> fluentQuery = new FetchableFluentQueryBySpecification<>(spec, domainClass,
 				finder, scrollDelegate, this::count, this::exists, this.entityManager, getProjectionFactory());
 
-		R result = queryFunction.apply((FetchableFluentQuery<S>) fluentQuery);
+		R result = queryFunction.apply((SpecificationFluentQuery<S>) fluentQuery);
 
 		if (result instanceof FluentQuery<?>) {
 			throw new InvalidDataAccessApiUsageException(
@@ -718,7 +719,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec can be {@literal null}.
 	 * @param pageable can be {@literal null}.
 	 */
-	protected <S extends T> Page<S> readPage(TypedQuery<S> query, final Class<S> domainClass, Pageable pageable,
+	protected <S extends T> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable,
 			@Nullable Specification<S> spec) {
 
 		if (pageable.isPaged()) {

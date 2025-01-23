@@ -31,14 +31,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -52,7 +56,7 @@ import org.springframework.util.Assert;
  * @since 3.0
  */
 class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
-		implements FluentQuery.FetchableFluentQuery<R> {
+		implements FluentQuery.FetchableFluentQuery<R>, SpecificationFluentQuery<R> {
 
 	private final Specification<S> spec;
 	private final Function<FluentQuerySupport<?, ?>, TypedQuery<S>> finder;
@@ -85,7 +89,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public FetchableFluentQuery<R> sortBy(Sort sort) {
+	public SpecificationFluentQuery<R> sortBy(Sort sort) {
 
 		Assert.notNull(sort, "Sort must not be null");
 
@@ -94,7 +98,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public FetchableFluentQuery<R> limit(int limit) {
+	public SpecificationFluentQuery<R> limit(int limit) {
 
 		Assert.isTrue(limit >= 0, "Limit must not be negative");
 
@@ -103,7 +107,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public <NR> FetchableFluentQuery<NR> as(Class<NR> resultType) {
+	public <NR> SpecificationFluentQuery<NR> as(Class<NR> resultType) {
 
 		Assert.notNull(resultType, "Projection target type must not be null");
 
@@ -112,7 +116,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public FetchableFluentQuery<R> project(Collection<String> properties) {
+	public SpecificationFluentQuery<R> project(Collection<String> properties) {
 
 		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
 				scroll, countOperation, existsOperation, entityManager, projectionFactory);
@@ -156,8 +160,19 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
+	public Slice<R> slice(Pageable pageable) {
+		return pageable.isUnpaged() ? new PageImpl<>(all()) : readSlice(pageable);
+	}
+
+	@Override
 	public Page<R> page(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
+		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable, spec);
+	}
+
+	@Override
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Page<R> page(Pageable pageable, Specification<?> countSpec) {
+		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable, (Specification) countSpec);
 	}
 
 	@Override
@@ -193,7 +208,27 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		return query;
 	}
 
-	private Page<R> readPage(Pageable pageable) {
+	private Slice<R> readSlice(Pageable pageable) {
+
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
+
+		if (pageable.isPaged()) {
+			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
+			pagedQuery.setMaxResults(pageable.getPageSize() + 1);
+		}
+
+		List<S> resultList = pagedQuery.getResultList();
+		boolean hasNext = resultList.size() > pageable.getPageSize();
+		if (hasNext) {
+			resultList = resultList.subList(0, pageable.getPageSize());
+		}
+
+		List<R> slice = convert(resultList);
+
+		return new SliceImpl<>(slice, pageable, hasNext);
+	}
+
+	private Page<R> readPage(Pageable pageable, @Nullable Specification<S> countSpec) {
 
 		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
 
@@ -204,7 +239,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		List<R> paginatedResults = convert(pagedQuery.getResultList());
 
-		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(spec));
+		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(countSpec));
 	}
 
 	private List<R> convert(List<S> resultList) {
