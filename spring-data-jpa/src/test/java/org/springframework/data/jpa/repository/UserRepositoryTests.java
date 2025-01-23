@@ -2801,6 +2801,44 @@ class UserRepositoryTests {
 		assertThat(page0.getTotalElements()).isEqualTo(3L);
 	}
 
+	@Test // GH-2274
+	void findByFluentSpecificationSlice() {
+
+		flushTestUsers();
+
+		Slice<User> slice = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 2)));
+
+		assertThat(slice).isNotInstanceOf(Page.class);
+		assertThat(slice.getContent()).containsExactly(thirdUser, firstUser);
+		assertThat(slice.hasNext()).isTrue();
+
+		slice = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 3)));
+
+		assertThat(slice).isNotInstanceOf(Page.class);
+		assertThat(slice).hasSize(3);
+		assertThat(slice.hasNext()).isFalse();
+	}
+
+	@Test // GH-3727
+	void findByFluentSpecificationPageCustomCountSpec() {
+
+		flushTestUsers();
+
+		Page<User> page0 = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 2), (root, query, criteriaBuilder) -> null));
+
+		assertThat(page0.getContent()).containsExactly(thirdUser, firstUser);
+		assertThat(page0.getTotalElements()).isEqualTo(4L);
+
+		page0 = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 2)));
+
+		assertThat(page0.getContent()).containsExactly(thirdUser, firstUser);
+		assertThat(page0.getTotalElements()).isEqualTo(3L);
+	}
+
 	@Test // GH-2274, GH-3716
 	void findByFluentSpecificationWithInterfaceBasedProjection() {
 
