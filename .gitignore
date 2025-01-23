@@ -13,3 +13,4 @@ package-lock.json
 node
 build/
 .mvn/.develocity
+spring-data-jpa/gen

@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -22,6 +24,7 @@ import java.util.function.Function;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.DeleteSpecification;
 import org.springframework.data.jpa.domain.PredicateSpecification;
@@ -110,6 +113,7 @@ public interface JpaSpecificationExecutor<T> {
 	 *          be counted.
 	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
+	 * @since 3.5
 	 */
 	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
 
@@ -219,7 +223,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @since 4.0
 	 */
 	default <S extends T, R> R findBy(PredicateSpecification<T> spec,
-			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+			Function<? super SpecificationFluentQuery<S>, R> queryFunction) {
 		return findBy(Specification.where(spec), queryFunction);
 	}
 
@@ -237,6 +241,72 @@ public interface JpaSpecificationExecutor<T> {
 	 * @since 3.0
 	 * @throws InvalidDataAccessApiUsageException if the query function returns the {@link FluentQuery} instance.
 	 */
-	<S extends T, R> R findBy(Specification<T> spec, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction);
+	<S extends T, R> R findBy(Specification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction);
+
+	/**
+	 * Extension to {@link FetchableFluentQuery} allowing slice results and pagination with a custom count
+	 * {@link Specification}.
+	 *
+	 * @param <T>
+	 * @since 3.5
+	 */
+	interface SpecificationFluentQuery<T> extends FluentQuery.FetchableFluentQuery<T> {
+
+		@Override
+		SpecificationFluentQuery<T> sortBy(Sort sort);
+
+		@Override
+		SpecificationFluentQuery<T> limit(int limit);
+
+		@Override
+		<R> SpecificationFluentQuery<R> as(Class<R> resultType);
+
+		@Override
+		default SpecificationFluentQuery<T> project(String... properties) {
+			return this.project(Arrays.asList(properties));
+		}
+
+		@Override
+		SpecificationFluentQuery<T> project(Collection<String> properties);
+
+		/**
+		 * Get a slice of matching elements for {@link Pageable} by requesting {@code Pageable#getPageSize() + 1} elements.
+		 *
+		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
+		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
+		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
+		 *          will be overridden by {@link Pageable#getPageSize()}.
+		 * @return
+		 */
+		Slice<T> slice(Pageable pageable);
+
+		/**
+		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
+		 * specification}.
+		 *
+		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
+		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
+		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
+		 *          will be overridden by {@link Pageable#getPageSize()}.
+		 * @param countSpec specification used to count results.
+		 * @return
+		 */
+		default Page<T> page(Pageable pageable, PredicateSpecification<?> countSpec) {
+			return page(pageable, Specification.where(countSpec));
+		}
+
+		/**
+		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
+		 * specification}.
+		 *
+		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
+		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
+		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
+		 *          will be overridden by {@link Pageable#getPageSize()}.
+		 * @param countSpec specification used to count results.
+		 * @return
+		 */
+		Page<T> page(Pageable pageable, Specification<?> countSpec);
+	}
 
 }
