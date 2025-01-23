@@ -21,6 +21,8 @@ import jakarta.persistence.criteria.Root;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -31,6 +33,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.DeleteSpecification;
 import org.springframework.data.jpa.domain.PredicateSpecification;
@@ -229,7 +232,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * @since 4.0
 	 */
 	default <S extends T, R> R findBy(PredicateSpecification<T> spec,
-			Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+			Function<? super SpecificationFluentQuery<S>, R> queryFunction) {
 		return findBy(Specification.where(spec), queryFunction);
 	}
 
@@ -274,6 +277,21 @@ public interface JpaSpecificationExecutor<T> {
 
 		@Override
 		SpecificationFluentQuery<T> project(Collection<String> properties);
+
+		/**
+		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
+		 * specification}.
+		 *
+		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
+		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
+		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
+		 *          will be overridden by {@link Pageable#getPageSize()}.
+		 * @param countSpec specification used to count results.
+		 * @return
+		 */
+		default Page<T> page(Pageable pageable, PredicateSpecification<?> countSpec) {
+			return page(pageable, Specification.where(countSpec));
+		}
 
 		/**
 		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
