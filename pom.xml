@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
+		<version>4.0.0-M1</version>
 	</parent>
 
 	<properties>
@@ -38,7 +38,7 @@
 		<jsqlparser>5.2</jsqlparser>
 		<mysql-connector-java>9.2.0</mysql-connector-java>
 		<postgresql>42.7.5</postgresql>
-		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
+		<springdata.commons>4.0.0-M1</springdata.commons>
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
