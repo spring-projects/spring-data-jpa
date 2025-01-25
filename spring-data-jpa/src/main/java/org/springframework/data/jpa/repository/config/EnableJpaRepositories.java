@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanNameGenerator;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.config.BootstrapMode;
 import org.springframework.data.repository.config.DefaultRepositoryBaseClass;
@@ -83,46 +84,39 @@ public @interface EnableJpaRepositories {
 	 * Returns the postfix to be used when looking up custom repository implementations. Defaults to {@literal Impl}. So
 	 * for a repository named {@code PersonRepository} the corresponding implementation class will be looked up scanning
 	 * for {@code PersonRepositoryImpl}.
-	 *
-	 * @return
 	 */
 	String repositoryImplementationPostfix() default "Impl";
 
 	/**
 	 * Configures the location of where to find the Spring Data named queries properties file. Will default to
 	 * {@code META-INF/jpa-named-queries.properties}.
-	 *
-	 * @return
 	 */
 	String namedQueriesLocation() default "";
 
 	/**
 	 * Returns the key of the {@link QueryLookupStrategy} to be used for lookup queries for query methods. Defaults to
 	 * {@link Key#CREATE_IF_NOT_FOUND}.
-	 *
-	 * @return
 	 */
 	Key queryLookupStrategy() default Key.CREATE_IF_NOT_FOUND;
 
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
 	 * {@link JpaRepositoryFactoryBean}.
-	 *
-	 * @return
 	 */
 	Class<?> repositoryFactoryBeanClass() default JpaRepositoryFactoryBean.class;
 
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
 	 *
-	 * @return
 	 * @since 1.9
 	 */
 	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 
 	/**
 	 * Configure a specific {@link BeanNameGenerator} to be used when creating the repository beans.
-	 * @return the {@link BeanNameGenerator} to be used or the base {@link BeanNameGenerator} interface to indicate context default.
+	 *
+	 * @return the {@link BeanNameGenerator} to be used or the base {@link BeanNameGenerator} interface to indicate
+	 *         context default.
 	 * @since 3.4
 	 */
 	Class<? extends BeanNameGenerator> nameGenerator() default BeanNameGenerator.class;
@@ -132,22 +126,18 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Configures the name of the {@link EntityManagerFactory} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code entityManagerFactory}.
-	 *
-	 * @return
 	 */
 	String entityManagerFactoryRef() default "entityManagerFactory";
 
 	/**
 	 * Configures the name of the {@link PlatformTransactionManager} bean definition to be used to create repositories
 	 * discovered through this annotation. Defaults to {@code transactionManager}.
-	 *
-	 * @return
 	 */
 	String transactionManagerRef() default "transactionManager";
 
 	/**
 	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
-	 * repositories infrastructure.
+	 * repository infrastructure.
 	 */
 	boolean considerNestedRepositories() default false;
 
@@ -169,7 +159,6 @@ public @interface EnableJpaRepositories {
 	 * completed its bootstrap. {@link BootstrapMode#DEFERRED} is fundamentally the same as {@link BootstrapMode#LAZY},
 	 * but triggers repository initialization when the application context finishes its bootstrap.
 	 *
-	 * @return
 	 * @since 2.1
 	 */
 	BootstrapMode bootstrapMode() default BootstrapMode.DEFAULT;
@@ -181,4 +170,12 @@ public @interface EnableJpaRepositories {
 	 * @return a single character used for escaping.
 	 */
 	char escapeCharacter() default '\\';
+
+	/**
+	 * Configures the {@link QueryEnhancerSelector} to select a query enhancer for query introspection and transformation.
+	 *
+	 * @return a {@link QueryEnhancerSelector} class providing a no-args constructor.
+	 * @since 4.0
+	 */
+	Class<? extends QueryEnhancerSelector> queryEnhancerSelector() default QueryEnhancerSelector.DefaultQueryEnhancerSelector.class;
 }
