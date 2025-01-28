@@ -725,8 +725,15 @@ public abstract class QueryUtils {
 	@SuppressWarnings("unchecked")
 	private static jakarta.persistence.criteria.Order toJpaOrder(Order order, From<?, ?> from, CriteriaBuilder cb) {
 
-		PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
-		Expression<?> expression = toExpressionRecursively(from, property);
+		Expression<?> expression;
+
+		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+			expression = new HqlOrderExpressionVisitor(cb, from, QueryUtils::toExpressionRecursively)
+					.createCriteriaExpression(order);
+		} else {
+			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
+			expression = toExpressionRecursively(from, property);
+		}
 
 		Nulls nulls = toNulls(order.getNullHandling());
 

@@ -121,6 +121,33 @@ class HqlOrderExpressionVisitorUnitTests {
 	}
 
 	@Test // GH-3172
+	void temporalLiterals() {
+
+		// JDBC
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts '2024-01-01 12:34:56'}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01T12:34:56");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts '2012-01-03 09:00:00.000000001'}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 2012-01-03T09:00:00.000000001");
+
+		// Hibernate NPE
+		assertThatNullPointerException().isThrownBy(() -> renderOrderBy(JpaSort.unsafe("createdAt + {t '12:34:56'}"), "u"));
+
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {d '2024-01-01'}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01");
+
+		// JPQL
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts 2024-01-01 12:34:56}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01T12:34:56");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {t 12:34:56}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 12:34:56");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {d 2024-01-01}"), "u"))
+				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01");
+	}
+
+	@Test // GH-3172
 	void arithmetic() {
 
 		// Hibernate representation bugs, should be sum(u.age)
@@ -221,7 +248,8 @@ class HqlOrderExpressionVisitorUnitTests {
 
 		CriteriaQuery<User> query = em.getCriteriaBuilder().createQuery(User.class);
 		Selection<User> from = query.from(User.class).alias(alias);
-		HqlOrderExpressionVisitor extractor = new HqlOrderExpressionVisitor(em.getCriteriaBuilder(), (Path<?>) from);
+		HqlOrderExpressionVisitor extractor = new HqlOrderExpressionVisitor(em.getCriteriaBuilder(), (Path<?>) from,
+				QueryUtils::toExpressionRecursively);
 
 		Expression<?> expression = extractor.createCriteriaExpression(sort.stream().findFirst().get());
 		return query.select(from).orderBy(em.getCriteriaBuilder().asc(expression, Nulls.NONE));
