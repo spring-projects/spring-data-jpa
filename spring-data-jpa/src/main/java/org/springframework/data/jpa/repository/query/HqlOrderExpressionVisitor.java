@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static java.time.format.DateTimeFormatter.*;
+
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
@@ -24,9 +26,18 @@ import jakarta.persistence.criteria.TemporalField;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.HexFormat;
+import java.util.Locale;
+import java.util.function.BiFunction;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -47,24 +58,48 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 4.0
  */
-@SuppressWarnings("ConstantValue")
+@SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue" })
 class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
+
+	private static final DateTimeFormatter DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive()
+			.append(ISO_LOCAL_DATE).optionalStart().appendLiteral(' ').optionalEnd().optionalStart().appendLiteral('T')
+			.optionalEnd().append(ISO_LOCAL_TIME).optionalStart().appendLiteral(' ').optionalEnd().optionalStart()
+			.appendZoneOrOffsetId().optionalEnd().toFormatter();
+
+	private static final DateTimeFormatter DATE_TIME_FORMATTER_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd",
+			Locale.ENGLISH);
+
+	private static final DateTimeFormatter DATE_TIME_FORMATTER_TIME = DateTimeFormatter.ofPattern("HH:mm:ss",
+			Locale.ENGLISH);
+
+	private static final String UNSUPPORTED_TEMPLATE = "We can't handle %s in an ORDER BY clause through JpaSort.unsafe(…)";
 
 	private final CriteriaBuilder cb;
 	private final Path<?> from;
-	private static String UNSUPPORTED_TEMPLATE = "We can't handle %s in an ORDER BY clause through JpaSort.unsafe";
+	private final BiFunction<From<?, ?>, PropertyPath, Expression<?>> expressionFactory;
 
-	HqlOrderExpressionVisitor(CriteriaBuilder cb, Path<?> from) {
+	/**
+	 * @param cb criteria builder.
+	 * @param from from path (i.e. root entity).
+	 * @param expressionFactory factory to create expressions such as
+	 *          {@link QueryUtils#toExpressionRecursively(From, PropertyPath)}.
+	 */
+	HqlOrderExpressionVisitor(CriteriaBuilder cb, Path<?> from,
+			BiFunction<From<?, ?>, PropertyPath, Expression<?>> expressionFactory) {
 		this.cb = cb;
 		this.from = from;
+		this.expressionFactory = expressionFactory;
 	}
 
 	/**
 	 * Extract the {@link org.springframework.data.jpa.domain.JpaSort.JpaOrder}'s property and parse it as an HQL
 	 * {@literal sortExpression}.
 	 *
-	 * @param jpaOrder
+	 * @param jpaOrder must not be {@literal null}.
 	 * @return criteriaExpression
+	 * @throws IllegalArgumentException thrown if the order yields no sort expression.
+	 * @throws UnsupportedOperationException thrown if the order contains an unsupported expression.
+	 * @throws BadJpqlGrammarException thrown if the order contains a syntax errors.
 	 */
 	Expression<?> createCriteriaExpression(Sort.Order jpaOrder) {
 
@@ -100,32 +135,24 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public Expression<?> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
 
 		Expression<Comparable> left = visitRequired(ctx.expression(0));
 		Expression<Comparable> right = visitRequired(ctx.expression(1));
 		String op = ctx.op.getText();
 
-		if (op.equals("=")) {
-			return cb.equal(left, right);
-		} else if (op.equals(">")) {
-			return cb.greaterThan(left, right);
-		} else if (op.equals(">=")) {
-			return cb.greaterThanOrEqualTo(left, right);
-		} else if (op.equals("<")) {
-			return cb.lessThan(left, right);
-		} else if (op.equals("<=")) {
-			return cb.lessThanOrEqualTo(left, right);
-		} else if (op.equals("<>") || op.equals("!=") || op.equals("^=")) {
-			return cb.notEqual(left, right);
-		} else {
-			throw new UnsupportedOperationException("Unsupported comparison operator: " + op);
-		}
+		return switch (op) {
+			case "=" -> cb.equal(left, right);
+			case ">" -> cb.greaterThan(left, right);
+			case ">=" -> cb.greaterThanOrEqualTo(left, right);
+			case "<" -> cb.lessThan(left, right);
+			case "<=" -> cb.lessThanOrEqualTo(left, right);
+			case "<>", "!=", "^=" -> cb.notEqual(left, right);
+			default -> throw new UnsupportedOperationException("Unsupported comparison operator: " + op);
+		};
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public Expression<?> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
 
 		Expression<Comparable> condition = visitRequired(ctx.expression(0));
@@ -244,7 +271,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		Expression<?>[] arguments = ctx.genericFunctionArguments().expressionOrPredicate().stream() //
-				.map(expressionOrPredicateContext -> visitRequired(expressionOrPredicateContext)) //
+				.map(this::visitRequired) //
 				.toArray(Expression[]::new);
 		return cb.function(functionName, Object.class, arguments);
 
@@ -371,7 +398,6 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Expression<?> visitTruncFunction(HqlParser.TruncFunctionContext ctx) {
 
 		Expression expr = visitRequired(ctx.expression().get(0));
@@ -497,21 +523,6 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		throw new UnsupportedOperationException("Unsupported literal: " + ctx.getText());
 	}
 
-	static String getDecimals(TerminalNode input) {
-
-		String text = input.getText();
-		StringBuilder result = new StringBuilder(text.length());
-
-		for (int i = 0; i < text.length(); i++) {
-			char c = text.charAt(i);
-			if (Character.isDigit(c) || c == '-' || c == '+' || c == '.') {
-				result.append(c);
-			}
-		}
-
-		return result.toString();
-	}
-
 	@Override
 	public Expression<?> visitDateTimeLiteral(HqlParser.DateTimeLiteralContext ctx) {
 
@@ -524,6 +535,97 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Expression<?> visitJdbcTimeLiteral(HqlParser.JdbcTimeLiteralContext ctx) {
+
+		if (ctx.time() != null) {
+			return visitRequired(ctx.time());
+		}
+
+		return cb.literal(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText())));
+	}
+
+	@Override
+	public Expression<?> visitDate(HqlParser.DateContext ctx) {
+		return cb.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx))));
+	}
+
+	@Override
+	public Expression<?> visitTime(HqlParser.TimeContext ctx) {
+		return cb.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx))));
+	}
+
+	@Override
+	public Expression<?> visitJdbcDateLiteral(HqlParser.JdbcDateLiteralContext ctx) {
+
+		if (ctx.date() != null) {
+			return visitRequired(ctx.date());
+		}
+
+		return cb
+				.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+	}
+
+	@Override
+	public Expression<?> visitJdbcTimestampLiteral(HqlParser.JdbcTimestampLiteralContext ctx) {
+
+		if (ctx.dateTime() != null) {
+			return visitRequired(ctx.dateTime());
+		}
+
+		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+	}
+
+	@Override
+	public Expression<?> visitLocalDateTime(HqlParser.LocalDateTimeContext ctx) {
+		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.getText()))));
+	}
+
+	@Override
+	public Expression<?> visitZonedDateTime(HqlParser.ZonedDateTimeContext ctx) {
+		return cb.literal(ZonedDateTime.parse(ctx.getText()));
+	}
+
+	@Override
+	public Expression<?> visitOffsetDateTime(HqlParser.OffsetDateTimeContext ctx) {
+		return cb.literal(OffsetDateTime.parse(ctx.getText()));
+	}
+
+	@Override
+	public Expression<?> visitOffsetDateTimeWithMinutes(HqlParser.OffsetDateTimeWithMinutesContext ctx) {
+		return cb.literal(OffsetDateTime.parse(ctx.getText()));
+	}
+
+	@Override
+	public Expression<?> visitLocalDateTimeLiteral(HqlParser.LocalDateTimeLiteralContext ctx) {
+		return visitRequired(ctx.localDateTime());
+	}
+
+	@Override
+	public Expression<?> visitZonedDateTimeLiteral(HqlParser.ZonedDateTimeLiteralContext ctx) {
+		return visitRequired(ctx.zonedDateTime());
+	}
+
+	@Override
+	public Expression<?> visitOffsetDateTimeLiteral(HqlParser.OffsetDateTimeLiteralContext ctx) {
+		return visitRequired(ctx.offsetDateTime() != null ? ctx.offsetDateTime() : ctx.offsetDateTimeWithMinutes());
+	}
+
+	@Override
+	public Expression<?> visitDateLiteral(HqlParser.DateLiteralContext ctx) {
+		return visitRequired(ctx.date());
+	}
+
+	@Override
+	public Expression<?> visitTimeLiteral(HqlParser.TimeLiteralContext ctx) {
+		return visitRequired(ctx.time());
+	}
+
+	@Override
+	public Expression<?> visitDateTime(HqlParser.DateTimeContext ctx) {
+		return super.visitDateTime(ctx);
 	}
 
 	@Override
@@ -579,10 +681,67 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	@Override
 	public Expression<?> visitSimplePath(HqlParser.SimplePathContext ctx) {
-		return QueryUtils.toExpressionRecursively((From<?, ?>) from, PropertyPath.from(ctx.getText(), from.getJavaType()));
+		return expressionFactory.apply((From<?, ?>) from, PropertyPath.from(ctx.getText(), from.getJavaType()));
 	}
 
-	String getString(HqlParser.IdentifierContext context) {
+	@Override
+	public Expression<?> visitCaseList(HqlParser.CaseListContext ctx) {
+		return visit(ctx.simpleCaseExpression() != null ? ctx.simpleCaseExpression() : ctx.searchedCaseExpression());
+	}
+
+	@Override
+	public Expression<?> visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
+
+		CriteriaBuilder.SimpleCase<Object, Object> simpleCase = cb.selectCase(visit(ctx.expressionOrPredicate(0)));
+
+		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
+			simpleCase.when( //
+					visitRequired(caseWhenExpressionClauseContext.expression()), //
+					visitRequired(caseWhenExpressionClauseContext.expressionOrPredicate()));
+		});
+
+		if (ctx.expressionOrPredicate().size() == 2) {
+			simpleCase.otherwise(visitRequired(ctx.expressionOrPredicate(1)));
+		}
+
+		return simpleCase;
+	}
+
+	@Override
+	public Expression<?> visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
+
+		CriteriaBuilder.Case<Object> searchedCase = cb.selectCase();
+
+		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
+			searchedCase.when( //
+					visitRequired(caseWhenPredicateClauseContext.predicate()), //
+					visit(caseWhenPredicateClauseContext.expressionOrPredicate()));
+		});
+
+		if (ctx.expressionOrPredicate() != null) {
+			searchedCase.otherwise(visit(ctx.expressionOrPredicate()));
+		}
+
+		return searchedCase;
+	}
+
+	@Override
+	public Expression<?> visitParameter(HqlParser.ParameterContext ctx) {
+		throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "a parameter argument"));
+	}
+
+	private <T> Expression<T> visitRequired(ParseTree ctx) {
+
+		Expression<?> expression = visit(ctx);
+
+		if (expression == null) {
+			throw new UnsupportedOperationException("No result for expression: " + ctx.getText());
+		}
+
+		return (Expression<T>) expression;
+	}
+
+	private String getString(HqlParser.IdentifierContext context) {
 
 		HqlParser.NakedIdentifierContext ni = context.nakedIdentifier();
 
@@ -595,113 +754,85 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		return text;
 	}
 
-	@Override
-	public Expression<?> visitCaseList(HqlParser.CaseListContext ctx) {
-		if (ctx.simpleCaseExpression() != null) {
-			return visit(ctx.simpleCaseExpression());
-		} else {
-			return visit(ctx.searchedCaseExpression());
-		}
-	}
+	private static String getDecimals(TerminalNode input) {
 
-	@Override
-	public Expression<?> visitSimpleCaseExpression(HqlParser.SimpleCaseExpressionContext ctx) {
-		CriteriaBuilder.SimpleCase<Object, Object> simpleCase = cb.selectCase(visit(ctx.expressionOrPredicate(0)));
-		ctx.caseWhenExpressionClause().forEach(caseWhenExpressionClauseContext -> {
-			simpleCase.when( //
-					visitRequired(caseWhenExpressionClauseContext.expression()), //
-					visitRequired(caseWhenExpressionClauseContext.expressionOrPredicate()));
-		});
-		if (ctx.expressionOrPredicate().size() == 2) {
-			simpleCase.otherwise(visitRequired(ctx.expressionOrPredicate(1)));
-		}
-		return simpleCase;
-	}
+		String text = input.getText();
+		StringBuilder result = new StringBuilder(text.length());
 
-	@Override
-	public Expression<?> visitSearchedCaseExpression(HqlParser.SearchedCaseExpressionContext ctx) {
-		CriteriaBuilder.Case<Object> searchedCase = cb.selectCase();
-		ctx.caseWhenPredicateClause().forEach(caseWhenPredicateClauseContext -> {
-			searchedCase.when( //
-					visitRequired(caseWhenPredicateClauseContext.predicate()), //
-					visit(caseWhenPredicateClauseContext.expressionOrPredicate()));
-		});
-		if (ctx.expressionOrPredicate() != null) {
-			searchedCase.otherwise(visit(ctx.expressionOrPredicate()));
-		}
-		return searchedCase;
-	}
-
-	@Override
-	public Expression<?> visitParameter(HqlParser.ParameterContext ctx) {
-		throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "a parameter argument"));
-	}
-
-	@SuppressWarnings("unchecked")
-	private <T> Expression<T> visitRequired(ParseTree ctx) {
-
-		Expression<?> expression = visit(ctx);
-
-		if (expression == null) {
-			throw new UnsupportedOperationException("No result for expression: " + ctx.getText());
+		for (int i = 0; i < text.length(); i++) {
+			char c = text.charAt(i);
+			if (Character.isDigit(c) || c == '-' || c == '+' || c == '.') {
+				result.append(c);
+			}
 		}
 
-		return (Expression<T>) expression;
+		return result.toString();
+	}
+
+	private static String unquoteTemporal(ParseTree node) {
+		return unquoteTemporal(node.getText());
+	}
+
+	private static String unquoteTemporal(String temporal) {
+		if (temporal.startsWith("'") && temporal.endsWith("'")) {
+			temporal = temporal.substring(1, temporal.length() - 1);
+		}
+		return temporal;
 	}
 
 	private static String unquoteIdentifier(String text) {
 
 		int end = text.length() - 1;
-		assert text.charAt(0) == '`' && text.charAt(end) == '`';
+
+		Assert.isTrue(text.charAt(0) == '`' && text.charAt(end) == '`',
+				"Quoted identifier does not end with the same delimiter");
+
 		// Unquote a parsed quoted identifier and handle escape sequences
-		final StringBuilder sb = new StringBuilder(text.length() - 2);
+		StringBuilder sb = new StringBuilder(text.length() - 2);
 		for (int i = 1; i < end; i++) {
+
 			char c = text.charAt(i);
-			switch (c) {
-				case '\\':
-					if (i + 1 < end) {
-						char nextChar = text.charAt(++i);
-						switch (nextChar) {
-							case 'b':
-								c = '\b';
-								break;
-							case 't':
-								c = '\t';
-								break;
-							case 'n':
-								c = '\n';
-								break;
-							case 'f':
-								c = '\f';
-								break;
-							case 'r':
-								c = '\r';
-								break;
-							case '\\':
-								c = '\\';
-								break;
-							case '\'':
-								c = '\'';
-								break;
-							case '"':
-								c = '"';
-								break;
-							case '`':
-								c = '`';
-								break;
-							case 'u':
-								c = (char) Integer.parseInt(text.substring(i + 1, i + 5), 16);
-								i += 4;
-								break;
-							default:
-								sb.append('\\');
-								c = nextChar;
-								break;
-						}
+			if (c == '\\') {
+				if (i + 1 < end) {
+					char nextChar = text.charAt(++i);
+					switch (nextChar) {
+						case 'b':
+							c = '\b';
+							break;
+						case 't':
+							c = '\t';
+							break;
+						case 'n':
+							c = '\n';
+							break;
+						case 'f':
+							c = '\f';
+							break;
+						case 'r':
+							c = '\r';
+							break;
+						case '\\':
+							c = '\\';
+							break;
+						case '\'':
+							c = '\'';
+							break;
+						case '"':
+							c = '"';
+							break;
+						case '`':
+							c = '`';
+							break;
+						case 'u':
+							c = (char) Integer.parseInt(text.substring(i + 1, i + 5), 16);
+							i += 4;
+							break;
+						default:
+							sb.append('\\');
+							c = nextChar;
+							break;
 					}
-					break;
-				default:
-					break;
+				}
 			}
 			sb.append(c);
 		}
@@ -715,7 +846,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		Assert.isTrue(delimiter == text.charAt(end), "Quoted identifier does not end with the same delimiter");
 
 		// Unescape the parsed literal
-		final StringBuilder sb = new StringBuilder(text.length() - 2);
+		StringBuilder sb = new StringBuilder(text.length() - 2);
 		for (int i = 1; i < end; i++) {
 			char c = text.charAt(i);
 			switch (c) {

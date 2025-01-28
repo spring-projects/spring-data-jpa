@@ -61,6 +61,7 @@ import org.springframework.data.domain.*;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.DeleteSpecification;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.UpdateSpecification;
@@ -3152,6 +3153,38 @@ class UserRepositoryTests {
 		List<User> users = repository.queryWithIndexedParameterAndColonFollowedByIntegerInString(firstName);
 
 		assertThat(users).extracting(User::getId).containsExactly(expected.getId());
+	}
+
+	@Test // GH-3172
+	void specificationShouldApplyUnsafeSort() {
+
+		flushTestUsers();
+		firstUser.setManager(firstUser);
+		secondUser.setManager(firstUser);
+		thirdUser.setManager(secondUser);
+		fourthUser.setManager(secondUser);
+		repository.saveAllAndFlush(List.of(firstUser, secondUser, thirdUser, fourthUser));
+
+		PredicateSpecification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+
+		List<User> result = repository.findBy(spec, q -> q.sortBy(JpaSort.unsafe("LENGTH(firstname)")).all());
+
+		assertThat(result).containsExactly(thirdUser, firstUser);
+	}
+
+	@Test // GH-3172
+	void findAllShouldApplyUnsafeSort() {
+
+		flushTestUsers();
+		firstUser.setManager(firstUser);
+		secondUser.setManager(firstUser);
+		thirdUser.setManager(secondUser);
+		fourthUser.setManager(secondUser);
+		repository.saveAllAndFlush(List.of(firstUser, secondUser, thirdUser, fourthUser));
+
+		assertThat(
+				repository.findAll(JpaSort.unsafe("case when firstname ilike 'O%' escape '^' then 'A' else firstname end")))
+				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
 	}
 
 	@Disabled("ORDER BY CASE appears to be a Hibernate-only feature")
