@@ -383,6 +383,17 @@ Throws Exception.
 <4> Valid `Sort` expression pointing to aliased function.
 ====
 
+=== JpaSort.unsafe(…) limitations
+
+`JpaSort.unsafe(…)` operates in two modes:
+
+* When used with derived Queries or String-based Queries, the order string is appended to the query.
+* When used with Query by Example or Specifications (that use `CriteriaQuery`), order expressions are parsed and added to the `CriteriaQuery` as expressions.
+Query expressions can contain function calls, various clauses (such as `CASE WHEN`, arithmetic expressions) or property paths.
+Order translation does not support subquery expressions, `TREAT` and `CAST`.`
+
+[[jpa.query-methods.paging]]
+
 [[jpa.query-methods.scroll]]
 == Scrolling Large Query Results
 
