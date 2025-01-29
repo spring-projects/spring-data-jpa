@@ -232,6 +232,32 @@ class StringQueryUnitTests {
 				.containsOnly(1, 2);
 	}
 
+	@Test // GH-3758
+	void createsDistinctBindingsForIndexedSpel() {
+
+		StringQuery query = new StringQuery("select u from User u where u.firstname = ?#{foo} OR u.firstname = ?#{foo}",
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getParameterBindings()).hasSize(2).extracting(ParameterBinding::getRequiredPosition)
+				.containsOnly(1, 2);
+		assertThat(query.getParameterBindings()).extracting(ParameterBinding::getOrigin)
+				.extracting(ParameterOrigin::isExpression) //
+				.containsOnly(true, true);
+	}
+
+	@Test // GH-3758
+	void createsDistinctBindingsForNamedSpel() {
+
+		StringQuery query = new StringQuery("select u from User u where u.firstname = :#{foo} OR u.firstname = :#{foo}",
+				false);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getParameterBindings()).hasSize(2).extracting(ParameterBinding::getOrigin)
+				.extracting(ParameterOrigin::isExpression) //
+				.containsOnly(true, true);
+	}
+
 	@Test // DATAJPA-461
 	void detectsNamedInParameterBindings() {
 
@@ -308,6 +334,24 @@ class StringQueryUnitTests {
 
 		assertNamedBinding(ParameterBinding.class, "foo", bindings.get(0));
 		assertNamedBinding(InParameterBinding.class, "foo_1", bindings.get(1));
+	}
+
+	@Test // GH-3758
+	void detectsPositionalInParameterBindingsAndExpressions() {
+
+		String queryString = "select u from User u where foo = ?#{bar} and bar = ?3 and baz = ?#{baz}";
+		StringQuery query = new StringQuery(queryString, true);
+
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where foo = ?1 and bar = ?3 and baz = ?2");
+	}
+
+	@Test // GH-3758
+	void detectsPositionalInParameterBindingsAndExpressionsWithReuse() {
+
+		String queryString = "select u from User u where foo = ?#{bar} and bar = ?2 and baz = ?#{bar}";
+		StringQuery query = new StringQuery(queryString, true);
+
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where foo = ?1 and bar = ?2 and baz = ?3");
 	}
 
 	@Test // GH-3126

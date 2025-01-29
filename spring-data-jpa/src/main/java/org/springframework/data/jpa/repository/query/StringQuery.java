@@ -20,6 +20,8 @@ import static java.util.regex.Pattern.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -192,6 +194,80 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	/**
+	 * Value object to track and allocate used parameter index labels in a query.
+	 */
+	static class IndexedParameterLabels {
+
+		private final TreeSet<Integer> usedLabels;
+		private final boolean sequential;
+
+		public IndexedParameterLabels(Set<Integer> usedLabels) {
+
+			this.usedLabels = usedLabels instanceof TreeSet<Integer> ts ? ts : new TreeSet<Integer>(usedLabels);
+			this.sequential = isSequential(usedLabels);
+		}
+
+		private static boolean isSequential(Set<Integer> usedLabels) {
+
+			for (int i = 0; i < usedLabels.size(); i++) {
+
+				if (usedLabels.contains(i + 1)) {
+					continue;
+				}
+
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Allocate the next index label (1-based).
+		 *
+		 * @return the next index label.
+		 */
+		public int allocate() {
+
+			if (sequential) {
+				int index = usedLabels.size() + 1;
+				usedLabels.add(index);
+
+				return index;
+			}
+
+			int attempts = usedLabels.last() + 1;
+			int index = attemptAllocate(attempts);
+
+			if (index == -1) {
+				throw new IllegalStateException(
+						"Unable to allocate a unique parameter label. All possible labels have been used.");
+			}
+
+			usedLabels.add(index);
+
+			return index;
+		}
+
+		private int attemptAllocate(int attempts) {
+
+			for (int i = 0; i < attempts; i++) {
+
+				if (usedLabels.contains(i + 1)) {
+					continue;
+				}
+
+				return i + 1;
+			}
+
+			return -1;
+		}
+
+		public boolean hasLabels() {
+			return !usedLabels.isEmpty();
+		}
+	}
+
+	/**
 	 * A parser that extracts the parameter bindings from a given query string.
 	 *
 	 * @author Thomas Darimont
@@ -253,28 +329,23 @@ class StringQuery implements DeclaredQuery {
 		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query, List<ParameterBinding> bindings,
 				Metadata queryMeta) {
 
-			int greatestParameterIndex = tryFindGreatestParameterIndexIn(query);
-			boolean parametersShouldBeAccessedByIndex = greatestParameterIndex != -1;
+			IndexedParameterLabels parameterLabels = new IndexedParameterLabels(findParameterIndices(query));
+			boolean parametersShouldBeAccessedByIndex = parameterLabels.hasLabels();
 
 			/*
 			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
 			 */
 			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
 				parametersShouldBeAccessedByIndex = true;
-				greatestParameterIndex = 0;
 			}
 
 			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query,
-					parametersShouldBeAccessedByIndex, greatestParameterIndex);
+					parametersShouldBeAccessedByIndex, parameterLabels);
 
 			String resultingQuery = parsedQuery.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
 
-			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
-			int syntheticParameterIndex = expressionParameterIndex + parsedQuery.size();
-
-			ParameterBindings parameterBindings = new ParameterBindings(bindings, it -> checkAndRegister(it, bindings),
-					syntheticParameterIndex);
+			ParameterBindings parameterBindings = new ParameterBindings(bindings, it -> checkAndRegister(it, bindings));
 			int currentIndex = 0;
 
 			boolean usesJpaStyleParameters = false;
@@ -309,9 +380,9 @@ class StringQuery implements DeclaredQuery {
 						.getParameter(parameterName == null ? parameterIndexString : parameterName);
 				String replacement = null;
 
-				expressionParameterIndex++;
+				// this only happens for JDBC-style parameters.
 				if ("".equals(parameterIndexString)) {
-					parameterIndex = expressionParameterIndex;
+					parameterIndex = parameterLabels.allocate();
 				}
 
 				BindingIdentifier queryParameter;
@@ -346,7 +417,7 @@ class StringQuery implements DeclaredQuery {
 				if (origin.isExpression()) {
 					parameterBindings.register(bindingFactory.apply(queryParameter));
 				} else {
-					targetBinding = parameterBindings.register(queryParameter, origin, bindingFactory);
+					targetBinding = parameterBindings.register(queryParameter, origin, bindingFactory, parameterLabels);
 				}
 
 				replacement = targetBinding.hasName() ? ":" + targetBinding.getName()
@@ -371,16 +442,14 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		private static ValueExpressionQueryRewriter.ParsedQuery createSpelExtractor(String queryWithSpel,
-				boolean parametersShouldBeAccessedByIndex, int greatestParameterIndex) {
+				boolean parametersShouldBeAccessedByIndex, IndexedParameterLabels parameterLabels) {
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
 			 * not mix-up with the actual parameter indices.
 			 */
-			int expressionParameterIndex = parametersShouldBeAccessedByIndex ? greatestParameterIndex : 0;
-
 			BiFunction<Integer, String, String> indexToParameterName = parametersShouldBeAccessedByIndex
-					? (index, expression) -> String.valueOf(index + expressionParameterIndex + 1)
+					? (index, expression) -> String.valueOf(parameterLabels.allocate())
 					: (index, expression) -> EXPRESSION_PARAMETER_PREFIX + (index + 1);
 
 			String fixedPrefix = parametersShouldBeAccessedByIndex ? "?" : ":";
@@ -401,21 +470,21 @@ class StringQuery implements DeclaredQuery {
 			return Integer.valueOf(parameterIndexString);
 		}
 
-		private static int tryFindGreatestParameterIndexIn(String query) {
+		private static Set<Integer> findParameterIndices(String query) {
 
 			Matcher parameterIndexMatcher = PARAMETER_BINDING_BY_INDEX.matcher(query);
+			Set<Integer> usedParameterIndices = new TreeSet<>();
 
-			int greatestParameterIndex = -1;
 			while (parameterIndexMatcher.find()) {
 
 				String parameterIndexString = parameterIndexMatcher.group(1);
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
 				if (parameterIndex != null) {
-					greatestParameterIndex = Math.max(greatestParameterIndex, parameterIndex);
+					usedParameterIndices.add(parameterIndex);
 				}
 			}
 
-			return greatestParameterIndex;
+			return usedParameterIndices;
 		}
 
 		private static void checkAndRegister(ParameterBinding binding, List<ParameterBinding> bindings) {
@@ -495,17 +564,14 @@ class StringQuery implements DeclaredQuery {
 		private final MultiValueMap<BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
 
 		private final Consumer<ParameterBinding> registration;
-		private int syntheticParameterIndex;
 
-		public ParameterBindings(List<ParameterBinding> bindings, Consumer<ParameterBinding> registration,
-				int syntheticParameterIndex) {
+		public ParameterBindings(List<ParameterBinding> bindings, Consumer<ParameterBinding> registration) {
 
 			for (ParameterBinding binding : bindings) {
 				this.methodArgumentToLikeBindings.put(binding.getIdentifier(), new ArrayList<>(List.of(binding)));
 			}
 
 			this.registration = registration;
-			this.syntheticParameterIndex = syntheticParameterIndex;
 		}
 
 		/**
@@ -519,7 +585,7 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		BindingIdentifier register(BindingIdentifier identifier, ParameterOrigin origin,
-				Function<BindingIdentifier, ParameterBinding> bindingFactory) {
+				Function<BindingIdentifier, ParameterBinding> bindingFactory, IndexedParameterLabels parameterLabels) {
 
 			Assert.isInstanceOf(MethodInvocationArgument.class, origin);
 
@@ -554,7 +620,7 @@ class StringQuery implements DeclaredQuery {
 				}
 				syntheticIdentifier = BindingIdentifier.of(newName);
 			} else {
-				syntheticIdentifier = BindingIdentifier.of(++syntheticParameterIndex);
+				syntheticIdentifier = BindingIdentifier.of(parameterLabels.allocate());
 			}
 
 			ParameterBinding newBinding = bindingFactory.apply(syntheticIdentifier);
