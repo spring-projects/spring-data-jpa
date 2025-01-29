@@ -73,6 +73,15 @@ class StringQuery implements DeclaredQuery {
 	 * @param query must not be {@literal null} or empty.
 	 */
 	public StringQuery(String query, boolean isNative) {
+		this(query, isNative, it -> {});
+	}
+
+	/**
+	 * Creates a new {@link StringQuery} from the given JPQL query.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 */
+	private StringQuery(String query, boolean isNative, Consumer<List<ParameterBinding>> parameterPostProcessor) {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
@@ -86,6 +95,8 @@ class StringQuery implements DeclaredQuery {
 
 		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
 		this.queryEnhancer = QueryEnhancerFactory.forQuery(this);
+
+		parameterPostProcessor.accept(this.bindings);
 
 		boolean hasNamedParameters = false;
 		for (ParameterBinding parameterBinding : getParameterBindings()) {
@@ -117,15 +128,26 @@ class StringQuery implements DeclaredQuery {
 	@Override
 	public DeclaredQuery deriveCountQuery(@Nullable String countQueryProjection) {
 
-		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
-				this.isNative);
+		// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
+		// JPA parameter markers and not the original expressions anymore.
 
-		if (this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
-			stringQuery.getParameterBindings().clear();
-			stringQuery.getParameterBindings().addAll(this.bindings);
-		}
+		return new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
+				this.isNative, derivedBindings -> {
 
-		return stringQuery;
+					// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
+					// JPA
+					// parameter markers and not the original expressions anymore.
+					if (this.hasParameterBindings() && !this.getParameterBindings().equals(derivedBindings)) {
+
+						for (ParameterBinding binding : bindings) {
+
+							if (binding.getOrigin().isExpression() && derivedBindings.removeIf(
+									it -> !it.getOrigin().isExpression() && it.getIdentifier().equals(binding.getIdentifier()))) {
+								derivedBindings.add(binding);
+							}
+						}
+					}
+				});
 	}
 
 	@Override
@@ -243,8 +265,7 @@ class StringQuery implements DeclaredQuery {
 			}
 
 			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query,
-					parametersShouldBeAccessedByIndex,
-					greatestParameterIndex);
+					parametersShouldBeAccessedByIndex, greatestParameterIndex);
 
 			String resultingQuery = parsedQuery.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
@@ -350,8 +371,7 @@ class StringQuery implements DeclaredQuery {
 		}
 
 		private static ValueExpressionQueryRewriter.ParsedQuery createSpelExtractor(String queryWithSpel,
-				boolean parametersShouldBeAccessedByIndex,
-				int greatestParameterIndex) {
+				boolean parametersShouldBeAccessedByIndex, int greatestParameterIndex) {
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to

@@ -3069,22 +3069,36 @@ class UserRepositoryTests {
 		assertThat(users).extracting(User::getId).containsExactly(expected.getId());
 	}
 
-	@Disabled("ORDER BY CASE appears to be a Hibernate-only feature")
-	@Test // DATAJPA-1233
+	@Test // DATAJPA-1233, GH-3756
 	void handlesCountQueriesWithLessParametersSingleParam() {
-		// repository.findAllOrderedBySpecialNameSingleParam("Oliver", PageRequest.of(2, 3));
+
+		flushTestUsers();
+
+		Page<User> result = repository.findAllOrderedByNamedParam("Oliver", PageRequest.of(0, 3));
+
+		assertThat(result.getContent()).containsExactly(firstUser, fourthUser, thirdUser);
+		assertThat(result.getTotalElements()).isEqualTo(4);
+
+		result = repository.findAllOrderedByIndexedParam("Oliver", PageRequest.of(0, 3));
+
+		assertThat(result.getContent()).containsExactly(firstUser, fourthUser, thirdUser);
+		assertThat(result.getTotalElements()).isEqualTo(4);
 	}
 
-	@Disabled("ORDER BY CASE appears to be a Hibernate-only feature")
-	@Test // DATAJPA-1233
+	@Test // DATAJPA-1233, GH-3756
 	void handlesCountQueriesWithLessParametersMoreThanOne() {
-		// repository.findAllOrderedBySpecialNameMultipleParams("Oliver", "x", PageRequest.of(2, 3));
-	}
 
-	@Disabled("ORDER BY CASE appears to be a Hibernate-only feature")
-	@Test // DATAJPA-1233
-	void handlesCountQueriesWithLessParametersMoreThanOneIndexed() {
-		// repository.findAllOrderedBySpecialNameMultipleParamsIndexed("x", "Oliver", PageRequest.of(2, 3));
+		flushTestUsers();
+
+		Page<User> result = repository.findAllOrderedBySpecialNameMultipleParams("Oliver", "x", PageRequest.of(0, 3));
+
+		assertThat(result.getContent()).containsExactly(firstUser, fourthUser, thirdUser);
+		assertThat(result.getTotalElements()).isEqualTo(4);
+
+		result = repository.findAllOrderedBySpecialNameMultipleParamsIndexed("x", "Oliver", PageRequest.of(0, 3));
+
+		assertThat(result.getContent()).containsExactly(firstUser, fourthUser, thirdUser);
+		assertThat(result.getTotalElements()).isEqualTo(4);
 	}
 
 	// DATAJPA-928

@@ -310,6 +310,56 @@ class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "foo_1", bindings.get(1));
 	}
 
+	@Test // GH-3126
+	void countQueryDerivationRetainsNamedExpressionParameters() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where foo = :#{bar} ORDER BY CASE WHEN (u.firstname >= :#{name}) THEN 0 ELSE 1 END",
+				false);
+
+		DeclaredQuery countQuery = query.deriveCountQuery(null);
+
+		assertThat(countQuery.getParameterBindings()).hasSize(1);
+		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
+				.extracting(ParameterOrigin::isExpression).isEqualTo(List.of(true));
+
+		query = new StringQuery(
+				"select u from User u where foo = :#{bar} and bar = :bar ORDER BY CASE WHEN (u.firstname >= :bar) THEN 0 ELSE 1 END",
+				false);
+
+		countQuery = query.deriveCountQuery(null);
+
+		assertThat(countQuery.getParameterBindings()).hasSize(2);
+		assertThat(countQuery.getParameterBindings()) //
+				.extracting(ParameterBinding::getOrigin) //
+				.extracting(ParameterOrigin::isExpression).contains(true, false);
+	}
+
+	@Test // GH-3126
+	void countQueryDerivationRetainsIndexedExpressionParameters() {
+
+		StringQuery query = new StringQuery(
+				"select u from User u where foo = ?#{bar} ORDER BY CASE WHEN (u.firstname >= ?#{name}) THEN 0 ELSE 1 END",
+				false);
+
+		DeclaredQuery countQuery = query.deriveCountQuery(null);
+
+		assertThat(countQuery.getParameterBindings()).hasSize(1);
+		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
+				.extracting(ParameterOrigin::isExpression).isEqualTo(List.of(true));
+
+		query = new StringQuery(
+				"select u from User u where foo = ?#{bar} and bar = ?1 ORDER BY CASE WHEN (u.firstname >= ?1) THEN 0 ELSE 1 END",
+				false);
+
+		countQuery = query.deriveCountQuery(null);
+
+		assertThat(countQuery.getParameterBindings()).hasSize(2);
+		assertThat(countQuery.getParameterBindings()) //
+				.extracting(ParameterBinding::getOrigin) //
+				.extracting(ParameterOrigin::isExpression).contains(true, false);
+	}
+
 	@Test // DATAJPA-461
 	void detectsMultiplePositionalInParameterBindings() {
 
