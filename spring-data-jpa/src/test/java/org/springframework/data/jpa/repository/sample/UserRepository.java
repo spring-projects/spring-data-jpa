@@ -88,9 +88,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	java.util.Optional<User> findById(Integer primaryKey);
 
 	/**
-	 * Redeclaration of {@link CrudRepository#deleteById(java.lang.Object)}. to make sure the transaction
-	 * configuration of the original method is considered if the redeclaration does not carry a {@link Transactional}
-	 * annotation.
+	 * Redeclaration of {@link CrudRepository#deleteById(java.lang.Object)}. to make sure the transaction configuration of
+	 * the original method is considered if the redeclaration does not carry a {@link Transactional} annotation.
 	 */
 	@Override
 	void deleteById(Integer id); // DATACMNS-649
@@ -424,7 +423,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u where u.firstname = ?#{[0]} and u.firstname = ?1 and u.lastname like %?#{[1]}% and u.lastname like %?2%")
 	List<User> findByFirstnameAndLastnameWithSpelExpression(String firstname, String lastname);
 
-	@Query(value = "select * from SD_User", countQuery = "select count(1) from SD_User u where u.lastname = :#{#lastname}", nativeQuery = true)
+	@Query(value = "select * from SD_User",
+			countQuery = "select count(1) from SD_User u where u.lastname = :#{#lastname}", nativeQuery = true)
 	Page<User> findByWithSpelParameterOnlyUsedForCountQuery(String lastname, Pageable page);
 
 	// DATAJPA-564
@@ -578,26 +578,23 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("SELECT u FROM User u where u.firstname >= ?1 and u.lastname = '000:1'")
 	List<User> queryWithIndexedParameterAndColonFollowedByIntegerInString(String firstname);
 
-	/**
-	 * TODO: ORDER BY CASE appears to only with Hibernate. The examples attempting to do this through pure JPQL don't
-	 * appear to work with Hibernate, so we must set them aside until we can implement HQL.
-	 */
-	// // DATAJPA-1233
-	// @Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END, u.firstname")
-	// Page<User> findAllOrderedBySpecialNameSingleParam(@Param("name") String name, Pageable page);
-	//
-	// // DATAJPA-1233
-	// @Query(
-	// value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END,
-	// u.firstname")
-	// Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other,
-	// Pageable page);
-	//
-	// // DATAJPA-1233
-	// @Query(
-	// value = "SELECT u FROM User u WHERE ?2 = 'x' ORDER BY CASE WHEN (u.firstname >= ?1) THEN 0 ELSE 1 END,
-	// u.firstname")
-	// Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String other, String name, Pageable page);
+	@Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedByNamedParam(@Param("name") String name, Pageable page);
+
+	@Query(value = "SELECT u FROM User u ORDER BY CASE WHEN (u.firstname >= ?1) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedByIndexedParam(String name, Pageable page);
+
+	@Query(
+			value = "SELECT u FROM User u WHERE :other = 'x' ORDER BY CASE WHEN (u.firstname >= :name) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameMultipleParams(@Param("name") String name, @Param("other") String other,
+			Pageable page);
+
+	// Note that parameters used in the order-by statement are just cut off, so we must declare a query that parameter
+	// label order remains valid even after truncating the order by part. (i.e. WHERE ?2 = 'x' ORDER BY CASE WHEN
+	// (u.firstname >= ?1) isn't going to work).
+	@Query(
+			value = "SELECT u FROM User u WHERE ?1 = 'x' ORDER BY CASE WHEN (u.firstname >= ?2) THEN 0 ELSE 1 END, u.firstname")
+	Page<User> findAllOrderedBySpecialNameMultipleParamsIndexed(String other, String name, Pageable page);
 
 	// DATAJPA-928
 	Page<User> findByNativeNamedQueryWithPageable(Pageable pageable);
@@ -751,7 +748,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Query("select u, count(r) from User u left outer join u.roles r group by u")
-	@interface UserRoleCountProjectingQuery {}
+	@interface UserRoleCountProjectingQuery {
+	}
 
 	interface RolesAndFirstname {
 
@@ -781,10 +779,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	}
 
-	record UserRoleCountDtoProjection(User user, Long roleCount) {}
+	record UserRoleCountDtoProjection(User user, Long roleCount) {
+	}
 
 	interface UserRoleCountInterfaceProjection {
 		User getUser();
+
 		Long getRoleCount();
 	}
 

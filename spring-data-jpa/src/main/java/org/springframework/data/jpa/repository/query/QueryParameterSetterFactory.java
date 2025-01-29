@@ -240,10 +240,13 @@ abstract class QueryParameterSetterFactory {
 
 			BindingIdentifier identifier = mia.identifier();
 
-			if (declaredQuery.hasNamedParameter()) {
+			if (declaredQuery.hasNamedParameter() && identifier.hasName()) {
 				parameter = findParameterForBinding(parameters, identifier.getName());
-			} else {
+			} else if (identifier.hasPosition()) {
 				parameter = findParameterForBinding(parameters, identifier.getPosition() - 1);
+			} else {
+				// this can happen when a query uses parameters in ORDER BY and the COUNT query just needs to drop a binding.
+				parameter = null;
 			}
 
 			return parameter == null //
