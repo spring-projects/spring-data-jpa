@@ -176,7 +176,7 @@ class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test
-	public void doesTemplatingWhenEntityNameSpelIsPresent() {
+	void doesTemplatingWhenEntityNameSpelIsPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from #{#entityName} u",
 				metadata, SPEL_PARSER, false);
@@ -185,7 +185,7 @@ class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test
-	public void doesNoTemplatingWhenEntityNameSpelIsNotPresent() {
+	void doesNoTemplatingWhenEntityNameSpelIsNotPresent() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select #{#entityName + 'Hallo'} from User u", metadata,
 				SPEL_PARSER, false);
@@ -194,7 +194,7 @@ class ExpressionBasedStringQueryUnitTests {
 	}
 
 	@Test
-	public void doesTemplatingWhenEntityNameSpelIsPresentForBindParameter() {
+	void doesTemplatingWhenEntityNameSpelIsPresentForBindParameter() {
 
 		StringQuery query = new ExpressionBasedStringQuery("select u from #{#entityName} u where name = :#{#something}",
 				metadata, SPEL_PARSER, false);

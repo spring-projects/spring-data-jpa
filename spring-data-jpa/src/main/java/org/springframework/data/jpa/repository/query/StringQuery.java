@@ -113,9 +113,19 @@ class StringQuery implements DeclaredQuery {
 		StringQuery stringQuery = new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
 				this.isNative);
 
+		// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees JPA
+		// parameter markers and not the original expressions anymore.
 		if (this.hasParameterBindings() && !this.getParameterBindings().equals(stringQuery.getParameterBindings())) {
-			stringQuery.getParameterBindings().clear();
-			stringQuery.getParameterBindings().addAll(this.bindings);
+
+			List<ParameterBinding> derivedBindings = stringQuery.getParameterBindings();
+
+			for (ParameterBinding binding : bindings) {
+
+				if (binding.getOrigin().isExpression() && derivedBindings
+						.removeIf(it -> !it.getOrigin().isExpression() && it.getIdentifier().equals(binding.getIdentifier()))) {
+					derivedBindings.add(binding);
+				}
+			}
 		}
 
 		return stringQuery;
@@ -235,8 +245,7 @@ class StringQuery implements DeclaredQuery {
 				greatestParameterIndex = 0;
 			}
 
-			SpelExtractor spelExtractor = createSpelExtractor(query, parametersShouldBeAccessedByIndex,
-					greatestParameterIndex);
+			SpelExtractor spelExtractor = createSpelExtractor(query, parametersShouldBeAccessedByIndex, greatestParameterIndex);
 
 			String resultingQuery = spelExtractor.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
@@ -340,8 +349,7 @@ class StringQuery implements DeclaredQuery {
 			return resultingQuery;
 		}
 
-		private static SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex,
-				int greatestParameterIndex) {
+		private static SpelExtractor createSpelExtractor(String queryWithSpel, boolean parametersShouldBeAccessedByIndex, int greatestParameterIndex) {
 
 			/*
 			 * If parameters need to be bound by index, we bind the synthetic expression parameters starting from position of the greatest discovered index parameter in order to
