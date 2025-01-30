@@ -17,12 +17,11 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -43,14 +42,9 @@ class HqlSpecificationTests {
 
 	private static String parseWithoutChanges(String query) {
 
-		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
-		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
+		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser.parseQuery(query);
 
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		HqlParser.StartContext parsedQuery = parser.start();
-
-		return TokenRenderer.render(new HqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new HqlQueryRenderer().visit(parser.getContext()));
 	}
 
 	private void assertQuery(String query) {
@@ -490,7 +484,7 @@ class HqlSpecificationTests {
 				"from Call c ");
 
 		assertQuery("select POSITION(c.number IN 'foo') + 1 AS pos " + //
-			"from Call c ");
+				"from Call c ");
 	}
 
 	@Test // GH-3689

@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.stream.Stream;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,14 +48,9 @@ class HqlQueryRendererTests {
 	 */
 	private static String parseWithoutChanges(String query) {
 
-		HqlLexer lexer = new HqlLexer(CharStreams.fromString(query));
-		HqlParser parser = new HqlParser(new CommonTokenStream(lexer));
+		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser.parseQuery(query);
 
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		HqlParser.StartContext parsedQuery = parser.start();
-
-		QueryTokenStream tokens = new HqlQueryRenderer().visit(parsedQuery);
+		QueryTokenStream tokens = new HqlQueryRenderer().visit(parser.getContext());
 		return QueryRenderer.from(tokens).render();
 	}
 
@@ -1889,6 +1882,22 @@ class HqlQueryRendererTests {
 				select extract(epoch from departureTime) AS epoch
 				group by extract(epoch from departureTime)
 				""");
+	}
+
+	@Test // GH-3757
+	void arithmeticDate() {
+
+		assertQuery("SELECT a FROM foo a WHERE (cast(a.createdAt as date) - CURRENT_DATE()) BY day - 2 = 0");
+		assertQuery("SELECT a FROM foo a WHERE (cast(a.createdAt as date) - CURRENT_DATE()) BY day - 2 = 0");
+		assertQuery("SELECT a FROM foo a WHERE (cast(a.createdAt as date)) BY day - 2 = 0");
+
+		assertQuery("SELECT f.start - 1 minute FROM foo f");
+
+		assertQuery("SELECT f FROM foo f WHERE (cast(f.start as date) - CURRENT_DATE()) BY day - 2 = 0");
+		assertQuery("SELECT 1 week - 1 day FROM foo f");
+		assertQuery("SELECT f.birthday - local date day FROM foo f");
+		assertQuery("SELECT local datetime - f.birthday FROM foo f");
+		assertQuery("SELECT (1 year) by day FROM foo f");
 	}
 
 	@ParameterizedTest // GH-3342
