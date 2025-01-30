@@ -837,7 +837,7 @@ reserved_word
  */
 
 
-WS                          : [ \t\r\n] -> skip ;
+WS                          : [ \t\r\n] -> channel(HIDDEN) ;
 
 // Build up case-insentive tokens
 

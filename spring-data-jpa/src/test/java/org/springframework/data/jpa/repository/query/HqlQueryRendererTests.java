@@ -1891,6 +1891,7 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT a FROM foo a WHERE (cast(a.createdAt as date) - CURRENT_DATE()) BY day - 2 = 0");
 		assertQuery("SELECT a FROM foo a WHERE (cast(a.createdAt as date)) BY day - 2 = 0");
 
+		assertQuery("SELECT f.start BY DAY - 2 FROM foo f");
 		assertQuery("SELECT f.start - 1 minute FROM foo f");
 
 		assertQuery("SELECT f FROM foo f WHERE (cast(f.start as date) - CURRENT_DATE()) BY day - 2 = 0");

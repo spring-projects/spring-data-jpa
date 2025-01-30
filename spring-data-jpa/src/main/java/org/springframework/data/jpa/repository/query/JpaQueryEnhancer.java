@@ -27,6 +27,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -82,7 +83,14 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 		P parser = getParser(query, lexerFactoryFunction, parserFactoryFunction);
 
 		parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
-		parser.setErrorHandler(new BailErrorStrategy());
+		parser.setErrorHandler(new BailErrorStrategy() {
+			@Override
+			public void reportError(Parser recognizer, RecognitionException e) {
+
+				// avoid BadJpqlGrammarException creation in the first pass.
+				// recover(…) is going to handle cancellation.
+			}
+		});
 
 		try {
 
