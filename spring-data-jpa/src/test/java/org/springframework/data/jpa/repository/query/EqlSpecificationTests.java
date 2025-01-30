@@ -17,10 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -37,14 +36,9 @@ class EqlSpecificationTests {
 
 	private static String parseWithoutChanges(String query) {
 
-		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
-		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
+		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser.parseQuery(query);
 
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		EqlParser.StartContext parsedQuery = parser.start();
-
-		return TokenRenderer.render(new EqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new EqlQueryRenderer().visit(parser.getContext()));
 	}
 
 	private void assertQuery(String query) {

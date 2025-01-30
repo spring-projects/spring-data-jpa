@@ -19,14 +19,13 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.stream.Stream;
 
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
@@ -47,14 +46,9 @@ class EqlQueryRendererTests {
 	 */
 	private static String parseWithoutChanges(String query) {
 
-		EqlLexer lexer = new EqlLexer(CharStreams.fromString(query));
-		EqlParser parser = new EqlParser(new CommonTokenStream(lexer));
+		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser.parseQuery(query);
 
-		parser.addErrorListener(new BadJpqlGrammarErrorListener(query));
-
-		EqlParser.StartContext parsedQuery = parser.start();
-
-		return TokenRenderer.render(new EqlQueryRenderer().visit(parsedQuery));
+		return TokenRenderer.render(new EqlQueryRenderer().visit(parser.getContext()));
 	}
 
 	static Stream<Arguments> reservedWords() {

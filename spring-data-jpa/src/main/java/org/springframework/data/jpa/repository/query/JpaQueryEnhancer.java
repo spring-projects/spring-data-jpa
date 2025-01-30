@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -28,7 +29,9 @@ import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.lang.Nullable;
@@ -68,8 +71,34 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 		this.projection = tokens.isEmpty() ? "" : new QueryRenderer.TokenRenderer(tokens).render();
 	}
 
+	/**
+	 * Parse the query and return the parser context (AST). This method attempts parsing the query using
+	 * {@link PredictionMode#SLL} first to attempt a fast-path parse without using the context. If that fails, it retries
+	 * using {@link PredictionMode#LL} which is much slower, however it allows for contextual ambiguity resolution.
+	 */
 	static <P extends Parser> ParserRuleContext parse(String query, Function<CharStream, Lexer> lexerFactoryFunction,
 			Function<TokenStream, P> parserFactoryFunction, Function<P, ParserRuleContext> parseFunction) {
+
+		P parser = getParser(query, lexerFactoryFunction, parserFactoryFunction);
+
+		parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+		parser.setErrorHandler(new BailErrorStrategy());
+
+		try {
+
+			return parseFunction.apply(parser);
+		} catch (BadJpqlGrammarException | ParseCancellationException e) {
+
+			parser = getParser(query, lexerFactoryFunction, parserFactoryFunction);
+			// fall back to LL(*)-based parsing
+			parser.getInterpreter().setPredictionMode(PredictionMode.LL);
+
+			return parseFunction.apply(parser);
+		}
+	}
+
+	private static <P extends Parser> P getParser(String query, Function<CharStream, Lexer> lexerFactoryFunction,
+			Function<TokenStream, P> parserFactoryFunction) {
 
 		Lexer lexer = lexerFactoryFunction.apply(CharStreams.fromString(query));
 		P parser = parserFactoryFunction.apply(new CommonTokenStream(lexer));
@@ -82,11 +111,11 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 
 		configureParser(query, grammar.toUpperCase(), lexer, parser);
 
-		return parseFunction.apply(parser);
+		return parser;
 	}
 
 	/**
-	 * Apply common configuration (SLL prediction for performance, our own error listeners).
+	 * Apply common configuration.
 	 *
 	 * @param query the query input to parse.
 	 * @param grammar name of the grammar.
@@ -99,8 +128,6 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 
 		lexer.removeErrorListeners();
 		lexer.addErrorListener(errorListener);
-
-		parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
 
 		parser.removeErrorListeners();
 		parser.addErrorListener(errorListener);
