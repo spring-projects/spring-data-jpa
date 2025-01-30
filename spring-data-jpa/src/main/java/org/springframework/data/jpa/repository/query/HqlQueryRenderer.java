@@ -1752,7 +1752,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.expression()));
+		builder.appendExpression(visit(ctx.expression()));
 		builder.append(QueryTokens.expression(ctx.BY()));
 		builder.appendExpression(visit(ctx.datetimeField()));
 
