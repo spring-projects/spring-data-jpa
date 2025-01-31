@@ -183,6 +183,11 @@ final class NamedQuery extends AbstractJpaQuery {
 	}
 
 	@Override
+	public boolean hasDeclaredCountQuery() {
+		return namedCountQueryIsPresent;
+	}
+
+	@Override
 	protected Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 
 		EntityManager em = getEntityManager();

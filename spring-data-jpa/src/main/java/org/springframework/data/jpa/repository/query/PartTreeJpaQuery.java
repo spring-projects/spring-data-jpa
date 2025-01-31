@@ -113,6 +113,11 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	}
 
 	@Override
+	public boolean hasDeclaredCountQuery() {
+		return false;
+	}
+
+	@Override
 	public Query doCreateQuery(JpaParametersParameterAccessor accessor) {
 		return queryPreparer.createQuery(accessor);
 	}
