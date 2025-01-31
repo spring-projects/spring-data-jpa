@@ -640,6 +640,9 @@ To make sure lifecycle queries are actually invoked, an invocation of `deleteByR
 
 In fact, a derived delete query is a shortcut for running the query and then calling `CrudRepository.delete(Iterable<User> users)` on the result and keeping behavior in sync with the implementations of other `delete(…)` methods in `CrudRepository`.
 
+NOTE: When deleting a lot of objects you will need to consider the performance implications to ensure sufficient memory availability.
+All resulting objects are loaded into memory before being deleted and are held in the session until flushing or completing the transaction.
+
 [[jpa.query-hints]]
 == Applying Query Hints
 To apply JPA query hints to the queries declared in your repository interface, you can use the `@QueryHints` annotation. It takes an array of JPA `@QueryHint` annotations plus a boolean flag to potentially disable the hints applied to the additional count query triggered when applying pagination, as shown in the following example:
