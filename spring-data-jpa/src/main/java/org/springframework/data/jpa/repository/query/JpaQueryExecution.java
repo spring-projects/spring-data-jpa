@@ -188,6 +188,12 @@ public abstract class JpaQueryExecution {
 	 */
 	static class PagedExecution extends JpaQueryExecution {
 
+		private final PersistenceProvider provider;
+
+		PagedExecution(PersistenceProvider provider) {
+			this.provider = provider;
+		}
+
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Object doExecute(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
@@ -195,13 +201,34 @@ public abstract class JpaQueryExecution {
 			Query query = repositoryQuery.createQuery(accessor);
 
 			return PageableExecutionUtils.getPage(query.getResultList(), accessor.getPageable(),
-					() -> count(repositoryQuery, accessor));
+					() -> count(query, repositoryQuery, accessor));
 		}
 
-		private long count(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
+		private long count(Query resultQuery, AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
+
+			if (repositoryQuery.hasDeclaredCountQuery()) {
+				return doCount(repositoryQuery, accessor);
+			}
+
+			return provider.getResultCount(resultQuery, () -> doCount(repositoryQuery, accessor));
+		}
+
+		long doCount(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
 
 			List<?> totals = repositoryQuery.createCountQuery(accessor).getResultList();
-			return (totals.size() == 1 ? CONVERSION_SERVICE.convert(totals.get(0), Long.class) : totals.size());
+
+			if (totals.size() == 1) {
+				Object result = totals.get(0);
+
+				if (result instanceof Number n) {
+					return n.longValue();
+				}
+
+				return CONVERSION_SERVICE.convert(result, Long.class);
+			}
+
+			// group by count
+			return totals.size();
 		}
 	}
 

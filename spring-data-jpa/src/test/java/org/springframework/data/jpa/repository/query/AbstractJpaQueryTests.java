@@ -231,6 +231,11 @@ class AbstractJpaQueryTests {
 		}
 
 		@Override
+		public boolean hasDeclaredCountQuery() {
+			return true;
+		}
+
+		@Override
 		protected TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
 			return countQuery;
 		}

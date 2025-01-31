@@ -82,6 +82,11 @@ class StoredProcedureJpaQuery extends AbstractJpaQuery {
 	}
 
 	@Override
+	public boolean hasDeclaredCountQuery() {
+		return false;
+	}
+
+	@Override
 	protected StoredProcedureQuery createQuery(JpaParametersParameterAccessor accessor) {
 		return applyHints(doCreateQuery(accessor), getQueryMethod());
 	}

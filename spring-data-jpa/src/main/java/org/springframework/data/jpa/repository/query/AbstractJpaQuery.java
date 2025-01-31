@@ -106,7 +106,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			} else if (method.isSliceQuery()) {
 				return new SlicedExecution();
 			} else if (method.isPageQuery()) {
-				return new PagedExecution();
+				return new PagedExecution(this.provider);
 			} else if (method.isModifyingQuery()) {
 				return null;
 			} else {
@@ -119,6 +119,15 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	public JpaQueryMethod getQueryMethod() {
 		return method;
 	}
+
+	/**
+	 * Returns {@literal true} if the query has a dedicated count query associated with it or {@literal false} if the
+	 * count query shall be derived.
+	 *
+	 * @return {@literal true} if the query has a dedicated count query {@literal false} if the * count query is derived.
+	 * @since 3.5
+	 */
+	public abstract boolean hasDeclaredCountQuery();
 
 	/**
 	 * Returns the {@link EntityManager}.
