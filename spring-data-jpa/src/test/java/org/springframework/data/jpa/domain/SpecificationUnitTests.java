@@ -46,6 +46,7 @@ import org.mockito.quality.Strictness;
  * @author Mark Paluch
  * @author Daniel Shuy
  */
+@SuppressWarnings("removal")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SpecificationUnitTests {
@@ -119,7 +120,7 @@ class SpecificationUnitTests {
 	}
 
 	@Test // GH-1943
-	public void allOfConcatenatesNull() {
+	void allOfConcatenatesNull() {
 
 		Specification<Object> specification = Specification.allOf(null, spec, null);
 
@@ -128,7 +129,7 @@ class SpecificationUnitTests {
 	}
 
 	@Test // GH-1943
-	public void anyOfConcatenatesNull() {
+	void anyOfConcatenatesNull() {
 
 		Specification<Object> specification = Specification.anyOf(null, spec, null);
 
@@ -137,7 +138,7 @@ class SpecificationUnitTests {
 	}
 
 	@Test // GH-1943
-	public void emptyAllOfReturnsEmptySpecification() {
+	void emptyAllOfReturnsEmptySpecification() {
 
 		Specification<Object> specification = Specification.allOf();
 
@@ -146,7 +147,7 @@ class SpecificationUnitTests {
 	}
 
 	@Test // GH-1943
-	public void emptyAnyOfReturnsEmptySpecification() {
+	void emptyAnyOfReturnsEmptySpecification() {
 
 		Specification<Object> specification = Specification.anyOf();
 
@@ -162,7 +163,7 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({"unchecked", "deprecation"})
+		@SuppressWarnings({ "unchecked", "deprecation" })
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
@@ -177,7 +178,7 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({"unchecked", "deprecation"})
+		@SuppressWarnings({ "unchecked", "deprecation" })
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
