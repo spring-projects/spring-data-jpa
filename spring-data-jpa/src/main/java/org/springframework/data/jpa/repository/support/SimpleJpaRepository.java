@@ -735,7 +735,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
 			Pageable pageable) {
-
 		return getQuery(spec, domainClass, pageable.getSort());
 	}
 
