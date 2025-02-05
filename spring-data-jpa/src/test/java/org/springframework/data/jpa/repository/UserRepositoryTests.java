@@ -2507,6 +2507,24 @@ class UserRepositoryTests {
 		assertThat(page1.getContent()).containsExactly(fourthUser);
 	}
 
+	@Test // GH-3762
+	void findByFluentExamplePageSortOverride() {
+
+		flushTestUsers();
+
+		User prototype = new User();
+		prototype.setFirstname("v");
+
+		Example<User> userProbe = of(prototype, matching().withIgnorePaths("age", "createdAt", "active")
+				.withMatcher("firstname", GenericPropertyMatcher::contains));
+
+		Page<User> page = repository.findBy(userProbe, //
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 2, Sort.by(DESC, "firstname"))));
+
+		assertThat(page.getContent()).containsExactly(fourthUser, firstUser);
+		assertThat(repository.findAll(page.nextPageable())).containsExactly(secondUser, thirdUser);
+	}
+
 	@Test // GH-2294
 	void findByFluentExampleWithInterfaceBasedProjection() {
 
@@ -2728,20 +2746,38 @@ class UserRepositoryTests {
 		assertThat(page1.getContent()).containsExactly(fourthUser);
 	}
 
-	@Test // GH-2274
+	@Test // GH-3762
+	void findByFluentSpecificationSortOverridePage() {
+
+		flushTestUsers();
+
+		Page<User> page = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 2, Sort.by(DESC, "firstname"))));
+
+		assertThat(page.getContent()).containsExactly(fourthUser, firstUser);
+		assertThat(repository.findAll(page.nextPageable())).containsExactly(secondUser, thirdUser);
+
+		Slice<User> slice = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 2, Sort.by(DESC, "firstname"))));
+
+		assertThat(slice.getContent()).containsExactly(fourthUser, firstUser);
+		assertThat(repository.findAll(slice.nextPageable())).containsExactly(secondUser, thirdUser);
+	}
+
+	@Test // GH-2274, 3762
 	void findByFluentSpecificationSlice() {
 
 		flushTestUsers();
 
 		Slice<User> slice = repository.findBy(userHasFirstnameLike("v"),
-				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 2)));
+				q -> q.sortBy(Sort.by(DESC, "firstname")).slice(PageRequest.of(0, 2, Sort.by("firstname"))));
 
 		assertThat(slice).isNotInstanceOf(Page.class);
 		assertThat(slice.getContent()).containsExactly(thirdUser, firstUser);
 		assertThat(slice.hasNext()).isTrue();
 
 		slice = repository.findBy(userHasFirstnameLike("v"),
-				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 3)));
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 3, Sort.by("firstname"))));
 
 		assertThat(slice).isNotInstanceOf(Page.class);
 		assertThat(slice).hasSize(3);

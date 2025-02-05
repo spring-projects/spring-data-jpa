@@ -147,7 +147,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	@Override
 	public R oneValue() {
 
-		List<?> results = createSortedAndProjectedQuery() //
+		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.limit(2) // Never need more than 2 values
 				.fetch();
 
@@ -161,7 +161,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	@Override
 	public R firstValue() {
 
-		List<?> results = createSortedAndProjectedQuery() //
+		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.limit(1) // Never need more than 1 value
 				.fetch();
 
@@ -170,7 +170,11 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	@Override
 	public List<R> all() {
-		return convert(createSortedAndProjectedQuery().fetch());
+		return all(this.sort);
+	}
+
+	private List<R> all(Sort sort) {
+		return convert(createSortedAndProjectedQuery(sort).fetch());
 	}
 
 	@Override
@@ -184,13 +188,13 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	@Override
 	public Page<R> page(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readPage(pageable);
 	}
 
 	@Override
 	public Stream<R> stream() {
 
-		return createSortedAndProjectedQuery() //
+		return createSortedAndProjectedQuery(this.sort) //
 				.stream() //
 				.map(getConversionFunction());
 	}
@@ -205,7 +209,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		return existsOperation.apply(predicate);
 	}
 
-	private AbstractJPAQuery<?, ?> createSortedAndProjectedQuery() {
+	private AbstractJPAQuery<?, ?> createSortedAndProjectedQuery(Sort sort) {
 
 		AbstractJPAQuery<?, ?> query = finder.apply(sort);
 		applyQuerySettings(this.returnedType, this.limit, query, null);
@@ -247,6 +251,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 	private Page<R> readPage(Pageable pageable) {
 
+		Sort sort = pageable.getSortOr(this.sort);
 		AbstractJPAQuery<?, ?> query = pagedFinder.apply(sort, pageable);
 
 		if (!properties.isEmpty()) {
@@ -255,7 +260,8 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 
 		List<R> paginatedResults = convert(query.fetch());
 
-		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(predicate));
+		return PageableExecutionUtils.getPage(paginatedResults, withSort(pageable, sort),
+				() -> countOperation.apply(predicate));
 	}
 
 	private List<R> convert(List<?> resultList) {
