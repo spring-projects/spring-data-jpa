@@ -282,9 +282,15 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		assertThat(users).contains(carter, dave, oliver);
 	}
 
-	@Test // DATAJPA-585
+	@Test // DATAJPA-585, 3761
 	void worksWithUnpagedPageable() {
+
 		assertThat(predicateExecutor.findAll(user.dateOfBirth.isNull(), Pageable.unpaged()).getContent()).hasSize(3);
+
+		Page<User> users = predicateExecutor.findAll(user.dateOfBirth.isNull(),
+				Pageable.unpaged(Sort.by(Direction.ASC, "firstname")));
+
+		assertThat(users).containsExactly(carter, dave, oliver);
 	}
 
 	@Test // DATAJPA-912
