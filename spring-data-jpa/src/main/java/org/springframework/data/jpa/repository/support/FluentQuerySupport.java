@@ -24,6 +24,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.ProjectionFactory;
@@ -49,7 +51,7 @@ abstract class FluentQuerySupport<S, R> {
 	protected final ProjectionFactory projectionFactory;
 
 	FluentQuerySupport(Class<R> resultType, Sort sort, int limit, @Nullable Collection<String> properties,
-		Class<S> entityType, ProjectionFactory projectionFactory) {
+			Class<S> entityType, ProjectionFactory projectionFactory) {
 
 		this.resultType = resultType;
 		this.sort = sort;
@@ -85,6 +87,15 @@ abstract class FluentQuerySupport<S, R> {
 		}
 
 		return o -> DefaultConversionService.getSharedInstance().convert(o, targetType);
+	}
+
+	Pageable withSort(Pageable pageable, Sort sort) {
+
+		if (pageable instanceof PageRequest pr && pageable.getSort() != sort) {
+			return pr.withSort(sort);
+		}
+
+		return pageable;
 	}
 
 	interface ScrollQueryFactory {
