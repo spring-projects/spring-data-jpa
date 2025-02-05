@@ -399,6 +399,19 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		assertThat(page1.getContent()).containsExactly(oliver);
 	}
 
+	@Test // GH-3762
+	void findByFluentPredicateSortOverridePage() {
+
+		Predicate predicate = user.firstname.contains("v");
+
+		Page<User> page = predicateExecutor.findBy(predicate,
+				q -> q.sortBy(Sort.by("firstname")).page(PageRequest.of(0, 1, Sort.by(Direction.DESC, "firstname"))));
+
+		assertThat(page.getContent()).containsOnly(oliver);
+		assertThat(predicateExecutor.findAll(predicate, page.nextPageable())).containsOnly(dave);
+
+	}
+
 	@Test // GH-2294
 	void findByFluentPredicateWithInterfaceBasedProjection() {
 

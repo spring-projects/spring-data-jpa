@@ -93,8 +93,17 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		Assert.notNull(sort, "Sort must not be null");
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, this.sort.and(sort), limit,
-				properties, finder, scroll, countOperation, existsOperation, entityManager, projectionFactory);
+		return getSorted(this.sort.and(sort));
+	}
+
+	private FetchableFluentQueryBySpecification<S, R> getSorted(Sort sort) {
+
+		if (this.sort == sort) {
+			return this;
+		}
+
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
@@ -125,7 +134,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	@Override
 	public R oneValue() {
 
-		List<?> results = createSortedAndProjectedQuery() //
+		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(2) // Never need more than 2 values
 				.getResultList();
 
@@ -139,7 +148,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	@Override
 	public R firstValue() {
 
-		List<?> results = createSortedAndProjectedQuery() //
+		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(1) // Never need more than 1 value
 				.getResultList();
 
@@ -148,7 +157,11 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	@Override
 	public List<R> all() {
-		return convert(createSortedAndProjectedQuery().getResultList());
+		return all(this.sort);
+	}
+
+	private List<R> all(Sort sort) {
+		return convert(createSortedAndProjectedQuery(sort).getResultList());
 	}
 
 	@Override
@@ -161,24 +174,25 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	@Override
 	public Slice<R> slice(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all()) : readSlice(pageable);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readSlice(pageable);
 	}
 
 	@Override
 	public Page<R> page(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable, spec);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readPage(pageable, spec);
 	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Page<R> page(Pageable pageable, Specification<?> countSpec) {
-		return pageable.isUnpaged() ? new PageImpl<>(all()) : readPage(pageable, (Specification) countSpec);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort)))
+				: readPage(pageable, (Specification) countSpec);
 	}
 
 	@Override
 	public Stream<R> stream() {
 
-		return createSortedAndProjectedQuery() //
+		return createSortedAndProjectedQuery(this.sort) //
 				.getResultStream() //
 				.map(getConversionFunction());
 	}
@@ -193,9 +207,9 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		return existsOperation.apply(spec);
 	}
 
-	private TypedQuery<S> createSortedAndProjectedQuery() {
+	private TypedQuery<S> createSortedAndProjectedQuery(Sort sort) {
 
-		TypedQuery<S> query = finder.apply(this);
+		TypedQuery<S> query = finder.apply(getSorted(sort));
 
 		if (!properties.isEmpty()) {
 			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
@@ -210,7 +224,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Slice<R> readSlice(Pageable pageable) {
 
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSort());
 
 		if (pageable.isPaged()) {
 			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
@@ -230,7 +244,8 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Page<R> readPage(Pageable pageable, @Nullable Specification<S> countSpec) {
 
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
+		Sort sort = pageable.getSortOr(this.sort);
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(sort);
 
 		if (pageable.isPaged()) {
 			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
@@ -239,7 +254,8 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		List<R> paginatedResults = convert(pagedQuery.getResultList());
 
-		return PageableExecutionUtils.getPage(paginatedResults, pageable, () -> countOperation.apply(countSpec));
+		return PageableExecutionUtils.getPage(paginatedResults, withSort(pageable, sort),
+				() -> countOperation.apply(countSpec));
 	}
 
 	private List<R> convert(List<S> resultList) {
