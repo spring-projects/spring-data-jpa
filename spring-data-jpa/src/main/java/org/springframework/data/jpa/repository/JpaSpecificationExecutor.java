@@ -28,7 +28,6 @@ import java.util.function.Function;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
@@ -183,24 +182,12 @@ public interface JpaSpecificationExecutor<T> {
 		SpecificationFluentQuery<T> project(Collection<String> properties);
 
 		/**
-		 * Get a slice of matching elements for {@link Pageable} by requesting {@code Pageable#getPageSize() + 1} elements.
-		 *
-		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
-		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
-		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
-		 *          will be overridden by {@link Pageable#getPageSize()}.
-		 * @return
-		 */
-		Slice<T> slice(Pageable pageable);
-
-		/**
 		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
 		 * specification}.
 		 *
 		 * @param pageable the pageable to request a paged result, can be {@link Pageable#unpaged()}, must not be
-		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort} if
-		 *          the {@link Sort} object is not {@link Sort#isUnsorted()}. Any potentially specified {@link #limit(int)}
-		 *          will be overridden by {@link Pageable#getPageSize()}.
+		 *          {@literal null}. The given {@link Pageable} will override any previously specified {@link Sort sort}.
+		 *          Any potentially specified {@link #limit(int)} will be overridden by {@link Pageable#getPageSize()}.
 		 * @param countSpec specification used to count results.
 		 * @return
 		 */

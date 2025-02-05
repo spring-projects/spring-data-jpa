@@ -31,6 +31,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
@@ -192,6 +194,11 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	}
 
 	@Override
+	public Slice<R> slice(Pageable pageable) {
+		return pageable.isUnpaged() ? new SliceImpl<>(all(pageable.getSortOr(this.sort))) : readSlice(pageable);
+	}
+
+	@Override
 	public Stream<R> stream() {
 
 		return createSortedAndProjectedQuery(this.sort) //
@@ -252,16 +259,40 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	private Page<R> readPage(Pageable pageable) {
 
 		Sort sort = pageable.getSortOr(this.sort);
+		AbstractJPAQuery<?, ?> query = createQuery(pageable, sort);
+
+		List<R> paginatedResults = convert(query.fetch());
+
+		return PageableExecutionUtils.getPage(paginatedResults, withSort(pageable, sort),
+				() -> countOperation.apply(predicate));
+	}
+
+	private Slice<R> readSlice(Pageable pageable) {
+
+		Sort sort = pageable.getSortOr(this.sort);
+		AbstractJPAQuery<?, ?> query = createQuery(pageable, sort);
+		query.limit(pageable.getPageSize() + 1);
+
+		List<?> resultList = query.fetch();
+		boolean hasNext = resultList.size() > pageable.getPageSize();
+		if (hasNext) {
+			resultList = resultList.subList(0, pageable.getPageSize());
+		}
+
+		List<R> slice = convert(resultList);
+
+		return new SliceImpl<>(slice, pageable, hasNext);
+	}
+
+	private AbstractJPAQuery<?, ?> createQuery(Pageable pageable, Sort sort) {
+
 		AbstractJPAQuery<?, ?> query = pagedFinder.apply(sort, pageable);
 
 		if (!properties.isEmpty()) {
 			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
 		}
 
-		List<R> paginatedResults = convert(query.fetch());
-
-		return PageableExecutionUtils.getPage(paginatedResults, withSort(pageable, sort),
-				() -> countOperation.apply(predicate));
+		return query;
 	}
 
 	private List<R> convert(List<?> resultList) {

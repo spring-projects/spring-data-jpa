@@ -34,6 +34,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
@@ -399,6 +400,23 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		assertThat(page1.getContent()).containsExactly(oliver);
 	}
 
+	@Test // GH-3764
+	void findByFluentPredicateSlice() {
+
+		Predicate predicate = user.firstname.contains("v");
+
+		Slice<User> slice0 = predicateExecutor.findBy(predicate,
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 1)));
+
+		Slice<User> slice1 = predicateExecutor.findBy(predicate,
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(1, 1)));
+
+		assertThat(slice0.getContent()).containsExactly(dave);
+		assertThat(slice0.hasNext()).isTrue();
+		assertThat(slice1.getContent()).containsExactly(oliver);
+		assertThat(slice1.hasNext()).isFalse();
+	}
+
 	@Test // GH-3762
 	void findByFluentPredicateSortOverridePage() {
 
@@ -409,7 +427,6 @@ class QuerydslJpaPredicateExecutorUnitTests {
 
 		assertThat(page.getContent()).containsOnly(oliver);
 		assertThat(predicateExecutor.findAll(predicate, page.nextPageable())).containsOnly(dave);
-
 	}
 
 	@Test // GH-2294
