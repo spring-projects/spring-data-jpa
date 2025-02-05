@@ -738,7 +738,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param pageable must not be {@literal null}.
 	 */
 	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
-
 		return getQuery(spec, getDomainClass(), pageable.getSort());
 	}
 
@@ -751,7 +750,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 */
 	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass,
 			Pageable pageable) {
-
 		return getQuery(spec, domainClass, pageable.getSort());
 	}
 
