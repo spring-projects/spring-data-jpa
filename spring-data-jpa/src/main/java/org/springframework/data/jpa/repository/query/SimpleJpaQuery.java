@@ -18,9 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.lang.Nullable;
 
 /**
@@ -33,36 +31,21 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Greg Turnquist
  */
-final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
-
-	/**
-	 * Creates a new {@link SimpleJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
-	 *
-	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
-	 * @param countQueryString
-	 * @param queryRewriter must not be {@literal null}
-	 * @param valueExpressionDelegate must not be {@literal null}
-	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, @Nullable String countQueryString,
-			QueryRewriter queryRewriter, ValueExpressionDelegate valueExpressionDelegate) {
-		this(method, em, method.getRequiredAnnotatedQuery(), countQueryString, queryRewriter, valueExpressionDelegate);
-	}
+class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 	/**
 	 * Creates a new {@link SimpleJpaQuery} that encapsulates a simple query string.
 	 *
-	 * @param method must not be {@literal null}
-	 * @param em must not be {@literal null}
-	 * @param queryString must not be {@literal null} or empty
-	 * @param countQueryString
-	 * @param queryRewriter
-	 * @param valueExpressionDelegate must not be {@literal null}
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @param queryString must not be {@literal null} or empty.
+	 * @param countQueryString can be {@literal null} if not defined.
+	 * @param queryConfiguration must not be {@literal null}.
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString, QueryRewriter queryRewriter,
-			ValueExpressionDelegate valueExpressionDelegate) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+			JpaQueryConfiguration queryConfiguration) {
 
-		super(method, em, queryString, countQueryString, queryRewriter, valueExpressionDelegate);
+		super(method, em, queryString, countQueryString, queryConfiguration);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 

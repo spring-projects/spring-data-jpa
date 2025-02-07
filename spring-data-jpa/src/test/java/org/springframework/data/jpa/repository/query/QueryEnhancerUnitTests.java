@@ -78,7 +78,7 @@ class QueryEnhancerUnitTests {
 
 	@ParameterizedTest
 	@MethodSource("detectsAliasWithUCorrectlySource")
-	void detectsAliasWithUCorrectly(DeclaredQuery query, String alias) {
+	void detectsAliasWithUCorrectly(IntrospectedQuery query, String alias) {
 
 		assumeThat(query.getQueryString()).as("JsqlParser does not support simple JPA syntax")
 				.doesNotStartWithIgnoringCase("from");
@@ -186,8 +186,7 @@ class QueryEnhancerUnitTests {
 				true);
 
 		assertThat(getEnhancer(query).applySorting(Sort.by("name"), "p")) //
-				.startsWithIgnoringCase(query.getQueryString())
-				.endsWithIgnoringCase("ORDER BY p.name ASC");
+				.startsWithIgnoringCase(query.getQueryString()).endsWithIgnoringCase("ORDER BY p.name ASC");
 	}
 
 	@Test // GH-2812
@@ -433,7 +432,7 @@ class QueryEnhancerUnitTests {
 
 		assertThat(
 				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
-						.contains("myAlias");
+				.contains("myAlias");
 	}
 
 	@Test // DATAJPA-1506
@@ -538,7 +537,7 @@ class QueryEnhancerUnitTests {
 
 	@ParameterizedTest // DATAJPA-1679
 	@MethodSource("findProjectionClauseWithDistinctSource")
-	void findProjectionClauseWithDistinct(DeclaredQuery query, String expected) {
+	void findProjectionClauseWithDistinct(IntrospectedQuery query, String expected) {
 
 		SoftAssertions.assertSoftly(sofly -> sofly.assertThat(getEnhancer(query).getProjection()).isEqualTo(expected));
 	}
@@ -633,7 +632,8 @@ class QueryEnhancerUnitTests {
 		assertThat(modiQuery.hasConstructorExpression()).isEqualTo(constructorExpressionNotConsideringQueryType);
 
 		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
-		assertThat(QueryEnhancerFactory.forQuery(modiQuery).createCountQueryFor()).isEqualToIgnoringCase(modifyingQuery);
+		assertThat(QueryEnhancerFactory.forQuery(modiQuery).create(modiQuery).createCountQueryFor())
+				.isEqualToIgnoringCase(modifyingQuery);
 	}
 
 	@ParameterizedTest // GH-2593
@@ -641,7 +641,7 @@ class QueryEnhancerUnitTests {
 	void insertStatementIsProcessedSameAsDefault(String insertQuery) {
 
 		StringQuery stringQuery = new StringQuery(insertQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
 
 		Sort sorting = Sort.by("day").descending();
 
@@ -696,8 +696,8 @@ class QueryEnhancerUnitTests {
 		assertThat(getEnhancer(originalQuery).createCountQueryFor()).isEqualToIgnoringCase(countQuery);
 	}
 
-	private static QueryEnhancer getEnhancer(DeclaredQuery query) {
-		return QueryEnhancerFactory.forQuery(query);
+	private static QueryEnhancer getEnhancer(IntrospectedQuery query) {
+		return QueryEnhancerFactory.forQuery(query).create(query);
 	}
 
 }

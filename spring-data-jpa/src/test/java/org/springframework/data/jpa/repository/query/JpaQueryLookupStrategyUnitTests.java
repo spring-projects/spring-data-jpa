@@ -34,7 +34,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -64,7 +63,8 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class JpaQueryLookupStrategyUnitTests {
 
-	private static final ValueExpressionDelegate VALUE_EXPRESSION_DELEGATE = ValueExpressionDelegate.create();
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT);
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
@@ -72,7 +72,6 @@ class JpaQueryLookupStrategyUnitTests {
 	@Mock NamedQueries namedQueries;
 	@Mock Metamodel metamodel;
 	@Mock ProjectionFactory projectionFactory;
-	@Mock BeanFactory beanFactory;
 
 	private JpaQueryMethodFactory queryMethodFactory;
 
@@ -90,7 +89,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void invalidAnnotatedQueryCausesException() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 		Method method = UserRepository.class.getMethod("findByFoo", String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -102,7 +101,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void considersNamedCountQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
 		when(namedQueries.getQuery("foo.count")).thenReturn("select count(foo) from Foo foo");
@@ -124,7 +123,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void considersNamedCountOnStringQueryQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 
 		when(namedQueries.hasQuery("foo.count")).thenReturn(true);
 		when(namedQueries.getQuery("foo.count")).thenReturn("select count(foo) from Foo foo");
@@ -143,7 +142,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void prefersDeclaredQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 		Method method = UserRepository.class.getMethod("annotatedQueryWithQueryAndQueryName");
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
@@ -156,7 +155,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void namedQueryWithSortShouldThrowIllegalStateException() throws NoSuchMethodException {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 
 		Method method = UserRepository.class.getMethod("customNamedQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
@@ -181,7 +180,7 @@ class JpaQueryLookupStrategyUnitTests {
 	void customQueryWithQuestionMarksShouldWork() throws NoSuchMethodException {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
-				VALUE_EXPRESSION_DELEGATE, new BeanFactoryQueryRewriterProvider(beanFactory), EscapeCharacter.DEFAULT);
+				CONFIG);
 
 		Method namedMethod = UserRepository.class.getMethod("customQueryWithQuestionMarksAndNamedParam", String.class);
 		RepositoryMetadata namedMetadata = new DefaultRepositoryMetadata(UserRepository.class);
