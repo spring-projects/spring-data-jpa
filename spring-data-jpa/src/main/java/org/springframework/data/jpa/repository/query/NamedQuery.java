@@ -46,6 +46,8 @@ final class NamedQuery extends AbstractJpaQuery {
 			+ "discovering the concrete persistence provider";
 
 	private static final Log LOG = LogFactory.getLog(NamedQuery.class);
+	private static final String NATIVE_QUERY = "NativeQuery";
+	private static final String QUERY = "Query";
 
 	private final String queryName;
 	private final String countQueryName;
@@ -70,8 +72,8 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		if (parameters.hasSortParameter()) {
 			throw new IllegalStateException(String.format("Query method %s is backed by a NamedQuery and must "
-					+ "not contain a sort parameter as we cannot modify the query; Use @%s(value=…) instead to apply sorting or remove the 'Sort' parameter.",
-					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
+							+ "not contain a sort parameter as we cannot modify the query; Use @%s(value=…) instead to apply sorting or remove the 'Sort' parameter.",
+					method, method.isNativeQuery() ? NATIVE_QUERY : QUERY));
 		}
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
@@ -87,13 +89,13 @@ final class NamedQuery extends AbstractJpaQuery {
 		if (parameters.hasPageableParameter()) {
 			LOG.warn(String.format(
 					"Query method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied; Use @%s(value=…) instead to apply sorting.",
-					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
+					method, method.isNativeQuery() ? NATIVE_QUERY : QUERY));
 		}
 
 		String queryString = extractor.extractQueryString(query);
 
 		this.declaredQuery = Lazy
-				.of(() -> DeclaredQuery.of(queryString, method.isNativeQuery() || query.toString().contains("NativeQuery")));
+				.of(() -> DeclaredQuery.of(queryString, method.isNativeQuery() || query.toString().contains(NATIVE_QUERY)));
 		this.metadataCache = new QueryParameterSetter.QueryMetadataCache();
 	}
 
@@ -144,7 +146,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		if (method.isScrollQuery()) {
 			throw QueryCreationException.create(method, String.format(
 					"Scroll queries are not supported using String-based queries as we cannot rewrite the query string. Use @%s(value=…) instead.",
-					method.isNativeQuery() ? "NativeQuery" : "Query"));
+					method.isNativeQuery() ? NATIVE_QUERY : QUERY));
 		}
 
 		RepositoryQuery query = new NamedQuery(method, em);
