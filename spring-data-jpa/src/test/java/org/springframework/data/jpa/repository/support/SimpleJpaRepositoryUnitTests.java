@@ -15,14 +15,10 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.data.jpa.domain.Specification.where;
+import static java.util.Collections.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.domain.Specification.*;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -35,7 +31,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -43,11 +38,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
@@ -229,13 +226,26 @@ class SimpleJpaRepositoryUnitTests {
 	@ParameterizedTest // GH-3188
 	@MethodSource("modifyingMethods")
 	void checkTransactionalAnnotation(Method method) {
+
 		Transactional transactional = method.getAnnotation(Transactional.class);
-		assertThat(transactional).as("Method [%s] should be annotated with @Transactional", method).isNotNull();
-		assertThat(transactional.readOnly()).as("Method [%s] should not be annotated with @Transactional(readOnly = true)", method).isFalse();
+		if (transactional == null) {
+			transactional = method.getDeclaringClass().getAnnotation(Transactional.class);
+		}
+
+		assertThat(transactional).isNotNull();
+		assertThat(transactional.readOnly()).isFalse();
 	}
 
-	static List<Method> modifyingMethods() {
-		return Stream.of(SimpleJpaRepository.class.getDeclaredMethods()).filter(method -> Modifier.isPublic(method.getModifiers()) &&
-				!method.isBridge() && (method.getName().startsWith("delete") || method.getName().startsWith("save"))).toList();
+	static Stream<Arguments> modifyingMethods() {
+
+		return Stream.of(SimpleJpaRepository.class.getDeclaredMethods())
+				.filter(method -> Modifier.isPublic(method.getModifiers())) //
+				.filter(method -> !method.isBridge()) //
+				.filter(method -> method.getName().startsWith("delete") || method.getName().startsWith("save"))
+				.map(method -> Arguments.argumentSet(formatName(method), method));
+	}
+
+	private static String formatName(Method method) {
+		return method.toString().replaceAll("public ", "").replaceAll(SimpleJpaRepository.class.getName() + ".", "");
 	}
 }
