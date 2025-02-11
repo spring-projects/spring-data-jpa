@@ -302,6 +302,7 @@
 								<exclude>**/Postgres*</exclude>
 							</excludes>
 							<argLine>
+								-Xmx4G
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
 							</argLine>
 						</configuration>
@@ -317,6 +318,7 @@
 								<include>**/EclipseLink*Tests.java</include>
 							</includes>
 							<argLine>
+								-Xmx4G
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
 								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
 							</argLine>
