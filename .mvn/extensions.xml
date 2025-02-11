@@ -3,6 +3,6 @@
 	<extension>
 		<groupId>io.spring.develocity.conventions</groupId>
 		<artifactId>develocity-conventions-maven-extension</artifactId>
-		<version>0.0.19</version>
+		<version>0.0.22</version>
 	</extension>
 </extensions>
