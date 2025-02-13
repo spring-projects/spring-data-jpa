@@ -1,1 +1,87 @@
-include::{commons}@data-commons::page$repositories/core-extensions.adoc[]
+[[core.extensions]]
+= Spring Data Extensions
+
+This section documents a set of Spring Data extensions that enable Spring Data usage in a variety of contexts.
+Currently, most of the integration is targeted towards Spring MVC.
+
+include::{commons}@data-commons::page$repositories/core-extensions-querydsl.adoc[leveloffset=1]
+
+[[jpa.repositories.queries.type-safe.apt]]
+=== Setting up Annotation Processing
+
+To use Querydsl with Spring Data JPA, you need to set up annotation processing in your build system that generates the `Q` classes.
+While you could write the `Q` classes by hand, it is recommended to use the Querydsl annotation processor to generate them for you to keep your `Q` classes in sync with your domain model.
+
+Most Spring Data users do not use Querydsl, so it does not make sense to require additional mandatory dependencies for projects that would not benefit from Querydsl.
+Hence, you need to activate annotation processing in your build system.
+
+The following example shows how to set up annotation processing by mentioning dependencies and compiler config changes in Maven and Gradle:
+
+[tabs]
+======
+Maven::
++
+[source,xml,indent=0,subs="verbatim,quotes",role="primary"]
+----
+<dependencies>
+    <dependency>
+        <groupId>com.querydsl</groupId>
+        <artifactId>querydsl-jpa</artifactId>
+        <version>${querydslVersion}</version>
+        <classifier>jakarta</classifier>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+            <annotationProcessorPaths>
+                <!-- Explicit opt-in required via annotationProcessors or
+                        annotationProcessorPaths on Java 22+, see https://bugs.openjdk.org/browse/JDK-8306819 -->
+                <annotationProcessorPath>
+                    <groupId>com.querydsl</groupId>
+                    <artifactId>querydsl-apt</artifactId>
+                    <version>${querydslVersion}</version>
+                    <classifier>jakarta</classifier>
+                </annotationProcessorPath>
+                <annotationProcessorPath>
+                    <groupId>jakarta.persistence</groupId>
+                    <artifactId>jakarta.persistence-api</artifactId>
+                </annotationProcessorPath>
+              </annotationProcessorPaths>
+
+                <!-- Recommended: Some IDE's might require this configuration to include generated sources for IDE usage -->
+                <generatedTestSourcesDirectory>target/generated-test-sources</generatedTestSourcesDirectory>
+                <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+----
+
+Gradle::
++
+====
+[source,groovy,indent=0,subs="verbatim,quotes",role="secondary"]
+----
+dependencies {
+
+    implementation 'com.querydsl:querydsl-jpa:${querydslVersion}:jakarta'
+    annotationProcessor 'com.querydsl:querydsl-apt:${querydslVersion}:jakarta'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+
+    testAnnotationProcessor 'com.querydsl:querydsl-apt:${querydslVersion}:jakarta'
+    testAnnotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+}
+----
+====
+======
+
+Note that the setup above shows the simplemost usage omitting any other options or dependencies that your project might require.
+
+include::{commons}@data-commons::page$repositories/core-extensions-web.adoc[leveloffset=1]
+
+include::{commons}@data-commons::page$repositories/core-extensions-populators.adoc[leveloffset=1]
