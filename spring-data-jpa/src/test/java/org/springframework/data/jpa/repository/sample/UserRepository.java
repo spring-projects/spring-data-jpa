@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Limit;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -50,7 +52,6 @@ import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.querydsl.ListQuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 /**

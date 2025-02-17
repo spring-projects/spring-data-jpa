@@ -19,8 +19,9 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -69,8 +70,7 @@ public class Meta {
 	/**
 	 * @return {@literal null} if not set.
 	 */
-	@Nullable
-	public String getComment() {
+	public @Nullable String getComment() {
 		return getValue(MetaKey.COMMENT.key);
 	}
 
@@ -106,9 +106,8 @@ public class Meta {
 		this.values.put(key, value);
 	}
 
-	@Nullable
 	@SuppressWarnings("unchecked")
-	private <T> T getValue(String key) {
+	private <T> @Nullable T getValue(String key) {
 		return (T) this.values.get(key);
 	}
 

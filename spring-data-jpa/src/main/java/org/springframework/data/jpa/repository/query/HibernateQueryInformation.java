@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Hibernate-specific query details capturing common table expression details.

@@ -32,10 +32,10 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -210,7 +210,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	 * already find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
-	public String detectAlias() {
+	public @Nullable String detectAlias() {
 		return this.queryInformation.getAlias();
 	}
 
@@ -267,7 +267,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	 * @return
 	 */
 	@Override
-	public String applySorting(Sort sort, String alias) {
+	public String applySorting(Sort sort, @Nullable String alias) {
 		return applySorting(sort);
 	}
 

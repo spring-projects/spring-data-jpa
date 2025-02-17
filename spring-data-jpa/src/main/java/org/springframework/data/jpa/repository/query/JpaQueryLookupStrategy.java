@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -32,7 +33,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -186,8 +186,7 @@ public final class JpaQueryLookupStrategy {
 					: NO_QUERY;
 		}
 
-		@Nullable
-		private String getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
+		private @Nullable String getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
 
 			if (StringUtils.hasText(method.getCountQuery())) {
 				return method.getCountQuery();

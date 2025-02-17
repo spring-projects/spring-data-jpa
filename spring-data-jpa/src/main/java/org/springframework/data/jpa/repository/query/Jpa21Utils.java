@@ -26,8 +26,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.support.MutableQueryHints;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.support.QueryHints;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -188,8 +189,7 @@ public class Jpa21Utils {
 	 * @param parent
 	 * @return {@literal null} if not found.
 	 */
-	@Nullable
-	private static AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
+	private static @Nullable AttributeNode<?> findAttributeNode(String attributeNodeName, EntityGraph<?> entityGraph,
 			@Nullable Subgraph<?> parent) {
 		return findAttributeNode(attributeNodeName,
 				parent != null ? parent.getAttributeNodes() : entityGraph.getAttributeNodes());
@@ -203,8 +203,7 @@ public class Jpa21Utils {
 	 * @param nodes
 	 * @return {@literal null} if not found.
 	 */
-	@Nullable
-	private static AttributeNode<?> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
+	private static @Nullable AttributeNode<?> findAttributeNode(String attributeNodeName, List<AttributeNode<?>> nodes) {
 
 		for (AttributeNode<?> node : nodes) {
 			if (ObjectUtils.nullSafeEquals(node.getAttributeName(), attributeNodeName)) {
@@ -223,8 +222,7 @@ public class Jpa21Utils {
 	 * @param node
 	 * @return
 	 */
-	@Nullable
-	private static Subgraph<?> getSubgraph(AttributeNode<?> node) {
+	private static @Nullable Subgraph<?> getSubgraph(AttributeNode<?> node) {
 		return node.getSubgraphs().isEmpty() ? null : node.getSubgraphs().values().iterator().next();
 	}
 }

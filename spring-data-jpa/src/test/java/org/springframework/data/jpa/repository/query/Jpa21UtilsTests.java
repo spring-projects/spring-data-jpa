@@ -33,12 +33,12 @@ import java.util.List;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -191,8 +191,7 @@ class Jpa21UtilsTests {
 	/**
 	 * Lookup the {@link AttributeNode} with given {@literal nodeName} in the {@link List} of given {@literal nodes}.
 	 */
-	@Nullable
-	static AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
+	static @Nullable AttributeNode<?> findNode(String nodeName, List<AttributeNode<?>> nodes) {
 
 		if (CollectionUtils.isEmpty(nodes)) {
 			return null;
@@ -211,8 +210,7 @@ class Jpa21UtilsTests {
 	 * Lookup the {@link AttributeNode} with given {@literal nodeName} in the first {@link Subgraph} of the given
 	 * {@literal node}.
 	 */
-	@Nullable
-	static AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
+	static @Nullable AttributeNode<?> findNode(String attributeName, AttributeNode<?> node) {
 
 		if (CollectionUtils.isEmpty(node.getSubgraphs())) {
 			return null;

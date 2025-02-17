@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,7 +50,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link JpaQueryCreator}.
@@ -979,9 +979,8 @@ class JpaQueryCreatorTests {
 		public ParameterAccessor bindableParameters() {
 
 			return new ParameterAccessor() {
-				@Nullable
 				@Override
-				public ScrollPosition getScrollPosition() {
+				public @Nullable ScrollPosition getScrollPosition() {
 					return null;
 				}
 
@@ -995,15 +994,13 @@ class JpaQueryCreatorTests {
 					return null;
 				}
 
-				@Nullable
 				@Override
-				public Class<?> findDynamicProjection() {
+				public @Nullable Class<?> findDynamicProjection() {
 					return null;
 				}
 
-				@Nullable
 				@Override
-				public Object getBindableValue(int index) {
+				public @Nullable Object getBindableValue(int index) {
 
 					ParameterBinding parameterBinding = queryCreator.get().getBindings().get(index);
 					return parameterBinding.prepare(parameterAccessor.get().getBindableValue(index));

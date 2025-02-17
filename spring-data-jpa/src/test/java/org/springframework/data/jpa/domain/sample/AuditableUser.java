@@ -24,7 +24,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sample auditable user to demonstrate working with {@code AbstractAuditableEntity}. No declaration of an ID is

@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.core.annotation.AnnotationUtils;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.Association;
@@ -34,7 +36,6 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -170,7 +171,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	}
 
 	@Override
-	public TypeInformation<?> getAssociationTargetTypeInformation() {
+	public @Nullable TypeInformation<?> getAssociationTargetTypeInformation() {
 
 		if (!isAssociation()) {
 			return null;
@@ -193,8 +194,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 *
 	 * @return
 	 */
-	@Nullable
-	private Boolean detectPropertyAccess() {
+	private @Nullable Boolean detectPropertyAccess() {
 
 		org.springframework.data.annotation.AccessType accessType = findAnnotation(
 				org.springframework.data.annotation.AccessType.class);
@@ -229,8 +229,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	 *
 	 * @return
 	 */
-	@Nullable
-	private TypeInformation<?> detectAssociationTargetType() {
+	private @Nullable TypeInformation<?> detectAssociationTargetType() {
 
 		if (!isAssociation()) {
 			return null;

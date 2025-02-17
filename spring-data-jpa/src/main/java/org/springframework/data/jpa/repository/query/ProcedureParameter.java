@@ -20,7 +20,7 @@ import jakarta.persistence.ParameterMode;
 
 import java.util.Objects;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class represents a Stored Procedure Parameter and an instance of the annotation

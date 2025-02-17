@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.lang.Nullable;
 
 /**
  * An exception thrown if the JPQL query is invalid.
@@ -29,12 +30,12 @@ public class BadJpqlGrammarException extends InvalidDataAccessResourceUsageExcep
 
 	private final String jpql;
 
-	public BadJpqlGrammarException(String message, String jpql, @Nullable Throwable cause) {
+	public BadJpqlGrammarException(@Nullable String message, String jpql, @Nullable Throwable cause) {
 		this(message, jpql, "JPQL", cause);
 	}
 
-	BadJpqlGrammarException(String message, String grammar, String jpql, @Nullable Throwable cause) {
-		super(message + "; Bad " + grammar + " grammar [" + jpql + "]", cause);
+	BadJpqlGrammarException(@Nullable String message, String grammar, String jpql, @Nullable Throwable cause) {
+		super("%sBad %s grammar [%s]".formatted(message != null ? message + "; " : "", grammar, jpql), cause);
 		this.jpql = jpql;
 	}
 

@@ -1,5 +1,5 @@
 /**
  * JPA specific support projection support.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.data.jpa.projection;

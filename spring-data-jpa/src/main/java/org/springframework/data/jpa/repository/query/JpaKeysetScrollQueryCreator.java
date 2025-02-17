@@ -25,12 +25,13 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.data.domain.KeysetScrollPosition;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.Nullable;
 
 /**
  * Extension to {@link JpaQueryCreator} to create queries considering {@link KeysetScrollPosition keyset scrolling}.
@@ -68,7 +69,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 	}
 
 	@Override
-	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(@Nullable JpqlQueryBuilder.Predicate predicate, Sort sort) {
+	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(JpqlQueryBuilder.@Nullable Predicate predicate, Sort sort) {
 
 		KeysetScrollSpecification<Object> keysetSpec = new KeysetScrollSpecification<>(scrollPosition, sort,
 				entityInformation);
@@ -90,9 +91,9 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 		return query;
 	}
 
-	@Nullable
-	private static JpqlQueryBuilder.Predicate getPredicate(@Nullable JpqlQueryBuilder.Predicate predicate,
-			@Nullable JpqlQueryBuilder.Predicate keysetPredicate) {
+
+	private static JpqlQueryBuilder.@Nullable Predicate getPredicate(JpqlQueryBuilder.@Nullable Predicate predicate,
+			JpqlQueryBuilder.@Nullable Predicate keysetPredicate) {
 
 		if (keysetPredicate != null) {
 			if (predicate != null) {

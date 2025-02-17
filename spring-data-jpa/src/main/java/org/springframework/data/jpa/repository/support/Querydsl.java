@@ -25,7 +25,6 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.querydsl.QSort;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.types.EntityPath;
@@ -41,6 +40,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
@@ -87,10 +87,9 @@ public class Querydsl {
 	 * Obtains the {@link JPQLTemplates} for the configured {@link EntityManager}. Can return {@literal null} to use the
 	 * default templates.
 	 *
-	 * @return the {@link JPQLTemplates} for the configured {@link EntityManager} or {@literal null} to use the default.
+	 * @return the {@link JPQLTemplates} for the configured {@link EntityManager}, {@link JPQLTemplates#DEFAULT} by default.
 	 * @since 3.5
 	 */
-	@Nullable
 	public JPQLTemplates getTemplates() {
 
 		return switch (provider) {

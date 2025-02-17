@@ -57,7 +57,7 @@ class DtoProjectionTransformerDelegate {
 			builder.appendInline(QueryTokenStream.concat(returnedType.getInputProperties(), property -> {
 
 				QueryRenderer.QueryRendererBuilder prop = QueryRenderer.builder();
-				prop.append(QueryTokens.token(selectionList.getFirst().value()));
+				prop.append(QueryTokens.token(selectionList.getRequiredFirst().value()));
 				prop.append(QueryTokens.TOKEN_DOT);
 				prop.append(QueryTokens.token(property));
 

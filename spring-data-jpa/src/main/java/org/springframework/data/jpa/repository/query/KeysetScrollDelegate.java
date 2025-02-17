@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.KeysetScrollPosition;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * Delegate for keyset scrolling.
@@ -69,8 +70,7 @@ public class KeysetScrollDelegate {
 		return properties;
 	}
 
-	@Nullable
-	public <E, P> P createPredicate(KeysetScrollPosition keyset, Sort sort, QueryStrategy<E, P> strategy) {
+	public <E, P> @Nullable P createPredicate(KeysetScrollPosition keyset, Sort sort, QueryStrategy<E, P> strategy) {
 
 		Map<String, Object> keysetValues = keyset.getKeys();
 
@@ -207,16 +207,16 @@ public class KeysetScrollDelegate {
 		 *
 		 * @param order must not be {@literal null}.
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the comparison predicate.
 		 */
-		P compare(Order order, E propertyExpression, Object value);
+		P compare(Order order, E propertyExpression, @Nullable Object value);
 
 		/**
 		 * Create an equals-comparison object.
 		 *
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the comparison predicate.
 		 */
 		P compare(E propertyExpression, @Nullable Object value);
@@ -227,7 +227,7 @@ public class KeysetScrollDelegate {
 		 * @param intermediate the predicates to combine. Must not be {@literal null}.
 		 * @return a single predicate.
 		 */
-		P and(List<P> intermediate);
+		@Nullable P and(List<P> intermediate);
 
 		/**
 		 * OR-combine the {@code intermediate} predicates.
@@ -235,7 +235,7 @@ public class KeysetScrollDelegate {
 		 * @param intermediate the predicates to combine. Must not be {@literal null}.
 		 * @return a single predicate.
 		 */
-		P or(List<P> intermediate);
+		@Nullable P or(List<P> intermediate);
 	}
 
 }

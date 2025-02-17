@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.aot.generate.GenerationContext;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -56,7 +58,6 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryRegistrationAotProcessor;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
-import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -116,7 +117,9 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
-		builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
+		if(entityManagerRefs.containsKey(source)) {
+			builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
+		}
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
 	}
@@ -228,13 +231,13 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	}
 
 	@Override
-	protected ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
+	protected @Nullable ClassLoader getConfigurationInspectionClassLoader(ResourceLoader loader) {
 
 		ClassLoader classLoader = loader.getClassLoader();
 
 		return classLoader != null && LazyJvmAgent.isActive(loader.getClassLoader())
-				? new InspectionClassLoader(loader.getClassLoader())
-				: loader.getClassLoader();
+				? new InspectionClassLoader(classLoader)
+				: classLoader;
 	}
 
 	/**

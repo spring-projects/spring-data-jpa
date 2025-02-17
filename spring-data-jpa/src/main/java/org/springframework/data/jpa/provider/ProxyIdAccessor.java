@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface for a persistence provider specific accessor of identifiers held in proxies.

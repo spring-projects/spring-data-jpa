@@ -21,6 +21,8 @@ import jakarta.persistence.Query;
 import java.util.Objects;
 
 import org.springframework.data.domain.Pageable;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -28,7 +30,6 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentLruCache;
 import org.springframework.util.StringUtils;
@@ -234,7 +235,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	static class UnsortedCachingQuerySortRewriter implements QuerySortRewriter {
 
-		private volatile String cachedQueryString;
+		private volatile @Nullable String cachedQueryString;
 
 		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
@@ -260,7 +261,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		private final ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16,
 				AbstractStringBasedJpaQuery.this::applySorting);
 
-		private volatile String cachedQueryString;
+		private volatile @Nullable String cachedQueryString;
 
 		@Override
 		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {

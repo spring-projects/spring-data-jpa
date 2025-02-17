@@ -18,8 +18,9 @@ package org.springframework.data.jpa.provider;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.Metamodel;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**

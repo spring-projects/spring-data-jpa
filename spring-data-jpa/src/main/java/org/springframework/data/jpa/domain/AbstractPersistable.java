@@ -18,13 +18,14 @@ package org.springframework.data.jpa.domain;
 import java.io.Serializable;
 
 import jakarta.persistence.GeneratedValue;
+
+import org.jspecify.annotations.Nullable;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.util.ProxyUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
@@ -37,12 +38,16 @@ import org.springframework.lang.Nullable;
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
+
 public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
 
-	@Id @GeneratedValue private @Nullable PK id;
-
 	@Nullable
+	@Id @GeneratedValue private PK id;
+
 	@Override
+	@SuppressWarnings("NullAway")
+	// TODO: Querydsl APT does not like @Nullable
+	// -> errors with cryptic 'Did not find type @org.jspecify.annotations.Nullable PK'
 	public PK getId() {
 		return id;
 	}
@@ -73,7 +78,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 
 		if (null == obj) {
 			return false;

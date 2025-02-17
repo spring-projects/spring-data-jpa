@@ -26,8 +26,9 @@ import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
 import org.springframework.lang.CheckReturnValue;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.lang.Contract;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -231,6 +232,6 @@ public interface Specification<T> extends Serializable {
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+	Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 }

@@ -17,7 +17,7 @@ package org.springframework.data.jpa.provider;
 
 import org.hibernate.query.Query;
 import org.hibernate.query.spi.SqmQuery;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
@@ -41,8 +41,7 @@ public abstract class HibernateUtils {
 	 * @param query
 	 * @return
 	 */
-	@Nullable
-	public static String getHibernateQuery(Object query) {
+	public @Nullable static String getHibernateQuery(Object query) {
 
 		try {
 

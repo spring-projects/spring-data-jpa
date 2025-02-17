@@ -22,6 +22,8 @@ import jakarta.persistence.TypedQuery;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
@@ -29,7 +31,6 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link RepositoryQuery} based on {@link jakarta.persistence.NamedQuery}s.
@@ -126,8 +127,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
-	@Nullable
-	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
+	public static @Nullable RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
 
 		String queryName = method.getNamedQueryName();
 
@@ -191,7 +191,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	}
 
 	@Override
-	protected Class<?> getTypeToRead(ReturnedType returnedType) {
+	protected @Nullable Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (getQueryMethod().isNativeQuery()) {
 

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -93,7 +94,7 @@ class StoredProcedureAttributes {
 				parameter.getType());
 	}
 
-	private String completeOutputParameterName(int i, String paramName) {
+	private String completeOutputParameterName(int i, @Nullable String paramName) {
 
 		return StringUtils.hasText(paramName) //
 				? paramName //

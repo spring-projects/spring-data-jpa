@@ -45,6 +45,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.mapping.PropertyPath;
@@ -58,7 +59,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @since 4.0
  */
-@SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue" })
+@SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
 class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	private static final DateTimeFormatter DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive()
@@ -119,7 +120,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitSortExpression(HqlParser.SortExpressionContext ctx) {
+	public @Nullable Expression<?> visitSortExpression(HqlParser.SortExpressionContext ctx) {
 
 		if (ctx.identifier() != null) {
 			HqlParser.IdentifierContext identifier = ctx.identifier();

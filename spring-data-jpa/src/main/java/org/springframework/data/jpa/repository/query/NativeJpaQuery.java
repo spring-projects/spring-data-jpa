@@ -20,6 +20,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
 import org.springframework.core.annotation.MergedAnnotation;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,7 +30,6 @@ import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -71,7 +72,7 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	}
 
 	@Override
-	protected Query createJpaQuery(String queryString, Sort sort, Pageable pageable, ReturnedType returnedType) {
+	protected Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 		String query = potentiallyRewriteQuery(queryString, sort, pageable);
@@ -84,8 +85,7 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		return type == null ? em.createNativeQuery(query) : em.createNativeQuery(query, type);
 	}
 
-	@Nullable
-	private Class<?> getTypeToQueryFor(ReturnedType returnedType) {
+	private @Nullable Class<?> getTypeToQueryFor(ReturnedType returnedType) {
 
 		Class<?> result = queryForEntity ? returnedType.getDomainType() : null;
 

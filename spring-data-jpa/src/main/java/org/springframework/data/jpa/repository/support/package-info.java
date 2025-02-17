@@ -1,5 +1,5 @@
 /**
  * JPA repository implementations.
  */
-@org.springframework.lang.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.springframework.data.jpa.repository.support;

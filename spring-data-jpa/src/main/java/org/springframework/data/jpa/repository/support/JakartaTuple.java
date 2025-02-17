@@ -20,8 +20,6 @@ import jakarta.persistence.Tuple;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
-
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionBase;
 import com.querydsl.core.types.ExpressionUtils;
@@ -31,6 +29,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.Visitor;
 import com.querydsl.jpa.JPQLSerializer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Expression based on a {@link Tuple}. It's a simplified variant of {@link com.querydsl.core.types.QTuple} without
@@ -72,8 +71,7 @@ class JakartaTuple extends ExpressionBase<Tuple> {
 	}
 
 	@Override
-	@Nullable
-	public <R, C> R accept(Visitor<R, C> v, @Nullable C context) {
+	public <R, C> @Nullable R accept(Visitor<R, C> v, @Nullable C context) {
 
 		if (v instanceof JPQLSerializer) {
 			return Projections.tuple(args).accept(v, context);

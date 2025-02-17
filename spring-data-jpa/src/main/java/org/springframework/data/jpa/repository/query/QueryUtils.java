@@ -47,13 +47,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.core.annotation.AnnotationUtils;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -439,9 +440,8 @@ public abstract class QueryUtils {
 	 * @return Might return {@literal null}.
 	 * @deprecated use {@link DeclaredQuery#getAlias()} instead.
 	 */
-	@Nullable
 	@Deprecated
-	public static String detectAlias(String query) {
+	public static @Nullable String detectAlias(String query) {
 
 		String alias = null;
 		Matcher matcher = ALIAS_MATCH.matcher(removeSubqueries(query));
@@ -852,6 +852,7 @@ public abstract class QueryUtils {
 		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
@@ -867,7 +868,12 @@ public abstract class QueryUtils {
 		}
 
 		Annotation annotation = AnnotationUtils.getAnnotation(annotatedMember, associationAnnotation);
-		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
+		if(annotation == null) {
+			return defaultValue;
+		}
+
+		T value = (T) AnnotationUtils.getValue(annotation, propertyName);
+		return value != null ? value : defaultValue;
 	}
 
 	/**
@@ -955,8 +961,7 @@ public abstract class QueryUtils {
 	 * @see <a href=
 	 *      "https://github.com/jakartaee/persistence/issues/562">https://github.com/jakartaee/persistence/issues/562</a>
 	 */
-	@Nullable
-	private static Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
+	private static @Nullable Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
 			Path<?> fallback) {
 
 		String segment = path.getSegment();
@@ -980,8 +985,7 @@ public abstract class QueryUtils {
 	 * @param model
 	 * @return
 	 */
-	@Nullable
-	static ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
+	static @Nullable ManagedType<?> getManagedTypeForModel(Bindable<?> model) {
 
 		if (model instanceof ManagedType<?> managedType) {
 			return managedType;
