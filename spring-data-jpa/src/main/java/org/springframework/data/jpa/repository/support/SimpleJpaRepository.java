@@ -41,6 +41,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
@@ -72,7 +74,6 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -169,8 +170,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.projectionFactory = projectionFactory;
 	}
 
-	@Nullable
-	protected CrudMethodMetadata getRepositoryMethodMetadata() {
+	protected @Nullable CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;
 	}
 

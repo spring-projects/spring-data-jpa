@@ -29,9 +29,10 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

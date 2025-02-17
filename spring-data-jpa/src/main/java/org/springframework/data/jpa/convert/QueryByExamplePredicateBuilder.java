@@ -33,13 +33,14 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -78,8 +79,7 @@ public class QueryByExamplePredicateBuilder {
 	 * @param example must not be {@literal null}.
 	 * @return {@literal null} indicates no {@link Predicate}.
 	 */
-	@Nullable
-	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
+	public static <T> @Nullable Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example) {
 		return getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 	}
 
@@ -92,8 +92,7 @@ public class QueryByExamplePredicateBuilder {
 	 * @param escapeCharacter Must not be {@literal null}.
 	 * @return {@literal null} indicates no constraints
 	 */
-	@Nullable
-	public static <T> Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
+	public static <T> @Nullable Predicate getPredicate(Root<T> root, CriteriaBuilder cb, Example<T> example,
 			EscapeCharacter escapeCharacter) {
 
 		Assert.notNull(root, "Root must not be null");

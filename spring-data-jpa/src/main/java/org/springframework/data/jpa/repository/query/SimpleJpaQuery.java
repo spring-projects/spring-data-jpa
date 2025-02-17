@@ -19,9 +19,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
 import org.springframework.data.jpa.repository.QueryRewriter;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}

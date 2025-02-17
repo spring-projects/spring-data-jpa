@@ -27,7 +27,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -174,8 +175,7 @@ enum StoredProcedureAttributeSource {
 	 * @param procedure must not be {@literal null}.
 	 * @return
 	 */
-	@Nullable
-	private NamedStoredProcedureQuery tryFindAnnotatedNamedStoredProcedureQuery(Method method,
+	private @Nullable NamedStoredProcedureQuery tryFindAnnotatedNamedStoredProcedureQuery(Method method,
 			JpaEntityMetadata<?> entityMetadata, Procedure procedure) {
 
 		Assert.notNull(method, "Method must not be null");

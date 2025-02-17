@@ -27,6 +27,9 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import org.springframework.data.convert.Jsr310Converters.DateToLocalDateConverter;
+
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.convert.Jsr310Converters.DateToLocalDateTimeConverter;
 import org.springframework.data.convert.Jsr310Converters.DateToLocalTimeConverter;
 import org.springframework.data.convert.Jsr310Converters.LocalDateTimeToDateConverter;
@@ -36,8 +39,6 @@ import org.springframework.data.convert.Jsr310Converters.StringToZoneIdConverter
 import org.springframework.data.convert.Jsr310Converters.ZoneIdToStringConverter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 /**
@@ -53,81 +54,71 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 public class Jsr310JpaConverters {
 
 	@Converter(autoApply = true)
-	public static class LocalDateConverter implements AttributeConverter<LocalDate, Date> {
+	public static class LocalDateConverter implements AttributeConverter<@Nullable LocalDate, @Nullable Date> {
 
-		@Nullable
 		@Override
-		public Date convertToDatabaseColumn(LocalDate date) {
+		public @Nullable Date convertToDatabaseColumn(@Nullable LocalDate date) {
 			return date == null ? null : LocalDateToDateConverter.INSTANCE.convert(date);
 		}
 
-		@Nullable
 		@Override
-		public LocalDate convertToEntityAttribute(Date date) {
+		public @Nullable LocalDate convertToEntityAttribute(@Nullable Date date) {
 			return date == null ? null : DateToLocalDateConverter.INSTANCE.convert(date);
 		}
 	}
 
 	@Converter(autoApply = true)
-	public static class LocalTimeConverter implements AttributeConverter<LocalTime, Date> {
+	public static class LocalTimeConverter implements AttributeConverter<@Nullable LocalTime, @Nullable Date> {
 
-		@Nullable
 		@Override
-		public Date convertToDatabaseColumn(LocalTime time) {
+		public @Nullable Date convertToDatabaseColumn(@Nullable LocalTime time) {
 			return time == null ? null : LocalTimeToDateConverter.INSTANCE.convert(time);
 		}
 
-		@Nullable
 		@Override
-		public LocalTime convertToEntityAttribute(Date date) {
+		public @Nullable LocalTime convertToEntityAttribute(@Nullable Date date) {
 			return date == null ? null : DateToLocalTimeConverter.INSTANCE.convert(date);
 		}
 	}
 
 	@Converter(autoApply = true)
-	public static class LocalDateTimeConverter implements AttributeConverter<LocalDateTime, Date> {
+	public static class LocalDateTimeConverter implements AttributeConverter<@Nullable LocalDateTime, @Nullable Date> {
 
-		@Nullable
 		@Override
-		public Date convertToDatabaseColumn(LocalDateTime date) {
+		public @Nullable Date convertToDatabaseColumn(@Nullable LocalDateTime date) {
 			return date == null ? null : LocalDateTimeToDateConverter.INSTANCE.convert(date);
 		}
 
-		@Nullable
 		@Override
-		public LocalDateTime convertToEntityAttribute(Date date) {
+		public @Nullable LocalDateTime convertToEntityAttribute(@Nullable Date date) {
 			return date == null ? null : DateToLocalDateTimeConverter.INSTANCE.convert(date);
 		}
 	}
 
 	@Converter(autoApply = true)
-	public static class InstantConverter implements AttributeConverter<Instant, Timestamp> {
+	public static class InstantConverter implements AttributeConverter<@Nullable Instant, @Nullable Timestamp> {
 
-		@Nullable
 		@Override
-		public Timestamp convertToDatabaseColumn(Instant instant) {
+		public @Nullable Timestamp convertToDatabaseColumn(@Nullable Instant instant) {
 			return instant == null ? null : InstantToTimestampConverter.INSTANCE.convert(instant);
 		}
 
-		@Nullable
 		@Override
-		public Instant convertToEntityAttribute(Timestamp timestamp) {
+		public @Nullable Instant convertToEntityAttribute(@Nullable Timestamp timestamp) {
 			return timestamp == null ? null : TimestampToInstantConverter.INSTANCE.convert(timestamp);
 		}
 	}
 
 	@Converter(autoApply = true)
-	public static class ZoneIdConverter implements AttributeConverter<ZoneId, String> {
+	public static class ZoneIdConverter implements AttributeConverter<@Nullable ZoneId, @Nullable String> {
 
-		@Nullable
 		@Override
-		public String convertToDatabaseColumn(ZoneId zoneId) {
+		public @Nullable String convertToDatabaseColumn(@Nullable ZoneId zoneId) {
 			return zoneId == null ? null : ZoneIdToStringConverter.INSTANCE.convert(zoneId);
 		}
 
-		@Nullable
 		@Override
-		public ZoneId convertToEntityAttribute(String zoneId) {
+		public @Nullable ZoneId convertToEntityAttribute(@Nullable String zoneId) {
 			return zoneId == null ? null : StringToZoneIdConverter.INSTANCE.convert(zoneId);
 		}
 	}

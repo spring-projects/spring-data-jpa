@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,7 +56,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * Unit test for {@link SimpleJpaQuery}.

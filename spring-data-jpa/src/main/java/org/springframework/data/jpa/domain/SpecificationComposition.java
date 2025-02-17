@@ -24,7 +24,7 @@ import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Helper class to support specification compositions.
@@ -58,8 +58,7 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
 			@Nullable CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
@@ -80,8 +79,7 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
 			@Nullable CriteriaDelete<T> delete, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, delete, builder);
 	}
@@ -102,8 +100,8 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable UpdateSpecification<T> specification, Root<T> root,
+
+	private static <T> @Nullable Predicate toPredicate(@Nullable UpdateSpecification<T> specification, Root<T> root,
 			CriteriaUpdate<T> update, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, update, builder);
 	}
@@ -124,8 +122,7 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
 			CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, builder);
 	}

@@ -18,7 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * The implementation of the Regex-based {@link QueryEnhancer} using {@link QueryUtils}.

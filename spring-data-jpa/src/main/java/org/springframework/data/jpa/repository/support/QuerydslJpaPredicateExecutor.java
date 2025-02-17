@@ -44,7 +44,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import com.querydsl.core.NonUniqueResultException;
@@ -60,6 +59,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Querydsl specific fragment for extending {@link SimpleJpaRepository} with an implementation of
@@ -297,8 +297,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return doCreateQuery(getQueryHintsForCount(), predicate);
 	}
 
-	@Nullable
-	private CrudMethodMetadata getRepositoryMethodMetadata() {
+	private @Nullable CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;
 	}
 

@@ -25,7 +25,8 @@ import java.time.ZoneId;
 import java.util.Optional;
 
 import org.springframework.data.domain.Auditable;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract base class for auditable entities. Stores the audition values in persistent fields.
@@ -77,7 +78,7 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	}
 
 	@Override
-	public void setLastModifiedBy(U lastModifiedBy) {
+	public void setLastModifiedBy(@Nullable U lastModifiedBy) {
 		this.lastModifiedBy = lastModifiedBy;
 	}
 

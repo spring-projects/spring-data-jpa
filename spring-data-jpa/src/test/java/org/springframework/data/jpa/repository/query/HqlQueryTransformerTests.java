@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,7 +33,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -1183,8 +1183,7 @@ class HqlQueryTransformerTests {
 		return newParser(query).createCountQueryFor(countProjection);
 	}
 
-	@Nullable
-	private String alias(String query) {
+	private @Nullable String alias(String query) {
 		return newParser(query).detectAlias();
 	}
 

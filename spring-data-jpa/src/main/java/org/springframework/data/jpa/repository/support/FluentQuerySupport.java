@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.core.convert.support.DefaultConversionService;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ScrollPosition;
@@ -29,7 +31,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.AbstractJpaQuery;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 
 /**
  * Supporting class containing some state and convenience methods for building and executing fluent queries.

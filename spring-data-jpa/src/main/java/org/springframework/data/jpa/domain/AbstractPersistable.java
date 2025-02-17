@@ -18,13 +18,14 @@ package org.springframework.data.jpa.domain;
 import java.io.Serializable;
 
 import jakarta.persistence.GeneratedValue;
+
+import org.jspecify.annotations.Nullable;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
 import org.springframework.data.util.ProxyUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for entities. Allows parameterization of id type, chooses auto-generation and implements
@@ -41,9 +42,8 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 
 	@Id @GeneratedValue private @Nullable PK id;
 
-	@Nullable
 	@Override
-	public PK getId() {
+	public @Nullable PK getId() {
 		return id;
 	}
 
@@ -73,7 +73,7 @@ public abstract class AbstractPersistable<PK extends Serializable> implements Pe
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(@Nullable Object obj) {
 
 		if (null == obj) {
 			return false;

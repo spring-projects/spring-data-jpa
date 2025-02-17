@@ -21,6 +21,8 @@ import jakarta.persistence.Query;
 import java.util.Objects;
 
 import org.springframework.data.domain.Pageable;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -28,7 +30,6 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentLruCache;
 import org.springframework.util.StringUtils;

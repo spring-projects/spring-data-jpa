@@ -20,9 +20,10 @@ import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 import java.util.List;
 
 import org.springframework.data.domain.Sort;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 

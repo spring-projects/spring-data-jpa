@@ -19,7 +19,8 @@ import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
@@ -48,9 +49,8 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 		return entity.isNew();
 	}
 
-	@Nullable
 	@Override
-	public ID getId(T entity) {
+	public @Nullable ID getId(T entity) {
 		return entity.getId();
 	}
 }

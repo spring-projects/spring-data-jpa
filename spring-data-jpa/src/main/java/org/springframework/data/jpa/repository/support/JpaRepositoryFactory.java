@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
@@ -61,7 +62,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 

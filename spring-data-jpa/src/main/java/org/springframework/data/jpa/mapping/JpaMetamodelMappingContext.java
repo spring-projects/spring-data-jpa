@@ -22,6 +22,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.data.mapping.context.AbstractMappingContext;
@@ -29,7 +31,6 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -114,8 +115,7 @@ public class JpaMetamodelMappingContext
 		 * @param type must not be {@literal null}.
 		 * @return
 		 */
-		@Nullable
-		public JpaMetamodel getMetamodel(TypeInformation<?> type) {
+		public @Nullable JpaMetamodel getMetamodel(TypeInformation<?> type) {
 
 			Metamodel metamodel = getMetamodelFor(type.getType());
 
@@ -166,8 +166,7 @@ public class JpaMetamodelMappingContext
 		 * @param type must not be {@literal null}.
 		 * @return can be {@literal null}.
 		 */
-		@Nullable
-		private Metamodel getMetamodelFor(Class<?> type) {
+		private @Nullable Metamodel getMetamodelFor(Class<?> type) {
 
 			for (Metamodel model : metamodels) {
 

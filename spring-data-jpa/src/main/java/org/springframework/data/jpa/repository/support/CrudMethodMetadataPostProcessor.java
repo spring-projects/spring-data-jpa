@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
@@ -41,7 +42,6 @@ import org.springframework.data.jpa.repository.Meta;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryProxyPostProcessor;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -208,8 +208,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class));
 		}
 
-		@Nullable
-		private static LockModeType findLockModeType(Method method) {
+		private static @Nullable LockModeType findLockModeType(Method method) {
 
 			Lock annotation = AnnotatedElementUtils.findMergedAnnotation(method, Lock.class);
 			return annotation == null ? null : (LockModeType) AnnotationUtils.getValue(annotation);
@@ -238,16 +237,14 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			return queryHints;
 		}
 
-		@Nullable
-		private static String findComment(Method method) {
+		private static @Nullable String findComment(Method method) {
 
 			Meta annotation = AnnotatedElementUtils.findMergedAnnotation(method, Meta.class);
 			return annotation == null ? null : (String) AnnotationUtils.getValue(annotation, "comment");
 		}
 
-		@Nullable
 		@Override
-		public LockModeType getLockModeType() {
+		public @Nullable LockModeType getLockModeType() {
 			return lockModeType;
 		}
 

@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * NULL-Object pattern implementation for {@link DeclaredQuery}.

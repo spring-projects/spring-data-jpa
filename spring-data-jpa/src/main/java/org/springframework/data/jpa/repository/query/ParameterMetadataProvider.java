@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.provider.PersistenceProvider;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -36,7 +38,6 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.expression.Expression;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -264,8 +265,7 @@ public class ParameterMetadataProvider {
 		 *
 		 * @param value can be {@literal null}.
 		 */
-		@Nullable
-		public Object prepare(@Nullable Object value) {
+		public @Nullable Object prepare(@Nullable Object value) {
 
 			if (value == null || parameterType == null) {
 				return value;
@@ -294,8 +294,7 @@ public class ParameterMetadataProvider {
 		 * @param value the value to be converted to a {@link Collection}.
 		 * @return the object itself as a {@link Collection} or a {@link Collection} constructed from the value.
 		 */
-		@Nullable
-		private static Collection<?> toCollection(@Nullable Object value) {
+		private static @Nullable Collection<?> toCollection(@Nullable Object value) {
 
 			if (value == null) {
 				return null;
@@ -314,9 +313,8 @@ public class ParameterMetadataProvider {
 			return Collections.singleton(value);
 		}
 
-		@Nullable
 		@SuppressWarnings("unchecked")
-		private Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
+		private @Nullable Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
 
 			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {
 				return collection;

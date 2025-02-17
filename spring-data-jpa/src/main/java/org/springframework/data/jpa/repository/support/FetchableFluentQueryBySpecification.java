@@ -27,6 +27,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -42,7 +44,6 @@ import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

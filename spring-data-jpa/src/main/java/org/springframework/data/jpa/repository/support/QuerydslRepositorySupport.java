@@ -16,10 +16,11 @@
 package org.springframework.data.jpa.repository.support;
 
 import jakarta.annotation.PostConstruct;
+import org.jspecify.annotations.Nullable;
+
 import jakarta.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
@@ -84,8 +85,7 @@ public abstract class QuerydslRepositorySupport {
 	 *
 	 * @return the entityManager
 	 */
-	@Nullable
-	protected EntityManager getEntityManager() {
+	protected @Nullable EntityManager getEntityManager() {
 		return entityManager;
 	}
 
@@ -145,8 +145,7 @@ public abstract class QuerydslRepositorySupport {
 	 *
 	 * @return
 	 */
-	@Nullable
-	protected Querydsl getQuerydsl() {
+	protected @Nullable Querydsl getQuerydsl() {
 		return this.querydsl;
 	}
 

@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.domain.KeysetScrollPosition;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * Delegate for keyset scrolling.
@@ -69,8 +70,7 @@ public class KeysetScrollDelegate {
 		return properties;
 	}
 
-	@Nullable
-	public <E, P> P createPredicate(KeysetScrollPosition keyset, Sort sort, QueryStrategy<E, P> strategy) {
+	public <E, P> @Nullable P createPredicate(KeysetScrollPosition keyset, Sort sort, QueryStrategy<E, P> strategy) {
 
 		Map<String, Object> keysetValues = keyset.getKeys();
 

@@ -21,10 +21,11 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.query.TypedParameterValue;
 import org.hibernate.type.BasicType;
 import org.hibernate.type.BasicTypeRegistry;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link org.springframework.data.repository.query.ParameterAccessor} based on an {@link Parameters} instance. In
@@ -62,9 +63,8 @@ class HibernateJpaParametersParameterAccessor extends JpaParametersParameterAcce
 	}
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public Object getValue(Parameter parameter) {
+	public @Nullable Object getValue(Parameter parameter) {
 
 		Object value = super.getValue(parameter.getIndex());
 

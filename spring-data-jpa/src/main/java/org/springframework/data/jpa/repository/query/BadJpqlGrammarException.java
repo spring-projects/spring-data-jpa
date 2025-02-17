@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.lang.Nullable;
 
 /**
  * An exception thrown if the JPQL query is invalid.

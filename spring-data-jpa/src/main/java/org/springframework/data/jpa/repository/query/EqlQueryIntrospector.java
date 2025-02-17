@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.query.EqlParser.Range_variable_declarationContext;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link ParsedQueryIntrospector} for EQL queries.

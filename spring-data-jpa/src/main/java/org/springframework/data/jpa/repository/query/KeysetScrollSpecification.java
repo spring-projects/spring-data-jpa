@@ -27,13 +27,14 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.util.List;
 
 import org.springframework.data.domain.KeysetScrollPosition;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link Specification} to create scroll queries using keyset-scrolling.
@@ -71,15 +72,14 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		return createPredicate(root, criteriaBuilder);
 	}
 
-	@Nullable
-	public Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
+	public @Nullable Predicate createPredicate(Root<?> root, CriteriaBuilder criteriaBuilder) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
 		return delegate.createPredicate(position, sort, new CriteriaBuilderStrategy(root, criteriaBuilder));
 	}
 
-	@Nullable
-	public JpqlQueryBuilder.Predicate createJpqlPredicate(Bindable<?> from, JpqlQueryBuilder.Entity entity,
+
+	public JpqlQueryBuilder.@Nullable Predicate createJpqlPredicate(Bindable<?> from, JpqlQueryBuilder.Entity entity,
 			ParameterFactory factory) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());

@@ -38,6 +38,7 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SetOperationList;
 import net.sf.jsqlparser.statement.select.Values;
 import net.sf.jsqlparser.statement.update.Update;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,7 +51,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.SerializationUtils;
@@ -131,8 +131,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 *
 	 * @return Might return {@literal null}.
 	 */
-	@Nullable
-	private static String detectAlias(ParsedType parsedType, Statement statement) {
+	private static @Nullable String detectAlias(ParsedType parsedType, Statement statement) {
 
 		if (ParsedType.MERGE.equals(parsedType)) {
 

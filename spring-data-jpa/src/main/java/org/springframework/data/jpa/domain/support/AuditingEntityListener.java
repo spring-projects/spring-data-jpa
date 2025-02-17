@@ -19,10 +19,11 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
 import org.springframework.beans.factory.ObjectFactory;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.data.auditing.AuditingHandler;
 import org.springframework.data.domain.Auditable;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

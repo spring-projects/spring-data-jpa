@@ -26,7 +26,8 @@ import jakarta.persistence.metamodel.PluralAttribute;
 import java.util.Objects;
 
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -127,8 +128,7 @@ class JpqlUtils {
 		return hasRequiredOuterJoin || QueryUtils.getAnnotationProperty(attribute, "optional", true);
 	}
 
-	@Nullable
-	private static Attribute<?, ?> getModelForPath(Metamodel metamodel, PropertyPath path,
+	private static @Nullable Attribute<?, ?> getModelForPath(Metamodel metamodel, PropertyPath path,
 			@Nullable ManagedType<?> managedType, Bindable<?> fallback) {
 
 		String segment = path.getSegment();
