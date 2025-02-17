@@ -18,7 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * The implementation of the Regex-based {@link QueryEnhancer} using {@link QueryUtils}.
@@ -30,7 +31,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
 	private final boolean hasConstructorExpression;
-	private final String alias;
+	private final @Nullable  String alias;
 	private final String projection;
 	private final Set<String> joinAliases;
 
@@ -68,7 +69,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String detectAlias() {
+	public @Nullable String detectAlias() {
 		return this.alias;
 	}
 

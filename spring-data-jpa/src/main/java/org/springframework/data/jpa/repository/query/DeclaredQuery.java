@@ -17,8 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * A wrapper for a String representation of a query offering information about the query.

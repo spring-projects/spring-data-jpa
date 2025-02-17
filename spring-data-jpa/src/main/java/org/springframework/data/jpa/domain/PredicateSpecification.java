@@ -24,8 +24,9 @@ import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
 import org.springframework.lang.CheckReturnValue;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.lang.Contract;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**

@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.config;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.*;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -45,6 +46,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 	private final SpringConfiguredBeanDefinitionParser springConfiguredParser = new SpringConfiguredBeanDefinitionParser();
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public BeanDefinition parse(Element element, ParserContext parser) {
 
 		springConfiguredParser.parse(element, parser);
@@ -90,7 +92,7 @@ public class AuditingBeanDefinitionParser implements BeanDefinitionParser {
 		private static final String BEAN_CONFIGURER_ASPECT_CLASS_NAME = "org.springframework.beans.factory.aspectj.AnnotationBeanConfigurerAspect";
 
 		@Override
-		public BeanDefinition parse(Element element, ParserContext parserContext) {
+		public @Nullable BeanDefinition parse(Element element, ParserContext parserContext) {
 
 			if (!parserContext.getRegistry().containsBeanDefinition(BEAN_CONFIGURER_ASPECT_BEAN_NAME)) {
 

@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import org.hibernate.envers.DefaultRevisionEntity;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -39,7 +40,7 @@ import org.springframework.data.repository.history.support.RevisionEntityInforma
 public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S, ID, N>, S, ID, N extends Number & Comparable<N>>
 		extends JpaRepositoryFactoryBean<T, S, ID> {
 
-	private Class<?> revisionEntityClass;
+	private @Nullable Class<?> revisionEntityClass;
 
 	/**
 	 * Creates a new {@link EnversRevisionRepositoryFactoryBean} for the given repository interface.
@@ -81,7 +82,7 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 		 * @param entityManager must not be {@literal null}.
 		 * @param revisionEntityClass can be {@literal null}, will default to {@link DefaultRevisionEntity}.
 		 */
-		public RevisionRepositoryFactory(EntityManager entityManager, Class<?> revisionEntityClass) {
+		public RevisionRepositoryFactory(EntityManager entityManager, @Nullable Class<?> revisionEntityClass) {
 
 			super(entityManager);
 

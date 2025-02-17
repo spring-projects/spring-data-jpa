@@ -18,10 +18,11 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.data.jpa.repository.QueryRewriter;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 
 /**
  * Factory to create the appropriate {@link RepositoryQuery} for a {@link JpaQueryMethod}.

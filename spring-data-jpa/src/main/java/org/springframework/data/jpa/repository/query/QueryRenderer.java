@@ -22,8 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.CompositeIterator;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstraction to encapsulate query expressions and render a query.
@@ -271,8 +272,7 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 
 			for (int i = nested.size() - 1; i > -1; i--) {
 
@@ -368,14 +368,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getFirst() {
+		public @Nullable QueryToken getFirst() {
 			return tokens.isEmpty() ? null : tokens.get(0);
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 			return tokens.isEmpty() ? null : tokens.get(tokens.size() - 1);
 		}
 
@@ -438,14 +436,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getFirst() {
+		public @Nullable QueryToken getFirst() {
 			return tokens.getFirst();
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 			return tokens.getLast();
 		}
 
@@ -574,14 +570,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getFirst() {
+		public @Nullable QueryToken getFirst() {
 			return current.getFirst();
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 			return current.getLast();
 		}
 
@@ -645,14 +639,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getFirst() {
+		public @Nullable QueryToken getFirst() {
 			return delegate.getFirst();
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 			return delegate.getLast();
 		}
 
@@ -701,14 +693,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getFirst() {
+		public @Nullable QueryToken getFirst() {
 			return delegate.getFirst();
 		}
 
 		@Override
-		@Nullable
-		public QueryToken getLast() {
+		public @Nullable QueryToken getLast() {
 			return delegate.getLast();
 		}
 

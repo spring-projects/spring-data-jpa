@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -26,7 +27,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.data.jpa.repository.query.QueryEnhancerFactory.NativeQueryEnhancer;
 import org.springframework.data.jpa.util.ClassPathExclusions;
-import org.springframework.lang.Nullable;
 
 /**
  * Unit tests for {@link QueryEnhancerFactory}.

@@ -17,7 +17,7 @@ package org.springframework.data.jpa.provider;
 
 import jakarta.persistence.Query;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface to hide different implementations of query hints that insert comments into a {@link Query}.

@@ -35,6 +35,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -55,7 +57,6 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -141,9 +142,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return metamodel;
 	}
 
-	@Nullable
 	@Override
-	public Object execute(Object[] parameters) {
+	public @Nullable Object execute(Object[] parameters) {
 		return doExecute(getExecution(), parameters);
 	}
 
@@ -152,8 +152,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param values
 	 * @return
 	 */
-	@Nullable
-	private Object doExecute(JpaQueryExecution execution, Object[] values) {
+	private @Nullable Object doExecute(JpaQueryExecution execution, Object[] values) {
 
 		JpaParametersParameterAccessor accessor = obtainParameterAccessor(values);
 		Object result = execution.execute(this, accessor);
@@ -193,6 +192,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param query
 	 * @return
 	 */
+	@SuppressWarnings("NullAway")
 	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		List<QueryHint> hints = method.getHints();
@@ -283,8 +283,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 * @since 2.0.5
 	 */
-	@Nullable
-	protected Class<?> getTypeToRead(ReturnedType returnedType) {
+	protected @Nullable Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (PersistenceProvider.ECLIPSELINK.equals(provider)) {
 			return null;
@@ -525,8 +524,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			 * @return the value of the backing {@link Tuple} for that key or {@code null}.
 			 */
 			@Override
-			@Nullable
-			public Object get(Object key) {
+			public @Nullable Object get(Object key) {
 
 				if (!(key instanceof String)) {
 					return null;

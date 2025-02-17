@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.spel.spi.EvaluationContextExtension;
 
@@ -66,7 +67,7 @@ public class JpaEvaluationContextExtension implements EvaluationContextExtension
 		 * @return
 		 * @see EscapeCharacter#escape(String)
 		 */
-		public String escape(String source) {
+		public @Nullable String escape(@Nullable String source) {
 			return character.escape(source);
 		}
 

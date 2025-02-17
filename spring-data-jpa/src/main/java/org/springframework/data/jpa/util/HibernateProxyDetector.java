@@ -18,8 +18,9 @@ package org.springframework.data.jpa.util;
 import java.util.Optional;
 
 import org.hibernate.proxy.HibernateProxy;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.util.ProxyUtils.ProxyDetector;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -40,8 +41,7 @@ class HibernateProxyDetector implements ProxyDetector {
 				.orElse(type);
 	}
 
-	@Nullable
-	private static Class<?> loadHibernateProxyType() {
+	private static @Nullable Class<?> loadHibernateProxyType() {
 
 		try {
 			return ClassUtils.forName("org.hibernate.proxy.HibernateProxy", HibernateProxyDetector.class.getClassLoader());

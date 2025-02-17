@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.RuntimeMetaData;
 import org.hibernate.grammars.hql.HqlParser;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.asm.ClassReader;
@@ -29,7 +30,6 @@ import org.springframework.asm.ClassVisitor;
 import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Opcodes;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
-import org.springframework.lang.Nullable;
 
 /**
  * Test to verify that we use the same Antlr version as Hibernate. We parse {@code org.hibernate.grammars.hql.HqlParser}

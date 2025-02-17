@@ -18,9 +18,10 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
-import org.springframework.lang.Nullable;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query into a

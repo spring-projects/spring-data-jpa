@@ -21,7 +21,8 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.lang.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface to abstract {@link CrudMethodMetadata} that provide the {@link LockModeType} to be used for query
@@ -76,7 +77,8 @@ public interface CrudMethodMetadata {
 	 * @return
 	 * @since 1.9
 	 */
-	Optional<EntityGraph> getEntityGraph();
+	@Nullable
+	EntityGraph getEntityGraph();
 
 	/**
 	 * Returns the {@link Method} to be used.

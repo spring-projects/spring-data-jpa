@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.expression.ValueEvaluationContext;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
@@ -51,6 +53,12 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static final String ENTITY_NAME = "entityName";
 	private static final String ENTITY_NAME_VARIABLE = "#" + ENTITY_NAME;
 	private static final String ENTITY_NAME_VARIABLE_EXPRESSION = "#{" + ENTITY_NAME_VARIABLE;
+
+	private static final Environment DEFAULT_ENVIRONMENT;
+
+	static {
+		DEFAULT_ENVIRONMENT = new StandardEnvironment();
+	}
 
 	/**
 	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
@@ -102,7 +110,8 @@ class ExpressionBasedStringQuery extends StringQuery {
 
 		ValueExpression expr = parser.parse(query);
 
-		String result = Objects.toString(expr.evaluate(ValueEvaluationContext.of(null, evalContext)));
+		String result = Objects.toString(
+			expr.evaluate(ValueEvaluationContext.of(DEFAULT_ENVIRONMENT, evalContext)));
 
 		if (result == null) {
 			return query;

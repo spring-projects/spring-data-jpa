@@ -9,10 +9,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.NullHandling;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 
 /**

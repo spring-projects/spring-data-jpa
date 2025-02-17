@@ -38,11 +38,12 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.beans.BeanWrapper;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -143,9 +144,8 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	@Override
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public ID getId(T entity) {
+	public @Nullable ID getId(T entity) {
 
 		// check if this is a proxy. If so use Proxy mechanics to access the id.
 		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
@@ -215,7 +215,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	@Override
-	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
+	public @Nullable Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id");
 
@@ -312,8 +312,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return this.idType;
 		}
 
-		@Nullable
-		private Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
+		private @Nullable Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
 
 			try {
 
@@ -330,8 +329,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			}
 		}
 
-		@Nullable
-		private static Class<?> lookupIdClass(IdentifiableType<?> type) {
+		private static @Nullable Class<?> lookupIdClass(IdentifiableType<?> type) {
 
 			IdClass annotation = type.getJavaType() != null
 					? AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class)

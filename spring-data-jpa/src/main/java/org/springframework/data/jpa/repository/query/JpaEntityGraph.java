@@ -18,8 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.EntityGraph;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -56,7 +57,7 @@ public class JpaEntityGraph {
 	 * @param attributePaths may be {@literal null}.
 	 * @since 1.9
 	 */
-	public JpaEntityGraph(String name, EntityGraphType type, @Nullable String[] attributePaths) {
+	public JpaEntityGraph(String name, EntityGraphType type, String @Nullable[] attributePaths) {
 
 		Assert.hasText(name, "The name of an EntityGraph must not be null or empty");
 		Assert.notNull(type, "FetchGraphType must not be null");

@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +46,6 @@ import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -134,7 +135,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public R oneValue() {
+	public @Nullable R oneValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(2) // Never need more than 2 values
@@ -148,7 +149,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public R firstValue() {
+	public @Nullable R firstValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(1) // Never need more than 1 value
