@@ -29,9 +29,10 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.springframework.data.domain.Sort;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Predicates;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -364,8 +365,7 @@ public final class JpqlQueryBuilder {
 		};
 	}
 
-	@Nullable
-	public static Predicate and(List<Predicate> intermediate) {
+	public static @Nullable Predicate and(List<Predicate> intermediate) {
 
 		Predicate predicate = null;
 
@@ -381,8 +381,7 @@ public final class JpqlQueryBuilder {
 		return predicate;
 	}
 
-	@Nullable
-	public static Predicate or(List<Predicate> intermediate) {
+	public static @Nullable Predicate or(List<Predicate> intermediate) {
 
 		Predicate predicate = null;
 
@@ -784,8 +783,7 @@ public final class JpqlQueryBuilder {
 			return this;
 		}
 
-		@Nullable
-		public Predicate getWhere() {
+		public @Nullable Predicate getWhere() {
 			return where;
 		}
 

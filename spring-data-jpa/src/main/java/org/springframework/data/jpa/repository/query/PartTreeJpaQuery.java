@@ -24,6 +24,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,6 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -246,7 +246,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
 		 * limited.
 		 */
-		@SuppressWarnings("ConstantConditions")
+		@SuppressWarnings({ "ConstantConditions", "NullAway" })
 		private Query restrictMaxResultsIfNecessary(Query query, @Nullable ScrollPosition scrollPosition) {
 
 			if (scrollPosition instanceof OffsetScrollPosition offset && !offset.isInitial()) {

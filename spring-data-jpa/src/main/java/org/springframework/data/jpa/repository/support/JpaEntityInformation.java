@@ -21,8 +21,9 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.core.EntityInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * Extension of {@link EntityInformation} to capture additional JPA specific information about entities.

@@ -23,6 +23,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.PluralAttribute;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -30,7 +31,6 @@ import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;
 import org.springframework.data.jpa.domain.sample.User_;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 

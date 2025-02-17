@@ -22,8 +22,6 @@ import jakarta.persistence.Tuple;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
-
 import com.querydsl.core.QueryModifiers;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.FactoryExpression;
@@ -31,6 +29,7 @@ import com.querydsl.jpa.JPQLSerializer;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Customized String-Query implementation that specifically routes tuple query creation to

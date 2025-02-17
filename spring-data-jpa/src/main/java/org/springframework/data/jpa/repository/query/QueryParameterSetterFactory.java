@@ -21,6 +21,8 @@ import jakarta.persistence.TemporalType;
 import java.util.function.Function;
 
 import org.springframework.data.expression.ValueEvaluationContext;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
@@ -32,7 +34,6 @@ import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.spel.EvaluationContextProvider;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -53,8 +54,7 @@ abstract class QueryParameterSetterFactory {
 	 * @param binding the parameter binding to create a {@link QueryParameterSetter} for.
 	 * @return
 	 */
-	@Nullable
-	abstract QueryParameterSetter create(ParameterBinding binding);
+	abstract @Nullable QueryParameterSetter create(ParameterBinding binding);
 
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
@@ -109,7 +109,7 @@ abstract class QueryParameterSetterFactory {
 	 * @param binding the binding of the query parameter to be set.
 	 * @param parameter the method parameter to bind.
 	 */
-	private static QueryParameterSetter createSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+	private static QueryParameterSetter createSetter(Function<JpaParametersParameterAccessor, @Nullable Object> valueExtractor,
 			ParameterBinding binding, @Nullable JpaParameter parameter) {
 
 		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() //
@@ -120,8 +120,7 @@ abstract class QueryParameterSetterFactory {
 				ParameterImpl.of(parameter, binding), temporalType);
 	}
 
-	@Nullable
-	static JpaParameter findParameterForBinding(Parameters<JpaParameters, JpaParameter> parameters, String name) {
+	static @Nullable JpaParameter findParameterForBinding(Parameters<JpaParameters, JpaParameter> parameters, String name) {
 
 		JpaParameters bindableParameters = parameters.getBindableParameters();
 
@@ -180,9 +179,8 @@ abstract class QueryParameterSetterFactory {
 			this.evaluationContextProvider = evaluationContextProvider;
 		}
 
-		@Nullable
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			if (!(binding.getOrigin() instanceof ParameterBinding.Expression e)) {
 				return null;
@@ -198,8 +196,7 @@ abstract class QueryParameterSetterFactory {
 		 * @param accessor must not be {@literal null}.
 		 * @return the result of the evaluation.
 		 */
-		@Nullable
-		private Object evaluateExpression(ValueExpression expression, JpaParametersParameterAccessor accessor) {
+		private @Nullable Object evaluateExpression(ValueExpression expression, JpaParametersParameterAccessor accessor) {
 
 			ValueEvaluationContext evaluationContext = evaluationContextProvider.getEvaluationContext(accessor.getValues());
 			return expression.evaluate(evaluationContext);
@@ -215,7 +212,7 @@ abstract class QueryParameterSetterFactory {
 	private static class SyntheticParameterSetterFactory extends QueryParameterSetterFactory {
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			if (!(binding.getOrigin() instanceof ParameterBinding.Synthetic s)) {
 				return null;
@@ -251,7 +248,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			Assert.notNull(binding, "Binding must not be null");
 
@@ -276,8 +273,7 @@ abstract class QueryParameterSetterFactory {
 					: createSetter(values -> getValue(values, parameter), binding, parameter);
 		}
 
-		@Nullable
-		protected Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
+		protected @Nullable Object getValue(JpaParametersParameterAccessor accessor, Parameter parameter) {
 			return accessor.getValue(parameter);
 		}
 	}
@@ -298,7 +294,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			if (!binding.getOrigin().isMethodArgument()) {
 				return null;
@@ -352,15 +348,13 @@ abstract class QueryParameterSetterFactory {
 			this.parameterType = parameterType;
 		}
 
-		@Nullable
 		@Override
-		public String getName() {
+		public @Nullable String getName() {
 			return identifier.hasName() ? identifier.getName() : null;
 		}
 
-		@Nullable
 		@Override
-		public Integer getPosition() {
+		public @Nullable Integer getPosition() {
 			return identifier.hasPosition() ? identifier.getPosition() : null;
 		}
 

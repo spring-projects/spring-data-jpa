@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
 import org.hibernate.LazyInitializationException;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,7 +75,6 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;

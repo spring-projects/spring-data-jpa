@@ -23,13 +23,14 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.core.MethodParameter;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * Custom extension of {@link Parameters} discovering additional query parameter annotations.

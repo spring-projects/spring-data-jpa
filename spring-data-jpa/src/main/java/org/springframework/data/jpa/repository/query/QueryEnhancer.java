@@ -18,8 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Set;
 
 import org.springframework.data.domain.Sort;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.lang.Nullable;
 
 /**
  * This interface describes the API for enhancing a given Query.

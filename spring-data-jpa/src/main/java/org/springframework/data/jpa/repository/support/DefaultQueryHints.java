@@ -17,13 +17,12 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.EntityManager;
 
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaEntityGraph;
-import org.springframework.data.util.Optionals;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +37,7 @@ class DefaultQueryHints implements QueryHints {
 
 	private final JpaEntityInformation<?, ?> information;
 	private final CrudMethodMetadata metadata;
-	private final Optional<EntityManager> entityManager;
+	private final @Nullable EntityManager entityManager;
 	private final boolean forCounts;
 
 	/**
@@ -46,12 +45,12 @@ class DefaultQueryHints implements QueryHints {
 	 * {@link CrudMethodMetadata}, {@link EntityManager} and whether to include fetch graphs.
 	 *
 	 * @param information must not be {@literal null}.
-	 * @param metadata must not be {@literal null}.
+	 * @param metadata can be {@literal null}.
 	 * @param entityManager must not be {@literal null}.
 	 * @param forCounts
 	 */
 	private DefaultQueryHints(JpaEntityInformation<?, ?> information, CrudMethodMetadata metadata,
-			Optional<EntityManager> entityManager, boolean forCounts) {
+			@Nullable EntityManager entityManager, boolean forCounts) {
 
 		this.information = information;
 		this.metadata = metadata;
@@ -72,12 +71,12 @@ class DefaultQueryHints implements QueryHints {
 		Assert.notNull(information, "JpaEntityInformation must not be null");
 		Assert.notNull(metadata, "CrudMethodMetadata must not be null");
 
-		return new DefaultQueryHints(information, metadata, Optional.empty(), false);
+		return new DefaultQueryHints(information, metadata, null, false);
 	}
 
 	@Override
 	public QueryHints withFetchGraphs(EntityManager em) {
-		return new DefaultQueryHints(this.information, this.metadata, Optional.of(em), this.forCounts);
+		return new DefaultQueryHints(this.information, this.metadata, em, this.forCounts);
 	}
 
 	@Override
@@ -96,10 +95,10 @@ class DefaultQueryHints implements QueryHints {
 
 	private QueryHints getFetchGraphs() {
 
-		return Optionals
-				.mapIfAllPresent(entityManager, metadata.getEntityGraph(),
-						(em, graph) -> Jpa21Utils.getFetchGraphHint(em, getEntityGraph(graph), information.getJavaType()))
-				.orElseGet(MutableQueryHints::new);
+		if(entityManager != null && metadata.getEntityGraph() != null) {
+			return Jpa21Utils.getFetchGraphHint(entityManager, getEntityGraph(metadata.getEntityGraph()), information.getJavaType());
+		}
+		return new MutableQueryHints();
 	}
 
 	private JpaEntityGraph getEntityGraph(EntityGraph entityGraph) {

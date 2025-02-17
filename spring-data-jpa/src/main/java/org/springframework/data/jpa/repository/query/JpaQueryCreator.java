@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
 import org.springframework.data.jpa.repository.query.ParameterBinding.PartTreeParameterBinding;
@@ -45,7 +47,6 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -142,13 +143,13 @@ class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Pred
 	 * it the current {@link JpqlQueryBuilder.Predicate}.
 	 */
 	@Override
-	protected final String complete(@Nullable JpqlQueryBuilder.Predicate predicate, Sort sort) {
+	protected final String complete(JpqlQueryBuilder.@Nullable Predicate predicate, Sort sort) {
 
 		JpqlQueryBuilder.AbstractJpqlQuery query = createQuery(predicate, sort);
 		return query.render();
 	}
 
-	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(@Nullable JpqlQueryBuilder.Predicate predicate, Sort sort) {
+	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(JpqlQueryBuilder.@Nullable Predicate predicate, Sort sort) {
 
 		JpqlQueryBuilder.Select query = buildQuery(sort);
 

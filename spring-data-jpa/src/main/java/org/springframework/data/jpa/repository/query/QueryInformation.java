@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Value object capturing introspection details of a parsed query.
@@ -44,8 +44,7 @@ class QueryInformation {
 	 *
 	 * @return
 	 */
-	@Nullable
-	public String getAlias() {
+	public @Nullable String getAlias() {
 		return alias;
 	}
 

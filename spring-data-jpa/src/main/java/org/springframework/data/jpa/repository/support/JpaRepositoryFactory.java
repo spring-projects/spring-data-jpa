@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
@@ -61,7 +62,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -123,7 +123,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
+	public void setBeanClassLoader(@Nullable ClassLoader classLoader) {
 
 		super.setBeanClassLoader(classLoader);
 		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
@@ -226,11 +226,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	protected ProjectionFactory getProjectionFactory(ClassLoader classLoader, BeanFactory beanFactory) {
+	protected ProjectionFactory getProjectionFactory(@Nullable ClassLoader classLoader, @Nullable BeanFactory beanFactory) {
 
 		CollectionAwareProjectionFactory factory = new CollectionAwareProjectionFactory();
-		factory.setBeanClassLoader(classLoader);
-		factory.setBeanFactory(beanFactory);
+		if(classLoader != null) {
+			factory.setBeanClassLoader(classLoader);
+		}
+		if(beanFactory != null) {
+			factory.setBeanFactory(beanFactory);
+		}
 
 		return factory;
 	}

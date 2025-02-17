@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -28,7 +29,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.springframework.lang.Nullable;
 
 /**
  * Verify that EQL queries are properly transformed through the {@link JpaQueryEnhancer} and the

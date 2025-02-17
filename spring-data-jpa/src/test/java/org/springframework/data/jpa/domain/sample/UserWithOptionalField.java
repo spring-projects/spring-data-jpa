@@ -21,7 +21,7 @@ import jakarta.persistence.Id;
 
 import java.util.Optional;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * @author Greg Turnquist

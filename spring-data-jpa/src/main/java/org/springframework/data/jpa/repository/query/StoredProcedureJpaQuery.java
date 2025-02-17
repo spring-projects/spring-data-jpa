@@ -26,9 +26,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

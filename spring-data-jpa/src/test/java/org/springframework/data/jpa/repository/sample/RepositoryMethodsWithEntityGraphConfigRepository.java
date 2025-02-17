@@ -27,9 +27,9 @@ import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.lang.Nullable;
 
 import com.querydsl.core.types.Predicate;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Custom repository interface that customizes the fetching behavior of querys of well known repository interface

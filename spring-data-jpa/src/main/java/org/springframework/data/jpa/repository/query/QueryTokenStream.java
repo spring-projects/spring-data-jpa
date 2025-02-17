@@ -23,9 +23,9 @@ import java.util.function.Function;
 
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -142,8 +142,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	/**
 	 * @return the first query token or {@code null} if empty.
 	 */
-	@Nullable
-	default QueryToken getFirst() {
+	default @Nullable QueryToken getFirst() {
 
 		Iterator<QueryToken> it = iterator();
 		return it.hasNext() ? it.next() : null;
@@ -167,8 +166,7 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	/**
 	 * @return the last query token or {@code null} if empty.
 	 */
-	@Nullable
-	default QueryToken getLast() {
+	default @Nullable QueryToken getLast() {
 		return CollectionUtils.lastElement(toList());
 	}
 

@@ -30,6 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.data.expression.ValueExpression;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
@@ -38,7 +40,6 @@ import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvo
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
 import org.springframework.data.repository.query.parser.Part.Type;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -168,8 +169,7 @@ class StringQuery implements DeclaredQuery {
 	}
 
 	@Override
-	@Nullable
-	public String getAlias() {
+	public @Nullable String getAlias() {
 		return queryEnhancer.detectAlias();
 	}
 
@@ -393,8 +393,10 @@ class StringQuery implements DeclaredQuery {
 				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {
 					queryParameter = BindingIdentifier.of(parameterIndex);
-				} else {
+				} else if (parameterName != null) {
 					queryParameter = BindingIdentifier.of(parameterName);
+				} else {
+					throw new IllegalStateException("No bindable expression found");
 				}
 				ParameterOrigin origin = ObjectUtils.isEmpty(expression)
 						? ParameterOrigin.ofParameter(parameterName, parameterIndex)
@@ -458,8 +460,7 @@ class StringQuery implements DeclaredQuery {
 			return rewriter.parse(queryWithSpel);
 		}
 
-		@Nullable
-		private static Integer getParameterIndex(@Nullable String parameterIndexString) {
+		private static @Nullable Integer getParameterIndex(@Nullable String parameterIndexString) {
 
 			if (parameterIndexString == null || parameterIndexString.isEmpty()) {
 				return null;
@@ -519,8 +520,7 @@ class StringQuery implements DeclaredQuery {
 			 *
 			 * @return the keyword
 			 */
-			@Nullable
-			public String getKeyword() {
+			public @Nullable String getKeyword() {
 				return keyword;
 			}
 

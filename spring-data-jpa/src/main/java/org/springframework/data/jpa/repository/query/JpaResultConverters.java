@@ -22,9 +22,10 @@ import java.sql.Blob;
 import java.sql.SQLException;
 
 import org.springframework.core.convert.converter.Converter;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.CleanupFailureDataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -50,9 +51,9 @@ final class JpaResultConverters {
 
 		INSTANCE;
 
-		@Nullable
+
 		@Override
-		public byte[] convert(@Nullable Blob source) {
+		public byte @Nullable[] convert(@Nullable Blob source) {
 
 			if (source == null) {
 				return null;

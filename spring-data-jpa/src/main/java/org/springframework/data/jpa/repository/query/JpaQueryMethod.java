@@ -28,6 +28,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -45,7 +47,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -301,8 +302,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
-	@Nullable
-	public String getAnnotatedQuery() {
+	public @Nullable String getAnnotatedQuery() {
 
 		String query = getAnnotationValue("value", String.class);
 		return StringUtils.hasText(query) ? query : null;
@@ -340,8 +340,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
-	@Nullable
-	public String getCountQuery() {
+	public @Nullable String getCountQuery() {
 
 		String countQuery = getAnnotationValue("countQuery", String.class);
 		return StringUtils.hasText(countQuery) ? countQuery : null;
@@ -418,7 +417,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return getMergedOrDefaultAnnotationValue(attribute, Query.class, type);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked", "NullAway" })
 	private <T> T getMergedOrDefaultAnnotationValue(String attribute, Class annotationType, Class<T> targetType) {
 
 		Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(method, annotationType);

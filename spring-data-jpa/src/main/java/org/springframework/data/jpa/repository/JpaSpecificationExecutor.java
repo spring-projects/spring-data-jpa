@@ -31,6 +31,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -40,7 +42,6 @@ import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.UpdateSpecification;
 import org.springframework.data.repository.query.FluentQuery;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface to allow execution of {@link Specification}s based on the JPA criteria API.

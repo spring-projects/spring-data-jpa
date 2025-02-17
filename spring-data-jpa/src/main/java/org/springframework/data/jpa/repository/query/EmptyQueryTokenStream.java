@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collections;
 import java.util.Iterator;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Empty QueryTokenStream.
  *
@@ -31,12 +33,12 @@ class EmptyQueryTokenStream implements QueryTokenStream {
 	private EmptyQueryTokenStream() {}
 
 	@Override
-	public QueryToken getFirst() {
+	public @Nullable QueryToken getFirst() {
 		return null;
 	}
 
 	@Override
-	public QueryToken getLast() {
+	public @Nullable QueryToken getLast() {
 		return null;
 	}
 

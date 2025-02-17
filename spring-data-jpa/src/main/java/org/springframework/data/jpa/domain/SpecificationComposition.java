@@ -24,7 +24,8 @@ import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 
 /**
  * Helper class to support specification compositions.
@@ -39,7 +40,8 @@ import org.springframework.lang.Nullable;
 class SpecificationComposition {
 
 	interface Combiner extends Serializable {
-		Predicate combine(CriteriaBuilder builder, @Nullable Predicate lhs, @Nullable Predicate rhs);
+		@Nullable
+		Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
 	}
 
 	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
@@ -58,12 +60,13 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
 			@Nullable CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
 
+	@Contract("_, _, !null -> new")
+	@SuppressWarnings("NullAway")
 	static <T> DeleteSpecification<T> composed(@Nullable DeleteSpecification<T> lhs, @Nullable DeleteSpecification<T> rhs,
 			Combiner combiner) {
 
@@ -80,10 +83,10 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
 			@Nullable CriteriaDelete<T> delete, CriteriaBuilder builder) {
-		return specification == null ? null : specification.toPredicate(root, delete, builder);
+
+		return specification == null || delete == null ? null : specification.toPredicate(root, delete, builder);
 	}
 
 	static <T> UpdateSpecification<T> composed(@Nullable UpdateSpecification<T> lhs, @Nullable UpdateSpecification<T> rhs,
@@ -102,8 +105,8 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable UpdateSpecification<T> specification, Root<T> root,
+
+	private static <T> @Nullable Predicate toPredicate(@Nullable UpdateSpecification<T> specification, Root<T> root,
 			CriteriaUpdate<T> update, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, update, builder);
 	}
@@ -124,8 +127,7 @@ class SpecificationComposition {
 		};
 	}
 
-	@Nullable
-	private static <T> Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
 			CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, builder);
 	}

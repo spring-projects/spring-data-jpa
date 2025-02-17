@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.core.convert.ConversionService;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -39,7 +41,6 @@ import org.springframework.data.repository.core.support.SurroundingTransactionDe
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -80,8 +81,7 @@ public abstract class JpaQueryExecution {
 	 * @param accessor must not be {@literal null}.
 	 * @return
 	 */
-	@Nullable
-	public Object execute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+	public @Nullable Object execute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 		Assert.notNull(query, "AbstractJpaQuery must not be null");
 		Assert.notNull(accessor, "JpaParametersParameterAccessor must not be null");
@@ -110,8 +110,7 @@ public abstract class JpaQueryExecution {
 	 * @param query must not be {@literal null}.
 	 * @param accessor must not be {@literal null}.
 	 */
-	@Nullable
-	protected abstract Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor);
+	protected abstract @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor);
 
 	/**
 	 * Executes the query to return a simple collection of entities.
@@ -142,7 +141,7 @@ public abstract class JpaQueryExecution {
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("NullAway")
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			ScrollPosition scrollPosition = accessor.getScrollPosition();
@@ -212,7 +211,7 @@ public abstract class JpaQueryExecution {
 	static class SingleEntityExecution extends JpaQueryExecution {
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			return query.createQuery(accessor).getSingleResultOrNull();
 		}
@@ -327,7 +326,7 @@ public abstract class JpaQueryExecution {
 		}
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
 			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
 
@@ -372,10 +371,10 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
-		private static final Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
+		private static final @Nullable Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
 				throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);

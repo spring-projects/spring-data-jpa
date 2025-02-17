@@ -36,8 +36,9 @@ import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.util.CloseableIterator;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -68,7 +69,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			Collections.singletonList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		@Override
-		public String extractQueryString(Query query) {
+		public @Nullable String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
 		}
 
@@ -127,9 +128,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			return false;
 		}
 
-		@Nullable
 		@Override
-		public Object getIdentifierFrom(Object entity) {
+		public @Nullable Object getIdentifierFrom(Object entity) {
 			return null;
 		}
 
@@ -154,9 +154,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	GENERIC_JPA(Collections.singleton(GENERIC_JPA_ENTITY_MANAGER_INTERFACE), Collections.emptySet()) {
 
-		@Nullable
 		@Override
-		public String extractQueryString(Query query) {
+		public @Nullable String extractQueryString(Query query) {
 			return null;
 		}
 
@@ -170,20 +169,18 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			return false;
 		}
 
-		@Nullable
 		@Override
-		public Object getIdentifierFrom(Object entity) {
+		public @Nullable Object getIdentifierFrom(Object entity) {
 			return null;
 		}
 
-		@Nullable
 		@Override
-		public String getCommentHintKey() {
+		public @Nullable String getCommentHintKey() {
 			return null;
 		}
 	};
 
-	private static final Class<?> typedParameterValueClass;
+	private static final @Nullable Class<?> typedParameterValueClass;
 
 	static {
 
@@ -334,8 +331,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 * @return the original value or null.
 	 * @since 3.0
 	 */
-	@Nullable
-	public static Object unwrapTypedParameterValue(@Nullable Object value) {
+	public static @Nullable Object unwrapTypedParameterValue(@Nullable Object value) {
 
 		return typedParameterValueClass != null && typedParameterValueClass.isInstance(value) //
 				? null //
