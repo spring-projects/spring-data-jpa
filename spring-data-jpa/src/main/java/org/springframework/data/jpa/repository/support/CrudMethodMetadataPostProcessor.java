@@ -61,11 +61,12 @@ import org.springframework.util.ReflectionUtils;
  */
 class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, BeanClassLoaderAware {
 
-	private @Nullable ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+	private @Nullable ClassLoader classLoader;
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
-		this.classLoader = classLoader;
+	public void setBeanClassLoader(@Nullable ClassLoader classLoader) {
+		this.classLoader =  classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader();
+
 	}
 
 	@Override
@@ -120,15 +121,16 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 			MethodInvocation mi = currentInvocation.get();
 
-			if (mi == null)
-				throw new IllegalStateException(
-						"No MethodInvocation found: Check that an AOP invocation is in progress, and that the "
-								+ "CrudMethodMetadataPopulatingMethodInterceptor is upfront in the interceptor chain.");
-			return mi;
+			if (mi != null) {
+				return mi;
+			}
+			throw new IllegalStateException(
+				"No MethodInvocation found: Check that an AOP invocation is in progress, and that the "
+					+ "CrudMethodMetadataPopulatingMethodInterceptor is upfront in the interceptor chain.");
 		}
 
 		@Override
-		public Object invoke(MethodInvocation invocation) throws Throwable {
+		public @Nullable Object invoke(MethodInvocation invocation) throws Throwable {
 
 			Method method = invocation.getMethod();
 
@@ -184,7 +186,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHints;
 		private final org.springframework.data.jpa.repository.support.QueryHints queryHintsForCount;
 		private final @Nullable String comment;
-		private final Optional<EntityGraph> entityGraph;
+		private final @Nullable EntityGraph entityGraph;
 		private final Method method;
 
 		/**
@@ -204,8 +206,8 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 			this.method = method;
 		}
 
-		private static Optional<EntityGraph> findEntityGraph(Method method) {
-			return Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class));
+		private static @Nullable EntityGraph findEntityGraph(Method method) {
+			return AnnotatedElementUtils.findMergedAnnotation(method, EntityGraph.class);
 		}
 
 		private static @Nullable LockModeType findLockModeType(Method method) {
@@ -259,12 +261,12 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		}
 
 		@Override
-		public String getComment() {
+		public @Nullable String getComment() {
 			return comment;
 		}
 
 		@Override
-		public Optional<EntityGraph> getEntityGraph() {
+		public @Nullable EntityGraph getEntityGraph() {
 			return entityGraph;
 		}
 
@@ -288,7 +290,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 		}
 
 		@Override
-		public Object getTarget() {
+		public @Nullable Object getTarget() {
 
 			MethodInvocation invocation = CrudMethodMetadataPopulatingMethodInterceptor.currentInvocation();
 			return TransactionSynchronizationManager.getResource(invocation.getMethod());

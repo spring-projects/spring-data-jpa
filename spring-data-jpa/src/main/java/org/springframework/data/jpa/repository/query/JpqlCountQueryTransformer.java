@@ -21,6 +21,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRenderer
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
+import org.springframework.util.StringUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed JPQL query into a
@@ -81,8 +82,10 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 				nested.append(getDistinctCountSelection(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA)));
-			} else {
+			} else if(StringUtils.hasText(primaryFromAlias)) {
 				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				throw new IllegalStateException("No primary alias present");
 			}
 		} else {
 			builder.append(QueryTokens.token(countProjection));

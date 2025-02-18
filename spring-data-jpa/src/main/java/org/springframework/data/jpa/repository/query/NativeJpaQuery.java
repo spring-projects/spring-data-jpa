@@ -72,7 +72,7 @@ final class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	}
 
 	@Override
-	protected Query createJpaQuery(String queryString, Sort sort, Pageable pageable, ReturnedType returnedType) {
+	protected Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable, ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
 		String query = potentiallyRewriteQuery(queryString, sort, pageable);

@@ -235,7 +235,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	static class UnsortedCachingQuerySortRewriter implements QuerySortRewriter {
 
-		private volatile String cachedQueryString;
+		private volatile @Nullable String cachedQueryString;
 
 		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {
 
@@ -261,7 +261,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		private final ConcurrentLruCache<CachableQuery, String> queryCache = new ConcurrentLruCache<>(16,
 				AbstractStringBasedJpaQuery.this::applySorting);
 
-		private volatile String cachedQueryString;
+		private volatile @Nullable String cachedQueryString;
 
 		@Override
 		public String getSorted(DeclaredQuery query, Sort sort, ReturnedType returnedType) {

@@ -191,7 +191,7 @@ final class NamedQuery extends AbstractJpaQuery {
 	}
 
 	@Override
-	protected Class<?> getTypeToRead(ReturnedType returnedType) {
+	protected @Nullable Class<?> getTypeToRead(ReturnedType returnedType) {
 
 		if (getQueryMethod().isNativeQuery()) {
 

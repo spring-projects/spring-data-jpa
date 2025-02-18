@@ -44,7 +44,7 @@ class EmptyDeclaredQuery implements DeclaredQuery {
 	}
 
 	@Override
-	public String getAlias() {
+	public @Nullable String getAlias() {
 		return null;
 	}
 

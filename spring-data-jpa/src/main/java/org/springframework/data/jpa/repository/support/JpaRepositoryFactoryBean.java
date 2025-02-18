@@ -49,7 +49,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
-	private JpaQueryMethodFactory queryMethodFactory;
+	private @Nullable JpaQueryMethodFactory queryMethodFactory;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.

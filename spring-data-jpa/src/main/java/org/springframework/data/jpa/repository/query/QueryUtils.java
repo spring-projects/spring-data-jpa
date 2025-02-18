@@ -852,6 +852,7 @@ public abstract class QueryUtils {
 		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
 	}
 
+	@SuppressWarnings("unchecked")
 	static <T> T getAnnotationProperty(Attribute<?, ?> attribute, String propertyName, T defaultValue) {
 
 		Class<? extends Annotation> associationAnnotation = ASSOCIATION_TYPES.get(attribute.getPersistentAttributeType());
@@ -867,7 +868,12 @@ public abstract class QueryUtils {
 		}
 
 		Annotation annotation = AnnotationUtils.getAnnotation(annotatedMember, associationAnnotation);
-		return annotation == null ? defaultValue : (T) AnnotationUtils.getValue(annotation, propertyName);
+		if(annotation == null) {
+			return defaultValue;
+		}
+
+		T value = (T) AnnotationUtils.getValue(annotation, propertyName);
+		return value != null ? value : defaultValue;
 	}
 
 	/**

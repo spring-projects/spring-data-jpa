@@ -141,7 +141,7 @@ public abstract class JpaQueryExecution {
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings("NullAway")
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			ScrollPosition scrollPosition = accessor.getScrollPosition();
@@ -211,7 +211,7 @@ public abstract class JpaQueryExecution {
 	static class SingleEntityExecution extends JpaQueryExecution {
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			return query.createQuery(accessor).getSingleResultOrNull();
 		}
@@ -326,7 +326,7 @@ public abstract class JpaQueryExecution {
 		}
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
 			Assert.isInstanceOf(StoredProcedureJpaQuery.class, jpaQuery);
 
@@ -371,10 +371,10 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
-		private static final Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
+		private static final @Nullable Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
 				throw new InvalidDataAccessApiUsageException(NO_SURROUNDING_TRANSACTION);

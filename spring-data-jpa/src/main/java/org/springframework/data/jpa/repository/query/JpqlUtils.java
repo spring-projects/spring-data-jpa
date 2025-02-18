@@ -35,12 +35,12 @@ import org.springframework.util.StringUtils;
  */
 class JpqlUtils {
 
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property) {
 		return toExpressionRecursively(metamodel, source, from, property, false);
 	}
 
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property, boolean isForSelection) {
 		return toExpressionRecursively(metamodel, source, from, property, isForSelection, false);
 	}
@@ -54,7 +54,7 @@ class JpqlUtils {
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
 	 * @return the expression
 	 */
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(Metamodel metamodel, JpqlQueryBuilder.Origin source,
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
 			Bindable<?> from, PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
 
 		String segment = property.getSegment();
@@ -81,6 +81,10 @@ class JpqlUtils {
 		ManagedType<?> managedTypeForModel = QueryUtils.getManagedTypeForModel(from);
 		Attribute<?, ?> nextAttribute = getModelForPath(metamodel, property, managedTypeForModel, from);
 
+		if(nextAttribute == null) {
+			throw new IllegalStateException("Binding property is null");
+		}
+
 		return toExpressionRecursively(metamodel, joinSource, (Bindable<?>) nextAttribute, nextProperty, isForSelection,
 				requiresOuterJoin);
 	}
@@ -97,7 +101,7 @@ class JpqlUtils {
 	 * @param hasRequiredOuterJoin
 	 * @return
 	 */
-	static boolean requiresOuterJoin(Metamodel metamodel, Bindable<?> bindable, PropertyPath propertyPath,
+	static boolean requiresOuterJoin(@Nullable Metamodel metamodel, Bindable<?> bindable, PropertyPath propertyPath,
 			boolean isForSelection, boolean hasRequiredOuterJoin) {
 
 		ManagedType<?> managedType = QueryUtils.getManagedTypeForModel(bindable);
@@ -128,7 +132,7 @@ class JpqlUtils {
 		return hasRequiredOuterJoin || QueryUtils.getAnnotationProperty(attribute, "optional", true);
 	}
 
-	private static @Nullable Attribute<?, ?> getModelForPath(Metamodel metamodel, PropertyPath path,
+	private static @Nullable Attribute<?, ?> getModelForPath(@Nullable Metamodel metamodel, PropertyPath path,
 			@Nullable ManagedType<?> managedType, Bindable<?> fallback) {
 
 		String segment = path.getSegment();
@@ -140,11 +144,14 @@ class JpqlUtils {
 			}
 		}
 
-		Class<?> fallbackType = fallback.getBindableJavaType();
-		try {
-			return metamodel.managedType(fallbackType).getAttribute(segment);
-		} catch (IllegalArgumentException e) {
+		if(metamodel != null) {
 
+			Class<?> fallbackType = fallback.getBindableJavaType();
+			try {
+				return metamodel.managedType(fallbackType).getAttribute(segment);
+			} catch (IllegalArgumentException e) {
+				// nothing to do here
+			}
 		}
 
 		return null;

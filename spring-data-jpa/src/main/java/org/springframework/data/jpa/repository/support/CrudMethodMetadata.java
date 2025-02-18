@@ -77,7 +77,8 @@ public interface CrudMethodMetadata {
 	 * @return
 	 * @since 1.9
 	 */
-	Optional<EntityGraph> getEntityGraph();
+	@Nullable
+	EntityGraph getEntityGraph();
 
 	/**
 	 * Returns the {@link Method} to be used.

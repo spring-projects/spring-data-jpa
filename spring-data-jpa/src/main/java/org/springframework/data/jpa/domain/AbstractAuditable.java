@@ -38,18 +38,23 @@ import org.jspecify.annotations.Nullable;
  * @param <PK> the type of the auditing type's identifier.
  */
 @MappedSuperclass
+@SuppressWarnings("NullAway")
 public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK>
 		implements Auditable<U, PK, LocalDateTime> {
 
+//	@Nullable
 	@ManyToOne //
-	private @Nullable U createdBy;
+	private  U createdBy;
 
-	private @Nullable Instant createdDate;
+//	@Nullable
+	private  Instant createdDate;
 
+//	@Nullable
 	@ManyToOne //
-	private @Nullable U lastModifiedBy;
+	private U lastModifiedBy;
 
-	private @Nullable Instant lastModifiedDate;
+//	@Nullable
+	private  Instant lastModifiedDate;
 
 	@Override
 	public Optional<U> getCreatedBy() {
@@ -57,7 +62,7 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 	}
 
 	@Override
-	public void setCreatedBy(U createdBy) {
+	public void setCreatedBy(@Nullable U createdBy) {
 		this.createdBy = createdBy;
 	}
 

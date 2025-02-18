@@ -123,7 +123,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	public void setBeanClassLoader(ClassLoader classLoader) {
+	public void setBeanClassLoader(@Nullable ClassLoader classLoader) {
 
 		super.setBeanClassLoader(classLoader);
 		this.crudMethodMetadataPostProcessor.setBeanClassLoader(classLoader);
@@ -226,11 +226,15 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	protected ProjectionFactory getProjectionFactory(ClassLoader classLoader, BeanFactory beanFactory) {
+	protected ProjectionFactory getProjectionFactory(@Nullable ClassLoader classLoader, @Nullable BeanFactory beanFactory) {
 
 		CollectionAwareProjectionFactory factory = new CollectionAwareProjectionFactory();
-		factory.setBeanClassLoader(classLoader);
-		factory.setBeanFactory(beanFactory);
+		if(classLoader != null) {
+			factory.setBeanClassLoader(classLoader);
+		}
+		if(beanFactory != null) {
+			factory.setBeanFactory(beanFactory);
+		}
 
 		return factory;
 	}

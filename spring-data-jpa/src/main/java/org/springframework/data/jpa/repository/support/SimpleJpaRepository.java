@@ -74,6 +74,7 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
+import org.springframework.lang.Contract;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -252,7 +253,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		} else {
 
 			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
-					entityInformation.getIdAttribute().getName());
+					entityInformation.getRequiredIdAttribute().getName());
 
 			Query query = entityManager.createQuery(queryString);
 
@@ -717,8 +718,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec must not be {@literal null}.
 	 * @param pageable can be {@literal null}.
 	 */
+	@Contract("_, _, _, null -> fail")
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable,
-			Specification<S> spec) {
+			@Nullable Specification<S> spec) {
 
 		Assert.notNull(spec, "Specification must not be null");
 
@@ -737,7 +739,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
 		return getQuery(spec, getDomainClass(), pageable.getSort());
 	}
 
@@ -1109,7 +1111,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		}
 
 		@Override
-		public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+		public @Nullable Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder cb) {
 			return QueryByExamplePredicateBuilder.getPredicate(root, cb, example, escapeCharacter);
 		}
 	}

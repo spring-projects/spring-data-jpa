@@ -207,16 +207,16 @@ public class KeysetScrollDelegate {
 		 *
 		 * @param order must not be {@literal null}.
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the comparison predicate.
 		 */
-		P compare(Order order, E propertyExpression, Object value);
+		P compare(Order order, E propertyExpression, @Nullable Object value);
 
 		/**
 		 * Create an equals-comparison object.
 		 *
 		 * @param propertyExpression must not be {@literal null}.
-		 * @param value the value to compare with. Must not be {@literal null}.
+		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the comparison predicate.
 		 */
 		P compare(E propertyExpression, @Nullable Object value);
@@ -227,7 +227,7 @@ public class KeysetScrollDelegate {
 		 * @param intermediate the predicates to combine. Must not be {@literal null}.
 		 * @return a single predicate.
 		 */
-		P and(List<P> intermediate);
+		@Nullable P and(List<P> intermediate);
 
 		/**
 		 * OR-combine the {@code intermediate} predicates.
@@ -235,7 +235,7 @@ public class KeysetScrollDelegate {
 		 * @param intermediate the predicates to combine. Must not be {@literal null}.
 		 * @return a single predicate.
 		 */
-		P or(List<P> intermediate);
+		@Nullable P or(List<P> intermediate);
 	}
 
 }

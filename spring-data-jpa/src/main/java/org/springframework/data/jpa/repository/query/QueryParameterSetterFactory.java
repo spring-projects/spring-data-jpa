@@ -109,7 +109,7 @@ abstract class QueryParameterSetterFactory {
 	 * @param binding the binding of the query parameter to be set.
 	 * @param parameter the method parameter to bind.
 	 */
-	private static QueryParameterSetter createSetter(Function<JpaParametersParameterAccessor, Object> valueExtractor,
+	private static QueryParameterSetter createSetter(Function<JpaParametersParameterAccessor, @Nullable Object> valueExtractor,
 			ParameterBinding binding, @Nullable JpaParameter parameter) {
 
 		TemporalType temporalType = parameter != null && parameter.isTemporalParameter() //
@@ -212,7 +212,7 @@ abstract class QueryParameterSetterFactory {
 	private static class SyntheticParameterSetterFactory extends QueryParameterSetterFactory {
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			if (!(binding.getOrigin() instanceof ParameterBinding.Synthetic s)) {
 				return null;
@@ -248,7 +248,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			Assert.notNull(binding, "Binding must not be null");
 
@@ -291,7 +291,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public QueryParameterSetter create(ParameterBinding binding) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding) {
 
 			if (!binding.getOrigin().isMethodArgument()) {
 				return null;

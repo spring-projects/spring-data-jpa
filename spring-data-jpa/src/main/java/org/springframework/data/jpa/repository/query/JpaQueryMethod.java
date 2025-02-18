@@ -401,7 +401,7 @@ public class JpaQueryMethod extends QueryMethod {
 		return getMergedOrDefaultAnnotationValue(attribute, Query.class, type);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes", "unchecked", "NullAway" })
 	private <T> T getMergedOrDefaultAnnotationValue(String attribute, Class annotationType, Class<T> targetType) {
 
 		Annotation annotation = AnnotatedElementUtils.findMergedAnnotation(method, annotationType);

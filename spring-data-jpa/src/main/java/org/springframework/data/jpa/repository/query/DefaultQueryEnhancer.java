@@ -31,7 +31,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
 	private final boolean hasConstructorExpression;
-	private final String alias;
+	private final @Nullable  String alias;
 	private final String projection;
 	private final Set<String> joinAliases;
 
@@ -69,7 +69,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public String detectAlias() {
+	public @Nullable String detectAlias() {
 		return this.alias;
 	}
 

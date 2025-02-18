@@ -296,8 +296,10 @@ class StringQuery implements DeclaredQuery {
 				BindingIdentifier queryParameter;
 				if (parameterIndex != null) {
 					queryParameter = BindingIdentifier.of(parameterIndex);
-				} else {
+				} else if (parameterName != null) {
 					queryParameter = BindingIdentifier.of(parameterName);
+				} else {
+					throw new IllegalStateException("No bindable expression found");
 				}
 				ParameterOrigin origin = ObjectUtils.isEmpty(expression)
 						? ParameterOrigin.ofParameter(parameterName, parameterIndex)

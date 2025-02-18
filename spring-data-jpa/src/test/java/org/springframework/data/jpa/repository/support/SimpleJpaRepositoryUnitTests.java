@@ -136,7 +136,7 @@ class SimpleJpaRepositoryUnitTests {
 		String entityGraphName = "User.detail";
 		when(entityGraphAnnotation.value()).thenReturn(entityGraphName);
 		when(entityGraphAnnotation.type()).thenReturn(EntityGraphType.LOAD);
-		when(metadata.getEntityGraph()).thenReturn(Optional.of(entityGraphAnnotation));
+		when(metadata.getEntityGraph()).thenReturn(entityGraphAnnotation);
 		when(em.getEntityGraph(entityGraphName)).thenReturn((EntityGraph) entityGraph);
 		when(information.getEntityName()).thenReturn("User");
 		when(metadata.getMethod()).thenReturn(CrudRepository.class.getMethod("findById", Object.class));

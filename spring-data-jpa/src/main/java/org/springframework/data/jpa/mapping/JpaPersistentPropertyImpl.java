@@ -171,7 +171,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	}
 
 	@Override
-	public TypeInformation<?> getAssociationTargetTypeInformation() {
+	public @Nullable TypeInformation<?> getAssociationTargetTypeInformation() {
 
 		if (!isAssociation()) {
 			return null;

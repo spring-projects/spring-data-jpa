@@ -33,6 +33,7 @@ import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -229,7 +230,7 @@ class ParameterBinding {
 		}
 
 		@Override
-		public Object prepare(@Nullable Object value) {
+		public @Nullable Object prepare(@Nullable Object value) {
 
 			if (value == null || parameterType == null) {
 				return value;
@@ -250,7 +251,9 @@ class ParameterBinding {
 					: value;
 		}
 
+
 		@SuppressWarnings("unchecked")
+		@Contract("false, _ -> param2; _, null -> null; true, !null -> new)")
 		private @Nullable Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
 
 			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {
@@ -309,7 +312,7 @@ class ParameterBinding {
 		}
 
 		@Override
-		public Object prepare(@Nullable Object value) {
+		public @Nullable Object prepare(@Nullable Object value) {
 
 			if (!ObjectUtils.isArray(value)) {
 				return value;
@@ -639,8 +642,10 @@ class ParameterBinding {
 				identifier = BindingIdentifier.of(name, position);
 			} else if (!ObjectUtils.isEmpty(name)) {
 				identifier = BindingIdentifier.of(name);
-			} else {
+			} else if (position != null) {
 				identifier = BindingIdentifier.of(position);
+			} else {
+				throw new IllegalStateException("Neither name nor position available for binding");
 			}
 
 			return ofParameter(identifier);

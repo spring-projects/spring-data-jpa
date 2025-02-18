@@ -38,12 +38,17 @@ import org.springframework.data.util.ProxyUtils;
  * @param <PK> the type of the identifier.
  */
 @MappedSuperclass
+
 public abstract class AbstractPersistable<PK extends Serializable> implements Persistable<PK> {
 
-	@Id @GeneratedValue private @Nullable PK id;
+	@Nullable
+	@Id @GeneratedValue private PK id;
 
 	@Override
-	public @Nullable PK getId() {
+	@SuppressWarnings("NullAway")
+	// TODO: Querydsl APT does not like @Nullable
+	// -> errors with cryptic 'Did not find type @org.jspecify.annotations.Nullable PK'
+	public PK getId() {
 		return id;
 	}
 

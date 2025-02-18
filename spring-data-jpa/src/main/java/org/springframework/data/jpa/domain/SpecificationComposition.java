@@ -25,6 +25,7 @@ import jakarta.persistence.criteria.Root;
 import java.io.Serializable;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 
 /**
  * Helper class to support specification compositions.
@@ -39,7 +40,8 @@ import org.jspecify.annotations.Nullable;
 class SpecificationComposition {
 
 	interface Combiner extends Serializable {
-		Predicate combine(CriteriaBuilder builder, @Nullable Predicate lhs, @Nullable Predicate rhs);
+		@Nullable
+		Predicate combine(CriteriaBuilder builder, Predicate lhs, Predicate rhs);
 	}
 
 	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
@@ -63,6 +65,8 @@ class SpecificationComposition {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
 
+	@Contract("_, _, !null -> new")
+	@SuppressWarnings("NullAway")
 	static <T> DeleteSpecification<T> composed(@Nullable DeleteSpecification<T> lhs, @Nullable DeleteSpecification<T> rhs,
 			Combiner combiner) {
 
@@ -81,7 +85,8 @@ class SpecificationComposition {
 
 	private static <T> @Nullable Predicate toPredicate(@Nullable DeleteSpecification<T> specification, Root<T> root,
 			@Nullable CriteriaDelete<T> delete, CriteriaBuilder builder) {
-		return specification == null ? null : specification.toPredicate(root, delete, builder);
+
+		return specification == null || delete == null ? null : specification.toPredicate(root, delete, builder);
 	}
 
 	static <T> UpdateSpecification<T> composed(@Nullable UpdateSpecification<T> lhs, @Nullable UpdateSpecification<T> rhs,

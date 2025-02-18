@@ -145,7 +145,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	}
 
 	@Override
-	public R oneValue() {
+	public @Nullable R oneValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.limit(2) // Never need more than 2 values
@@ -159,7 +159,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 	}
 
 	@Override
-	public R firstValue() {
+	public @Nullable R firstValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.limit(1) // Never need more than 1 value

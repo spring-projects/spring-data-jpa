@@ -17,6 +17,7 @@ package org.springframework.data.jpa.mapping;
 
 import java.util.Comparator;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -63,7 +64,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	}
 
 	@Override
-	protected JpaPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(JpaPersistentProperty property) {
+	protected @Nullable JpaPersistentProperty returnPropertyIfBetterIdPropertyCandidateOrNull(JpaPersistentProperty property) {
 		return property.isIdProperty() ? property : null;
 	}
 
@@ -117,7 +118,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		}
 
 		@Override
-		public Object getIdentifier() {
+		public @Nullable Object getIdentifier() {
 
 			return proxyIdAccessor.shouldUseAccessorFor(bean) //
 					? proxyIdAccessor.getIdentifierFrom(bean)//

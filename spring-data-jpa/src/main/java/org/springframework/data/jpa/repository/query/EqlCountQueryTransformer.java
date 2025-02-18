@@ -31,7 +31,7 @@ import org.springframework.data.jpa.repository.query.QueryTransformers.CountSele
  * @author Christoph Strobl
  * @since 3.4
  */
-@SuppressWarnings("ConstantValue")
+@SuppressWarnings({ "ConstantValue", "NullAway" })
 class EqlCountQueryTransformer extends EqlQueryRenderer {
 
 	private final @Nullable String countProjection;

@@ -133,7 +133,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public R oneValue() {
+	public @Nullable R oneValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(2) // Never need more than 2 values
@@ -147,7 +147,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	}
 
 	@Override
-	public R firstValue() {
+	public @Nullable R firstValue() {
 
 		List<?> results = createSortedAndProjectedQuery(this.sort) //
 				.setMaxResults(1) // Never need more than 1 value

@@ -69,7 +69,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			Collections.singletonList(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		@Override
-		public String extractQueryString(Query query) {
+		public @Nullable String extractQueryString(Query query) {
 			return HibernateUtils.getHibernateQuery(query);
 		}
 
@@ -180,7 +180,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		}
 	};
 
-	private static final Class<?> typedParameterValueClass;
+	private static final @Nullable Class<?> typedParameterValueClass;
 
 	static {
 

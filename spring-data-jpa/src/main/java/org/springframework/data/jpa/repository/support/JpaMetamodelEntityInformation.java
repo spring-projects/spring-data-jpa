@@ -215,7 +215,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	@Override
-	public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
+	public @Nullable Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id");
 

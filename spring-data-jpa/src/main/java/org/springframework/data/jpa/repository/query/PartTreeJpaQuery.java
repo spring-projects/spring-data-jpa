@@ -246,7 +246,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		 * Restricts the max results of the given {@link Query} if the current {@code tree} marks this {@code query} as
 		 * limited.
 		 */
-		@SuppressWarnings("ConstantConditions")
+		@SuppressWarnings({ "ConstantConditions", "NullAway" })
 		private Query restrictMaxResultsIfNecessary(Query query, @Nullable ScrollPosition scrollPosition) {
 
 			if (scrollPosition instanceof OffsetScrollPosition offset && !offset.isInitial()) {

@@ -232,6 +232,6 @@ public interface Specification<T> extends Serializable {
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
+	Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder);
 
 }

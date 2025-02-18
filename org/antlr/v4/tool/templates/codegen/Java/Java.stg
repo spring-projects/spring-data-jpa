@@ -48,14 +48,18 @@ ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
 package <file.genPackage>;
 <endif>
 <namedActions.header>
+
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
+import org.jspecify.annotations.NullUnmarked;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import jakarta.annotation.Generated;
+
 
 <parser>
 >>
@@ -67,11 +71,15 @@ package <file.genPackage>;
 <endif>
 <header>
 import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.jspecify.annotations.NullUnmarked;
+import jakarta.annotation.Generated;
 
 /**
  * This interface defines a complete listener for a parse tree produced by
  * {@link <file.parserName>}.
  */
+@NullUnmarked
+@Generated("<file.grammarName>Listener")
 interface <file.grammarName>Listener extends ParseTreeListener {
 	<file.listenerNames:{lname |
 /**
@@ -103,17 +111,20 @@ BaseListenerFile(file, header, namedActions) ::= <<
 package <file.genPackage>;
 <endif>
 <header>
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jspecify.annotations.NullUnmarked;
+import jakarta.annotation.Generated;
 
 /**
  * This class provides an empty implementation of {@link <file.grammarName>Listener},
  * which can be extended to create a listener which only needs to handle a subset
  * of the available methods.
  */
-@SuppressWarnings("CheckReturnValue")
+@NullUnmarked
+@Generated("<file.grammarName>BaseListener")
+@SuppressWarnings({ "CheckReturnValue", "NullAway" })
 class <file.grammarName>BaseListener implements <file.grammarName>Listener {
 	<file.listenerNames:{lname |
 /**
@@ -163,6 +174,8 @@ package <file.genPackage>;
 <endif>
 <header>
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
+import org.jspecify.annotations.NullUnmarked;
+import jakarta.annotation.Generated;
 
 /**
  * This interface defines a complete generic visitor for a parse tree produced
@@ -171,6 +184,8 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  * @param \<T> The return type of the visit operation. Use {@link Void} for
  * operations with no return type.
  */
+@NullUnmarked
+@Generated("<file.grammarName>Visitor")
 interface <file.grammarName>Visitor\<T> extends ParseTreeVisitor\<T> {
 	<file.visitorNames:{lname |
 /**
@@ -194,6 +209,8 @@ package <file.genPackage>;
 <endif>
 <header>
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
+import org.jspecify.annotations.NullUnmarked;
+import jakarta.annotation.Generated;
 
 /**
  * This class provides an empty implementation of {@link <file.grammarName>Visitor},
@@ -203,7 +220,9 @@ import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
  * @param \<T> The return type of the visit operation. Use {@link Void} for
  * operations with no return type.
  */
-@SuppressWarnings("CheckReturnValue")
+@NullUnmarked
+@Generated("<file.grammarName>BaseVisitor")
+@SuppressWarnings({ "CheckReturnValue", "NullAway" })
 class <file.grammarName>BaseVisitor\<T> extends AbstractParseTreeVisitor\<T> implements <file.grammarName>Visitor\<T> {
 	<file.visitorNames:{lname |
 /**
@@ -225,7 +244,9 @@ Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<
 >>
 
 Parser_(parser, funcs, atn, sempredFuncs, ctor, superClass) ::= <<
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
+@NullUnmarked
+@Generated("<parser.name>")
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "NullAway"})
 class <parser.name> extends <superClass; null="Parser"> {
 	// Customization: Suppress version check
 	// static { RuntimeMetaData.checkVersion("<file.ANTLRVersion>", RuntimeMetaData.VERSION); }
@@ -895,12 +916,16 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;
+import org.jspecify.annotations.NullUnmarked;
+import jakarta.annotation.Generated;
 
 <lexer>
 >>
 
 Lexer(lexer, atn, actionFuncs, sempredFuncs, superClass) ::= <<
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
+@NullUnmarked
+@Generated("<lexer.name>")
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "NullAway"})
 class <lexer.name> extends <superClass; null="Lexer"> {
 	// Customization: Suppress version check
 	// static { RuntimeMetaData.checkVersion("<lexerFile.ANTLRVersion>", RuntimeMetaData.VERSION); }

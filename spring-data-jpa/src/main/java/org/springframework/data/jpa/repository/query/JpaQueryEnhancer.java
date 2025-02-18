@@ -176,7 +176,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	 * already find the alias when generating sorted and count queries, this is mainly to serve test cases.
 	 */
 	@Override
-	public String detectAlias() {
+	public @Nullable String detectAlias() {
 		return this.queryInformation.getAlias();
 	}
 
@@ -233,7 +233,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	 * @return
 	 */
 	@Override
-	public String applySorting(Sort sort, String alias) {
+	public String applySorting(Sort sort, @Nullable String alias) {
 		return applySorting(sort);
 	}
 

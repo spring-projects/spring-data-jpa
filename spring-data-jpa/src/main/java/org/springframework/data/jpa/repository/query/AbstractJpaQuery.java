@@ -192,6 +192,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param query
 	 * @return
 	 */
+	@SuppressWarnings("NullAway")
 	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		List<QueryHint> hints = method.getHints();
