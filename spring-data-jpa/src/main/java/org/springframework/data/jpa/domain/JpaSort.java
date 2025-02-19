@@ -28,6 +28,8 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
 /**
@@ -104,6 +106,8 @@ public class JpaSort extends Sort {
 	 * @param attributes must not be {@literal null}.
 	 * @return
 	 */
+	@Contract("_, _ -> new")
+	@CheckReturnValue
 	public JpaSort and(@Nullable Direction direction, Attribute<?, ?>... attributes) {
 
 		Assert.notNull(attributes, "Attributes must not be null");
@@ -118,6 +122,8 @@ public class JpaSort extends Sort {
 	 * @param paths must not be {@literal null}.
 	 * @return
 	 */
+	@Contract("_, _ -> new")
+	@CheckReturnValue
 	public JpaSort and(@Nullable Direction direction, Path<?, ?>... paths) {
 
 		Assert.notNull(paths, "Paths must not be null");
@@ -138,6 +144,8 @@ public class JpaSort extends Sort {
 	 * @param properties must not be {@literal null} or empty.
 	 * @return
 	 */
+	@Contract("_, _ -> new")
+	@CheckReturnValue
 	public JpaSort andUnsafe(@Nullable Direction direction, String... properties) {
 
 		Assert.notEmpty(properties, "Properties must not be empty");
@@ -275,6 +283,8 @@ public class JpaSort extends Sort {
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		public <A extends Attribute<S, U>, U> Path<S, U> dot(A attribute) {
 			return new Path<>(add(attribute));
 		}
@@ -285,6 +295,8 @@ public class JpaSort extends Sort {
 		 * @param attribute must not be {@literal null}.
 		 * @return
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		public <P extends PluralAttribute<S, ?, U>, U> Path<S, U> dot(P attribute) {
 			return new Path<>(add(attribute));
 		}
@@ -372,6 +384,8 @@ public class JpaSort extends Sort {
 		 * @param properties must not be {@literal null}.
 		 * @return
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		public Sort withUnsafe(String... properties) {
 
 			Assert.notEmpty(properties, "Properties must not be empty");

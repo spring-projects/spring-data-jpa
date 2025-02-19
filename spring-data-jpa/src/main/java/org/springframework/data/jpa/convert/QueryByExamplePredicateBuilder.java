@@ -43,6 +43,7 @@ import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -242,7 +243,6 @@ public class QueryByExamplePredicateBuilder {
 
 		String name;
 		@Nullable PathNode parent;
-		List<PathNode> siblings = new ArrayList<>();
 		@Nullable Object value;
 
 		PathNode(String edge, @Nullable PathNode parent, @Nullable Object value) {
@@ -254,9 +254,7 @@ public class QueryByExamplePredicateBuilder {
 
 		PathNode add(String attribute, @Nullable Object value) {
 
-			PathNode node = new PathNode(attribute, this, value);
-			siblings.add(node);
-			return node;
+			return new PathNode(attribute, this, value);
 		}
 
 		boolean spansCycle() {

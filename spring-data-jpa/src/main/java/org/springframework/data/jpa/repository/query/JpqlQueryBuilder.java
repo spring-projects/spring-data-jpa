@@ -33,6 +33,8 @@ import org.springframework.data.domain.Sort;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Predicates;
+import org.springframework.lang.CheckReturnValue;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -405,16 +407,19 @@ public final class JpqlQueryBuilder {
 		/**
 		 * Apply {@code DISTINCT}.
 		 */
+		@CheckReturnValue
 		SelectStep distinct();
 
 		/**
 		 * Select the entity.
 		 */
+		@CheckReturnValue
 		Select entity();
 
 		/**
 		 * Select the count.
 		 */
+		@CheckReturnValue
 		Select count();
 
 		/**
@@ -425,6 +430,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
+		@CheckReturnValue
 		default Select instantiate(Class<?> resultType, Collection<JpqlQueryBuilder.PathExpression> paths) {
 			return instantiate(resultType.getName(), paths);
 		}
@@ -436,6 +442,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
+		@CheckReturnValue
 		Select instantiate(String resultType, Collection<JpqlQueryBuilder.PathExpression> paths);
 
 		/**
@@ -444,6 +451,7 @@ public final class JpqlQueryBuilder {
 		 * @param paths
 		 * @return
 		 */
+		@CheckReturnValue
 		Select select(Collection<JpqlQueryBuilder.PathExpression> paths);
 
 		/**
@@ -452,6 +460,7 @@ public final class JpqlQueryBuilder {
 		 * @param path
 		 * @return
 		 */
+		@CheckReturnValue
 		default Select select(JpqlQueryBuilder.PathExpression path) {
 			return select(List.of(path));
 		}
@@ -626,6 +635,8 @@ public final class JpqlQueryBuilder {
 		 * @param other
 		 * @return a composed predicate combining this and {@code other} using the OR operator.
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		default Predicate or(Predicate other) {
 			return new OrPredicate(this, other);
 		}
@@ -636,6 +647,8 @@ public final class JpqlQueryBuilder {
 		 * @param other
 		 * @return a composed predicate combining this and {@code other} using the AND operator.
 		 */
+		@Contract("_ -> new")
+		@CheckReturnValue
 		default Predicate and(Predicate other) { // don't like the structuring of this and the nest() thing
 			return new AndPredicate(this, other);
 		}
@@ -645,6 +658,8 @@ public final class JpqlQueryBuilder {
 		 *
 		 * @return a nested variant of this predicate.
 		 */
+		@Contract("-> new")
+		@CheckReturnValue
 		default Predicate nest() {
 			return new NestedPredicate(this);
 		}
@@ -700,6 +715,7 @@ public final class JpqlQueryBuilder {
 		 * @param join
 		 * @return
 		 */
+		@Contract("_ -> this")
 		public Select join(Join join) {
 
 			if (join.source() instanceof Join parent) {
@@ -716,6 +732,7 @@ public final class JpqlQueryBuilder {
 		 * @param orderBy
 		 * @return
 		 */
+		@Contract("_ -> this")
 		public Select orderBy(Expression orderBy) {
 			this.orderBy.add(orderBy);
 			return this;
