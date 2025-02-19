@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 
+import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Auditable;
 
 import org.jspecify.annotations.Nullable;
@@ -38,23 +39,19 @@ import org.jspecify.annotations.Nullable;
  * @param <PK> the type of the auditing type's identifier.
  */
 @MappedSuperclass
-@SuppressWarnings("NullAway")
+@SuppressWarnings("NullAway") // querydsl does not work with jspecify -> 'Did not find type @org.jspecify.annotations.Nullable...'
 public abstract class AbstractAuditable<U, PK extends Serializable> extends AbstractPersistable<PK>
 		implements Auditable<U, PK, LocalDateTime> {
 
-//	@Nullable
 	@ManyToOne //
 	private  U createdBy;
 
-//	@Nullable
 	private  Instant createdDate;
 
-//	@Nullable
 	@ManyToOne //
 	private U lastModifiedBy;
 
-//	@Nullable
-	private  Instant lastModifiedDate;
+	private Instant lastModifiedDate;
 
 	@Override
 	public Optional<U> getCreatedBy() {

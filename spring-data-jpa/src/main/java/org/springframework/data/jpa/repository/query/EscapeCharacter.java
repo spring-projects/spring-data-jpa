@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 
 /**
  * A value type encapsulating an escape character for LIKE queries and the actually usage of it in escaping
@@ -49,6 +50,7 @@ public final class EscapeCharacter {
 	 * @param value may be {@literal null}.
 	 * @return
 	 */
+	@Contract("null -> null")
 	public @Nullable String escape(@Nullable String value) {
 
 		return value == null //

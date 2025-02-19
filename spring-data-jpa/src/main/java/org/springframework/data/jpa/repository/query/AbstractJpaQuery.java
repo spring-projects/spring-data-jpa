@@ -57,6 +57,7 @@ import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -193,6 +194,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @return
 	 */
 	@SuppressWarnings("NullAway")
+	@Contract("_, _ -> param1")
 	protected <T extends Query> T applyHints(T query, JpaQueryMethod method) {
 
 		List<QueryHint> hints = method.getHints();
