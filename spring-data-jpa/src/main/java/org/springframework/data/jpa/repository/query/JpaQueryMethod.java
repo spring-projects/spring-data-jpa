@@ -149,7 +149,6 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	@Override
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JpaEntityMetadata<?> getEntityInformation() {
 		return this.entityMetadata.get();
 	}
