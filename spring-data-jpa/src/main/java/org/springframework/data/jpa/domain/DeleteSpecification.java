@@ -151,6 +151,7 @@ public interface DeleteSpecification<T> extends Serializable {
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 */
+	@Contract("_ -> new")
 	static <T> DeleteSpecification<T> not(DeleteSpecification<T> spec) {
 
 		Assert.notNull(spec, "Specification must not be null");
