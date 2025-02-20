@@ -250,23 +250,23 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			// generate entity (proxies) without accessing the database.
 			ids.forEach(id -> entities.add(getReferenceById(id)));
 			deleteAllInBatch(entities);
-		} else {
-
-			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
-					entityInformation.getIdAttribute().getName());
-
-			Query query = entityManager.createQuery(queryString);
-
-			/*
-			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
-			 */
-			Collection<ID> idCollection = toCollection(ids);
-			query.setParameter("ids", idCollection);
-
-			applyQueryHints(query);
-
-			query.executeUpdate();
+			return;
 		}
+
+		String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
+				entityInformation.getIdAttribute().getName());
+
+		Query query = entityManager.createQuery(queryString);
+
+		/*
+		 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
+		 */
+		Collection<ID> idCollection = toCollection(ids);
+		query.setParameter("ids", idCollection);
+
+		applyQueryHints(query);
+
+		query.executeUpdate();
 	}
 
 	@Override
