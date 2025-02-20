@@ -33,9 +33,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.aot.generate.GenerationContext;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -117,7 +117,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
-		if(entityManagerRefs.containsKey(source)) {
+		if (entityManagerRefs.containsKey(source)) {
 			builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
 		}
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));

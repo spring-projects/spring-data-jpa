@@ -25,23 +25,25 @@ import jakarta.persistence.metamodel.PluralAttribute;
 
 import java.util.Objects;
 
-import org.springframework.data.mapping.PropertyPath;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.util.StringUtils;
 
 /**
+ * Utilities to create JPQL expressions, derived from {@link QueryUtils}.
+ *
  * @author Mark Paluch
  */
 class JpqlUtils {
 
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
-			Bindable<?> from, PropertyPath property) {
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel,
+			JpqlQueryBuilder.Origin source, Bindable<?> from, PropertyPath property) {
 		return toExpressionRecursively(metamodel, source, from, property, false);
 	}
 
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
-			Bindable<?> from, PropertyPath property, boolean isForSelection) {
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel,
+			JpqlQueryBuilder.Origin source, Bindable<?> from, PropertyPath property, boolean isForSelection) {
 		return toExpressionRecursively(metamodel, source, from, property, isForSelection, false);
 	}
 
@@ -54,8 +56,9 @@ class JpqlUtils {
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
 	 * @return the expression
 	 */
-	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel, JpqlQueryBuilder.Origin source,
-			Bindable<?> from, PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
+	static JpqlQueryBuilder.PathExpression toExpressionRecursively(@Nullable Metamodel metamodel,
+			JpqlQueryBuilder.Origin source, Bindable<?> from, PropertyPath property, boolean isForSelection,
+			boolean hasRequiredOuterJoin) {
 
 		String segment = property.getSegment();
 
@@ -81,7 +84,7 @@ class JpqlUtils {
 		ManagedType<?> managedTypeForModel = QueryUtils.getManagedTypeForModel(from);
 		Attribute<?, ?> nextAttribute = getModelForPath(metamodel, property, managedTypeForModel, from);
 
-		if(nextAttribute == null) {
+		if (nextAttribute == null) {
 			throw new IllegalStateException("Binding property is null");
 		}
 
@@ -144,7 +147,7 @@ class JpqlUtils {
 			}
 		}
 
-		if(metamodel != null) {
+		if (metamodel != null) {
 
 			Class<?> fallbackType = fallback.getBindableJavaType();
 			try {

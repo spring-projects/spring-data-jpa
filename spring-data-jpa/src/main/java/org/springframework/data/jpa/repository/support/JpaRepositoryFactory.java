@@ -226,13 +226,14 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	}
 
 	@Override
-	protected ProjectionFactory getProjectionFactory(@Nullable ClassLoader classLoader, @Nullable BeanFactory beanFactory) {
+	protected ProjectionFactory getProjectionFactory(@Nullable ClassLoader classLoader,
+			@Nullable BeanFactory beanFactory) {
 
 		CollectionAwareProjectionFactory factory = new CollectionAwareProjectionFactory();
-		if(classLoader != null) {
+		if (classLoader != null) {
 			factory.setBeanClassLoader(classLoader);
 		}
-		if(beanFactory != null) {
+		if (beanFactory != null) {
 			factory.setBeanFactory(beanFactory);
 		}
 
@@ -243,10 +244,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
 			ValueExpressionDelegate valueExpressionDelegate) {
 		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key,
-				new CachingValueExpressionDelegate(valueExpressionDelegate),
-				queryRewriterProvider, escapeCharacter));
+				new CachingValueExpressionDelegate(valueExpressionDelegate), queryRewriterProvider, escapeCharacter));
 	}
-
 
 	@Override
 	@SuppressWarnings("unchecked")

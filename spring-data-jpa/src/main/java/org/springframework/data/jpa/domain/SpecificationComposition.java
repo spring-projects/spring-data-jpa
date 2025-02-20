@@ -61,7 +61,7 @@ class SpecificationComposition {
 	}
 
 	private static <T> @Nullable Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root,
-			@Nullable CriteriaQuery<?> query, CriteriaBuilder builder) {
+			CriteriaQuery<?> query, CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
 	}
 

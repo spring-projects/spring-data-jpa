@@ -40,9 +40,9 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;

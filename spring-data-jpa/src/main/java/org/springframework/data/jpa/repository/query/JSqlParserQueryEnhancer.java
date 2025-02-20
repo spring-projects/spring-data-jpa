@@ -38,7 +38,6 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SetOperationList;
 import net.sf.jsqlparser.statement.select.Values;
 import net.sf.jsqlparser.statement.update.Update;
-import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,6 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
@@ -77,7 +78,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private final String projection;
 	private final Set<String> joinAliases;
 	private final Set<String> selectAliases;
-	private final byte @Nullable[] serialized;
+	private final byte @Nullable [] serialized;
 
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
@@ -94,7 +95,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(this.statement));
 		this.joinAliases = Collections.unmodifiableSet(getJoinAliases(this.statement));
 		byte[] tmp = SerializationUtils.serialize(this.statement);
-//		this.serialized = tmp != null ? tmp : new byte[0];
+		// this.serialized = tmp != null ? tmp : new byte[0];
 		this.serialized = SerializationUtils.serialize(this.statement);
 	}
 
@@ -331,7 +332,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		if (!(selectStatement instanceof PlainSelect selectBody)) {
-			if(selectStatement != null) {
+			if (selectStatement != null) {
 				return selectStatement.toString();
 			} else {
 				throw new IllegalArgumentException("Select must not be null");
@@ -372,8 +373,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		return createCountQueryFor(selectBody, countProjection, primaryAlias);
 	}
 
-	private static String createCountQueryFor(PlainSelect selectBody,
-			@Nullable String countProjection, @Nullable String primaryAlias) {
+	private static String createCountQueryFor(PlainSelect selectBody, @Nullable String countProjection,
+			@Nullable String primaryAlias) {
 
 		// remove order by
 		selectBody.setOrderByElements(null);
@@ -526,8 +527,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param bytes a serialized object
 	 * @return the result of deserializing the bytes
 	 */
-	private static @Nullable Object deserialize(byte @Nullable[] bytes) {
-		if(ObjectUtils.isEmpty(bytes)) {
+	private static @Nullable Object deserialize(byte @Nullable [] bytes) {
+		if (ObjectUtils.isEmpty(bytes)) {
 			return null;
 		}
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
@@ -539,9 +540,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 	}
 
-	private static <T> T deserializeRequired(byte @Nullable[] bytes, Class<T> type) {
+	private static <T> T deserializeRequired(byte @Nullable [] bytes, Class<T> type) {
 		Object deserialize = deserialize(bytes);
-		if(deserialize != null) {
+		if (deserialize != null) {
 			return type.cast(deserialize);
 		}
 		throw new IllegalStateException("Failed to deserialize object type");
