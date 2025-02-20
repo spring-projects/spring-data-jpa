@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
-
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -227,7 +225,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Slice<R> readSlice(Pageable pageable) {
 
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery();
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSort());
 
 		if (pageable.isPaged()) {
 			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));

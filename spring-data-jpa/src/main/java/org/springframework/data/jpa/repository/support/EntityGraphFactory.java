@@ -62,11 +62,13 @@ abstract class EntityGraphFactory {
 
 				if (path.hasNext()) {
 
-					if(current == null) {
-						current = existingSubgraphs.computeIfAbsent(currentFullPath, k -> entityGraph.addSubgraph(path.getSegment()));
+					if (current == null) {
+						current = existingSubgraphs.computeIfAbsent(currentFullPath,
+								k -> entityGraph.addSubgraph(path.getSegment()));
 					} else {
 						final Subgraph<Object> finalCurrent = current;
-						current = existingSubgraphs.computeIfAbsent(currentFullPath, k -> finalCurrent.addSubgraph(path.getSegment()));
+						current = existingSubgraphs.computeIfAbsent(currentFullPath,
+								k -> finalCurrent.addSubgraph(path.getSegment()));
 					}
 					continue;
 				}

@@ -46,9 +46,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.springframework.core.annotation.AnnotationUtils;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -868,7 +868,7 @@ public abstract class QueryUtils {
 		}
 
 		Annotation annotation = AnnotationUtils.getAnnotation(annotatedMember, associationAnnotation);
-		if(annotation == null) {
+		if (annotation == null) {
 			return defaultValue;
 		}
 
