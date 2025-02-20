@@ -26,9 +26,9 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import java.util.List;
 
-import org.springframework.data.domain.KeysetScrollPosition;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
@@ -68,7 +68,8 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 	}
 
 	@Override
-	public @Nullable Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+	public @Nullable Predicate toPredicate(Root<T> root, @Nullable CriteriaQuery<?> query,
+			CriteriaBuilder criteriaBuilder) {
 		return createPredicate(root, criteriaBuilder);
 	}
 
@@ -77,7 +78,6 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
 		return delegate.createPredicate(position, sort, new CriteriaBuilderStrategy(root, criteriaBuilder));
 	}
-
 
 	public JpqlQueryBuilder.@Nullable Predicate createJpqlPredicate(Bindable<?> from, JpqlQueryBuilder.Entity entity,
 			ParameterFactory factory) {
@@ -108,9 +108,9 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		@Override
 		public Predicate compare(Order order, Expression<Comparable> propertyExpression, @Nullable Object value) {
 
-			if(value instanceof Comparable compareValue) {
+			if (value instanceof Comparable compareValue) {
 				return order.isAscending() ? cb.greaterThan(propertyExpression, compareValue)
-					: cb.lessThan(propertyExpression, compareValue);
+						: cb.lessThan(propertyExpression, compareValue);
 			}
 			return order.isAscending() ? cb.isNull(propertyExpression) : cb.isNotNull(propertyExpression);
 
@@ -139,12 +139,13 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		private final ParameterFactory factory;
 		private final @Nullable Metamodel metamodel;
 
-		public JpqlStrategy(@Nullable Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity, ParameterFactory factory) {
+		public JpqlStrategy(@Nullable Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity,
+				ParameterFactory factory) {
 
 			this.from = from;
 			this.entity = entity;
 			this.factory = factory;
-			this.metamodel  = metamodel;
+			this.metamodel = metamodel;
 		}
 
 		@Override
@@ -159,7 +160,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 				@Nullable Object value) {
 
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
-			if(value == null) {
+			if (value == null) {
 				return order.isAscending() ? where.isNull() : where.isNotNull();
 			}
 			return order.isAscending() ? where.gt(factory.capture(value)) : where.lt(factory.capture(value));

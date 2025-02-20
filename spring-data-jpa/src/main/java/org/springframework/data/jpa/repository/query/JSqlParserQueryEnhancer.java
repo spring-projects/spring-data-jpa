@@ -38,7 +38,6 @@ import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SetOperationList;
 import net.sf.jsqlparser.statement.select.Values;
 import net.sf.jsqlparser.statement.update.Update;
-import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -51,6 +50,8 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Predicates;
@@ -81,7 +82,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	private final String projection;
 	private final Set<String> joinAliases;
 	private final Set<String> selectAliases;
-	private final byte @Nullable[] serialized;
+	private final byte @Nullable [] serialized;
 
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
@@ -98,7 +99,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(this.statement));
 		this.joinAliases = Collections.unmodifiableSet(getJoinAliases(this.statement));
 		byte[] tmp = SerializationUtils.serialize(this.statement);
-//		this.serialized = tmp != null ? tmp : new byte[0];
+		// this.serialized = tmp != null ? tmp : new byte[0];
 		this.serialized = SerializationUtils.serialize(this.statement);
 	}
 
@@ -374,7 +375,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return applySortingToSetOperationList(setOperationList, sort);
 		}
 
-		doWithPlainSelect(selectStatement, it -> {
+		doWithPlainSelect (selectStatement , it -> {
 
 			List<OrderByElement> orderByElements = new ArrayList<>(16);
 			for (Sort.Order order : sort) {
@@ -572,8 +573,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param bytes a serialized object
 	 * @return the result of deserializing the bytes
 	 */
-	private static @Nullable Object deserialize(byte @Nullable[] bytes) {
-		if(ObjectUtils.isEmpty(bytes)) {
+	private static @Nullable Object deserialize(byte @Nullable [] bytes) {
+		if (ObjectUtils.isEmpty(bytes)) {
 			return null;
 		}
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
@@ -585,9 +586,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 	}
 
-	private static <T> T deserializeRequired(byte @Nullable[] bytes, Class<T> type) {
+	private static <T> T deserializeRequired(byte @Nullable [] bytes, Class<T> type) {
 		Object deserialize = deserialize(bytes);
-		if(deserialize != null) {
+		if (deserialize != null) {
 			return type.cast(deserialize);
 		}
 		throw new IllegalStateException("Failed to deserialize object type");

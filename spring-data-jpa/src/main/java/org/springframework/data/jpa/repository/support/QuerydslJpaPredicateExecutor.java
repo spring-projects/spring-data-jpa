@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -59,7 +61,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Querydsl specific fragment for extending {@link SimpleJpaRepository} with an implementation of
@@ -376,7 +377,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		@Override
 		public BooleanExpression compare(Order order, Expression<?> propertyExpression, @Nullable Object value) {
 
-			if(value == null) {
+			if (value == null) {
 				return Expressions.booleanOperation(order.isAscending() ? Ops.IS_NULL : Ops.IS_NOT_NULL, propertyExpression);
 			}
 
