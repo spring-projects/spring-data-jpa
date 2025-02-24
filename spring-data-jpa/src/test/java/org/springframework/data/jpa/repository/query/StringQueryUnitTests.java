@@ -160,6 +160,66 @@ class StringQueryUnitTests {
 		assertThat(((MethodInvocationArgument) parameterBinding.getOrigin()).identifier().getName()).isEqualTo("firstname");
 	}
 
+	@Test // GH-3784
+	void rewritesNamedLikeToUniqueParametersRetainingCountQuery() {
+
+		DeclaredQuery query = new StringQuery(
+				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname% or u.firstname = :firstname",
+				false).deriveCountQuery(null);
+
+		assertThat(query.getQueryString()) //
+				.isEqualTo(
+						"select count(u) from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname = :firstname_2");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(3);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofParameter("firstname"));
+		assertThat(binding.getName()).isEqualTo("firstname");
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofParameter("firstname"));
+		assertThat(binding.getName()).isEqualTo("firstname_1");
+		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+
+		ParameterBinding parameterBinding = bindings.get(2);
+		assertThat(parameterBinding).isNotNull();
+		assertThat(parameterBinding.getOrigin()).isEqualTo(ParameterOrigin.ofParameter("firstname"));
+		assertThat(parameterBinding.getName()).isEqualTo("firstname_2");
+		assertThat(((MethodInvocationArgument) parameterBinding.getOrigin()).identifier().getName()).isEqualTo("firstname");
+	}
+
+	@Test // GH-3784
+	void rewritesExpressionsLikeToUniqueParametersRetainingCountQuery() {
+
+		DeclaredQuery query = new StringQuery(
+				"select u from User u where u.firstname like %:#{firstname} or u.firstname like :#{firstname}%", false)
+				.deriveCountQuery(null);
+
+		assertThat(query.getQueryString()) //
+				.isEqualTo(
+						"select count(u) from User u where u.firstname like :__$synthetic$__1 or u.firstname like :__$synthetic$__2");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofExpression("firstname"));
+		assertThat(binding.getName()).isEqualTo("__$synthetic$__1");
+		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+
+		binding = (LikeParameterBinding) bindings.get(1);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getOrigin()).isEqualTo(ParameterOrigin.ofExpression("firstname"));
+		assertThat(binding.getName()).isEqualTo("__$synthetic$__2");
+		assertThat(binding.getType()).isEqualTo(Type.STARTING_WITH);
+	}
+
 	@Test // GH-3041
 	void rewritesPositionalLikeToUniqueParametersIfNecessary() {
 
@@ -261,6 +321,48 @@ class StringQueryUnitTests {
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(0));
 		assertNamedBinding(InParameterBinding.class, "names", bindings.get(1));
 		assertNamedBinding(ParameterBinding.class, "bar", bindings.get(2));
+	}
+
+	@Test // GH-3784
+	void deriveCountQueryWithNamedInRetainsOrigin() {
+
+		String queryString = "select u from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins)";
+		DeclaredQuery query = new StringQuery(queryString, false).deriveCountQuery(null);
+
+		assertThat(query.getQueryString())
+				.isEqualTo("select count(u) from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins_1)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		assertNamedBinding(ParameterBinding.class, "logins", bindings.get(0));
+		assertThat((MethodInvocationArgument) bindings.get(0).getOrigin()).extracting(MethodInvocationArgument::identifier)
+				.extracting(BindingIdentifier::getName).isEqualTo("logins");
+
+		assertNamedBinding(InParameterBinding.class, "logins_1", bindings.get(1));
+		assertThat((MethodInvocationArgument) bindings.get(1).getOrigin()).extracting(MethodInvocationArgument::identifier)
+				.extracting(BindingIdentifier::getName).isEqualTo("logins");
+	}
+
+	@Test // GH-3784
+	void deriveCountQueryWithPositionalInRetainsOrigin() {
+
+		String queryString = "select u from User u where (?1) IS NULL OR LOWER(u.login) IN (?1)";
+		DeclaredQuery query = new StringQuery(queryString, false).deriveCountQuery(null);
+
+		assertThat(query.getQueryString())
+				.isEqualTo("select count(u) from User u where (?1) IS NULL OR LOWER(u.login) IN (?2)");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
+		assertThat((MethodInvocationArgument) bindings.get(0).getOrigin()).extracting(MethodInvocationArgument::identifier)
+				.extracting(BindingIdentifier::getPosition).isEqualTo(1);
+
+		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
+		assertThat((MethodInvocationArgument) bindings.get(1).getOrigin()).extracting(MethodInvocationArgument::identifier)
+				.extracting(BindingIdentifier::getPosition).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-461
