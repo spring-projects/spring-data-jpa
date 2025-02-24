@@ -25,6 +25,7 @@ import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -143,8 +144,12 @@ class StringQuery implements DeclaredQuery {
 
 						for (ParameterBinding binding : bindings) {
 
-							if (binding.getOrigin().isExpression() && derivedBindings.removeIf(
-									it -> !it.getOrigin().isExpression() && it.getIdentifier().equals(binding.getIdentifier()))) {
+							Predicate<ParameterBinding> identifier = binding::bindsTo;
+				Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
+
+				// replace incompatible bindings
+				if ( derivedBindings.removeIf(
+									it -> identifier.test(it) && notCompatible.test(it))) {
 								derivedBindings.add(binding);
 							}
 						}

@@ -156,6 +156,10 @@ class ParameterBinding {
 	 */
 	public boolean bindsTo(ParameterBinding other) {
 
+		if (getIdentifier().equals(other.getIdentifier())) {
+			return true;
+		}
+
 		if (identifier.hasName() && other.identifier.hasName()) {
 			if (identifier.getName().equals(other.identifier.getName())) {
 				return true;
@@ -501,6 +505,16 @@ class ParameterBinding {
 		 */
 		static Expression ofExpression(ValueExpression expression) {
 			return new Expression(expression);
+		}
+
+		/**
+		 * Creates a {@link MethodInvocationArgument} object for {@code name}
+		 *
+		 * @param name the parameter name from the method invocation.
+		 * @return {@link MethodInvocationArgument} object for {@code name}.
+		 */
+		static MethodInvocationArgument ofParameter(String name) {
+			return ofParameter(name, null);
 		}
 
 		/**
