@@ -15,17 +15,52 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
+
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
+ * EclipseLink variant of {@link QueryUtilsIntegrationTests}.
+ *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 @ContextConfiguration("classpath:eclipselink.xml")
 class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 
 	int getNumberOfJoinsAfterCreatingAPath() {
 		return 1;
+	}
+
+	@Test // GH-2756
+	@Override
+	void prefersFetchOverJoin() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+		from.fetch("manager");
+		from.join("manager");
+
+		PropertyPath managerFirstname = PropertyPath.from("manager.firstname", User.class);
+		PropertyPath managerLastname = PropertyPath.from("manager.lastname", User.class);
+
+		QueryUtils.toExpressionRecursively(from, managerLastname);
+		Path<Object> expr = (Path) QueryUtils.toExpressionRecursively(from, managerFirstname);
+
+		assertThat(expr.getParentPath()).hasFieldOrPropertyWithValue("isFetch", true);
+		assertThat(from.getFetches()).hasSize(1);
+		assertThat(from.getJoins()).hasSize(1);
 	}
 
 }

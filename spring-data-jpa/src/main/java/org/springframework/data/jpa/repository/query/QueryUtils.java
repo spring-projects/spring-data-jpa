@@ -889,7 +889,7 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Returns an existing join for the given attribute if one already exists or creates a new one if not.
+	 * Returns an existing (fetch) join for the given attribute if one already exists or creates a new one if not.
 	 *
 	 * @param from the {@link From} to get the current joins from.
 	 * @param attribute the {@link Attribute} to look for in the current joins.
@@ -897,6 +897,13 @@ public abstract class QueryUtils {
 	 * @return will never be {@literal null}.
 	 */
 	private static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+
+		for (Fetch<?, ?> fetch : from.getFetches()) {
+
+			if (fetch instanceof Join<?, ?> join && join.getAttribute().getName().equals(attribute)) {
+				return join;
+			}
+		}
 
 		for (Join<?, ?> join : from.getJoins()) {
 
