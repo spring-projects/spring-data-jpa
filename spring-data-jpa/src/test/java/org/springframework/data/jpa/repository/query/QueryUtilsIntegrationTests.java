@@ -32,6 +32,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
@@ -88,6 +89,44 @@ class QueryUtilsIntegrationTests {
 		QueryUtils.toExpressionRecursively(from, managerLastname);
 		QueryUtils.toExpressionRecursively(from, managerFirstname);
 
+		assertThat(from.getJoins()).hasSize(1);
+	}
+
+	@Test // GH-2756
+	void reusesExistingFetchJoinForExpression() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+		from.fetch("manager");
+
+		PropertyPath managerFirstname = PropertyPath.from("manager.firstname", User.class);
+		PropertyPath managerLastname = PropertyPath.from("manager.lastname", User.class);
+
+		QueryUtils.toExpressionRecursively(from, managerLastname);
+		QueryUtils.toExpressionRecursively(from, managerFirstname);
+
+		assertThat(from.getFetches()).hasSize(1);
+		assertThat(from.getJoins()).isEmpty();
+	}
+
+	@Test // GH-2756
+	void prefersFetchOverJoin() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+		from.fetch("manager");
+		from.join("manager");
+
+		PropertyPath managerFirstname = PropertyPath.from("manager.firstname", User.class);
+		PropertyPath managerLastname = PropertyPath.from("manager.lastname", User.class);
+
+		QueryUtils.toExpressionRecursively(from, managerLastname);
+		Path<Object> expr = (Path<Object>) QueryUtils.toExpressionRecursively(from, managerFirstname);
+
+		assertThat(expr.getParentPath()).hasFieldOrPropertyWithValue("fetched", true);
+		assertThat(from.getFetches()).hasSize(1);
 		assertThat(from.getJoins()).hasSize(1);
 	}
 
