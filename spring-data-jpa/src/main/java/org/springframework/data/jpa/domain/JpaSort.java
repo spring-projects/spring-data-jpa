@@ -37,6 +37,7 @@ import java.util.List;
  * @author Christoph Strobl
  * @author David Madden
  * @author Jens Schauder
+ * @author Ngoc Nhan
  */
 public class JpaSort extends Sort {
 
@@ -281,14 +282,14 @@ public class JpaSort extends Sort {
 		 * @return
 		 */
 		public <P extends PluralAttribute<S, ?, U>, U> Path<S, U> dot(P attribute) {
-			return new Path<S, U>(add(attribute));
+			return new Path<>(add(attribute));
 		}
 
 		private List<Attribute<?, ?>> add(Attribute<?, ?> attribute) {
 
 			Assert.notNull(attribute, "Attribute must not be null");
 
-			List<Attribute<?, ?>> newAttributes = new ArrayList<Attribute<?, ?>>(attributes.size() + 1);
+			List<Attribute<?, ?>> newAttributes = new ArrayList<>(attributes.size() + 1);
 			newAttributes.addAll(attributes);
 			newAttributes.add(attribute);
 			return newAttributes;
