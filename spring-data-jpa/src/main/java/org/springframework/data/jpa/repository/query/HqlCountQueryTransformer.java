@@ -95,7 +95,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 		if (ctx.fromClause() != null) {
 			builder.appendExpression(visit(ctx.fromClause()));
+			if(primaryFromAlias == null) {
+				builder.append(TOKEN_AS);
+				builder.append(TOKEN_DOUBLE_UNDERSCORE);
+			}
 		}
+
 
 		if (ctx.whereClause() != null) {
 			builder.appendExpression(visit(ctx.whereClause()));
