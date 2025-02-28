@@ -919,11 +919,11 @@ class HqlQueryTransformerTests {
 		assertThat(alias("select u from User as u left join  u.roles as r")).isEqualTo("u");
 	}
 
-	@Test // GH-2032
+	@Test // GH-2032, GH-3792
 	void countQueryShouldWorkEvenWithoutExplicitAlias() {
 
 		assertCountQuery("FROM BookError WHERE portal = :portal",
-				"select count(__) FROM BookError WHERE portal = :portal");
+				"select count(__) FROM BookError AS __ WHERE portal = :portal");
 
 		assertCountQuery("FROM BookError b WHERE portal = :portal",
 				"select count(b) FROM BookError b WHERE portal = :portal");
