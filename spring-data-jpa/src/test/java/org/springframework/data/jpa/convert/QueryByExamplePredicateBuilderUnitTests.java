@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.convert;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.domain.Example.*;
 
@@ -23,6 +24,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -39,6 +41,8 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,6 +51,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.domain.ExampleMatcher.MatchMode;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.util.ObjectUtils;
 
@@ -57,6 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Paluch
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Arnaud Lecointre
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -269,6 +275,21 @@ class QueryByExamplePredicateBuilderUnitTests {
 		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
+	}
+
+	@ParameterizedTest(name = "Matching {0} on association should join using JoinType.{1} ") // DATAJPA-3763
+	@CsvSource({ "ALL, INNER", "ANY, LEFT" })
+	void matchingAssociationShouldUseTheCorrectJoinType(MatchMode matchMode, JoinType expectedJoinType) {
+
+		Person person = new Person();
+		person.father = new Person();
+
+		ExampleMatcher matcher = matchMode == MatchMode.ALL ? ExampleMatcher.matchingAll() : ExampleMatcher.matchingAny();
+		Example<Person> example = of(person, matcher);
+
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
+
+		verify(root, times(1)).join("father", expectedJoinType);
 	}
 
 	@SuppressWarnings("unused")
