@@ -18,6 +18,7 @@ package org.springframework.data.jpa.convert;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -57,6 +58,7 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Arnaud Lecointre
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -103,7 +105,8 @@ public class QueryByExamplePredicateBuilder {
 		ExampleMatcher matcher = example.getMatcher();
 
 		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), new ExampleMatcherAccessor(matcher), new PathNode("root", null, example.getProbe()),
+				example.getProbeType(), matcher, new ExampleMatcherAccessor(matcher),
+				new PathNode("root", null, example.getProbe()),
 				escapeCharacter);
 
 		if (predicates.isEmpty()) {
@@ -121,7 +124,7 @@ public class QueryByExamplePredicateBuilder {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
-			Class<?> probeType, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
+			Class<?> probeType, ExampleMatcher matcher, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
 			EscapeCharacter escapeCharacter) {
 
 		List<Predicate> predicates = new ArrayList<>();
@@ -158,7 +161,7 @@ public class QueryByExamplePredicateBuilder {
 
 				predicates
 						.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()), (ManagedType<?>) attribute.getType(),
-								attributeValue, probeType, exampleAccessor, currentNode, escapeCharacter));
+								attributeValue, probeType, matcher, exampleAccessor, currentNode, escapeCharacter));
 				continue;
 			}
 
@@ -171,8 +174,10 @@ public class QueryByExamplePredicateBuilder {
 									ClassUtils.getShortName(probeType), node));
 				}
 
-				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName()),
-						(ManagedType<?>) attribute.getType(), attributeValue, probeType, exampleAccessor, node, escapeCharacter));
+				JoinType joinType = matcher.isAllMatching() ? JoinType.INNER : JoinType.LEFT;
+				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName(), joinType),
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, matcher, exampleAccessor, node,
+						escapeCharacter));
 
 				continue;
 			}
