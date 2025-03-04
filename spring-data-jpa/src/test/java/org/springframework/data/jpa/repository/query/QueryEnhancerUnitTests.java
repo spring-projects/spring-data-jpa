@@ -632,7 +632,7 @@ class QueryEnhancerUnitTests {
 		assertThat(modiQuery.hasConstructorExpression()).isEqualTo(constructorExpressionNotConsideringQueryType);
 
 		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
-		assertThat(QueryEnhancerFactory.forQuery(modiQuery).create(modiQuery).createCountQueryFor())
+		assertThat(QueryEnhancerFactory.forQuery(modiQuery.getDeclaredQuery()).create(modiQuery.getDeclaredQuery()).createCountQueryFor())
 				.isEqualToIgnoringCase(modifyingQuery);
 	}
 
@@ -641,7 +641,7 @@ class QueryEnhancerUnitTests {
 	void insertStatementIsProcessedSameAsDefault(String insertQuery) {
 
 		StringQuery stringQuery = new StringQuery(insertQuery, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery).create(stringQuery);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery.getDeclaredQuery()).create(stringQuery.getDeclaredQuery());
 
 		Sort sorting = Sort.by("day").descending();
 
@@ -697,7 +697,7 @@ class QueryEnhancerUnitTests {
 	}
 
 	private static QueryEnhancer getEnhancer(IntrospectedQuery query) {
-		return QueryEnhancerFactory.forQuery(query).create(query);
+		return QueryEnhancerFactory.forQuery(query.getDeclaredQuery()).create(query.getDeclaredQuery());
 	}
 
 }

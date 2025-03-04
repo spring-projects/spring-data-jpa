@@ -64,6 +64,11 @@ class EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
+	public String getQueryString() {
+		return "";
+	}
+
+	@Override
 	public List<ParameterBinding> getParameterBindings() {
 		return Collections.emptyList();
 	}
@@ -81,5 +86,10 @@ class EmptyIntrospectedQuery implements EntityQuery {
 	@Override
 	public boolean usesJdbcStyleParameters() {
 		return false;
+	}
+
+	@Override
+	public DeclaredQuery getDeclaredQuery() {
+		return DeclaredQuery.nativeQuery("");
 	}
 }

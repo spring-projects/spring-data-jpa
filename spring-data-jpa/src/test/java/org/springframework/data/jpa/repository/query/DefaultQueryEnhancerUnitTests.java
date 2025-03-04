@@ -43,7 +43,7 @@ class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-3546
 	void shouldApplySorting() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.ofNative("SELECT e FROM Employee e"));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery("SELECT e FROM Employee e"));
 
 		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
 

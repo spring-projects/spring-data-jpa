@@ -66,7 +66,7 @@ public interface QueryEnhancerSelector {
 		private final QueryEnhancerFactory nativeQuery;
 		private final QueryEnhancerFactory jpql;
 
-		public DefaultQueryEnhancerSelector() {
+		DefaultQueryEnhancerSelector() {
 			this(DEFAULT_NATIVE, DEFAULT_JPQL);
 		}
 

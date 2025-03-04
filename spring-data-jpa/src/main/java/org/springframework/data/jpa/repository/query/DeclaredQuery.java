@@ -23,32 +23,27 @@ package org.springframework.data.jpa.repository.query;
  * @author Mark Paluch
  * @since 2.0.3
  */
-public interface DeclaredQuery {
+public interface DeclaredQuery extends StructuredQuery {
 
 	/**
 	 * Creates a DeclaredQuery for a JPQL query.
 	 *
-	 * @param query the JPQL query string.
-	 * @return
+	 * @param jpql the JPQL query string.
+	 * @return new instance of {@link DeclaredQuery}.
 	 */
-	static DeclaredQuery ofJpql(String query) {
-		return new DefaultDeclaredQuery(query, false);
+	static DeclaredQuery jpqlQuery(String jpql) {
+		return new JpqlQuery(jpql);
 	}
 
 	/**
 	 * Creates a DeclaredQuery for a native query.
 	 *
-	 * @param query the native query string.
-	 * @return
+	 * @param sql the native query string.
+	 * @return new instance of {@link DeclaredQuery}.
 	 */
-	static DeclaredQuery ofNative(String query) {
-		return new DefaultDeclaredQuery(query, true);
+	static DeclaredQuery nativeQuery(String sql) {
+		return new NativeQuery(sql);
 	}
-
-	/**
-	 * Returns the query string.
-	 */
-	String getQueryString();
 
 	/**
 	 * Return whether the query is a native query of not.
