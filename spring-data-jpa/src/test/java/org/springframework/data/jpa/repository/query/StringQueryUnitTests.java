@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,6 +28,7 @@ import org.springframework.data.jpa.repository.query.ParameterBinding.InParamete
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
+import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
@@ -925,11 +925,10 @@ class StringQueryUnitTests {
 
 	private void checkHasNamedParameter(String query, boolean expected, String label, boolean nativeQuery) {
 
-		List<ParameterBinding> bindings = new ArrayList<>();
-		StringQuery.ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				bindings, new StringQuery.Metadata());
+		DeclaredQuery source = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
+		BindableQuery bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
 
-		assertThat(bindings.stream().anyMatch(it -> it.getIdentifier().hasName())) //
+		assertThat(bindableQuery.getBindings().stream().anyMatch(it -> it.getIdentifier().hasName())) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //
 				.isEqualTo(expected);
 	}

@@ -111,7 +111,7 @@ class ExpressionBasedStringQueryUnitTests {
 						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
 				metadata, CONFIG.getValueExpressionDelegate().getValueExpressionParser(), false, CONFIG.getSelector());
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.getDeclaredQuery().isNativeQuery()).isFalse();
 	}
 
 	@Test
@@ -120,7 +120,7 @@ class ExpressionBasedStringQueryUnitTests {
 		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata,
 				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), true, CONFIG.getSelector());
 
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.getDeclaredQuery().isNativeQuery()).isFalse();
 	}
 
 	@Test
@@ -129,7 +129,7 @@ class ExpressionBasedStringQueryUnitTests {
 		StringQuery query = new ExpressionBasedStringQuery("select u from User u", metadata,
 				CONFIG.getValueExpressionDelegate().getValueExpressionParser(), true, CONFIG.getSelector());
 
-		assertThat(query.isNativeQuery()).isTrue();
+		assertThat(query.getDeclaredQuery().isNativeQuery()).isTrue();
 	}
 
 	@Test // GH-3041

@@ -64,11 +64,8 @@ import org.springframework.util.StringUtils;
  */
 class StringQuery implements EntityQuery {
 
-	private final String query;
-	private final List<ParameterBinding> bindings;
+	private final BindableQuery bindableQuery;
 	private final boolean containsPageableInSpel;
-	private final boolean usesJdbcStyleParameters;
-	private final boolean isNative;
 	private final QueryEnhancerFactory queryEnhancerFactory;
 	private final QueryEnhancer queryEnhancer;
 	private final boolean hasNamedParameters;
@@ -78,7 +75,7 @@ class StringQuery implements EntityQuery {
 	 *
 	 * @param query must not be {@literal null} or empty.
 	 */
-	public StringQuery(String query, boolean isNative) {
+	StringQuery(String query, boolean isNative) {
 		this(query, isNative, QueryEnhancerSelector.DEFAULT_SELECTOR, it -> {});
 	}
 
@@ -91,29 +88,15 @@ class StringQuery implements EntityQuery {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
-		this.isNative = isNative;
-		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
 		this.queryEnhancerFactory = factory;
 
-		Metadata queryMeta = new Metadata();
-		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings, queryMeta);
+		DeclaredQuery source = isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
+		this.bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
 
-		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.queryEnhancer = factory.create(this);
-
-		parameterPostProcessor.accept(this.bindings);
-
-		boolean hasNamedParameters = false;
-		for (ParameterBinding parameterBinding : getParameterBindings()) {
-			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
-				hasNamedParameters = true;
-				break;
-			}
-		}
-
-		this.hasNamedParameters = hasNamedParameters;
+		parameterPostProcessor.accept(this.bindableQuery.getBindings());
+		this.queryEnhancer = factory.create(this.bindableQuery);
+		this.hasNamedParameters = containsNamedParameter(this.bindableQuery.getBindings());
 	}
 
 	/**
@@ -125,29 +108,32 @@ class StringQuery implements EntityQuery {
 
 		Assert.hasText(query, "Query must not be null or empty");
 
-		this.isNative = isNative;
-		this.bindings = new ArrayList<>();
 		this.containsPageableInSpel = query.contains("#pageable");
+		DeclaredQuery source = isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
 
-		Metadata queryMeta = new Metadata();
-		this.query = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(query,
-				this.bindings, queryMeta);
+		this.bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
 
-		this.usesJdbcStyleParameters = queryMeta.usesJdbcStyleParameters;
-		this.queryEnhancerFactory = selector.select(this);
-		this.queryEnhancer = queryEnhancerFactory.create(this);
+		this.queryEnhancerFactory = selector.select(source);
+		this.queryEnhancer = queryEnhancerFactory.create(this.bindableQuery);
+	    parameterPostProcessor.accept(this.bindableQuery.getBindings());
+		this.hasNamedParameters = containsNamedParameter(this.bindableQuery.getBindings());
+	}
 
-		parameterPostProcessor.accept(this.bindings);
-
-		boolean hasNamedParameters = false;
-		for (ParameterBinding parameterBinding : getParameterBindings()) {
-			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
-				hasNamedParameters = true;
-				break;
-			}
-		}
-
+	/**
+	 * internal copy constructor
+	 *
+	 * @param bindableQuery
+	 * @param factory
+	 * @param enhancer
+	 * @param hasNamedParameters
+	 * @param containsPageableInSpel
+	 */
+	private StringQuery(BindableQuery bindableQuery, QueryEnhancerFactory factory, QueryEnhancer enhancer, boolean hasNamedParameters, boolean containsPageableInSpel) {
+		this.bindableQuery = bindableQuery;
+		this.queryEnhancerFactory = factory;
+		this.queryEnhancer = enhancer;
 		this.hasNamedParameters = hasNamedParameters;
+		this.containsPageableInSpel = containsPageableInSpel;
 	}
 
 	QueryEnhancer getQueryEnhancer() {
@@ -158,7 +144,7 @@ class StringQuery implements EntityQuery {
 	 * Returns whether we have found some like bindings.
 	 */
 	boolean hasParameterBindings() {
-		return !bindings.isEmpty();
+		return this.bindableQuery.hasBindings();
 	}
 
 	String getProjection() {
@@ -166,8 +152,13 @@ class StringQuery implements EntityQuery {
 	}
 
 	@Override
+	public String getQueryString() {
+		return bindableQuery.getQueryString();
+	}
+
+	@Override
 	public List<ParameterBinding> getParameterBindings() {
-		return bindings;
+		return this.bindableQuery.getBindings();
 	}
 
 	@Override
@@ -177,14 +168,14 @@ class StringQuery implements EntityQuery {
 		// JPA parameter markers and not the original expressions anymore.
 
 		return new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
-				this.isNative, queryEnhancerFactory, derivedBindings -> {
+				this.bindableQuery.isNativeQuery(), queryEnhancerFactory, derivedBindings -> {
 
 					// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
 					// JPA
 					// parameter markers and not the original expressions anymore.
 					if (this.hasParameterBindings() && !this.getParameterBindings().equals(derivedBindings)) {
 
-						for (ParameterBinding binding : bindings) {
+						for (ParameterBinding binding : getParameterBindings()) {
 
 							Predicate<ParameterBinding> identifier = binding::bindsTo;
 				Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
@@ -206,12 +197,7 @@ class StringQuery implements EntityQuery {
 
 	@Override
 	public boolean usesJdbcStyleParameters() {
-		return usesJdbcStyleParameters;
-	}
-
-	@Override
-	public String getQueryString() {
-		return query;
+		return bindableQuery.usesJdbcStyleParameters();
 	}
 
 	public @Nullable String getAlias() {
@@ -239,8 +225,17 @@ class StringQuery implements EntityQuery {
 	}
 
 	@Override
-	public boolean isNativeQuery() {
-		return isNative;
+	public DeclaredQuery getDeclaredQuery() {
+		return bindableQuery;
+	}
+
+	private static boolean containsNamedParameter(List<ParameterBinding> bindings) {
+		for (ParameterBinding parameterBinding : bindings) {
+			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -376,8 +371,7 @@ class StringQuery implements EntityQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		String parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(String query, List<ParameterBinding> bindings,
-				Metadata queryMeta) {
+		BindableQuery parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(DeclaredQuery query) {
 
 			IndexedParameterLabels parameterLabels = new IndexedParameterLabels(findParameterIndices(query));
 			boolean parametersShouldBeAccessedByIndex = parameterLabels.hasLabels();
@@ -385,11 +379,11 @@ class StringQuery implements EntityQuery {
 			/*
 			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
 			 */
-			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
+			if (!parametersShouldBeAccessedByIndex && query.getQueryString().contains("?#{")) {
 				parametersShouldBeAccessedByIndex = true;
 			}
 
-			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query,
+			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query.getQueryString(),
 					parametersShouldBeAccessedByIndex, parameterLabels);
 
 			String resultingQuery = parsedQuery.getQueryString();
@@ -412,14 +406,14 @@ class StringQuery implements EntityQuery {
 
 				String match = matcher.group(0);
 				if (JDBC_STYLE_PARAM.matcher(match).find()) {
-					queryMeta.usesJdbcStyleParameters = true;
+					jdbcStyle = true;
 				}
 
 				if (NUMBERED_STYLE_PARAM.matcher(match).find() || NAMED_STYLE_PARAM.matcher(match).find()) {
 					usesJpaStyleParameters = true;
 				}
 
-				if (usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) {
+				if (usesJpaStyleParameters && jdbcStyle) {
 					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
 				}
 
@@ -467,7 +461,7 @@ class StringQuery implements EntityQuery {
 				}
 
 				replacement = targetBinding.hasName() ? ":" + targetBinding.getName()
-						: ((!usesJpaStyleParameters && queryMeta.usesJdbcStyleParameters) ? "?"
+						: ((!usesJpaStyleParameters && jdbcStyle) ? "?"
 								: "?" + targetBinding.getPosition());
 				String result;
 				String substring = matcher.group(2);
@@ -484,7 +478,7 @@ class StringQuery implements EntityQuery {
 				resultingQuery = result;
 			}
 
-			return resultingQuery;
+			return new BindableQuery(query, resultingQuery, bindings, jdbcStyle);
 		}
 
 		private static ValueExpressionQueryRewriter.ParsedQuery createSpelExtractor(String queryWithSpel,
@@ -592,9 +586,7 @@ class StringQuery implements EntityQuery {
 		}
 	}
 
-	static class Metadata {
-		private boolean usesJdbcStyleParameters = false;
-	}
+
 
 	/**
 	 * Utility to create unique parameter bindings for LIKE that refer to the same underlying method parameter but are

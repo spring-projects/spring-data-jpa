@@ -40,7 +40,7 @@ public interface QueryEnhancerFactory {
 	 * @param query the query to be enhanced and introspected.
 	 * @return
 	 */
-	QueryEnhancer create(DeclaredQuery query);
+	QueryEnhancer create(StructuredQuery query);
 
 	/**
 	 * Creates a new {@link QueryEnhancerFactory} for the given {@link DeclaredQuery}.

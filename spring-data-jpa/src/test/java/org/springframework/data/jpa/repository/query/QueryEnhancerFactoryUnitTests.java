@@ -34,7 +34,7 @@ class QueryEnhancerFactoryUnitTests {
 
 		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
 
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query.getDeclaredQuery()).create(query);
 
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JpaQueryEnhancer.class);
@@ -49,7 +49,7 @@ class QueryEnhancerFactoryUnitTests {
 
 		StringQuery query = new StringQuery("select * from User", true);
 
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query.getDeclaredQuery()).create(query);
 
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JSqlParserQueryEnhancer.class);

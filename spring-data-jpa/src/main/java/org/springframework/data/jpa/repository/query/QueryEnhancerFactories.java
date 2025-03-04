@@ -57,7 +57,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(StructuredQuery query) {
 				return new DefaultQueryEnhancer(query);
 			}
 		},
@@ -69,7 +69,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(StructuredQuery query) {
 				if (jSqlParserPresent) {
 					return new JSqlParserQueryEnhancer(query);
 				}
@@ -85,7 +85,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(StructuredQuery query) {
 				return JpaQueryEnhancer.forHql(query.getQueryString());
 			}
 		},
@@ -96,7 +96,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(StructuredQuery query) {
 				return JpaQueryEnhancer.forEql(query.getQueryString());
 			}
 		},
@@ -107,7 +107,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(StructuredQuery query) {
 				return JpaQueryEnhancer.forJpql(query.getQueryString());
 			}
 		}
