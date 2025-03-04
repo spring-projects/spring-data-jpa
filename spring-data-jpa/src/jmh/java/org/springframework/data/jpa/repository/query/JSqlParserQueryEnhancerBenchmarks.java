@@ -56,7 +56,7 @@ public class JSqlParserQueryEnhancerBenchmarks {
 					select SOME_COLUMN from SOME_OTHER_TABLE where REPORTING_DATE = :REPORTING_DATE
 					union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE""";
 
-			enhancer = new JSqlParserQueryEnhancer(DeclaredQuery.ofNative(s));
+			enhancer = new JSqlParserQueryEnhancer(DeclaredQuery.nativeQuery(s));
 		}
 	}
 

@@ -68,7 +68,7 @@ import org.springframework.util.StringUtils;
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
-	private final DeclaredQuery query;
+	private final QueryString query;
 	private final Statement statement;
 	private final ParsedType parsedType;
 	private final boolean hasConstructorExpression;
@@ -81,13 +81,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
 	 */
-	public JSqlParserQueryEnhancer(DeclaredQuery query) {
+	public JSqlParserQueryEnhancer(QueryString query) {
 
 		this.query = query;
-		this.statement = parseStatement(query.getQueryString(), Statement.class);
+		this.statement = parseStatement(query.value(), Statement.class);
 
 		this.parsedType = detectParsedType(statement);
-		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.getQueryString());
+		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.value());
 		this.primaryAlias = detectAlias(this.parsedType, this.statement);
 		this.projection = detectProjection(this.statement);
 		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(this.statement));
@@ -292,7 +292,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public DeclaredQuery getQuery() {
+	public QueryString getQuery() {
 		return this.query;
 	}
 
@@ -312,7 +312,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	private String doApplySorting(Sort sort, @Nullable String alias) {
-		String queryString = query.getQueryString();
+		String queryString = query.value();
 		Assert.hasText(queryString, "Query must not be null or empty");
 
 		if (this.parsedType != ParsedType.SELECT || sort.isUnsorted()) {
@@ -350,23 +350,23 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (this.parsedType != ParsedType.SELECT) {
-			return this.query.getQueryString();
+			return this.query.value();
 		}
 
-		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");
+		Assert.hasText(this.query.value(), "OriginalQuery must not be null or empty");
 
 		Statement statement = (Statement) deserialize(this.serialized);
 		/*
 		  We only support count queries for {@link PlainSelect}.
 		 */
 		if (!(statement instanceof PlainSelect selectBody)) {
-			return this.query.getQueryString();
+			return this.query.value();
 		}
 
 		return createCountQueryFor(this.query, selectBody, countProjection, primaryAlias);
 	}
 
-	private static String createCountQueryFor(DeclaredQuery query, PlainSelect selectBody,
+	private static String createCountQueryFor(QueryString query, PlainSelect selectBody,
 			@Nullable String countProjection, @Nullable String primaryAlias) {
 
 		// remove order by

@@ -92,7 +92,7 @@ class ParameterBinderFactory {
 		Assert.notNull(parser, "SpelExpressionParser must not be null");
 		Assert.notNull(evaluationContextProvider, "EvaluationContextProvider must not be null");
 
-		List<ParameterBinding> bindings = query.getParameterBindings();
+		List<ParameterBinding> bindings = query.getParameterBindings(); // TODO: can we move this so we do not need to access the bindings?
 		QueryParameterSetterFactory expressionSetterFactory = QueryParameterSetterFactory.parsing(parser,
 				evaluationContextProvider);
 
@@ -101,6 +101,7 @@ class ParameterBinderFactory {
 
 		boolean usesPaging = query instanceof EntityQuery eq && eq.usesPaging();
 
+		// TODO: lets maybe obtain the bindable query and pass that on to create the setters?
 		return new ParameterBinder(parameters, createSetters(bindings, query, expressionSetterFactory, basicSetterFactory),
 				!usesPaging);
 	}

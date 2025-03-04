@@ -65,7 +65,7 @@ public interface QueryEnhancer {
 	 *
 	 * @return non-null {@link DeclaredQuery} that wraps the query.
 	 */
-	DeclaredQuery getQuery();
+	QueryString getQuery();
 
 	/**
 	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.

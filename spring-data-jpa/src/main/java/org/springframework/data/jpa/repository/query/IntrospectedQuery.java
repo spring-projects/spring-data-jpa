@@ -24,7 +24,14 @@ import java.util.List;
  * @author Diego Krupitza
  * @since 2.0.3
  */
-interface IntrospectedQuery extends DeclaredQuery {
+interface IntrospectedQuery { // TODO: is this a QueryString instance to get rid of the the first two methods?
+
+	// TODO: do we really need this?
+	DeclaredQuery getDeclaredQuery();
+
+	default String getQueryString() {
+		return getDeclaredQuery().getQueryString();
+	}
 
 	/**
 	 * @return whether the underlying query has at least one named parameter.

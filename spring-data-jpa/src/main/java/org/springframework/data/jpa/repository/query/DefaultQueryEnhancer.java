@@ -28,38 +28,40 @@ import org.springframework.lang.Nullable;
  */
 public class DefaultQueryEnhancer implements QueryEnhancer {
 
-	private final DeclaredQuery query;
+	private final QueryString query;
 	private final boolean hasConstructorExpression;
 	private final String alias;
 	private final String projection;
 	private final Set<String> joinAliases;
 
-	public DefaultQueryEnhancer(DeclaredQuery query) {
+	public DefaultQueryEnhancer(QueryString query) {
 		this.query = query;
-		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.getQueryString());
-		this.alias = QueryUtils.detectAlias(query.getQueryString());
-		this.projection = QueryUtils.getProjection(this.query.getQueryString());
-		this.joinAliases = QueryUtils.getOuterJoinAliases(this.query.getQueryString());
+		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.value());
+		this.alias = QueryUtils.detectAlias(query.value());
+		this.projection = QueryUtils.getProjection(this.query.value());
+		this.joinAliases = QueryUtils.getOuterJoinAliases(this.query.value());
 	}
 
 	@Override
 	public String applySorting(Sort sort) {
-		return QueryUtils.applySorting(this.query.getQueryString(), sort, this.alias);
+		return QueryUtils.applySorting(this.query.value(), sort, this.alias);
 	}
 
 	@Override
 	public String applySorting(Sort sort, @Nullable String alias) {
-		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
+		return QueryUtils.applySorting(this.query.value(), sort, alias);
 	}
 
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
-		return QueryUtils.applySorting(this.query.getQueryString(), rewriteInformation.getSort(), alias);
+		return QueryUtils.applySorting(this.query.value(), rewriteInformation.getSort(), alias);
 	}
 
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
-		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection, this.query.isNativeQuery());
+
+		boolean nativeQuery = this.query instanceof DeclaredQuery dc ? dc.isNativeQuery() : true;
+		return QueryUtils.createCountQueryFor(this.query.value(), countProjection, nativeQuery);
 	}
 
 	@Override
@@ -83,7 +85,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public DeclaredQuery getQuery() {
+	public QueryString getQuery() {
 		return this.query;
 	}
 }

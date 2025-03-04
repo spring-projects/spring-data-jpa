@@ -55,7 +55,7 @@ public class HqlParserBenchmarks {
 					    OR p.description LIKE "cost overrun"
 					""";
 
-			query = DeclaredQuery.ofJpql(s);
+			query = DeclaredQuery.jpqlQuery(s);
 			enhancer = QueryEnhancerFactory.forQuery(query).create(query);
 		}
 	}

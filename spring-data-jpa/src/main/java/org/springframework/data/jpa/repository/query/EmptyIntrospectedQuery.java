@@ -40,13 +40,13 @@ class EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
-	public String getQueryString() {
-		return "";
+	public DeclaredQuery getDeclaredQuery() {
+		return DeclaredQuery.nativeQuery("");
 	}
 
 	@Override
-	public boolean isNativeQuery() {
-		return false;
+	public String getQueryString() {
+		return "";
 	}
 
 	@Override

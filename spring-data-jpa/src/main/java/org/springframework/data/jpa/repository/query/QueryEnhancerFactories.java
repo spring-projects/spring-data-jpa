@@ -57,7 +57,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(QueryString query) {
 				return new DefaultQueryEnhancer(query);
 			}
 		},
@@ -69,7 +69,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
+			public QueryEnhancer create(QueryString query) {
 				if (jSqlParserPresent) {
 					return new JSqlParserQueryEnhancer(query);
 				}
@@ -85,8 +85,8 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
-				return JpaQueryEnhancer.forHql(query.getQueryString());
+			public QueryEnhancer create(QueryString query) {
+				return JpaQueryEnhancer.forHql(query.value());
 			}
 		},
 		EQL {
@@ -96,8 +96,8 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
-				return JpaQueryEnhancer.forEql(query.getQueryString());
+			public QueryEnhancer create(QueryString query) {
+				return JpaQueryEnhancer.forEql(query.value());
 			}
 		},
 		JPQL {
@@ -107,8 +107,8 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(DeclaredQuery query) {
-				return JpaQueryEnhancer.forJpql(query.getQueryString());
+			public QueryEnhancer create(QueryString query) {
+				return JpaQueryEnhancer.forJpql(query.value());
 			}
 		}
 	}
