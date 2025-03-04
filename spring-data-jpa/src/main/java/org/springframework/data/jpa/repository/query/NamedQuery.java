@@ -181,15 +181,11 @@ final class NamedQuery extends AbstractJpaQuery {
 		EntityManager em = getEntityManager();
 		TypedQuery<Long> countQuery;
 
-		String cacheKey;
 		if (namedCountQueryIsPresent) {
-			cacheKey = countQueryName;
 			countQuery = em.createNamedQuery(countQueryName, Long.class);
-
 		} else {
 
 			String countQueryString = entityQuery.get().deriveCountQuery(countProjection).getQueryString();
-			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 

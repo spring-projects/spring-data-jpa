@@ -89,7 +89,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 				softly
 						.assertThatThrownBy(
-								() -> setter.setParameter(BindableQuery.from(query), methodArguments, STRICT)) //
+								() -> setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, STRICT)) //
 						.describedAs("p-type: %s, p-name: %s, p-position: %s, temporal: %s", //
 								parameter.getClass(), //
 								parameter.getName(), //
@@ -118,7 +118,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 				softly
 						.assertThatCode(
-								() -> setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT)) //
+								() -> setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT)) //
 						.describedAs("p-type: %s, p-name: %s, p-position: %s, temporal: %s", //
 								parameter.getClass(), //
 								parameter.getName(), //
@@ -149,7 +149,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 					temporalType //
 			);
 
-			setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT);
+			setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT);
 
 			if (temporalType == null) {
 				verify(query).setParameter(eq(11), any(Date.class));
@@ -179,7 +179,7 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 					temporalType //
 			);
 
-			setter.setParameter(BindableQuery.from(query), methodArguments, LENIENT);
+			setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, LENIENT);
 
 			if (temporalType == null) {
 				verify(query, never()).setParameter(anyInt(), any(Date.class));
