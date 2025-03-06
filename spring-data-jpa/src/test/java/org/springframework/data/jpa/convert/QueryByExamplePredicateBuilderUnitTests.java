@@ -277,7 +277,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
 
-	@ParameterizedTest(name = "Matching {0} on association should join using JoinType.{1} ") // DATAJPA-3763
+	@ParameterizedTest(name = "Matching {0} on association should join using JoinType.{1} ") // GH-3763
 	@CsvSource({ "ALL, INNER", "ANY, LEFT" })
 	void matchingAssociationShouldUseTheCorrectJoinType(MatchMode matchMode, JoinType expectedJoinType) {
 

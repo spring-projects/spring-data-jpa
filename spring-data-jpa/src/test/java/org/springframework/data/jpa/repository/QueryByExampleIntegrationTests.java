@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -23,21 +23,27 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.sample.RoleRepository;
+import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Greg Turnquist
+ * @author Christoph Strobl
  * @since 3.0
  */
 @ExtendWith(SpringExtension.class)
@@ -45,7 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class QueryByExampleIntegrationTests {
 
-	@Autowired RoleRepository repository;
+	@Autowired RoleRepository roleRepository;
+	@Autowired UserRepository userRepository;
 	@Autowired EntityManager em;
 
 	private Role drummer;
@@ -55,14 +62,14 @@ class QueryByExampleIntegrationTests {
 	@BeforeEach
 	void setUp() {
 
-		drummer = repository.save(new Role("drummer"));
-		guitarist = repository.save(new Role("guitarist"));
-		singer = repository.save(new Role("singer"));
+		drummer = roleRepository.save(new Role("drummer"));
+		guitarist = roleRepository.save(new Role("guitarist"));
+		singer = roleRepository.save(new Role("singer"));
 	}
 
 	@AfterEach
 	void clearUp() {
-		repository.deleteAll();
+		roleRepository.deleteAll();
 	}
 
 	@Test // GH-2283
@@ -81,6 +88,39 @@ class QueryByExampleIntegrationTests {
 
 		// then
 		assertThat(predicate).isNull();
-		assertThat(repository.findAll(example)).containsExactlyInAnyOrder(drummer, guitarist, singer);
+		assertThat(roleRepository.findAll(example)).containsExactlyInAnyOrder(drummer, guitarist, singer);
+	}
+
+	@Test // GH-3763
+	void usesAnyMatchOnJoins() {
+
+		User manager = new User("mighty", "super user", "msu@u.io");
+
+		userRepository.save(manager);
+
+		User dave = new User();
+		dave.setFirstname("dave");
+		dave.setLastname("matthews");
+		dave.setEmailAddress("d@dmb.com");
+		dave.addRole(singer);
+
+		User carter = new User();
+		carter.setFirstname("carter");
+		carter.setLastname("beaufort");
+		carter.setEmailAddress("c@dmb.com");
+		carter.addRole(drummer);
+		carter.addRole(singer);
+		carter.setManager(manager);
+
+		userRepository.saveAllAndFlush(List.of(dave, carter));
+
+		User probe = new User();
+		probe.setLastname(dave.getLastname());
+		probe.setManager(manager);
+
+		Example<User> example = Example.of(probe,
+				ExampleMatcher.matchingAny().withIgnorePaths("id", "createdAt", "age", "active", "emailAddress",
+						"secondaryEmailAddress", "colleagues", "address", "binaryData", "attributes", "dateOfBirth"));
+		assertThat(userRepository.findAll(example)).containsExactly(dave, carter);
 	}
 }

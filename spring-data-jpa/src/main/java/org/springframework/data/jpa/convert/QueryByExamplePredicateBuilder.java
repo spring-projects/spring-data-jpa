@@ -36,6 +36,7 @@ import java.util.Set;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.ExampleMatcher.MatchMode;
 import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
@@ -105,9 +106,8 @@ public class QueryByExamplePredicateBuilder {
 		ExampleMatcher matcher = example.getMatcher();
 
 		List<Predicate> predicates = getPredicates("", cb, root, root.getModel(), example.getProbe(),
-				example.getProbeType(), matcher, new ExampleMatcherAccessor(matcher),
-				new PathNode("root", null, example.getProbe()),
-				escapeCharacter);
+				example.getProbeType(), matcher.getMatchMode(), new ExampleMatcherAccessor(matcher),
+				new PathNode("root", null, example.getProbe()), escapeCharacter);
 
 		if (predicates.isEmpty()) {
 			return null;
@@ -124,7 +124,7 @@ public class QueryByExamplePredicateBuilder {
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	static List<Predicate> getPredicates(String path, CriteriaBuilder cb, Path<?> from, ManagedType<?> type, Object value,
-			Class<?> probeType, ExampleMatcher matcher, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
+			Class<?> probeType, MatchMode matchMode, ExampleMatcherAccessor exampleAccessor, PathNode currentNode,
 			EscapeCharacter escapeCharacter) {
 
 		List<Predicate> predicates = new ArrayList<>();
@@ -161,7 +161,7 @@ public class QueryByExamplePredicateBuilder {
 
 				predicates
 						.addAll(getPredicates(currentPath, cb, from.get(attribute.getName()), (ManagedType<?>) attribute.getType(),
-								attributeValue, probeType, matcher, exampleAccessor, currentNode, escapeCharacter));
+								attributeValue, probeType, matchMode, exampleAccessor, currentNode, escapeCharacter));
 				continue;
 			}
 
@@ -174,9 +174,9 @@ public class QueryByExamplePredicateBuilder {
 									ClassUtils.getShortName(probeType), node));
 				}
 
-				JoinType joinType = matcher.isAllMatching() ? JoinType.INNER : JoinType.LEFT;
+				JoinType joinType = matchMode.equals(MatchMode.ALL) ? JoinType.INNER : JoinType.LEFT;
 				predicates.addAll(getPredicates(currentPath, cb, ((From<?, ?>) from).join(attribute.getName(), joinType),
-						(ManagedType<?>) attribute.getType(), attributeValue, probeType, matcher, exampleAccessor, node,
+						(ManagedType<?>) attribute.getType(), attributeValue, probeType, matchMode, exampleAccessor, node,
 						escapeCharacter));
 
 				continue;
