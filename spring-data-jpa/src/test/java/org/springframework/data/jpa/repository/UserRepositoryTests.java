@@ -73,6 +73,7 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
+import org.springframework.lang.Nullable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -3579,6 +3580,7 @@ class UserRepositoryTests {
 	private interface UserProjectionInterfaceBased {
 		String getFirstname();
 
+		@Nullable
 		String getLastname();
 	}
 
