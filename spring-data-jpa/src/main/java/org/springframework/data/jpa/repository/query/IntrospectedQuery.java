@@ -24,7 +24,7 @@ import java.util.List;
  * @author Diego Krupitza
  * @since 2.0.3
  */
-interface IntrospectedQuery extends QueryString {
+interface IntrospectedQuery extends StructuredQuery {
 
 	DeclaredQuery getDeclaredQuery();
 

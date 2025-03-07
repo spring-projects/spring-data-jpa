@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 /**
  * @author Christoph Strobl
  */
-public interface QueryString {
+public interface StructuredQuery {
 
     String getQueryString();
 }

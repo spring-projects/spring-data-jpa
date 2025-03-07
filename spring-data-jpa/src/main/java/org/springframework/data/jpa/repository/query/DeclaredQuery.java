@@ -23,7 +23,7 @@ package org.springframework.data.jpa.repository.query;
  * @author Mark Paluch
  * @since 2.0.3
  */
-public sealed interface DeclaredQuery extends QueryString permits JpqlQuery, NativeQuery, BindableQuery {
+public interface DeclaredQuery extends StructuredQuery {
 
 	/**
 	 * Creates a DeclaredQuery for a JPQL query.
