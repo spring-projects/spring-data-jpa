@@ -732,6 +732,32 @@ public abstract class QueryUtils {
 		}
 	}
 
+	/**
+	 * Creates an expression with joins by recursively navigating the path for constructing {@code Predicate},
+	 * it will use implicit join if possible to eliminate unnecessary join.
+	 *
+	 * @param from the {@link From}
+	 * @param property the property path
+	 * @param <T> the type of the expression
+	 * @return the expression
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> Expression<T> toExpressionRecursivelyForPredicate(From<?, ?> from, PropertyPath property) {
+
+		// see https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html#hql-implicit-join
+		Path<?> path = from;
+		while (!property.isCollection()) {
+			path = path.get(property.getSegment());
+			if (property.hasNext()) {
+				property = Objects.requireNonNull(property.next(), "An element of the property path is null");
+			} else {
+				return (Expression<T>) path;
+			}
+		}
+
+		return toExpressionRecursively(from, property);
+	}
+
 	static <T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property) {
 		return toExpressionRecursively(from, property, false);
 	}
