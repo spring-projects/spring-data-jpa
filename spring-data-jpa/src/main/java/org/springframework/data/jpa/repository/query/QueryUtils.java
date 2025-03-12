@@ -87,6 +87,7 @@ import org.springframework.util.StringUtils;
  * @author Pranav HS
  * @author Eduard Dudar
  * @author Yanming Zhou
+ * @author Alim Naizabek
  */
 public abstract class QueryUtils {
 
@@ -430,7 +431,13 @@ public abstract class QueryUtils {
 	}
 
 	private static String toJpaDirection(Order order) {
-		return order.getDirection().name().toLowerCase(Locale.US);
+		String direction = order.getDirection().name().toLowerCase(Locale.US);
+		if (order.getNullHandling() == Sort.NullHandling.NULLS_FIRST) {
+			direction += " nulls first";
+		} else if (order.getNullHandling() == Sort.NullHandling.NULLS_LAST) {
+			direction += " nulls last";
+		}
+		return direction;
 	}
 
 	/**
