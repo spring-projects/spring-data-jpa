@@ -48,4 +48,14 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}
+
+	@Test
+	void shouldApplySortingWithNullHandling() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+
+		String sql = enhancer.applySorting(Sort.by(Sort.Order.asc("foo").nullsFirst(), Sort.Order.asc("bar").nullsLast()));
+
+		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc nulls first, e.bar asc nulls last");
+	}
 }
