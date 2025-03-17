@@ -108,27 +108,26 @@ public abstract class QueryUtils {
 	private static final String SIMPLE_COUNT_VALUE = "$2";
 	private static final String COMPLEX_COUNT_VALUE = "$3 $6";
 	private static final String COMPLEX_COUNT_LAST_VALUE = "$6";
-	private static final Pattern ORDER_BY_PART = Pattern.compile("(?iu)\\s+order\\s+by\\s+.*", CASE_INSENSITIVE | DOTALL);
+	private static final Pattern ORDER_BY_PART = compile("(?iu)\\s+order\\s+by\\s+.*", CASE_INSENSITIVE | DOTALL);
 
 	private static final Pattern ALIAS_MATCH;
 	private static final Pattern COUNT_MATCH;
-	private static final Pattern STARTS_WITH_PAREN = Pattern.compile("^\\s*\\(");
-	private static final Pattern PARENS_TO_REMOVE = Pattern.compile("(\\(.*\\bfrom\\b[^)]+\\))",
+	private static final Pattern STARTS_WITH_PAREN = compile("^\\s*\\(");
+	private static final Pattern PARENS_TO_REMOVE = compile("(\\(.*\\bfrom\\b[^)]+\\))",
 			CASE_INSENSITIVE | DOTALL | MULTILINE);
-	private static final Pattern PROJECTION_CLAUSE = Pattern.compile("select\\s+(?:distinct\\s+)?(.+)\\s+from",
-			Pattern.CASE_INSENSITIVE);
+	private static final Pattern PROJECTION_CLAUSE = compile("select\\s+(?:distinct\\s+)?(.+)\\s+from", CASE_INSENSITIVE);
 
-	private static final Pattern NO_DIGITS = Pattern.compile("\\D+");
+	private static final Pattern NO_DIGITS = compile("\\D+");
 
 	private static final String JOIN = "join\\s+(fetch\\s+)?" + IDENTIFIER + "\\s+(as\\s+)?" + IDENTIFIER_GROUP;
-	private static final Pattern JOIN_PATTERN = Pattern.compile(JOIN, Pattern.CASE_INSENSITIVE);
+	private static final Pattern JOIN_PATTERN = compile(JOIN, CASE_INSENSITIVE);
 
 	private static final String EQUALS_CONDITION_STRING = "%s.%s = :%s";
-	private static final Pattern ORDER_BY = Pattern.compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
-	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = Pattern
-			.compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY = compile("(order\\s+by\\s+)", CASE_INSENSITIVE);
+	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)",
+			CASE_INSENSITIVE);
 
-	private static final Pattern NAMED_PARAMETER = Pattern.compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
+	private static final Pattern NAMED_PARAMETER = compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
 			CASE_INSENSITIVE);
 
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
@@ -139,7 +138,7 @@ public abstract class QueryUtils {
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
-	private static final Pattern PUNCTATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
+	private static final Pattern PUNCTATION_PATTERN = compile(".*((?![._])[\\p{Punct}|\\s])");
 	private static final Pattern FUNCTION_PATTERN;
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
@@ -431,13 +430,14 @@ public abstract class QueryUtils {
 	}
 
 	private static String toJpaDirection(Order order) {
+
 		String direction = order.getDirection().name().toLowerCase(Locale.US);
-		if (order.getNullHandling() == Sort.NullHandling.NULLS_FIRST) {
-			direction += " nulls first";
-		} else if (order.getNullHandling() == Sort.NullHandling.NULLS_LAST) {
-			direction += " nulls last";
-		}
-		return direction;
+
+		return switch (order.getNullHandling()) {
+			case NATIVE -> direction;
+			case NULLS_FIRST -> direction + " nulls first";
+			case NULLS_LAST -> direction + " nulls last";
+		};
 	}
 
 	/**
@@ -677,7 +677,7 @@ public abstract class QueryUtils {
 
 		List<jakarta.persistence.criteria.Order> orders = new ArrayList<>();
 
-		for (org.springframework.data.domain.Sort.Order order : sort) {
+		for (Order order : sort) {
 			orders.add(toJpaOrder(order, from, cb));
 		}
 
@@ -848,7 +848,7 @@ public abstract class QueryUtils {
 		// if this path is an optional one to one attribute navigated from the not owning side we also need an
 		// explicit outer join to avoid https://hibernate.atlassian.net/browse/HHH-12712
 		// and https://github.com/eclipse-ee4j/jpa-api/issues/170
-		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
+		boolean isInverseOptionalOneToOne = ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
 		boolean isLeafProperty = !property.hasNext();

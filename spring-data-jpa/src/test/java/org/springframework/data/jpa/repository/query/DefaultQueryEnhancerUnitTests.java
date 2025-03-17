@@ -26,8 +26,9 @@ import org.springframework.data.domain.Sort;
  * TCK Tests for {@link DefaultQueryEnhancer}.
  *
  * @author Mark Paluch
+ * @author Alim Naizabek
  */
-public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
@@ -49,7 +50,7 @@ public class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}
 
-	@Test
+	@Test // GH-3811
 	void shouldApplySortingWithNullHandling() {
 
 		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
