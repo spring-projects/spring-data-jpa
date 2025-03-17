@@ -15,11 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
-
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.query.ReturnedType;
 
 /**
@@ -27,9 +25,22 @@ import org.springframework.data.repository.query.ReturnedType;
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
- * @since 2.7.0
+ * @author Mark Paluch
+ * @since 2.7
  */
 public interface QueryEnhancer {
+
+	/**
+	 * Creates a new {@link QueryEnhancer} for a {@link DeclaredQuery}. Convenience method for
+	 * {@link QueryEnhancerFactory#create(QueryProvider)}.
+	 *
+	 * @param query the query to be enhanced.
+	 * @return the new {@link QueryEnhancer}.
+	 * @since 4.0
+	 */
+	static QueryEnhancer create(DeclaredQuery query) {
+		return QueryEnhancerFactory.forQuery(query).create(query);
+	}
 
 	/**
 	 * Returns whether the given JPQL query contains a constructor expression.
@@ -39,9 +50,9 @@ public interface QueryEnhancer {
 	boolean hasConstructorExpression();
 
 	/**
-	 * Resolves the alias for the entity to be retrieved from the given JPA query.
+	 * Resolves the primary alias for the entity to be retrieved from the given JPA query.
 	 *
-	 * @return Might return {@literal null}.
+	 * @return can return {@literal null}.
 	 */
 	@Nullable
 	String detectAlias();
@@ -54,59 +65,23 @@ public interface QueryEnhancer {
 	String getProjection();
 
 	/**
-	 * Returns the join aliases of the query.
-	 *
-	 * @return the join aliases of the query.
-	 */
-	@Deprecated(forRemoval = true)
-	Set<String> getJoinAliases();
-
-	/**
 	 * Gets the query we want to use for enhancements.
 	 *
 	 * @return non-null {@link DeclaredQuery} that wraps the query.
 	 */
-	StructuredQuery getQuery();
-
-	/**
-	 * Adds {@literal order by} clause to the JPQL query. Uses the first alias to bind the sorting property to.
-	 *
-	 * @param sort the sort specification to apply.
-	 * @return the modified query string.
-	 */
-	String applySorting(Sort sort);
-
-	/**
-	 * Adds {@literal order by} clause to the JPQL query.
-	 *
-	 * @param sort the sort specification to apply.
-	 * @param alias the alias to be used in the order by clause. May be {@literal null} or empty.
-	 * @return the modified query string.
-	 * @deprecated since 3.5, use {@link #rewrite(QueryRewriteInformation)} instead.
-	 */
-	@Deprecated(since = "3.5", forRemoval = true)
-	String applySorting(Sort sort, @Nullable String alias);
+	QueryProvider getQuery();
 
 	/**
 	 * Rewrite the query to include sorting and apply {@link ReturnedType} customizations.
 	 *
 	 * @param rewriteInformation the rewrite information to apply.
 	 * @return the modified query string.
-	 * @since 3.5
+	 * @since 4.0
 	 */
 	String rewrite(QueryRewriteInformation rewriteInformation);
 
 	/**
-	 * Creates a count projected query from the given original query.
-	 *
-	 * @return Guaranteed to be not {@literal null}.
-	 */
-	default String createCountQueryFor() {
-		return createCountQueryFor(null);
-	}
-
-	/**
-	 * Creates a count projected query from the given original query using the provided <code>countProjection</code>.
+	 * Creates a count projected query from the given original query using the provided {@code countProjection}.
 	 *
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
@@ -116,7 +91,7 @@ public interface QueryEnhancer {
 	/**
 	 * Interface to describe the information needed to rewrite a query.
 	 *
-	 * @since 3.5
+	 * @since 4.0
 	 */
 	interface QueryRewriteInformation {
 
@@ -129,6 +104,7 @@ public interface QueryEnhancer {
 		 * @return type expected to be returned by the query.
 		 */
 		ReturnedType getReturnedType();
+
 	}
 
 }

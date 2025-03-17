@@ -16,23 +16,22 @@
 package org.springframework.data.jpa.repository.query;
 
 /**
+ * Interface indicating an object that contains and exposes an {@code query string}. This can be either a JPQL query
+ * string or a SQL query string.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
+ * @since 4.0
+ * @see DeclaredQuery#jpqlQuery(String)
+ * @see DeclaredQuery#nativeQuery(String)
  */
-final class JpqlQuery implements DeclaredQuery {
+public interface QueryProvider {
 
-    private final String jpql;
+	/**
+	 * Return the query string.
+	 *
+	 * @return the query string.
+	 */
+	String getQueryString();
 
-    JpqlQuery(String jpql) {
-        this.jpql = jpql;
-    }
-
-    @Override
-    public boolean isNativeQuery() {
-        return false;
-    }
-
-    @Override
-    public String getQueryString() {
-        return jpql;
-    }
 }

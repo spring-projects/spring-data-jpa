@@ -18,34 +18,24 @@ package org.springframework.data.jpa.repository.query;
 import java.util.List;
 
 /**
- * A wrapper for a String representation of a query offering information about the query.
+ * A parsed and structured representation of a query providing introspection details about parameter bindings.
+ * <p>
+ * Structured queries can be either created from {@link EntityQuery} introspection or through
+ * {@link EntityQuery#deriveCountQuery(String) count query derivation}.
  *
  * @author Jens Schauder
  * @author Diego Krupitza
- * @since 2.0.3
+ * @since 4.0
+ * @see EntityQuery
+ * @see EntityQuery#create(DeclaredQuery, QueryEnhancerSelector)
+ * @see TemplatedQuery#create(String, JpaQueryMethod, JpaQueryConfiguration)
  */
-interface IntrospectedQuery extends StructuredQuery {
-
-	DeclaredQuery getDeclaredQuery();
-
-	default String getQueryString() {
-		return getDeclaredQuery().getQueryString();
-	}
+interface ParametrizedQuery extends QueryProvider {
 
 	/**
-	 * @return whether the underlying query has at least one named parameter.
+	 * @return whether the underlying query has at least one parameter.
 	 */
-	boolean hasNamedParameter();
-
-	/**
-	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.
-	 */
-	boolean isDefaultProjection();
-
-	/**
-	 * Returns the {@link ParameterBinding}s registered.
-	 */
-	List<ParameterBinding> getParameterBindings();
+	boolean hasParameterBindings();
 
 	/**
 	 * Returns whether the query uses JDBC style parameters, i.e. parameters denoted by a simple ? without any index or
@@ -55,5 +45,15 @@ interface IntrospectedQuery extends StructuredQuery {
 	 * @since 2.0.6
 	 */
 	boolean usesJdbcStyleParameters();
+
+	/**
+	 * @return whether the underlying query has at least one named parameter.
+	 */
+	boolean hasNamedParameter();
+
+	/**
+	 * @return the registered {@link ParameterBinding}s.
+	 */
+	List<ParameterBinding> getParameterBindings();
 
 }

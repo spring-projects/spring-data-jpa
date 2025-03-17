@@ -27,6 +27,8 @@ import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * @author Mark Paluch
@@ -44,6 +46,7 @@ public class HqlParserBenchmarks {
 		DeclaredQuery query;
 		Sort sort = Sort.by("foo");
 		QueryEnhancer enhancer;
+		QueryEnhancer.QueryRewriteInformation rewriteInformation;
 
 		@Setup(Level.Iteration)
 		public void doSetup() {
@@ -57,12 +60,14 @@ public class HqlParserBenchmarks {
 
 			query = DeclaredQuery.jpqlQuery(s);
 			enhancer = QueryEnhancerFactory.forQuery(query).create(query);
+			rewriteInformation = new DefaultQueryRewriteInformation(sort,
+					ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 		}
 	}
 
 	@Benchmark
 	public Object measure(BenchmarkParameters parameters) {
-		return parameters.enhancer.applySorting(parameters.sort);
+		return parameters.enhancer.rewrite(parameters.rewriteInformation);
 	}
 
 }

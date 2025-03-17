@@ -16,13 +16,13 @@
 package org.springframework.data.jpa.repository.query;
 
 /**
- * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link IntrospectedQuery}.
+ * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link ParametrizedQuery}.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Christoph Strobl
- * @since 2.7
+ * @since 4.0
  */
 public interface QueryEnhancerFactory {
 
@@ -38,9 +38,9 @@ public interface QueryEnhancerFactory {
 	 * Creates a new {@link QueryEnhancer} for the given query.
 	 *
 	 * @param query the query to be enhanced and introspected.
-	 * @return
+	 * @return the query enhancer to be used.
 	 */
-	QueryEnhancer create(StructuredQuery query);
+	QueryEnhancer create(QueryProvider query);
 
 	/**
 	 * Creates a new {@link QueryEnhancerFactory} for the given {@link DeclaredQuery}.

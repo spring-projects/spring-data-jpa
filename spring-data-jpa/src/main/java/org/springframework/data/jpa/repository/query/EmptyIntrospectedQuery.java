@@ -18,21 +18,30 @@ package org.springframework.data.jpa.repository.query;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.data.domain.Sort;
 import org.jspecify.annotations.Nullable;
 
 /**
- * NULL-Object pattern implementation for {@link IntrospectedQuery}.
+ * NULL-Object pattern implementation for {@link ParametrizedQuery}.
  *
  * @author Jens Schauder
+ * @author Mark Paluch
  * @since 2.0.3
  */
-class EmptyIntrospectedQuery implements EntityQuery {
+enum EmptyIntrospectedQuery implements EntityQuery {
 
-	/**
-	 * An implementation implementing the NULL-Object pattern for situations where there is no query.
-	 */
-	static final EntityQuery EMPTY_QUERY = new EmptyIntrospectedQuery();
+	INSTANCE;
+
+	EmptyIntrospectedQuery() {}
+
+	@Override
+	public boolean hasParameterBindings() {
+		return false;
+	}
+
+	@Override
+	public boolean usesJdbcStyleParameters() {
+		return false;
+	}
 
 	@Override
 	public boolean hasNamedParameter() {
@@ -40,17 +49,12 @@ class EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
-	public String getQueryString() {
-		return "";
+	public List<ParameterBinding> getParameterBindings() {
+		return Collections.emptyList();
 	}
 
 	public @Nullable String getAlias() {
 		return null;
-	}
-
-	@Override
-	public boolean isNativeQuery() {
-		return false;
 	}
 
 	@Override
@@ -69,27 +73,18 @@ class EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
-	public List<ParameterBinding> getParameterBindings() {
-		return Collections.emptyList();
+	public ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection) {
+		return INSTANCE;
 	}
 
 	@Override
-	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
-		return EMPTY_QUERY;
+	public QueryProvider rewrite(QueryEnhancer.QueryRewriteInformation rewriteInformation) {
+		return this;
 	}
 
 	@Override
-	public String applySorting(Sort sort) {
-		return "";
+	public String toString() {
+		return "<EMPTY>";
 	}
 
-	@Override
-	public boolean usesJdbcStyleParameters() {
-		return false;
-	}
-
-	@Override
-	public DeclaredQuery getDeclaredQuery() {
-		return DeclaredQuery.nativeQuery("");
-	}
 }

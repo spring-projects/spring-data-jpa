@@ -16,9 +16,21 @@
 package org.springframework.data.jpa.repository.query;
 
 /**
- * @author Christoph Strobl
+ * Test-variant of {@link DefaultEntityQuery} with a simpler constructor.
+ *
+ * @author Mark Paluch
  */
-public interface StructuredQuery {
+class TestEntityQuery extends DefaultEntityQuery {
 
-    String getQueryString();
+	/**
+	 * Creates a new {@link DefaultEntityQuery} from the given JPQL query.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 */
+	TestEntityQuery(String query, boolean isNative) {
+
+		super(PreprocessedQuery.parse(isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query)),
+				QueryEnhancerSelector.DEFAULT_SELECTOR
+						.select(isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query)));
+	}
 }

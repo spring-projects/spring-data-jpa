@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -36,7 +35,6 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.util.Assert;
 
 /**
  * Implementation of {@link QueryEnhancer} to enhance JPA queries using ANTLR parsers.
@@ -55,11 +53,11 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	private final Q queryInformation;
 	private final String projection;
 	private final SortedQueryRewriteFunction<Q> sortFunction;
-	private final BiFunction<String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction;
+	private final BiFunction<@Nullable String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction;
 
 	JpaQueryEnhancer(ParserRuleContext context, ParsedQueryIntrospector<Q> introspector,
 			SortedQueryRewriteFunction<Q> sortFunction,
-			BiFunction<String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction) {
+			BiFunction<@Nullable String, Q, ParseTreeVisitor<QueryTokenStream>> countQueryFunction) {
 
 		this.context = context;
 		this.sortFunction = sortFunction;
@@ -142,7 +140,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using JPQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using JPQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using JPQL.
@@ -152,7 +150,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using HQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using HQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using HQL.
@@ -162,7 +160,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link IntrospectedQuery} using EQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using EQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using EQL.
@@ -197,8 +195,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Resolves the alias for the entity in the FROM clause from the JPA query. Since the {@link JpaQueryParser} can
-	 * already find the alias when generating sorted and count queries, this is mainly to serve test cases.
+	 * Resolves the alias for the entity in the FROM clause from the JPA query.
 	 */
 	@Override
 	public @Nullable String detectAlias() {
@@ -206,22 +203,11 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Looks up the projection of the JPA query. Since the {@link JpaQueryParser} can already find the projection when
-	 * generating sorted and count queries, this is mainly to serve test cases.
+	 * Looks up the projection of the JPA query.
 	 */
 	@Override
 	public String getProjection() {
 		return this.projection;
-	}
-
-	/**
-	 * Since the parser can already fully transform sorted and count queries by itself, this is a placeholder method.
-	 *
-	 * @return empty set
-	 */
-	@Override
-	public Set<String> getJoinAliases() {
-		return Set.of();
 	}
 
 	/**
@@ -232,44 +218,11 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 		throw new UnsupportedOperationException();
 	}
 
-	/**
-	 * Adds an {@literal order by} clause to the JPA query.
-	 *
-	 * @param sort the sort specification to apply.
-	 * @return
-	 */
-	@Override
-	public String applySorting(Sort sort) {
-		return QueryRenderer.TokenRenderer.render(sortFunction.apply(sort, this.queryInformation, null).visit(context));
-	}
-
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
 		return QueryRenderer.TokenRenderer.render(
 				sortFunction.apply(rewriteInformation.getSort(), this.queryInformation, rewriteInformation.getReturnedType())
 						.visit(context));
-	}
-
-	/**
-	 * Because the parser can find the alias of the FROM clause, there is no need to "find it" in advance.
-	 *
-	 * @param sort the sort specification to apply.
-	 * @param alias IGNORED
-	 * @return
-	 */
-	@Override
-	public String applySorting(Sort sort, @Nullable String alias) {
-		return applySorting(sort);
-	}
-
-	/**
-	 * Creates a count query from the original query, with no count projection.
-	 *
-	 * @return Guaranteed to be not {@literal null};
-	 */
-	@Override
-	public String createCountQueryFor() {
-		return createCountQueryFor(null);
 	}
 
 	/**

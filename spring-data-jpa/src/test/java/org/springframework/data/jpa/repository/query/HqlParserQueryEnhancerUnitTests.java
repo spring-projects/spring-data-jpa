@@ -30,7 +30,7 @@ public class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
 
-		assumeThat(query.isNativeQuery()).isFalse();
+		assumeThat(query.isNative()).isFalse();
 
 		return JpaQueryEnhancer.forHql(query.getQueryString());
 	}

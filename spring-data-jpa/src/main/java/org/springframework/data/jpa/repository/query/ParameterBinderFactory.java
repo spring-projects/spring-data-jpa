@@ -78,13 +78,13 @@ class ParameterBinderFactory {
 	 * query in order to ensure that all query parameters are bound.
 	 *
 	 * @param parameters method parameters that are available for binding, must not be {@literal null}.
-	 * @param query the {@link StringQuery} the binders shall be created for, must not be {@literal null}.
+	 * @param query the {@link DefaultEntityQuery} the binders shall be created for, must not be {@literal null}.
 	 * @param parser must not be {@literal null}.
 	 * @param evaluationContextProvider must not be {@literal null}.
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link jakarta.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, IntrospectedQuery query,
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, ParametrizedQuery query,
 			ValueExpressionParser parser, ValueEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
@@ -126,11 +126,11 @@ class ParameterBinderFactory {
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
 			QueryParameterSetterFactory... factories) {
-		return createSetters(parameterBindings, EmptyIntrospectedQuery.EMPTY_QUERY, factories);
+		return createSetters(parameterBindings, EmptyIntrospectedQuery.INSTANCE, factories);
 	}
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
-			IntrospectedQuery query, QueryParameterSetterFactory... strategies) {
+			ParametrizedQuery query, QueryParameterSetterFactory... strategies) {
 
 		List<QueryParameterSetter> setters = new ArrayList<>(parameterBindings.size());
 		for (ParameterBinding parameterBinding : parameterBindings) {
@@ -141,7 +141,7 @@ class ParameterBinderFactory {
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, IntrospectedQuery query) {
+			QueryParameterSetterFactory[] strategies, ParametrizedQuery query) {
 
 		for (QueryParameterSetterFactory strategy : strategies) {
 

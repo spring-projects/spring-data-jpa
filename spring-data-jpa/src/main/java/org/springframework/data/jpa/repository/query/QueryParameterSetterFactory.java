@@ -20,9 +20,9 @@ import jakarta.persistence.TemporalType;
 
 import java.util.function.Function;
 
-import org.springframework.data.expression.ValueEvaluationContext;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.expression.ValueEvaluationContext;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
@@ -54,7 +54,7 @@ abstract class QueryParameterSetterFactory {
 	 * @param binding the parameter binding to create a {@link QueryParameterSetter} for.
 	 * @return
 	 */
-	abstract @Nullable QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery);
+	abstract @Nullable QueryParameterSetter create(ParameterBinding binding, ParametrizedQuery parametrizedQuery);
 
 	/**
 	 * Creates a new {@link QueryParameterSetterFactory} for the given {@link JpaParameters}.
@@ -180,7 +180,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public @Nullable QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding, ParametrizedQuery parametrizedQuery) {
 
 			if (!(binding.getOrigin() instanceof ParameterBinding.Expression e)) {
 				return null;
@@ -212,7 +212,7 @@ abstract class QueryParameterSetterFactory {
 	private static class SyntheticParameterSetterFactory extends QueryParameterSetterFactory {
 
 		@Override
-		public @Nullable QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery query) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding, ParametrizedQuery query) {
 
 			if (!(binding.getOrigin() instanceof ParameterBinding.Synthetic s)) {
 				return null;
@@ -248,7 +248,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public @Nullable QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery introspectedQuery) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding, ParametrizedQuery query) {
 
 			Assert.notNull(binding, "Binding must not be null");
 
@@ -294,7 +294,7 @@ abstract class QueryParameterSetterFactory {
 		}
 
 		@Override
-		public @Nullable QueryParameterSetter create(ParameterBinding binding, IntrospectedQuery query) {
+		public @Nullable QueryParameterSetter create(ParameterBinding binding, ParametrizedQuery query) {
 
 			if (binding instanceof ParameterBinding.PartTreeParameterBinding ptb) {
 

@@ -70,7 +70,7 @@ import org.springframework.util.StringUtils;
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
-	private final StructuredQuery query;
+	private final QueryProvider query;
 	private final Statement statement;
 	private final ParsedType parsedType;
 	private final boolean hasConstructorExpression;
@@ -83,7 +83,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	/**
 	 * @param query the query we want to enhance. Must not be {@literal null}.
 	 */
-	public JSqlParserQueryEnhancer(StructuredQuery query) {
+	public JSqlParserQueryEnhancer(QueryProvider query) {
 
 		this.query = query;
 		this.statement = parseStatement(query.getQueryString(), Statement.class);
@@ -285,33 +285,18 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		return this.projection;
 	}
 
-	@Override
-	public Set<String> getJoinAliases() {
-		return joinAliases;
-	}
-
 	public Set<String> getSelectionAliases() {
 		return selectAliases;
 	}
 
 	@Override
-	public StructuredQuery getQuery() {
+	public QueryProvider getQuery() {
 		return this.query;
-	}
-
-	@Override
-	public String applySorting(Sort sort) {
-		return doApplySorting(sort, detectAlias());
 	}
 
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
 		return doApplySorting(rewriteInformation.getSort(), primaryAlias);
-	}
-
-	@Override
-	public String applySorting(Sort sort, @Nullable String alias) {
-		return doApplySorting(sort, alias);
 	}
 
 	private String doApplySorting(Sort sort, @Nullable String alias) {
@@ -373,8 +358,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		return createCountQueryFor(selectBody, countProjection, primaryAlias);
 	}
 
-	private static String createCountQueryFor(StructuredQuery query, PlainSelect selectBody,
-			@Nullable String countProjection, @Nullable String primaryAlias) {
+	private static String createCountQueryFor(PlainSelect selectBody, @Nullable String countProjection,
+			@Nullable String primaryAlias) {
 
 		// remove order by
 		selectBody.setOrderByElements(null);

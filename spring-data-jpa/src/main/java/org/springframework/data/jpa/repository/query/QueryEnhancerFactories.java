@@ -25,10 +25,11 @@ import org.springframework.util.ClassUtils;
  * Pre-defined QueryEnhancerFactories to be used for query enhancement.
  *
  * @author Mark Paluch
+ * @since 4.0
  */
 public class QueryEnhancerFactories {
 
-	private static final Log LOG = LogFactory.getLog(QueryEnhancerFactory.class);
+	private static final Log LOG = LogFactory.getLog(QueryEnhancerFactories.class);
 
 	static final boolean jSqlParserPresent = ClassUtils.isPresent("net.sf.jsqlparser.parser.JSqlParser",
 			QueryEnhancerFactory.class.getClassLoader());
@@ -57,7 +58,7 @@ public class QueryEnhancerFactories {
 			}
 
 			@Override
-			public QueryEnhancer create(StructuredQuery query) {
+			public QueryEnhancer create(QueryProvider query) {
 				return new DefaultQueryEnhancer(query);
 			}
 		},
@@ -65,11 +66,12 @@ public class QueryEnhancerFactories {
 		JSQLPARSER {
 			@Override
 			public boolean supports(DeclaredQuery query) {
-				return query.isNativeQuery();
+				return query.isNative();
 			}
 
 			@Override
-			public QueryEnhancer create(StructuredQuery query) {
+			public QueryEnhancer create(QueryProvider query) {
+
 				if (jSqlParserPresent) {
 					return new JSqlParserQueryEnhancer(query);
 				}
@@ -81,33 +83,33 @@ public class QueryEnhancerFactories {
 		HQL {
 			@Override
 			public boolean supports(DeclaredQuery query) {
-				return !query.isNativeQuery();
+				return query.isJpql();
 			}
 
 			@Override
-			public QueryEnhancer create(StructuredQuery query) {
+			public QueryEnhancer create(QueryProvider query) {
 				return JpaQueryEnhancer.forHql(query.getQueryString());
 			}
 		},
 		EQL {
 			@Override
 			public boolean supports(DeclaredQuery query) {
-				return !query.isNativeQuery();
+				return query.isJpql();
 			}
 
 			@Override
-			public QueryEnhancer create(StructuredQuery query) {
+			public QueryEnhancer create(QueryProvider query) {
 				return JpaQueryEnhancer.forEql(query.getQueryString());
 			}
 		},
 		JPQL {
 			@Override
 			public boolean supports(DeclaredQuery query) {
-				return !query.isNativeQuery();
+				return query.isJpql();
 			}
 
 			@Override
-			public QueryEnhancer create(StructuredQuery query) {
+			public QueryEnhancer create(QueryProvider query) {
 				return JpaQueryEnhancer.forJpql(query.getQueryString());
 			}
 		}
@@ -165,4 +167,5 @@ public class QueryEnhancerFactories {
 	public static QueryEnhancerFactory jpql() {
 		return BuiltinQueryEnhancerFactories.JPQL;
 	}
+
 }

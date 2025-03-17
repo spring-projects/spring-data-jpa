@@ -54,4 +54,5 @@ public class JpaQueryConfiguration {
 	public ValueExpressionDelegate getValueExpressionDelegate() {
 		return valueExpressionDelegate;
 	}
+
 }

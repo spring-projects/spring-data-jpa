@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * TCK Tests for {@link DefaultQueryEnhancer}.
@@ -45,7 +47,8 @@ class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery("SELECT e FROM Employee e"));
 
-		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
+		String sql = enhancer.rewrite(new DefaultQueryRewriteInformation(Sort.by("foo", "bar"),
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}
@@ -53,9 +56,11 @@ class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-3811
 	void shouldApplySortingWithNullHandling() {
 
-		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery("SELECT e FROM Employee e"));
 
-		String sql = enhancer.applySorting(Sort.by(Sort.Order.asc("foo").nullsFirst(), Sort.Order.asc("bar").nullsLast()));
+		String sql = enhancer.rewrite(new DefaultQueryRewriteInformation(
+				Sort.by(Sort.Order.asc("foo").nullsFirst(), Sort.Order.asc("bar").nullsLast()),
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc nulls first, e.bar asc nulls last");
 	}
