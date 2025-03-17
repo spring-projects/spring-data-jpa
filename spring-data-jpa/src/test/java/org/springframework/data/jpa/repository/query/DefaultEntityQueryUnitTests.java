@@ -28,11 +28,10 @@ import org.springframework.data.jpa.repository.query.ParameterBinding.InParamete
 import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
 import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 import org.springframework.data.repository.query.parser.Part.Type;
 
 /**
- * Unit tests for {@link StringQuery}.
+ * Unit tests for {@link DefaultEntityQuery}.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -44,13 +43,13 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Aleksei Elin
  * @author Gunha Hwang
  */
-class StringQueryUnitTests {
+class DefaultEntityQueryUnitTests {
 
 	@Test // DATAJPA-341
 	void doesNotConsiderPlainLikeABinding() {
 
 		String source = "select u from User u where u.firstname like :firstname";
-		StringQuery query = new StringQuery(source, false);
+		DefaultEntityQuery query = new TestEntityQuery(source, false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(source);
@@ -67,8 +66,8 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-292
 	void detectsPositionalLikeBindings() {
 
-		StringQuery query = new StringQuery("select u from User u where u.firstname like %?1% or u.lastname like %?2",
-				true);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select u from User u where u.firstname like %?1% or u.lastname like %?2", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
@@ -91,7 +90,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-292, GH-3041
 	void detectsAnonymousLikeBindings() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %?% or u.lastname like %? or u.lastname=?", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -117,7 +116,8 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-292, GH-3041
 	void detectsNamedLikeBindings() {
 
-		StringQuery query = new StringQuery("select u from User u where u.firstname like %:firstname", true);
+		DefaultEntityQuery query = new TestEntityQuery("select u from User u where u.firstname like %:firstname",
+				true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like :firstname");
@@ -134,7 +134,7 @@ class StringQueryUnitTests {
 	@Test // GH-3041
 	void rewritesNamedLikeToUniqueParametersIfNecessary() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname% or u.firstname = :firstname",
 				true);
 
@@ -165,7 +165,7 @@ class StringQueryUnitTests {
 	@Test // GH-3784
 	void rewritesNamedLikeToUniqueParametersRetainingCountQuery() {
 
-		DeclaredQuery query = new StringQuery(
+		ParametrizedQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname% or u.firstname = :firstname",
 				false).deriveCountQuery(null);
 
@@ -198,7 +198,7 @@ class StringQueryUnitTests {
 	@Test // GH-3784
 	void rewritesExpressionsLikeToUniqueParametersRetainingCountQuery() {
 
-		DeclaredQuery query = new StringQuery(
+		ParametrizedQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:#{firstname} or u.firstname like :#{firstname}%", false)
 				.deriveCountQuery(null);
 
@@ -225,7 +225,7 @@ class StringQueryUnitTests {
 	@Test // GH-3041
 	void rewritesPositionalLikeToUniqueParametersIfNecessary() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %?1 or u.firstname like ?1% or u.firstname = ?1", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -239,7 +239,7 @@ class StringQueryUnitTests {
 	@Test // GH-3041
 	void reusesNamedLikeBindingsWherePossible() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:firstname or u.firstname like %:firstname% or u.firstname like %:firstname% or u.firstname like %:firstname",
 				true);
 
@@ -247,7 +247,8 @@ class StringQueryUnitTests {
 		assertThat(query.getQueryString()).isEqualTo(
 				"select u from User u where u.firstname like :firstname or u.firstname like :firstname_1 or u.firstname like :firstname_1 or u.firstname like :firstname");
 
-		query = new StringQuery("select u from User u where u.firstname like %:firstname or u.firstname =:firstname", true);
+		query = new TestEntityQuery(
+				"select u from User u where u.firstname like %:firstname or u.firstname =:firstname", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString())
@@ -257,7 +258,7 @@ class StringQueryUnitTests {
 	@Test // GH-3041
 	void reusesPositionalLikeBindingsWherePossible() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %?1 or u.firstname like %?1% or u.firstname like %?1% or u.firstname like %?1",
 				false);
 
@@ -265,7 +266,7 @@ class StringQueryUnitTests {
 		assertThat(query.getQueryString()).isEqualTo(
 				"select u from User u where u.firstname like ?1 or u.firstname like ?2 or u.firstname like ?2 or u.firstname like ?1");
 
-		query = new StringQuery("select u from User u where u.firstname like %?1 or u.firstname =?1", false);
+		query = new TestEntityQuery("select u from User u where u.firstname like %?1 or u.firstname =?1", false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like ?1 or u.firstname =?2");
@@ -274,7 +275,7 @@ class StringQueryUnitTests {
 	@Test // GH-3041
 	void shouldRewritePositionalBindingsWithParameterReuse() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like ?2 or u.firstname like %?2% or u.firstname like %?1% or u.firstname like %?1 OR u.firstname like ?1",
 				false);
 
@@ -296,8 +297,8 @@ class StringQueryUnitTests {
 	@Test // GH-3758
 	void createsDistinctBindingsForIndexedSpel() {
 
-		StringQuery query = new StringQuery("select u from User u where u.firstname = ?#{foo} OR u.firstname = ?#{foo}",
-				false);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select u from User u where u.firstname = ?#{foo} OR u.firstname = ?#{foo}", false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getParameterBindings()).hasSize(2).extracting(ParameterBinding::getRequiredPosition)
@@ -310,8 +311,8 @@ class StringQueryUnitTests {
 	@Test // GH-3758
 	void createsDistinctBindingsForNamedSpel() {
 
-		StringQuery query = new StringQuery("select u from User u where u.firstname = :#{foo} OR u.firstname = :#{foo}",
-				false);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select u from User u where u.firstname = :#{foo} OR u.firstname = :#{foo}", false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getParameterBindings()).hasSize(2).extracting(ParameterBinding::getOrigin)
@@ -323,7 +324,7 @@ class StringQueryUnitTests {
 	void detectsNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(queryString);
@@ -338,7 +339,7 @@ class StringQueryUnitTests {
 	void detectsMultipleNamedInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in :ids and u.name in :names and foo = :bar";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(queryString);
@@ -355,7 +356,7 @@ class StringQueryUnitTests {
 	void deriveCountQueryWithNamedInRetainsOrigin() {
 
 		String queryString = "select u from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins)";
-		DeclaredQuery query = new StringQuery(queryString, false).deriveCountQuery(null);
+		ParametrizedQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
 
 		assertThat(query.getQueryString())
 				.isEqualTo("select count(u) from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins_1)");
@@ -376,7 +377,7 @@ class StringQueryUnitTests {
 	void deriveCountQueryWithPositionalInRetainsOrigin() {
 
 		String queryString = "select u from User u where (?1) IS NULL OR LOWER(u.login) IN (?1)";
-		DeclaredQuery query = new StringQuery(queryString, false).deriveCountQuery(null);
+		ParametrizedQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
 
 		assertThat(query.getQueryString())
 				.isEqualTo("select count(u) from User u where (?1) IS NULL OR LOWER(u.login) IN (?2)");
@@ -397,7 +398,7 @@ class StringQueryUnitTests {
 	void detectsPositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(queryString);
@@ -411,7 +412,7 @@ class StringQueryUnitTests {
 	@Test // GH-3126
 	void allowsReuseOfParameterWithInAndRegularBinding() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where COALESCE(?1) is null OR u.id in ?1 OR COALESCE(?1) is null OR u.id in ?1", true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -424,7 +425,7 @@ class StringQueryUnitTests {
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
 		assertPositionalBinding(InParameterBinding.class, 2, bindings.get(1));
 
-		query = new StringQuery(
+		query = new TestEntityQuery(
 				"select u from User u where COALESCE(:foo) is null OR u.id in :foo OR COALESCE(:foo) is null OR u.id in :foo",
 				true);
 
@@ -443,7 +444,7 @@ class StringQueryUnitTests {
 	void detectsPositionalInParameterBindingsAndExpressions() {
 
 		String queryString = "select u from User u where foo = ?#{bar} and bar = ?3 and baz = ?#{baz}";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where foo = ?1 and bar = ?3 and baz = ?2");
 	}
@@ -452,7 +453,7 @@ class StringQueryUnitTests {
 	void detectsPositionalInParameterBindingsAndExpressionsWithReuse() {
 
 		String queryString = "select u from User u where foo = ?#{bar} and bar = ?2 and baz = ?#{bar}";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.getQueryString()).isEqualTo("select u from User u where foo = ?1 and bar = ?2 and baz = ?3");
 	}
@@ -460,17 +461,17 @@ class StringQueryUnitTests {
 	@Test // GH-3126
 	void countQueryDerivationRetainsNamedExpressionParameters() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where foo = :#{bar} ORDER BY CASE WHEN (u.firstname >= :#{name}) THEN 0 ELSE 1 END",
 				false);
 
-		DeclaredQuery countQuery = query.deriveCountQuery(null);
+		ParametrizedQuery countQuery = query.deriveCountQuery(null);
 
 		assertThat(countQuery.getParameterBindings()).hasSize(1);
 		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
 				.extracting(ParameterOrigin::isExpression).isEqualTo(List.of(true));
 
-		query = new StringQuery(
+		query = new TestEntityQuery(
 				"select u from User u where foo = :#{bar} and bar = :bar ORDER BY CASE WHEN (u.firstname >= :bar) THEN 0 ELSE 1 END",
 				false);
 
@@ -485,17 +486,17 @@ class StringQueryUnitTests {
 	@Test // GH-3126
 	void countQueryDerivationRetainsIndexedExpressionParameters() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select u from User u where foo = ?#{bar} ORDER BY CASE WHEN (u.firstname >= ?#{name}) THEN 0 ELSE 1 END",
 				false);
 
-		DeclaredQuery countQuery = query.deriveCountQuery(null);
+		ParametrizedQuery countQuery = query.deriveCountQuery(null);
 
 		assertThat(countQuery.getParameterBindings()).hasSize(1);
 		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
 				.extracting(ParameterOrigin::isExpression).isEqualTo(List.of(true));
 
-		query = new StringQuery(
+		query = new TestEntityQuery(
 				"select u from User u where foo = ?#{bar} and bar = ?1 ORDER BY CASE WHEN (u.firstname >= ?1) THEN 0 ELSE 1 END",
 				false);
 
@@ -511,7 +512,7 @@ class StringQueryUnitTests {
 	void detectsMultiplePositionalInParameterBindings() {
 
 		String queryString = "select u from User u where u.id in ?1 and u.names in ?2 and foo = ?3";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.hasParameterBindings()).isTrue();
 		assertThat(query.getQueryString()).isEqualTo(queryString);
@@ -527,13 +528,13 @@ class StringQueryUnitTests {
 
 	@Test // DATAJPA-373
 	void handlesMultipleNamedLikeBindingsCorrectly() {
-		new StringQuery("select u from User u where u.firstname like %:firstname or foo like :bar", true);
+		new TestEntityQuery("select u from User u where u.firstname like %:firstname or foo like :bar", true);
 	}
 
 	@Test // DATAJPA-461
 	void treatsGreaterThanBindingAsSimpleBinding() {
 
-		StringQuery query = new StringQuery("select u from User u where u.createdDate > ?1", true);
+		DefaultEntityQuery query = new TestEntityQuery("select u from User u where u.createdDate > ?1", true);
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
 		assertThat(bindings).hasSize(1);
@@ -544,8 +545,10 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-473
 	void removesLikeBindingsFromQueryIfQueryContainsSimpleBinding() {
 
-		StringQuery query = new StringQuery("SELECT a FROM Article a WHERE a.overview LIKE %:escapedWord% ESCAPE '~'"
-				+ " OR a.content LIKE %:escapedWord% ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC", true);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"SELECT a FROM Article a WHERE a.overview LIKE %:escapedWord% ESCAPE '~'"
+						+ " OR a.content LIKE %:escapedWord% ESCAPE '~' OR a.title = :word ORDER BY a.articleId DESC",
+				true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -560,7 +563,8 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-483
 	void detectsInBindingWithParentheses() {
 
-		StringQuery query = new StringQuery("select count(we) from MyEntity we where we.status in (:statuses)", true);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select count(we) from MyEntity we where we.status in (:statuses)", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -571,7 +575,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-545
 	void detectsInBindingWithSpecialFrenchCharactersInParentheses() {
 
-		StringQuery query = new StringQuery("select * from MyEntity where abonnés in (:abonnés)", true);
+		DefaultEntityQuery query = new TestEntityQuery("select * from MyEntity where abonnés in (:abonnés)", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -582,7 +586,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-545
 	void detectsInBindingWithSpecialCharactersInParentheses() {
 
-		StringQuery query = new StringQuery("select * from MyEntity where øre in (:øre)", true);
+		DefaultEntityQuery query = new TestEntityQuery("select * from MyEntity where øre in (:øre)", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -593,7 +597,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-545
 	void detectsInBindingWithSpecialAsianCharactersInParentheses() {
 
-		StringQuery query = new StringQuery("select * from MyEntity where 생일 in (:생일)", true);
+		DefaultEntityQuery query = new TestEntityQuery("select * from MyEntity where 생일 in (:생일)", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -604,7 +608,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-545
 	void detectsInBindingWithSpecialCharactersAndWordCharactersMixedInParentheses() {
 
-		StringQuery query = new StringQuery("select * from MyEntity where foo in (:ab1babc생일233)", true);
+		DefaultEntityQuery query = new TestEntityQuery("select * from MyEntity where foo in (:ab1babc생일233)", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 
@@ -615,7 +619,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-712, GH-3619
 	void shouldReplaceAllNamedExpressionParametersWithInClause() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select a from A a where a.b in :#{#bs} and a.c in :#{#cs} and a.d in :${foo.bar}", true);
 		String queryString = query.getQueryString();
 
@@ -626,7 +630,7 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-712
 	void shouldReplaceExpressionWithLikeParameters() {
 
-		StringQuery query = new StringQuery(
+		DefaultEntityQuery query = new TestEntityQuery(
 				"select a from A a where a.b LIKE :#{#filter.login}% and a.c LIKE %:#{#filter.login}", true);
 		String queryString = query.getQueryString();
 
@@ -637,8 +641,8 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-712, GH-3619
 	void shouldReplaceAllPositionExpressionParametersWithInClause() {
 
-		StringQuery query = new StringQuery("select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs} and a.d in ?${foo}",
-				true);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select a from A a where a.b in ?#{#bs} and a.c in ?#{#cs} and a.d in ?${foo}", true);
 		String queryString = query.getQueryString();
 
 		assertThat(queryString).isEqualTo("select a from A a where a.b in ?1 and a.c in ?2 and a.d in ?3");
@@ -654,12 +658,11 @@ class StringQueryUnitTests {
 	@Test // DATAJPA-864
 	void detectsConstructorExpressions() {
 
-		assertThat(
-				new StringQuery("select  new  com.example.Dto(a.foo, a.bar)  from A a", false).hasConstructorExpression())
-				.isTrue();
-		assertThat(new StringQuery("select new com.example.Dto (a.foo, a.bar) from A a", false).hasConstructorExpression())
-				.isTrue();
-		assertThat(new StringQuery("select a from A a", true).hasConstructorExpression()).isFalse();
+		assertThat(new TestEntityQuery("select  new  com.example.Dto(a.foo, a.bar)  from A a", false)
+				.hasConstructorExpression()).isTrue();
+		assertThat(new TestEntityQuery("select new com.example.Dto (a.foo, a.bar) from A a", false)
+				.hasConstructorExpression()).isTrue();
+		assertThat(new TestEntityQuery("select a from A a", true).hasConstructorExpression()).isFalse();
 	}
 
 	/**
@@ -670,14 +673,16 @@ class StringQueryUnitTests {
 	void detectsConstructorExpressionForDefaultConstructor() {
 
 		// Parentheses required
-		assertThat(new StringQuery("select new com.example.Dto(a.name) from A a", false).hasConstructorExpression())
+		assertThat(
+				new TestEntityQuery("select new com.example.Dto(a.name) from A a", false).hasConstructorExpression())
 				.isTrue();
 	}
 
 	@Test // DATAJPA-1179
 	void bindingsMatchQueryForIdenticalSpelExpressions() {
 
-		StringQuery query = new StringQuery("select a from A a where a.first = :#{#exp} or a.second = :#{#exp}", true);
+		DefaultEntityQuery query = new TestEntityQuery(
+				"select a from A a where a.first = :#{#exp} or a.second = :#{#exp}", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
 		assertThat(bindings).isNotEmpty();
@@ -704,7 +709,7 @@ class StringQueryUnitTests {
 
 	void checkProjection(String query, String expected, String description, boolean nativeQuery) {
 
-		assertThat(new StringQuery(query, nativeQuery).getProjection()) //
+		assertThat(new TestEntityQuery(query, nativeQuery).getProjection()) //
 				.as("%s (%s)", description, query) //
 				.isEqualTo(expected);
 	}
@@ -728,7 +733,7 @@ class StringQueryUnitTests {
 
 	private void checkAlias(String query, String expected, String description, boolean nativeQuery) {
 
-		assertThat(new StringQuery(query, nativeQuery).getAlias()) //
+		assertThat(new TestEntityQuery(query, nativeQuery).getAlias()) //
 				.as("%s (%s)", description, query) //
 				.isEqualTo(expected);
 	}
@@ -781,7 +786,7 @@ class StringQueryUnitTests {
 	void detectsMultiplePositionalParameterBindingsWithoutIndex() {
 
 		String queryString = "select u from User u where u.id in ? and u.names in ? and foo = ?";
-		StringQuery query = new StringQuery(queryString, false);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, false);
 
 		assertThat(query.getQueryString()).isEqualTo(queryString);
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -801,16 +806,18 @@ class StringQueryUnitTests {
 		for (String testQuery : testQueries) {
 
 			Assertions.assertThatExceptionOfType(IllegalArgumentException.class) //
-					.describedAs(testQuery).isThrownBy(() -> new StringQuery(testQuery, false));
+					.describedAs(testQuery).isThrownBy(() -> new TestEntityQuery(testQuery, false));
 		}
 	}
 
 	@Test // DATAJPA-1307
 	void makesUsageOfJdbcStyleParameterAvailable() {
 
-		assertThat(new StringQuery("from Something something where something = ?", false).usesJdbcStyleParameters())
+		assertThat(
+				new TestEntityQuery("from Something something where something = ?", false).usesJdbcStyleParameters())
 				.isTrue();
-		assertThat(new StringQuery("from Something something where something =?", false).usesJdbcStyleParameters())
+		assertThat(
+				new TestEntityQuery("from Something something where something =?", false).usesJdbcStyleParameters())
 				.isTrue();
 
 		List<String> testQueries = Arrays.asList( //
@@ -821,7 +828,7 @@ class StringQueryUnitTests {
 
 		for (String testQuery : testQueries) {
 
-			assertThat(new StringQuery(testQuery, false) //
+			assertThat(new TestEntityQuery(testQuery, false) //
 					.usesJdbcStyleParameters()) //
 					.describedAs(testQuery) //
 					.describedAs(testQuery) //
@@ -833,7 +840,7 @@ class StringQueryUnitTests {
 	void questionMarkInStringLiteral() {
 
 		String queryString = "select '? ' from dual";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.getQueryString()).isEqualTo(queryString);
 		assertThat(query.hasParameterBindings()).isFalse();
@@ -853,7 +860,7 @@ class StringQueryUnitTests {
 				"select a, b from C");
 
 		for (String queryString : queriesWithoutDefaultProjection) {
-			assertThat(new StringQuery(queryString, true).isDefaultProjection()) //
+			assertThat(new TestEntityQuery(queryString, true).isDefaultProjection()) //
 					.describedAs(queryString) //
 					.isFalse();
 		}
@@ -870,7 +877,7 @@ class StringQueryUnitTests {
 		);
 
 		for (String queryString : queriesWithDefaultProjection) {
-			assertThat(new StringQuery(queryString, true).isDefaultProjection()) //
+			assertThat(new TestEntityQuery(queryString, true).isDefaultProjection()) //
 					.describedAs(queryString) //
 					.isTrue();
 		}
@@ -880,7 +887,7 @@ class StringQueryUnitTests {
 	void questionMarkInStringLiteralWithParameters() {
 
 		String queryString = "SELECT CAST(REGEXP_SUBSTR(itp.template_as_txt, '(?<=templateId\\\\\\\\=)(\\\\\\\\d+)(?:\\\\\\\\R)') AS INT) AS templateId FROM foo itp WHERE bar = ?1 AND baz = 1";
-		StringQuery query = new StringQuery(queryString, false);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, false);
 
 		assertThat(query.getQueryString()).isEqualTo(queryString);
 		assertThat(query.hasParameterBindings()).isTrue();
@@ -892,7 +899,7 @@ class StringQueryUnitTests {
 	void usingPipesWithNamedParameter() {
 
 		String queryString = "SELECT u FROM User u WHERE u.lastname LIKE '%'||:name||'%'";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.getParameterBindings()) //
 				.extracting(ParameterBinding::getName) //
@@ -903,7 +910,7 @@ class StringQueryUnitTests {
 	void usingGreaterThanWithNamedParameter() {
 
 		String queryString = "SELECT u FROM User u WHERE :age>u.age";
-		StringQuery query = new StringQuery(queryString, true);
+		DefaultEntityQuery query = new TestEntityQuery(queryString, true);
 
 		assertThat(query.getParameterBindings()) //
 				.extracting(ParameterBinding::getName) //
@@ -912,9 +919,8 @@ class StringQueryUnitTests {
 
 	void checkNumberOfNamedParameters(String query, int expectedSize, String label, boolean nativeQuery) {
 
-		EntityQuery introspectedQuery = nativeQuery
-				? EntityQuery.introspectNativeQuery(query, QueryEnhancerSelector.DEFAULT_SELECTOR)
-				: EntityQuery.introspectJpql(query, QueryEnhancerSelector.DEFAULT_SELECTOR);
+		DeclaredQuery declaredQuery = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
+		EntityQuery introspectedQuery = EntityQuery.create(declaredQuery, QueryEnhancerSelector.DEFAULT_SELECTOR);
 
 		assertThat(introspectedQuery.hasNamedParameter()) //
 				.describedAs("hasNamed Parameter " + label) //
@@ -927,7 +933,8 @@ class StringQueryUnitTests {
 	private void checkHasNamedParameter(String query, boolean expected, String label) {
 
 		DeclaredQuery source = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-		BindableQuery bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
+		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(source.getQueryString(),
+				source::rewrite, it -> {});
 
 		assertThat(bindableQuery.getBindings().stream().anyMatch(it -> it.getIdentifier().hasName())) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //

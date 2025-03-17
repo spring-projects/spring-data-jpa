@@ -18,11 +18,9 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
-import org.springframework.data.jpa.repository.QueryRewriter;
-
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ValueExpressionDelegate;
 
 /**
  * {@link RepositoryQuery} implementation that inspects a {@link org.springframework.data.repository.query.QueryMethod}
@@ -41,14 +39,14 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param queryString must not be {@literal null} or empty.
-	 * @param countQueryString can be {@literal null} if not defined.
+	 * @param query must not be {@literal null} or empty.
+	 * @param countQuery can be {@literal null} if not defined.
 	 * @param queryConfiguration must not be {@literal null}.
 	 */
-	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
-			JpaQueryConfiguration queryConfiguration) {
+	public SimpleJpaQuery(JpaQueryMethod method, EntityManager em, DeclaredQuery query,
+			@Nullable DeclaredQuery countQuery, JpaQueryConfiguration queryConfiguration) {
 
-		super(method, em, queryString, countQueryString, queryConfiguration);
+		super(method, em, query, countQuery, queryConfiguration);
 
 		validateQuery(getQuery().getQueryString(), "Validation failed for query for method %s", method);
 

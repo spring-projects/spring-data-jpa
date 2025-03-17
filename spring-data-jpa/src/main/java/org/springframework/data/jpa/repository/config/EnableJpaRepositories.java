@@ -178,4 +178,5 @@ public @interface EnableJpaRepositories {
 	 * @since 4.0
 	 */
 	Class<? extends QueryEnhancerSelector> queryEnhancerSelector() default QueryEnhancerSelector.DefaultQueryEnhancerSelector.class;
+
 }

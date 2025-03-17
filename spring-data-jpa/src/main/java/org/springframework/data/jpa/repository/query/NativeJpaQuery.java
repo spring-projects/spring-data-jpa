@@ -19,16 +19,15 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
-import org.springframework.core.annotation.MergedAnnotation;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
-import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -57,23 +56,45 @@ class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 	 * @param countQueryString must not be {@literal null} or empty.
 	 * @param queryConfiguration must not be {@literal null}.
 	 */
-	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
+	NativeJpaQuery(JpaQueryMethod method, EntityManager em, String queryString, @Nullable String countQueryString,
 			JpaQueryConfiguration queryConfiguration) {
 
 		super(method, em, queryString, countQueryString, queryConfiguration);
 
 		MergedAnnotations annotations = MergedAnnotations.from(method.getMethod());
 		MergedAnnotation<NativeQuery> annotation = annotations.get(NativeQuery.class);
-		this.sqlResultSetMapping = annotation.isPresent() ? annotation.getString("sqlResultSetMapping") : null;
 
+		this.sqlResultSetMapping = annotation.isPresent() ? annotation.getString("sqlResultSetMapping") : null;
+		this.queryForEntity = getQueryMethod().isQueryForEntity();
+	}
+
+	/**
+	 * Creates a new {@link NativeJpaQuery} encapsulating the query annotated on the given {@link JpaQueryMethod}.
+	 *
+	 * @param method must not be {@literal null}.
+	 * @param em must not be {@literal null}.
+	 * @param query must not be {@literal null} .
+	 * @param countQuery can be {@literal null} if not defined.
+	 * @param queryConfiguration must not be {@literal null}.
+	 */
+	public NativeJpaQuery(JpaQueryMethod method, EntityManager em, DeclaredQuery query,
+			@Nullable DeclaredQuery countQuery, JpaQueryConfiguration queryConfiguration) {
+
+		super(method, em, query, countQuery, queryConfiguration);
+
+		MergedAnnotations annotations = MergedAnnotations.from(method.getMethod());
+		MergedAnnotation<NativeQuery> annotation = annotations.get(NativeQuery.class);
+
+		this.sqlResultSetMapping = annotation.isPresent() ? annotation.getString("sqlResultSetMapping") : null;
 		this.queryForEntity = getQueryMethod().isQueryForEntity();
 	}
 
 	@Override
-	protected Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable, ReturnedType returnedType) {
+	protected Query createJpaQuery(QueryProvider declaredQuery, Sort sort, @Nullable Pageable pageable,
+			ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
-		String query = potentiallyRewriteQuery(queryString, sort, pageable);
+		String query = potentiallyRewriteQuery(declaredQuery.getQueryString(), sort, pageable);
 
 		if (!ObjectUtils.isEmpty(sqlResultSetMapping)) {
 			return em.createNativeQuery(query, sqlResultSetMapping);

@@ -33,6 +33,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.util.StringUtils;
 
 /**
@@ -280,7 +282,9 @@ class HqlQueryTransformerTests {
 				where exists (select u2
 				from user u2
 				)
-				""").applySorting(sort)).isEqualToIgnoringWhitespace("""
+				""").rewrite(new DefaultQueryRewriteInformation(sort,
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
+				.isEqualToIgnoringWhitespace("""
 				select u
 				from user u
 				where exists (select u2
@@ -1172,7 +1176,8 @@ class HqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return newParser(query).applySorting(sort);
+		return newParser(query).rewrite(new DefaultQueryRewriteInformation(sort,
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 	}
 
 	private String createCountQueryFor(String query) {

@@ -23,12 +23,11 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.expression.ValueEvaluationContext;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
-import org.springframework.data.repository.core.EntityMetadata;
-import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.Assert;
 
 /**
- * Extension of {@link StringQuery} that evaluates the given query string as a SpEL template-expression.
+ * Factory methods to obtain {@link EntityQuery} from a declared query using SpEL template-expressions.
  * <p>
  * Currently, the following template variables are available:
  * <ol>
@@ -42,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Diego Krupitza
  * @author Greg Turnquist
  */
-class ExpressionBasedStringQuery extends StringQuery {
+class TemplatedQuery {
 
 	private static final String EXPRESSION_PARAMETER = "$1#{";
 	private static final String QUOTED_EXPRESSION_PARAMETER = "$1__HASH__{";
@@ -61,18 +60,35 @@ class ExpressionBasedStringQuery extends StringQuery {
 	}
 
 	/**
-	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
+	 * Create a {@link DefaultEntityQuery} given {@link String query}, {@link JpaQueryMethod} and
+	 * {@link JpaQueryConfiguration}.
 	 *
-	 * @param query must not be {@literal null} or empty.
-	 * @param metadata must not be {@literal null}.
-	 * @param parser must not be {@literal null}.
-	 * @param nativeQuery is a given query is native or not.
-	 * @param selector must not be {@literal null}.
+	 * @param queryString must not be {@literal null}.
+	 * @param queryMethod must not be {@literal null}.
+	 * @param queryContext must not be {@literal null}.
+	 * @return the created {@link DefaultEntityQuery}.
 	 */
-	ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
-			boolean nativeQuery, QueryEnhancerSelector selector) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query),
-				selector, parameterBindings -> {});
+	public static EntityQuery create(String queryString, JpaQueryMethod queryMethod, JpaQueryConfiguration queryContext) {
+		return create(queryMethod.getDeclaredQuery(queryString), queryMethod.getEntityInformation(), queryContext);
+	}
+
+	/**
+	 * Create a {@link DefaultEntityQuery} given {@link DeclaredQuery query}, {@link JpaEntityMetadata} and
+	 * {@link JpaQueryConfiguration}.
+	 *
+	 * @param declaredQuery must not be {@literal null}.
+	 * @param entityMetadata must not be {@literal null}.
+	 * @param queryContext must not be {@literal null}.
+	 * @return the created {@link DefaultEntityQuery}.
+	 */
+	public static EntityQuery create(DeclaredQuery declaredQuery, JpaEntityMetadata<?> entityMetadata,
+			JpaQueryConfiguration queryContext) {
+
+		ValueExpressionParser expressionParser = queryContext.getValueExpressionDelegate().getValueExpressionParser();
+		String resolvedExpressionQuery = renderQueryIfExpressionOrReturnQuery(declaredQuery.getQueryString(),
+				entityMetadata, expressionParser);
+
+		return EntityQuery.create(declaredQuery.rewrite(resolvedExpressionQuery), queryContext.getSelector());
 	}
 
 	/**
@@ -80,7 +96,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
 	 * @param parser Must not be {@literal null}.
 	 */
-	private static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
+	static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
 			ValueExpressionParser parser) {
 
 		Assert.notNull(query, "query must not be null");
@@ -91,15 +107,14 @@ class ExpressionBasedStringQuery extends StringQuery {
 			return query;
 		}
 
-		StandardEvaluationContext evalContext = new StandardEvaluationContext();
+		SimpleEvaluationContext evalContext = SimpleEvaluationContext.forReadOnlyDataBinding().build();
 		evalContext.setVariable(ENTITY_NAME, metadata.getEntityName());
 
 		query = potentiallyQuoteExpressionsParameter(query);
 
 		ValueExpression expr = parser.parse(query);
 
-		String result = Objects.toString(
-			expr.evaluate(ValueEvaluationContext.of(DEFAULT_ENVIRONMENT, evalContext)));
+		String result = Objects.toString(expr.evaluate(ValueEvaluationContext.of(DEFAULT_ENVIRONMENT, evalContext)));
 
 		if (result == null) {
 			return query;
@@ -118,12 +133,6 @@ class ExpressionBasedStringQuery extends StringQuery {
 
 	private static boolean containsExpression(String query) {
 		return query.contains(ENTITY_NAME_VARIABLE_EXPRESSION);
-	}
-
-	public static StringQuery create(String query, JpaQueryMethod method, JpaQueryConfiguration queryContext) {
-		return new ExpressionBasedStringQuery(query, method.getEntityInformation(),
-				queryContext.getValueExpressionDelegate().getValueExpressionParser(),
-				method.isNativeQuery(), queryContext.getSelector());
 	}
 
 }

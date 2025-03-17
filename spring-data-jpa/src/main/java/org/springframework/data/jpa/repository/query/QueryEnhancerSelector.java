@@ -21,9 +21,10 @@ import org.springframework.data.jpa.provider.PersistenceProvider;
  * Interface declaring a strategy to select a {@link QueryEnhancer} for a given {@link DeclaredQuery query}.
  * <p>
  * Enhancers are selected when introspecting a query to determine their selection, joins, aliases and other information
- * so that query methods can derive count queries, apply sorting and perform other transformations.
+ * so that query methods can derive count queries, apply sorting and perform other rewrite transformations.
  *
  * @author Mark Paluch
+ * @since 4.0
  */
 public interface QueryEnhancerSelector {
 
@@ -90,4 +91,5 @@ public interface QueryEnhancerSelector {
 		}
 
 	}
+
 }

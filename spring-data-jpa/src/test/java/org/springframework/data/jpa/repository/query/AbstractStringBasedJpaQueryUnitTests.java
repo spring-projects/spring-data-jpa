@@ -150,7 +150,7 @@ class AbstractStringBasedJpaQueryUnitTests {
 		}
 
 		@Override
-		protected String applySorting(CachableQuery query) {
+		protected QueryProvider applySorting(CachableQuery query) {
 
 			captureInvocation("applySorting", query);
 
@@ -158,12 +158,13 @@ class AbstractStringBasedJpaQueryUnitTests {
 		}
 
 		@Override
-		protected jakarta.persistence.Query createJpaQuery(String queryString, Sort sort, @Nullable Pageable pageable,
+		protected jakarta.persistence.Query createJpaQuery(QueryProvider query, Sort sort,
+				@Nullable Pageable pageable,
 				ReturnedType returnedType) {
 
-			captureInvocation("createJpaQuery", queryString, sort, pageable, returnedType);
+			captureInvocation("createJpaQuery", query, sort, pageable, returnedType);
 
-			jakarta.persistence.Query jpaQuery = super.createJpaQuery(queryString, sort, pageable, returnedType);
+			jakarta.persistence.Query jpaQuery = super.createJpaQuery(query, sort, pageable, returnedType);
 			return jpaQuery == null ? Mockito.mock(jakarta.persistence.Query.class) : jpaQuery;
 		}
 

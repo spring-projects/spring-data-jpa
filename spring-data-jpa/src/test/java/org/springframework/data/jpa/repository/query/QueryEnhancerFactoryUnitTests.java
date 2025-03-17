@@ -32,9 +32,10 @@ class QueryEnhancerFactoryUnitTests {
 	@Test
 	void createsParsingImplementationForNonNativeQuery() {
 
-		StringQuery query = new StringQuery("select new com.example.User(u.firstname) from User u", false);
+		DefaultEntityQuery query = new TestEntityQuery("select new com.example.User(u.firstname) from User u",
+				false);
 
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query.getDeclaredQuery()).create(query);
+		QueryEnhancer queryEnhancer = QueryEnhancer.create(query);
 
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JpaQueryEnhancer.class);
@@ -47,9 +48,9 @@ class QueryEnhancerFactoryUnitTests {
 	@Test
 	void createsJSqlImplementationForNativeQuery() {
 
-		StringQuery query = new StringQuery("select * from User", true);
+		DefaultEntityQuery query = new TestEntityQuery("select * from User", true);
 
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query.getDeclaredQuery()).create(query);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
 
 		assertThat(queryEnhancer) //
 				.isInstanceOf(JSqlParserQueryEnhancer.class);

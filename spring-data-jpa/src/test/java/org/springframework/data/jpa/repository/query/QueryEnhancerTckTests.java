@@ -36,7 +36,7 @@ abstract class QueryEnhancerTckTests {
 	void shouldDeriveNativeCountQuery(String query, String expected) {
 
 		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery(query));
-		String countQueryFor = enhancer.createCountQueryFor();
+		String countQueryFor = enhancer.createCountQueryFor(null);
 
 		// lenient cleanup to allow for rendering variance
 		String sanitized = countQueryFor.replaceAll("\r", " ").replaceAll("\n", " ").replaceAll(" {2}", " ")
@@ -179,7 +179,7 @@ abstract class QueryEnhancerTckTests {
 	void shouldDeriveNativeCountQueryWithVariable(String query, String expected) {
 
 		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery(query));
-		String countQueryFor = enhancer.createCountQueryFor();
+		String countQueryFor = enhancer.createCountQueryFor(null);
 
 		assertThat(countQueryFor).isEqualToIgnoringCase(expected);
 	}
@@ -203,9 +203,9 @@ abstract class QueryEnhancerTckTests {
 	// DATAJPA-1696
 	void findProjectionClauseWithIncludedFrom() {
 
-		StringQuery query = new StringQuery("select x, frommage, y from t", true);
+		DefaultEntityQuery query = new TestEntityQuery("select x, frommage, y from t", true);
 
-		assertThat(createQueryEnhancer(query.getDeclaredQuery()).getProjection()).isEqualTo("x, frommage, y");
+		assertThat(createQueryEnhancer(query).getProjection()).isEqualTo("x, frommage, y");
 	}
 
 	abstract QueryEnhancer createQueryEnhancer(DeclaredQuery query);

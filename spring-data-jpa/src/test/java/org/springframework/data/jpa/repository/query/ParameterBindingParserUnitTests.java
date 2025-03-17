@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.repository.query.StringQuery.ParameterBindingParser;
 
 /**
  * Unit tests for the {@link ParameterBindingParser}.
@@ -68,7 +67,7 @@ class ParameterBindingParserUnitTests {
 
 	private void checkHasParameter(SoftAssertions softly, String query, boolean containsParameter, String label) {
 
-		StringQuery stringQuery = new StringQuery(query, false);
+		DefaultEntityQuery stringQuery = new TestEntityQuery(query, false);
 
 		softly.assertThat(stringQuery.getParameterBindings().size()) //
 				.describedAs(String.format("<%s> (%s)", query, label)) //

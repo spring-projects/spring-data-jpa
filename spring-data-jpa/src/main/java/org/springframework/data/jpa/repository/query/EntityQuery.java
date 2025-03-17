@@ -15,61 +15,34 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
-import org.springframework.util.ObjectUtils;
+import org.jspecify.annotations.Nullable;
 
 /**
- * A wrapper for a String representation of a query offering information about the query.
+ * An extension to {@link ParametrizedQuery} exposing query information about its inner structure such as whether
+ * constructor expressions (JPQL) are used or the default projection is used.
+ * <p>
+ * Entity Queries support derivation of {@link #deriveCountQuery(String) count queries} from the original query. They
+ * also can be used to rewrite the query using sorting and projection selection.
  *
  * @author Jens Schauder
  * @author Diego Krupitza
- * @since 2.0.3
+ * @since 4.0
  */
-interface EntityQuery extends IntrospectedQuery {
+interface EntityQuery extends ParametrizedQuery {
 
 	/**
-	 * Creates a DeclaredQuery for a JPQL query.
+	 * Create a new {@link EntityQuery} given {@link DeclaredQuery} and {@link QueryEnhancerSelector}.
 	 *
-	 * @param query the JPQL query string.
-	 * @return
+	 * @param query must not be {@literal null}.
+	 * @param selector must not be {@literal null}.
+	 * @return a new {@link EntityQuery}.
 	 */
-	static EntityQuery introspectJpql(String query, QueryEnhancerFactory queryEnhancer) {
-		return ObjectUtils.isEmpty(query) ? EmptyIntrospectedQuery.EMPTY_QUERY
-				: new StringQuery(query, false, queryEnhancer, parameterBindings -> {});
-	}
+	static EntityQuery create(DeclaredQuery query, QueryEnhancerSelector selector) {
 
-	/**
-	 * Creates a DeclaredQuery for a JPQL query.
-	 *
-	 * @param query the JPQL query string.
-	 * @return
-	 */
-	static EntityQuery introspectJpql(String query, QueryEnhancerSelector selector) {
-		return ObjectUtils.isEmpty(query) ? EmptyIntrospectedQuery.EMPTY_QUERY
-				: new StringQuery(query, false, selector, parameterBindings -> {});
-	}
+		PreprocessedQuery preparsed = PreprocessedQuery.parse(query);
+		QueryEnhancerFactory enhancerFactory = selector.select(preparsed);
 
-	/**
-	 * Creates a DeclaredQuery for a native query.
-	 *
-	 * @param query the native query string.
-	 * @return
-	 */
-	static EntityQuery introspectNativeQuery(String query, QueryEnhancerFactory queryEnhancer) {
-		return ObjectUtils.isEmpty(query) ? EmptyIntrospectedQuery.EMPTY_QUERY
-				: new StringQuery(query, true, queryEnhancer, parameterBindings -> {});
-	}
-
-	/**
-	 * Creates a DeclaredQuery for a native query.
-	 *
-	 * @param query the native query string.
-	 * @return
-	 */
-	static EntityQuery introspectNativeQuery(String query, QueryEnhancerSelector selector) {
-		return ObjectUtils.isEmpty(query) ? EmptyIntrospectedQuery.EMPTY_QUERY
-				: new StringQuery(query, true, selector, parameterBindings -> {});
+		return new DefaultEntityQuery(preparsed, enhancerFactory);
 	}
 
 	/**
@@ -85,6 +58,14 @@ interface EntityQuery extends IntrospectedQuery {
 	boolean isDefaultProjection();
 
 	/**
+	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
+	 * @since 2.0.6
+	 */
+	default boolean usesPaging() {
+		return false;
+	}
+
+	/**
 	 * Creates a new {@literal IntrospectedQuery} representing a count query, i.e. a query returning the number of rows to
 	 * be expected from the original query, either derived from the query wrapped by this instance or from the information
 	 * passed as arguments.
@@ -92,16 +73,16 @@ interface EntityQuery extends IntrospectedQuery {
 	 * @param countQueryProjection an optional return type for the query.
 	 * @return a new {@literal IntrospectedQuery} instance.
 	 */
-	IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection);
-
-	String applySorting(Sort sort);
+	ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection);
 
 	/**
-	 * @return whether paging is implemented in the query itself, e.g. using SpEL expressions.
-	 * @since 2.0.6
+	 * Rewrite the query using the given
+	 * {@link org.springframework.data.jpa.repository.query.QueryEnhancer.QueryRewriteInformation} into a sorted query or
+	 * using a different projection. The rewritten query retains parameter binding characteristics.
+	 *
+	 * @param rewriteInformation query rewrite information (sorting, projection) to use.
+	 * @return the rewritten query.
 	 */
-	default boolean usesPaging() {
-		return false;
-	}
+	QueryProvider rewrite(QueryEnhancer.QueryRewriteInformation rewriteInformation);
 
 }

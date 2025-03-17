@@ -29,6 +29,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * Verify that EQL queries are properly transformed through the {@link JpaQueryEnhancer} and the
@@ -221,7 +223,9 @@ class EqlQueryTransformerTests {
 				where exists (select u2
 				from user u2
 				)
-				""").applySorting(sort)).isEqualToIgnoringWhitespace("""
+				""").rewrite(new DefaultQueryRewriteInformation(sort,
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
+				.isEqualToIgnoringWhitespace("""
 				select u
 				from user u
 				where exists (select u2
@@ -803,7 +807,8 @@ class EqlQueryTransformerTests {
 	}
 
 	private String createQueryFor(String query, Sort sort) {
-		return newParser(query).applySorting(sort);
+		return newParser(query).rewrite(new DefaultQueryRewriteInformation(sort,
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 	}
 
 	private String createCountQueryFor(String query) {

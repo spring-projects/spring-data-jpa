@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import static java.util.regex.Pattern.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -29,18 +30,12 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.data.domain.Sort;
-import org.springframework.data.expression.ValueExpression;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.expression.ValueExpressionParser;
-import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
-import org.springframework.data.jpa.repository.query.ParameterBinding.InParameterBinding;
-import org.springframework.data.jpa.repository.query.ParameterBinding.LikeParameterBinding;
-import org.springframework.data.jpa.repository.query.ParameterBinding.MethodInvocationArgument;
-import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.repository.query.ValueExpressionQueryRewriter;
-import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -48,190 +43,44 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * Encapsulation of a JPA query String. Offers access to parameters as bindings. The internal query String is cleaned
- * from decorated parameters like {@literal %:lastname%} and the matching bindings take care of applying the decorations
- * in the {@link ParameterBinding#prepare(Object)} method. Note that this class also handles replacing SpEL expressions
- * with synthetic bind parameters.
+ * A pre-parsed query implementing {@link DeclaredQuery} providing information about parameter bindings.
+ * <p>
+ * Query-preprocessing transforms queries using Spring Data-specific syntax such as {@link TemplatedQuery query
+ * templating}, extended {@code LIKE} syntax and usage of {@link ValueExpression value expressions} into a syntax that
+ * is valid for JPA queries (JPQL and native).
+ * <p>
+ * Preprocessing consists of parsing and rewriting so that no extension elements interfere with downstream parsers.
+ * However, pre-processing is a lossy procedure because the resulting {@link #getQueryString() query string} only
+ * contains parameter binding markers and so the original query cannot be restored. Any query derivation must align its
+ * {@link ParameterBinding parameter bindings} to ensure the derived query uses the same binding semantics instead of
+ * plain parameters. See {@link ParameterBinding#isCompatibleWith(ParameterBinding)} for further reference.
  *
- * @author Oliver Gierke
- * @author Thomas Darimont
- * @author Oliver Wehrens
+ * @author Christoph Strobl
  * @author Mark Paluch
- * @author Jens Schauder
- * @author Diego Krupitza
- * @author Greg Turnquist
- * @author Yuriy Tsarkov
+ * @since 4.0
  */
-class StringQuery implements EntityQuery {
+final class PreprocessedQuery implements DeclaredQuery {
 
-	private final BindableQuery bindableQuery;
+	private final DeclaredQuery source;
+	private final List<ParameterBinding> bindings;
+	private final boolean usesJdbcStyleParameters;
 	private final boolean containsPageableInSpel;
-	private final QueryEnhancerFactory queryEnhancerFactory;
-	private final QueryEnhancer queryEnhancer;
-	private final boolean hasNamedParameters;
+	private final boolean hasNamedBindings;
 
-	/**
-	 * Creates a new {@link StringQuery} from the given JPQL query.
-	 *
-	 * @param query must not be {@literal null} or empty.
-	 */
-	StringQuery(String query, boolean isNative) {
-		this(query, isNative, QueryEnhancerSelector.DEFAULT_SELECTOR, it -> {});
-	}
-
-	/**
-	 * Creates a new {@link StringQuery} from the given JPQL query.
-	 *
-	 * @param query must not be {@literal null} or empty.
-	 */
-	StringQuery(String query, boolean isNative, QueryEnhancerFactory factory,Consumer<List<ParameterBinding>> parameterPostProcessor) {
-
-		Assert.hasText(query, "Query must not be null or empty");
-
-		this.containsPageableInSpel = query.contains("#pageable");
-		this.queryEnhancerFactory = factory;
-
-		DeclaredQuery source = isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-		this.bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
-
-		parameterPostProcessor.accept(this.bindableQuery.getBindings());
-		this.queryEnhancer = factory.create(this.bindableQuery);
-		this.hasNamedParameters = containsNamedParameter(this.bindableQuery.getBindings());
-	}
-
-	/**
-	 * Creates a new {@link StringQuery} from the given JPQL query.
-	 *
-	 * @param query must not be {@literal null} or empty.
-	 */
-	StringQuery(String query, boolean isNative, QueryEnhancerSelector selector, Consumer<List<ParameterBinding>> parameterPostProcessor) {
-
-		Assert.hasText(query, "Query must not be null or empty");
-
-		this.containsPageableInSpel = query.contains("#pageable");
-		DeclaredQuery source = isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-
-		this.bindableQuery = ParameterBindingParser.INSTANCE.parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(source);
-
-		this.queryEnhancerFactory = selector.select(source);
-		this.queryEnhancer = queryEnhancerFactory.create(this.bindableQuery);
-	    parameterPostProcessor.accept(this.bindableQuery.getBindings());
-		this.hasNamedParameters = containsNamedParameter(this.bindableQuery.getBindings());
-	}
-
-	/**
-	 * internal copy constructor
-	 *
-	 * @param bindableQuery
-	 * @param factory
-	 * @param enhancer
-	 * @param hasNamedParameters
-	 * @param containsPageableInSpel
-	 */
-	private StringQuery(BindableQuery bindableQuery, QueryEnhancerFactory factory, QueryEnhancer enhancer, boolean hasNamedParameters, boolean containsPageableInSpel) {
-		this.bindableQuery = bindableQuery;
-		this.queryEnhancerFactory = factory;
-		this.queryEnhancer = enhancer;
-		this.hasNamedParameters = hasNamedParameters;
+	private PreprocessedQuery(DeclaredQuery query, List<ParameterBinding> bindings, boolean usesJdbcStyleParameters,
+			boolean containsPageableInSpel) {
+		this.source = query;
+		this.bindings = bindings;
+		this.usesJdbcStyleParameters = usesJdbcStyleParameters;
 		this.containsPageableInSpel = containsPageableInSpel;
-	}
-
-	QueryEnhancer getQueryEnhancer() {
-		return queryEnhancer;
-	}
-
-	/**
-	 * Returns whether we have found some like bindings.
-	 */
-	boolean hasParameterBindings() {
-		return this.bindableQuery.hasBindings();
-	}
-
-	String getProjection() {
-		return this.queryEnhancer.getProjection();
-	}
-
-	@Override
-	public String getQueryString() {
-		return bindableQuery.getQueryString();
-	}
-
-	@Override
-	public List<ParameterBinding> getParameterBindings() {
-		return this.bindableQuery.getBindings();
-	}
-
-	@Override
-	public IntrospectedQuery deriveCountQuery(@Nullable String countQueryProjection) {
-
-		// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
-		// JPA parameter markers and not the original expressions anymore.
-
-		return new StringQuery(this.queryEnhancer.createCountQueryFor(countQueryProjection), //
-				this.bindableQuery.isNativeQuery(), queryEnhancerFactory, derivedBindings -> {
-
-					// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
-					// JPA
-					// parameter markers and not the original expressions anymore.
-					if (this.hasParameterBindings() && !this.getParameterBindings().equals(derivedBindings)) {
-
-						for (ParameterBinding binding : getParameterBindings()) {
-
-							Predicate<ParameterBinding> identifier = binding::bindsTo;
-				Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
-
-				// replace incompatible bindings
-				if ( derivedBindings.removeIf(
-									it -> identifier.test(it) && notCompatible.test(it))) {
-								derivedBindings.add(binding);
-							}
-						}
-					}
-				});
-	}
-
-	@Override
-	public String applySorting(Sort sort) {
-		return queryEnhancer.applySorting(sort);
-	}
-
-	@Override
-	public boolean usesJdbcStyleParameters() {
-		return bindableQuery.usesJdbcStyleParameters();
-	}
-
-	public @Nullable String getAlias() {
-		return queryEnhancer.detectAlias();
-	}
-
-	@Override
-	public boolean hasConstructorExpression() {
-		return queryEnhancer.hasConstructorExpression();
-	}
-
-	@Override
-	public boolean isDefaultProjection() {
-		return getProjection().equalsIgnoreCase(getAlias());
-	}
-
-	@Override
-	public boolean hasNamedParameter() {
-		return hasNamedParameters;
-	}
-
-	@Override
-	public boolean usesPaging() {
-		return containsPageableInSpel;
-	}
-
-	@Override
-	public DeclaredQuery getDeclaredQuery() {
-		return bindableQuery;
+		this.hasNamedBindings = containsNamedParameter(bindings);
 	}
 
 	private static boolean containsNamedParameter(List<ParameterBinding> bindings) {
+
 		for (ParameterBinding parameterBinding : bindings) {
-			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin().isMethodArgument()) {
+			if (parameterBinding.getIdentifier().hasName() && parameterBinding.getOrigin()
+					.isMethodArgument()) {
 				return true;
 			}
 		}
@@ -239,77 +88,81 @@ class StringQuery implements EntityQuery {
 	}
 
 	/**
-	 * Value object to track and allocate used parameter index labels in a query.
+	 * Parse a {@link DeclaredQuery query} into its parametrized form by identifying anonymous, named, indexed and SpEL
+	 * parameters. Query parsing applies special treatment to {@code IN} and {@code LIKE} parameter bindings.
+	 *
+	 * @param declaredQuery the source query to parse.
+	 * @return a parsed {@link PreprocessedQuery}.
 	 */
-	static class IndexedParameterLabels {
+	public static PreprocessedQuery parse(DeclaredQuery declaredQuery) {
+		return ParameterBindingParser.INSTANCE.parse(declaredQuery.getQueryString(), declaredQuery::rewrite,
+				parameterBindings -> {
+				});
+	}
 
-		private final TreeSet<Integer> usedLabels;
-		private final boolean sequential;
+	@Override
+	public String getQueryString() {
+		return source.getQueryString();
+	}
 
-		public IndexedParameterLabels(Set<Integer> usedLabels) {
+	@Override
+	public boolean isNative() {
+		return source.isNative();
+	}
 
-			this.usedLabels = usedLabels instanceof TreeSet<Integer> ts ? ts : new TreeSet<Integer>(usedLabels);
-			this.sequential = isSequential(usedLabels);
-		}
+	boolean hasBindings() {
+		return !bindings.isEmpty();
+	}
 
-		private static boolean isSequential(Set<Integer> usedLabels) {
+	boolean hasNamedBindings() {
+		return this.hasNamedBindings;
+	}
 
-			for (int i = 0; i < usedLabels.size(); i++) {
+	boolean containsPageableInSpel() {
+		return containsPageableInSpel;
+	}
 
-				if (usedLabels.contains(i + 1)) {
-					continue;
+	boolean usesJdbcStyleParameters() {
+		return usesJdbcStyleParameters;
+	}
+
+	List<ParameterBinding> getBindings() {
+		return Collections.unmodifiableList(bindings);
+	}
+
+	/**
+	 * Derive a query (typically a count query) from the given query string. We need to copy expression bindings from the
+	 * declared to the derived query as JPQL query derivation only sees JPA parameter markers and not the original
+	 * expressions anymore.
+	 *
+	 * @return
+	 */
+	@Override
+	public PreprocessedQuery rewrite(String newQueryString) {
+
+		return ParameterBindingParser.INSTANCE.parse(newQueryString, source::rewrite, derivedBindings -> {
+
+			// need to copy expression bindings from the declared to the derived query as JPQL query derivation only sees
+			// JPA parameter markers and not the original expressions anymore.
+			if (this.hasBindings() && !this.bindings.equals(derivedBindings)) {
+
+				for (ParameterBinding binding : bindings) {
+
+					Predicate<ParameterBinding> identifier = binding::bindsTo;
+					Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
+
+					// replace incompatible bindings
+					if (derivedBindings.removeIf(it -> identifier.test(it) && notCompatible.test(it))) {
+						derivedBindings.add(binding);
+					}
 				}
-
-				return false;
 			}
+		});
+	}
 
-			return true;
-		}
-
-		/**
-		 * Allocate the next index label (1-based).
-		 *
-		 * @return the next index label.
-		 */
-		public int allocate() {
-
-			if (sequential) {
-				int index = usedLabels.size() + 1;
-				usedLabels.add(index);
-
-				return index;
-			}
-
-			int attempts = usedLabels.last() + 1;
-			int index = attemptAllocate(attempts);
-
-			if (index == -1) {
-				throw new IllegalStateException(
-						"Unable to allocate a unique parameter label. All possible labels have been used.");
-			}
-
-			usedLabels.add(index);
-
-			return index;
-		}
-
-		private int attemptAllocate(int attempts) {
-
-			for (int i = 0; i < attempts; i++) {
-
-				if (usedLabels.contains(i + 1)) {
-					continue;
-				}
-
-				return i + 1;
-			}
-
-			return -1;
-		}
-
-		public boolean hasLabels() {
-			return !usedLabels.isEmpty();
-		}
+	@Override
+	public String toString() {
+		return "ParametrizedQuery[" + source + ", " + bindings + ']';
 	}
 
 	/**
@@ -333,7 +186,7 @@ class StringQuery implements EntityQuery {
 		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile("(?!\\\\):\\w+"); // no \ and :[text]
 
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type; "
-				+ "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
+											  + "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
 		private static final int INDEXED_PARAMETER_GROUP = 4;
 		private static final int NAMED_PARAMETER_GROUP = 6;
 		private static final int COMPARISION_TYPE_GROUP = 1;
@@ -371,19 +224,24 @@ class StringQuery implements EntityQuery {
 		 * Parses {@link ParameterBinding} instances from the given query and adds them to the registered bindings. Returns
 		 * the cleaned up query.
 		 */
-		BindableQuery parseParameterBindingsOfQueryIntoBindingsAndReturnCleanedQuery(DeclaredQuery query) {
+		PreprocessedQuery parse(String query, Function<String, DeclaredQuery> declaredQueryFactory,
+				Consumer<List<ParameterBinding>> parameterBindingPostProcessor) {
 
 			IndexedParameterLabels parameterLabels = new IndexedParameterLabels(findParameterIndices(query));
 			boolean parametersShouldBeAccessedByIndex = parameterLabels.hasLabels();
 
+			List<ParameterBinding> bindings = new ArrayList<>();
+			boolean jdbcStyle = false;
+			boolean containsPageableInSpel = query.contains("#pageable");
+
 			/*
 			 * Prefer indexed access over named parameters if only SpEL Expression parameters are present.
 			 */
-			if (!parametersShouldBeAccessedByIndex && query.getQueryString().contains("?#{")) {
+			if (!parametersShouldBeAccessedByIndex && query.contains("?#{")) {
 				parametersShouldBeAccessedByIndex = true;
 			}
 
-			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query.getQueryString(),
+			ValueExpressionQueryRewriter.ParsedQuery parsedQuery = createSpelExtractor(query,
 					parametersShouldBeAccessedByIndex, parameterLabels);
 
 			String resultingQuery = parsedQuery.getQueryString();
@@ -409,7 +267,8 @@ class StringQuery implements EntityQuery {
 					jdbcStyle = true;
 				}
 
-				if (NUMBERED_STYLE_PARAM.matcher(match).find() || NAMED_STYLE_PARAM.matcher(match).find()) {
+				if (NUMBERED_STYLE_PARAM.matcher(match)
+							.find() || NAMED_STYLE_PARAM.matcher(match).find()) {
 					usesJpaStyleParameters = true;
 				}
 
@@ -429,56 +288,64 @@ class StringQuery implements EntityQuery {
 					parameterIndex = parameterLabels.allocate();
 				}
 
-				BindingIdentifier queryParameter;
+				ParameterBinding.BindingIdentifier queryParameter;
 				if (parameterIndex != null) {
-					queryParameter = BindingIdentifier.of(parameterIndex);
-				} else if (parameterName != null) {
-					queryParameter = BindingIdentifier.of(parameterName);
-				} else {
+					queryParameter = ParameterBinding.BindingIdentifier.of(parameterIndex);
+				}
+				else if (parameterName != null) {
+					queryParameter = ParameterBinding.BindingIdentifier.of(parameterName);
+				}
+				else {
 					throw new IllegalStateException("No bindable expression found");
 				}
-				ParameterOrigin origin = ObjectUtils.isEmpty(expression)
-						? ParameterOrigin.ofParameter(parameterName, parameterIndex)
-						: ParameterOrigin.ofExpression(expression);
+				ParameterBinding.ParameterOrigin origin = ObjectUtils.isEmpty(expression)
+						? ParameterBinding.ParameterOrigin.ofParameter(parameterName, parameterIndex)
+						: ParameterBinding.ParameterOrigin.ofExpression(expression);
 
-				BindingIdentifier targetBinding = queryParameter;
-				Function<BindingIdentifier, ParameterBinding> bindingFactory = switch (ParameterBindingType.of(typeSource)) {
+				ParameterBinding.BindingIdentifier targetBinding = queryParameter;
+				Function<ParameterBinding.BindingIdentifier, ParameterBinding> bindingFactory = switch (ParameterBindingType
+						.of(typeSource)) {
 					case LIKE -> {
 
-						Type likeType = LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
-						yield (identifier) -> new LikeParameterBinding(identifier, origin, likeType);
+						Part.Type likeType = ParameterBinding.LikeParameterBinding.getLikeTypeFrom(matcher.group(2));
+						yield (identifier) -> new ParameterBinding.LikeParameterBinding(identifier, origin, likeType);
 					}
-					case IN -> (identifier) -> new InParameterBinding(identifier, origin); // fall-through we don't need a special
-																																									// parameter queryParameter for the
-																																									// given parameter.
+					case IN ->
+							(identifier) -> new ParameterBinding.InParameterBinding(identifier, origin); // fall-through we
+					// don't need a special
+					// parameter queryParameter for the
+					// given parameter.
 					default -> (identifier) -> new ParameterBinding(identifier, origin);
 				};
 
 				if (origin.isExpression()) {
 					parameterBindings.register(bindingFactory.apply(queryParameter));
-				} else {
+				}
+				else {
 					targetBinding = parameterBindings.register(queryParameter, origin, bindingFactory, parameterLabels);
 				}
 
 				replacement = targetBinding.hasName() ? ":" + targetBinding.getName()
-						: ((!usesJpaStyleParameters && jdbcStyle) ? "?"
-								: "?" + targetBinding.getPosition());
+						: ((!usesJpaStyleParameters && jdbcStyle) ? "?" : "?" + targetBinding.getPosition());
 				String result;
 				String substring = matcher.group(2);
 
 				int index = resultingQuery.indexOf(substring, currentIndex);
 				if (index < 0) {
 					result = resultingQuery;
-				} else {
+				}
+				else {
 					currentIndex = index + replacement.length();
 					result = resultingQuery.substring(0, index) + replacement
-							+ resultingQuery.substring(index + substring.length());
+							 + resultingQuery.substring(index + substring.length());
 				}
 
 				resultingQuery = result;
 			}
 
-			return new BindableQuery(query, resultingQuery, bindings, jdbcStyle);
+			parameterBindingPostProcessor.accept(bindings);
+			return new PreprocessedQuery(declaredQueryFactory.apply(resultingQuery), bindings, jdbcStyle,
+					containsPageableInSpel);
 		}
 
 		private static ValueExpressionQueryRewriter.ParsedQuery createSpelExtractor(String queryWithSpel,
@@ -586,18 +453,17 @@ class StringQuery implements EntityQuery {
 		}
 	}
 
-
-
 	/**
 	 * Utility to create unique parameter bindings for LIKE that refer to the same underlying method parameter but are
-	 * bound to potentially unique query parameters for {@link LikeParameterBinding#prepare(Object) LIKE rewrite}.
+	 * bound to potentially unique query parameters for {@link ParameterBinding.LikeParameterBinding#prepare(Object) LIKE
+	 * rewrite}.
 	 *
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	static class ParameterBindings {
+	private static class ParameterBindings {
 
-		private final MultiValueMap<BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
+		private final MultiValueMap<ParameterBinding.BindingIdentifier, ParameterBinding> methodArgumentToLikeBindings = new LinkedMultiValueMap<>();
 
 		private final Consumer<ParameterBinding> registration;
 
@@ -611,21 +477,22 @@ class StringQuery implements EntityQuery {
 		}
 
 		/**
-		 * Return whether the identifier is already bound.
-		 *
 		 * @param identifier
-		 * @return
+		 * @return whether the identifier is already bound.
 		 */
-		public boolean isBound(BindingIdentifier identifier) {
+		public boolean isBound(ParameterBinding.BindingIdentifier identifier) {
 			return !getBindings(identifier).isEmpty();
 		}
 
-		BindingIdentifier register(BindingIdentifier identifier, ParameterOrigin origin,
-				Function<BindingIdentifier, ParameterBinding> bindingFactory, IndexedParameterLabels parameterLabels) {
+		ParameterBinding.BindingIdentifier register(ParameterBinding.BindingIdentifier identifier,
+				ParameterBinding.ParameterOrigin origin,
+				Function<ParameterBinding.BindingIdentifier, ParameterBinding> bindingFactory,
+				IndexedParameterLabels parameterLabels) {
 
-			Assert.isInstanceOf(MethodInvocationArgument.class, origin);
+			Assert.isInstanceOf(ParameterBinding.MethodInvocationArgument.class, origin);
 
-			BindingIdentifier methodArgument = ((MethodInvocationArgument) origin).identifier();
+			ParameterBinding.BindingIdentifier methodArgument = ((ParameterBinding.MethodInvocationArgument) origin)
+					.identifier();
 			List<ParameterBinding> bindingsForOrigin = getBindings(methodArgument);
 
 			if (!isBound(identifier)) {
@@ -645,7 +512,7 @@ class StringQuery implements EntityQuery {
 				}
 			}
 
-			BindingIdentifier syntheticIdentifier;
+			ParameterBinding.BindingIdentifier syntheticIdentifier;
 			if (identifier.hasName() && methodArgument.hasName()) {
 
 				int index = 0;
@@ -654,9 +521,10 @@ class StringQuery implements EntityQuery {
 					index++;
 					newName = methodArgument.getName() + "_" + index;
 				}
-				syntheticIdentifier = BindingIdentifier.of(newName);
-			} else {
-				syntheticIdentifier = BindingIdentifier.of(parameterLabels.allocate());
+				syntheticIdentifier = ParameterBinding.BindingIdentifier.of(newName);
+			}
+			else {
+				syntheticIdentifier = ParameterBinding.BindingIdentifier.of(parameterLabels.allocate());
 			}
 
 			ParameterBinding newBinding = bindingFactory.apply(syntheticIdentifier);
@@ -666,11 +534,12 @@ class StringQuery implements EntityQuery {
 		}
 
 		private boolean existsBoundParameter(String key) {
-			return methodArgumentToLikeBindings.values().stream().flatMap(Collection::stream)
+			return methodArgumentToLikeBindings.values().stream()
+					.flatMap(Collection::stream)
 					.anyMatch(it -> key.equals(it.getName()));
 		}
 
-		private List<ParameterBinding> getBindings(BindingIdentifier identifier) {
+		private List<ParameterBinding> getBindings(ParameterBinding.BindingIdentifier identifier) {
 			return methodArgumentToLikeBindings.computeIfAbsent(identifier, s -> new ArrayList<>());
 		}
 
@@ -678,4 +547,79 @@ class StringQuery implements EntityQuery {
 			registration.accept(parameterBinding);
 		}
 	}
+
+	/**
+	 * Value object to track and allocate used parameter index labels in a query.
+	 */
+	static class IndexedParameterLabels {
+
+		private final TreeSet<Integer> usedLabels;
+		private final boolean sequential;
+
+		public IndexedParameterLabels(Set<Integer> usedLabels) {
+
+			this.usedLabels = usedLabels instanceof TreeSet<Integer> ts ? ts : new TreeSet<Integer>(usedLabels);
+			this.sequential = isSequential(usedLabels);
+		}
+
+		private static boolean isSequential(Set<Integer> usedLabels) {
+
+			for (int i = 0; i < usedLabels.size(); i++) {
+
+				if (usedLabels.contains(i + 1)) {
+					continue;
+				}
+
+				return false;
+			}
+
+			return true;
+		}
+
+		/**
+		 * Allocate the next index label (1-based).
+		 *
+		 * @return the next index label.
+		 */
+		public int allocate() {
+
+			if (sequential) {
+				int index = usedLabels.size() + 1;
+				usedLabels.add(index);
+
+				return index;
+			}
+
+			int attempts = usedLabels.last() + 1;
+			int index = attemptAllocate(attempts);
+
+			if (index == -1) {
+				throw new IllegalStateException(
+						"Unable to allocate a unique parameter label. All possible labels have been used.");
+			}
+
+			usedLabels.add(index);
+
+			return index;
+		}
+
+		private int attemptAllocate(int attempts) {
+
+			for (int i = 0; i < attempts; i++) {
+
+				if (usedLabels.contains(i + 1)) {
+					continue;
+				}
+
+				return i + 1;
+			}
+
+			return -1;
+		}
+
+		public boolean hasLabels() {
+			return !usedLabels.isEmpty();
+		}
+	}
+
 }
