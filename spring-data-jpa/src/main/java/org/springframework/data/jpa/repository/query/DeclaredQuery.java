@@ -17,13 +17,17 @@ package org.springframework.data.jpa.repository.query;
 
 /**
  * Interface defining the contract to represent a declared query.
+ * <p>
+ * Declared queries consist of a query string and a flag whether the query is a native (SQL) one or a JPQL query.
+ * Queries can be rewritten to contain a different query string (i.e. count query derivation, sorting, projection
+ * updates) while retaining their {@link #isNative() native} flag.
  *
  * @author Jens Schauder
  * @author Diego Krupitza
  * @author Mark Paluch
  * @since 2.0.3
  */
-public interface DeclaredQuery extends StructuredQuery {
+public interface DeclaredQuery extends QueryProvider {
 
 	/**
 	 * Creates a DeclaredQuery for a JPQL query.
@@ -32,7 +36,7 @@ public interface DeclaredQuery extends StructuredQuery {
 	 * @return new instance of {@link DeclaredQuery}.
 	 */
 	static DeclaredQuery jpqlQuery(String jpql) {
-		return new JpqlQuery(jpql);
+		return new DeclaredQueries.JpqlQuery(jpql);
 	}
 
 	/**
@@ -42,13 +46,40 @@ public interface DeclaredQuery extends StructuredQuery {
 	 * @return new instance of {@link DeclaredQuery}.
 	 */
 	static DeclaredQuery nativeQuery(String sql) {
-		return new NativeQuery(sql);
+		return new DeclaredQueries.NativeQuery(sql);
 	}
 
 	/**
 	 * Return whether the query is a native query of not.
 	 *
-	 * @return <code>true</code> if native query otherwise <code>false</code>
+	 * @return {@literal true} if native query; {@literal false} if it is a JPQL query.
 	 */
-	boolean isNativeQuery();
+	boolean isNative();
+
+	/**
+	 * Return whether the query is a JPQL query of not.
+	 *
+	 * @return {@literal true} if JPQL query; {@literal false} if it is a native query.
+	 * @since 4.0
+	 */
+	default boolean isJpql() {
+		return !isNative();
+	}
+
+	/**
+	 * Rewrite a query string using a new query string retaining its source and {@link #isNative() native} flag.
+	 *
+	 * @param newQueryString the new query string.
+	 * @return the rewritten {@link DeclaredQuery}.
+	 * @since 4.0
+	 */
+	default DeclaredQuery rewrite(String newQueryString) {
+
+		if (getQueryString().equals(newQueryString)) {
+			return this;
+		}
+
+		return new DeclaredQueries.RewrittenQuery(this, newQueryString);
+	}
+
 }

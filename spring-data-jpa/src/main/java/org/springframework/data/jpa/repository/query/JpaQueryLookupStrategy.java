@@ -32,7 +32,6 @@ import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.RepositoryQuery;
-import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -151,31 +150,39 @@ public final class JpaQueryLookupStrategy {
 				return createProcedureQuery(method, em);
 			}
 
-			if (StringUtils.hasText(method.getAnnotatedQuery())) {
+			if (method.hasAnnotatedQuery()) {
 
 				if (method.hasAnnotatedQueryName()) {
 					LOG.warn(String.format(
 							"Query method %s is annotated with both, a query and a query name; Using the declared query", method));
 				}
 
-				return createStringQuery(method, em, method.getRequiredAnnotatedQuery(),
+				return createStringQuery(method, em, method.getRequiredDeclaredQuery(),
 						getCountQuery(method, namedQueries, em), configuration);
 			}
 
 			String name = method.getNamedQueryName();
+
 			if (namedQueries.hasQuery(name)) {
-				return createStringQuery(method, em, namedQueries.getQuery(name), getCountQuery(method, namedQueries, em),
+				return createStringQuery(method, em, method.getDeclaredQuery(namedQueries.getQuery(name)),
+						getCountQuery(method, namedQueries, em),
 						configuration);
 			}
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em, configuration.getSelector());
 
-			return query != null //
-					? query //
-					: NO_QUERY;
+			return query != null ? query : NO_QUERY;
 		}
 
-		private @Nullable String getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
+		private @Nullable DeclaredQuery getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
+
+			String query = doGetCountQuery(method, namedQueries, em);
+
+			return StringUtils.hasText(query) ? method.getDeclaredQuery(query) : null;
+		}
+
+		private static @Nullable String doGetCountQuery(JpaQueryMethod method, NamedQueries namedQueries,
+				EntityManager em) {
 
 			if (StringUtils.hasText(method.getCountQuery())) {
 				return method.getCountQuery();
@@ -205,20 +212,20 @@ public final class JpaQueryLookupStrategy {
 		 *
 		 * @param method must not be {@literal null}.
 		 * @param em must not be {@literal null}.
-		 * @param queryString must not be {@literal null}.
-		 * @param countQueryString must not be {@literal null}.
+		 * @param query must not be {@literal null}.
+		 * @param countQuery can be {@literal null} if not defined.
 		 * @param configuration must not be {@literal null}.
 		 * @return
 		 */
-		static AbstractJpaQuery createStringQuery(JpaQueryMethod method, EntityManager em, String queryString,
-				@Nullable String countQueryString, JpaQueryConfiguration configuration) {
+		static AbstractJpaQuery createStringQuery(JpaQueryMethod method, EntityManager em, DeclaredQuery query,
+				@Nullable DeclaredQuery countQuery, JpaQueryConfiguration configuration) {
 
 			if (method.isScrollQuery()) {
 				throw QueryCreationException.create(method, "Scroll queries are not supported using String-based queries");
 			}
 
-			return method.isNativeQuery() ? new NativeJpaQuery(method, em, queryString, countQueryString, configuration)
-					: new SimpleJpaQuery(method, em, queryString, countQueryString, configuration);
+			return method.isNativeQuery() ? new NativeJpaQuery(method, em, query, countQuery, configuration)
+					: new SimpleJpaQuery(method, em, query, countQuery, configuration);
 		}
 
 		/**

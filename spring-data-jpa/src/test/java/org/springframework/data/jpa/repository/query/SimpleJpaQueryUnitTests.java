@@ -121,7 +121,8 @@ class SimpleJpaQueryUnitTests {
 				extractor);
 		when(em.createQuery("foo", Long.class)).thenReturn(typedQuery);
 
-		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, "select u from User u", null, CONFIG);
+		SimpleJpaQuery jpaQuery = new SimpleJpaQuery(method, em, method.getDeclaredQuery("select u from User u"), null,
+				CONFIG);
 
 		assertThat(jpaQuery.createCountQuery(new JpaParametersParameterAccessor(method.getParameters(), new Object[] {})))
 				.isEqualTo(typedQuery);
@@ -135,7 +136,8 @@ class SimpleJpaQueryUnitTests {
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u", null, CONFIG);
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em,
+				queryMethod.getDeclaredQuery("select u from User u"), null, CONFIG);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -150,7 +152,7 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, CONFIG);
+				queryMethod.getRequiredDeclaredQuery(), null, CONFIG);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -169,7 +171,7 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findByLastnameNativeAnnotation", String.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		AbstractJpaQuery jpaQuery = JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em,
-				queryMethod.getAnnotatedQuery(), null, CONFIG);
+				queryMethod.getRequiredDeclaredQuery(), null, CONFIG);
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
@@ -281,8 +283,9 @@ class SimpleJpaQueryUnitTests {
 		Method method = SampleRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
-		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em, "select u from User u",
-				"select count(u.id) from #{#entityName} u", CONFIG);
+		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em,
+				queryMethod.getDeclaredQuery("select u from User u"),
+				queryMethod.getDeclaredQuery("select count(u.id) from #{#entityName} u"), CONFIG);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
@@ -294,18 +297,18 @@ class SimpleJpaQueryUnitTests {
 		return createJpaQuery(method, null);
 	}
 
-	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString,
-			@Nullable String countQueryString) {
+	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable DeclaredQuery query,
+			@Nullable DeclaredQuery countQzery) {
 
-		return JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em, queryString,
-				countQueryString, CONFIG);
+		return JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em, query, countQzery,
+				CONFIG);
 	}
 
-	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {
+	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<DeclaredQuery> countQueryString) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
-		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(),
-				countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
+		return createJpaQuery(queryMethod, queryMethod.getRequiredDeclaredQuery(),
+				countQueryString == null ? null : countQueryString.orElse(queryMethod.getDeclaredCountQuery()));
 	}
 
 	interface SampleRepository {

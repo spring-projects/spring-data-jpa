@@ -68,9 +68,10 @@ class AbstractStringBasedJpaQueryIntegrationTests {
 		when(mock.getMetamodel()).thenReturn(em.getMetamodel());
 
 		JpaQueryMethod method = getMethod("findRolesByEmailAddress", String.class);
-		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, method.getAnnotatedQuery(), null, CONFIG);
+		AbstractStringBasedJpaQuery jpaQuery = new SimpleJpaQuery(method, mock, method.getRequiredDeclaredQuery(), null,
+				CONFIG);
 
-		jpaQuery.createJpaQuery(method.getAnnotatedQuery(), Sort.unsorted(), null,
+		jpaQuery.createJpaQuery(method.getRequiredDeclaredQuery(), Sort.unsorted(), null,
 				method.getResultProcessor().getReturnedType());
 
 		verify(mock, times(1)).createQuery(anyString());

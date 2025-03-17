@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.springframework.core.annotation.AnnotatedElementUtils;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -280,6 +280,13 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * @return {@code true} if this method is annotated with {@code  @Query(value=…)}.
+	 */
+	boolean hasAnnotatedQuery() {
+		return StringUtils.hasText(getAnnotationValue("value", String.class));
+	}
+
+	/**
 	 * Returns the query string declared in a {@link Query} annotation or {@literal null} if neither the annotation found
 	 * nor the attribute was specified.
 	 *
@@ -318,6 +325,25 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * Returns the required {@link DeclaredQuery} from a {@link Query} annotation or throws {@link IllegalStateException}
+	 * if neither the annotation found nor the attribute was specified.
+	 *
+	 * @return
+	 * @throws IllegalStateException if no {@link Query} annotation is present or the query is empty.
+	 * @since 4.0
+	 */
+	public DeclaredQuery getRequiredDeclaredQuery() throws IllegalStateException {
+
+		String query = getAnnotatedQuery();
+
+		if (query != null) {
+			return getDeclaredQuery(query);
+		}
+
+		throw new IllegalStateException(String.format("No annotated query found for query method %s", getName()));
+	}
+
+	/**
 	 * Returns the countQuery string declared in a {@link Query} annotation or {@literal null} if neither the annotation
 	 * found nor the attribute was specified.
 	 *
@@ -327,6 +353,19 @@ public class JpaQueryMethod extends QueryMethod {
 
 		String countQuery = getAnnotationValue("countQuery", String.class);
 		return StringUtils.hasText(countQuery) ? countQuery : null;
+	}
+
+	/**
+	 * Returns the {@link DeclaredQuery declared count query} from a {@link Query} annotation or {@literal null} if
+	 * neither the annotation found nor the attribute was specified.
+	 *
+	 * @return
+	 * @since 4.0
+	 */
+	public @Nullable DeclaredQuery getDeclaredCountQuery() {
+
+		String countQuery = getAnnotationValue("countQuery", String.class);
+		return StringUtils.hasText(countQuery) ? getDeclaredQuery(countQuery) : null;
 	}
 
 	/**
@@ -350,6 +389,17 @@ public class JpaQueryMethod extends QueryMethod {
 	 */
 	boolean isNativeQuery() {
 		return this.isNativeQuery.get();
+	}
+
+	/**
+	 * Utility method that returns a {@link DeclaredQuery} object for the given {@code queryString}.
+	 *
+	 * @param query the query string to wrap.
+	 * @return a {@link DeclaredQuery} object for the given {@code queryString}.
+	 * @since 4.0
+	 */
+	DeclaredQuery getDeclaredQuery(String query) {
+		return isNativeQuery() ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
 	}
 
 	@Override

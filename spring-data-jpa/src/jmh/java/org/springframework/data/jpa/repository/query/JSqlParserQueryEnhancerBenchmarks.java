@@ -29,6 +29,8 @@ import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * @author Mark Paluch
@@ -46,6 +48,7 @@ public class JSqlParserQueryEnhancerBenchmarks {
 		JSqlParserQueryEnhancer enhancer;
 		Sort sort = Sort.by("foo");
 		private byte[] serialized;
+		private QueryEnhancer.QueryRewriteInformation rewriteInformation;
 
 		@Setup(Level.Iteration)
 		public void doSetup() throws IOException {
@@ -57,12 +60,14 @@ public class JSqlParserQueryEnhancerBenchmarks {
 					union select SOME_COLUMN from SOME_OTHER_OTHER_TABLE""";
 
 			enhancer = new JSqlParserQueryEnhancer(DeclaredQuery.nativeQuery(s));
+			rewriteInformation = new DefaultQueryRewriteInformation(sort,
+					ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 		}
 	}
 
 	@Benchmark
 	public Object applySortWithParsing(BenchmarkParameters p) {
-		return p.enhancer.applySorting(p.sort);
+		return p.enhancer.rewrite(p.rewriteInformation);
 	}
 
 }

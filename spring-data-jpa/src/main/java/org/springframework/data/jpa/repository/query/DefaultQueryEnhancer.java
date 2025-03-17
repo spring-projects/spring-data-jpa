@@ -15,10 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.Set;
-
-import org.springframework.data.domain.Sort;
-
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -27,30 +23,18 @@ import org.jspecify.annotations.Nullable;
  * @author Diego Krupitza
  * @since 2.7.0
  */
-public class DefaultQueryEnhancer implements QueryEnhancer {
+class DefaultQueryEnhancer implements QueryEnhancer {
 
-	private final StructuredQuery query;
+	private final QueryProvider query;
 	private final boolean hasConstructorExpression;
 	private final @Nullable  String alias;
 	private final String projection;
-	private final Set<String> joinAliases;
 
-	public DefaultQueryEnhancer(StructuredQuery query) {
+	public DefaultQueryEnhancer(QueryProvider query) {
 		this.query = query;
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.getQueryString());
 		this.alias = QueryUtils.detectAlias(query.getQueryString());
 		this.projection = QueryUtils.getProjection(this.query.getQueryString());
-		this.joinAliases = QueryUtils.getOuterJoinAliases(this.query.getQueryString());
-	}
-
-	@Override
-	public String applySorting(Sort sort) {
-		return QueryUtils.applySorting(this.query.getQueryString(), sort, this.alias);
-	}
-
-	@Override
-	public String applySorting(Sort sort, @Nullable String alias) {
-		return QueryUtils.applySorting(this.query.getQueryString(), sort, alias);
 	}
 
 	@Override
@@ -61,7 +45,7 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	@Override
 	public String createCountQueryFor(@Nullable String countProjection) {
 
-		boolean nativeQuery = this.query instanceof DeclaredQuery dc ? dc.isNativeQuery() : true;
+		boolean nativeQuery = this.query instanceof DeclaredQuery dc ? dc.isNative() : true;
 		return QueryUtils.createCountQueryFor(this.query.getQueryString(), countProjection, nativeQuery);
 	}
 
@@ -81,12 +65,8 @@ public class DefaultQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
-	public Set<String> getJoinAliases() {
-		return this.joinAliases;
-	}
-
-	@Override
-	public StructuredQuery getQuery() {
+	public QueryProvider getQuery() {
 		return this.query;
 	}
+
 }

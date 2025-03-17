@@ -76,7 +76,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
 
-		Query query = em.createNamedQuery(queryName);
+		Query namedQuery = em.createNamedQuery(queryName);
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();
 
@@ -90,14 +90,17 @@ final class NamedQuery extends AbstractJpaQuery {
 					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
-		String queryString = extractor.extractQueryString(query);
+		String queryString = extractor.extractQueryString(namedQuery);
 
 		// TODO: What is queryString is null?
-		if (method.isNativeQuery() || (query != null && query.toString().contains("NativeQuery"))) {
-			this.entityQuery = Lazy.of(() -> EntityQuery.introspectNativeQuery(queryString, selector));
+		DeclaredQuery declaredQuery;
+		if (method.isNativeQuery() || (namedQuery != null && namedQuery.toString().contains("NativeQuery"))) {
+			declaredQuery = DeclaredQuery.nativeQuery(queryString);
 		} else {
-			this.entityQuery = Lazy.of(() -> EntityQuery.introspectJpql(queryString, selector));
+			declaredQuery = DeclaredQuery.jpqlQuery(queryString);
 		}
+
+		this.entityQuery = Lazy.of(() -> EntityQuery.create(declaredQuery, selector));
 	}
 
 	/**
