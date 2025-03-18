@@ -170,86 +170,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-[[jpa.query-methods.query-rewriter]]
-=== Applying a QueryRewriter
-
-Sometimes, no matter how many features you try to apply, it seems impossible to get Spring Data JPA to apply every thing
-you'd like to a query before it is sent to the `EntityManager`.
-
-You have the ability to get your hands on the query, right before it's sent to the `EntityManager` and "rewrite" it. That is,
-you can make any alterations at the last moment.
-
-.Declare a QueryRewriter using `@Query`
-====
-[source, java]
-----
-public interface MyRepository extends JpaRepository<User, Long> {
-
-		@NativeQuery(value = "select original_user_alias.* from SD_USER original_user_alias",
-				queryRewriter = MyQueryRewriter.class)
-		List<User> findByNativeQuery(String param);
-
-		@Query(value = "select original_user_alias from User original_user_alias",
-                queryRewriter = MyQueryRewriter.class)
-		List<User> findByNonNativeQuery(String param);
-}
-----
-====
-
-This example shows both a native (pure SQL) rewriter as well as a JPQL query, both leveraging the same `QueryRewriter`.
-In this scenario, Spring Data JPA will look for a bean registered in the application context of the corresponding type.
-
-You can write a query rewriter like this:
-
-.Example `QueryRewriter`
-====
-[source, java]
-----
-public class MyQueryRewriter implements QueryRewriter {
-
-     @Override
-     public String rewrite(String query, Sort sort) {
-         return query.replaceAll("original_user_alias", "rewritten_user_alias");
-     }
-}
-----
-====
-
-You have to ensure your `QueryRewriter` is registered in the application context, whether it's by applying one of Spring Framework's
-`@Component`-based annotations, or having it as part of a `@Bean` method inside an `@Configuration` class.
-
-Another option is to have the repository itself implement the interface.
-
-.Repository that provides the `QueryRewriter`
-====
-[source, java]
-----
-public interface MyRepository extends JpaRepository<User, Long>, QueryRewriter {
-
-		@Query(value = "select original_user_alias.* from SD_USER original_user_alias",
-                nativeQuery = true,
-				queryRewriter = MyRepository.class)
-		List<User> findByNativeQuery(String param);
-
-		@Query(value = "select original_user_alias from User original_user_alias",
-                queryRewriter = MyRepository.class)
-		List<User> findByNonNativeQuery(String param);
-
-		@Override
-		default String rewrite(String query, Sort sort) {
-			return query.replaceAll("original_user_alias", "rewritten_user_alias");
-		}
-}
-----
-====
-
-Depending on what you're doing with your `QueryRewriter`, it may be advisable to have more than one, each registered with the
-application context.
-
-NOTE: In a CDI-based environment, Spring Data JPA will search the `BeanManager` for instances of your implementation of
-`QueryRewriter`.
-
-
 [[jpa.query-methods.at-query.advanced-like]]
 === Using Advanced `LIKE` Expressions
 
@@ -305,17 +225,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ----
 ====
 
-[TIP]
-====
-It is possible to disable usage of `JSqlParser` for parsing native queries although it is available on the classpath by setting `spring.data.jpa.query.native.parser=regex` via the `spring.properties` file or a system property.
-
-Valid values are (case-insensitive):
-
-* `auto` (default, automatic selection)
-* `regex` (Use the builtin regex-based Query Enhancer)
-* `jsqlparser` (Use JSqlParser)
-====
-
 A similar approach also works with named native queries, by adding the `.count` suffix to a copy of your query. You probably need to register a result set mapping for your count query, though.
 
 Next to obtaining mapped results, native queries allow you to read the raw `Tuple` from the database by choosing a `Map` container as the method's return type.
@@ -341,8 +250,120 @@ interface UserRepository extends JpaRepository<User, Long> {
 NOTE: String-based Tuple Queries are only supported by Hibernate.
 Eclipselink supports only Criteria-based Tuple Queries.
 
-[[jpa.query-methods.at-query.projections]]
+[[jpa.query-methods.query-introspection-rewriting]]
+=== Query Introspection and Rewriting
 
+Spring Data JPA provides a wide range of functionality that can be used to run various flavors of queries.
+Specifically, given a declared query, Spring Data JPA can:
+
+* Introspect a query for its projection and run a tuple query for interface projections
+* Use DTO projections if the query uses constructor expressions and rewrite the projection when the query declares the entity alias or just a multi-select of expressions
+* Apply dynamic sorting
+* Derive a `COUNT` query
+
+For this purpose, we ship with Query Parsers specific to HQL (Hibernate) and EQL (EclipseLink) dialects as these dialects are well-defined.
+SQL on the other hand allows for quite some variance across dialects.
+Because of this, there is no way Spring Data will ever be able to support all levels of query complexity.
+We are not general purpose SQL parser library but one to increase developer productivity through making query execution simpler.
+Our built-in SQL query enhancer supports only simple queries for introspection `COUNT` query derivation.
+A more complex query will require either the usage of link:https://github.com/JSQLParser/JSqlParser[JSqlParser] or that you provide a `COUNT` query through `@Query(countQuery=…)`.
+If JSqlParser is on the class path, Spring Data JPA will use it for native queries.
+
+For a fine-grained control over selection, you can configure javadoc:org.springframework.data.jpa.repository.query.QueryEnhancerSelector[] using `@EnableJpaRepositories`:
+
+.Spring Data JPA repositories using JavaConfig
+====
+[source,java]
+----
+@Configuration
+@EnableJpaRepositories(queryEnhancerSelector = MyQueryEnhancerSelector.class)
+class ApplicationConfig {
+  // …
+}
+----
+====
+
+`QueryEnhancerSelector` is a strategy interface intended to select a javadoc:org.springframework.data.jpa.repository.query.QueryEnhancer[] based on a specific query.
+You can also provide your own `QueryEnhancer` implementation if you want.
+
+[[jpa.query-methods.query-rewriter]]
+=== Applying a QueryRewriter
+
+Sometimes, no matter how many features you try to apply, it seems impossible to get Spring Data JPA to apply every thing you'd like to a query before it is sent to the `EntityManager`.
+
+You have the ability to get your hands on the query, right before it's sent to the `EntityManager` and "rewrite" it.
+That is, you can make any alterations at the last moment.
+
+.Declare a QueryRewriter using `@Query`
+====
+[source,java]
+----
+public interface MyRepository extends JpaRepository<User, Long> {
+
+		@NativeQuery(value = "select original_user_alias.* from SD_USER original_user_alias",
+				queryRewriter = MyQueryRewriter.class)
+		List<User> findByNativeQuery(String param);
+
+		@Query(value = "select original_user_alias from User original_user_alias",
+                queryRewriter = MyQueryRewriter.class)
+		List<User> findByNonNativeQuery(String param);
+}
+----
+====
+
+This example shows both a native (pure SQL) rewriter as well as a JPQL query, both leveraging the same `QueryRewriter`.
+In this scenario, Spring Data JPA will look for a bean registered in the application context of the corresponding type.
+
+You can write a query rewriter like this:
+
+.Example `QueryRewriter`
+====
+[source,java]
+----
+public class MyQueryRewriter implements QueryRewriter {
+
+     @Override
+     public String rewrite(String query, Sort sort) {
+         return query.replaceAll("original_user_alias", "rewritten_user_alias");
+     }
+}
+----
+====
+
+You have to ensure your `QueryRewriter` is registered in the application context, whether it's by applying one of Spring Framework's
+`@Component`-based annotations, or having it as part of a `@Bean` method inside an `@Configuration` class.
+
+Another option is to have the repository itself implement the interface.
+
+.Repository that provides the `QueryRewriter`
+====
+[source,java]
+----
+public interface MyRepository extends JpaRepository<User, Long>, QueryRewriter {
+
+		@Query(value = "select original_user_alias.* from SD_USER original_user_alias",
+                nativeQuery = true,
+				queryRewriter = MyRepository.class)
+		List<User> findByNativeQuery(String param);
+
+		@Query(value = "select original_user_alias from User original_user_alias",
+                queryRewriter = MyRepository.class)
+		List<User> findByNonNativeQuery(String param);
+
+		@Override
+		default String rewrite(String query, Sort sort) {
+			return query.replaceAll("original_user_alias", "rewritten_user_alias");
+		}
+}
+----
+====
+
+Depending on what you're doing with your `QueryRewriter`, it may be advisable to have more than one, each registered with the application context.
+
+NOTE: In a CDI-based environment, Spring Data JPA will search the `BeanManager` for instances of your implementation of
+`QueryRewriter`.
+
+[[jpa.query-methods.at-query.projections]]
 [[jpa.query-methods.sorting]]
 == Using Sort
 
@@ -437,14 +458,14 @@ NOTE: The method parameters are switched according to their order in the defined
 NOTE: As of version 4, Spring fully supports Java 8’s parameter name discovery based on the `-parameters` compiler flag. By using this flag in your build as an alternative to debug information, you can omit the `@Param` annotation for named parameters.
 
 [[jpa.query.spel-expressions]]
-== Using Expressions
+== Templated Queries and Expressions
 
 We support the usage of restricted expressions in manually defined queries that are defined with `@Query`.
 Upon the query being run, these expressions are evaluated against a predefined set of variables.
 
 NOTE: If you are not familiar with Value Expressions, please refer to xref:jpa/value-expressions.adoc[] to learn about SpEL Expressions and Property Placeholders.
 
-Spring Data JPA supports a variable called `entityName`.
+Spring Data JPA supports a template variable called `entityName`.
 Its usage is `select x from #{#entityName} x`.
 It inserts the `entityName` of the domain type associated with the given repository.
 The `entityName` is resolved as follows:

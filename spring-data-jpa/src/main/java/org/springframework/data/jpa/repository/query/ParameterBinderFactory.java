@@ -84,7 +84,7 @@ class ParameterBinderFactory {
 	 * @return a {@link ParameterBinder} that can assign values for the method parameters to query parameters of a
 	 *         {@link jakarta.persistence.Query} while processing SpEL expressions where applicable.
 	 */
-	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, StructuredQuery query,
+	static ParameterBinder createQueryAwareBinder(JpaParameters parameters, ParametrizedQuery query,
 			ValueExpressionParser parser, ValueEvaluationContextProvider evaluationContextProvider) {
 
 		Assert.notNull(parameters, "JpaParameters must not be null");
@@ -130,7 +130,7 @@ class ParameterBinderFactory {
 	}
 
 	private static Iterable<QueryParameterSetter> createSetters(List<ParameterBinding> parameterBindings,
-			StructuredQuery query, QueryParameterSetterFactory... strategies) {
+			ParametrizedQuery query, QueryParameterSetterFactory... strategies) {
 
 		List<QueryParameterSetter> setters = new ArrayList<>(parameterBindings.size());
 		for (ParameterBinding parameterBinding : parameterBindings) {
@@ -141,7 +141,7 @@ class ParameterBinderFactory {
 	}
 
 	private static QueryParameterSetter createQueryParameterSetter(ParameterBinding binding,
-			QueryParameterSetterFactory[] strategies, StructuredQuery query) {
+			QueryParameterSetterFactory[] strategies, ParametrizedQuery query) {
 
 		for (QueryParameterSetterFactory strategy : strategies) {
 

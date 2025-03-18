@@ -49,7 +49,7 @@ import org.springframework.util.ConcurrentLruCache;
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 	private final EntityQuery query;
-	private final Lazy<StructuredQuery> countQuery;
+	private final Lazy<ParametrizedQuery> countQuery;
 	private final ValueExpressionDelegate valueExpressionDelegate;
 	private final QueryRewriter queryRewriter;
 	private final QuerySortRewriter querySortRewriter;
@@ -151,7 +151,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return createBinder(query);
 	}
 
-	protected ParameterBinder createBinder(StructuredQuery query) {
+	protected ParameterBinder createBinder(ParametrizedQuery query) {
 		return ParameterBinderFactory.createQueryAwareBinder(getQueryMethod().getParameters(), query,
 				valueExpressionDelegate, valueExpressionContextProvider);
 	}
@@ -182,7 +182,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	/**
 	 * @return the countQuery
 	 */
-	public StructuredQuery getCountQuery() {
+	public ParametrizedQuery getCountQuery() {
 		return countQuery.get();
 	}
 

@@ -21,7 +21,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 /**
- * NULL-Object pattern implementation for {@link StructuredQuery}.
+ * NULL-Object pattern implementation for {@link ParametrizedQuery}.
  *
  * @author Jens Schauder
  * @author Mark Paluch
@@ -73,7 +73,7 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
-	public StructuredQuery deriveCountQuery(@Nullable String countQueryProjection) {
+	public ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 		return INSTANCE;
 	}
 

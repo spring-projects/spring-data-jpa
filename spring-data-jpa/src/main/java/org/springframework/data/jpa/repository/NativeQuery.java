@@ -94,4 +94,5 @@ public @interface NativeQuery {
 	 * Name of the {@link jakarta.persistence.SqlResultSetMapping @SqlResultSetMapping(name)} to apply for this query.
 	 */
 	String sqlResultSetMapping() default "";
+
 }

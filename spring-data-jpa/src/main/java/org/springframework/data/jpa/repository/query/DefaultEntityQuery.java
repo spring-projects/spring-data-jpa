@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Encapsulation of a JPA query string, typically returning entities or DTOs. Provides access to parameter bindings.
  * <p>
- * The internal {@link ParametrizedQuery query string} is cleaned from decorated parameters like {@literal %:lastname%}
+ * The internal {@link PreprocessedQuery query string} is cleaned from decorated parameters like {@literal %:lastname%}
  * and the matching bindings take care of applying the decorations in the {@link ParameterBinding#prepare(Object)}
  * method. Note that this class also handles replacing SpEL expressions with synthetic bind parameters.
  *
@@ -38,10 +38,10 @@ import org.jspecify.annotations.Nullable;
  */
 class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 
-	private final ParametrizedQuery query;
+	private final PreprocessedQuery query;
 	private final QueryEnhancer queryEnhancer;
 
-	DefaultEntityQuery(ParametrizedQuery query, QueryEnhancerFactory queryEnhancerFactory) {
+	DefaultEntityQuery(PreprocessedQuery query, QueryEnhancerFactory queryEnhancerFactory) {
 		this.query = query;
 		this.queryEnhancer = queryEnhancerFactory.create(query);
 	}
@@ -89,13 +89,14 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 		return queryEnhancer.getProjection().equalsIgnoreCase(getAlias());
 	}
 
+	@Nullable
+	String getAlias() {
+		return queryEnhancer.detectAlias();
+	}
+
 	@Override
 	public boolean usesPaging() {
 		return query.containsPageableInSpel();
-	}
-
-	public @Nullable String getAlias() {
-		return queryEnhancer.detectAlias();
 	}
 
 	String getProjection() {
@@ -103,8 +104,8 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 	}
 
 	@Override
-	public StructuredQuery deriveCountQuery(@Nullable String countQueryProjection) {
-		return new SimpleStructuredQuery(this.query.rewrite(queryEnhancer.createCountQueryFor(countQueryProjection)));
+	public ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection) {
+		return new SimpleParametrizedQuery(this.query.rewrite(queryEnhancer.createCountQueryFor(countQueryProjection)));
 	}
 
 	@Override
@@ -118,13 +119,13 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 	}
 
 	/**
-	 * Simple {@link StructuredQuery} variant forwarding to {@link ParametrizedQuery}.
+	 * Simple {@link ParametrizedQuery} variant forwarding to {@link PreprocessedQuery}.
 	 */
-	static class SimpleStructuredQuery implements StructuredQuery {
+	static class SimpleParametrizedQuery implements ParametrizedQuery {
 
-		private final ParametrizedQuery query;
+		private final PreprocessedQuery query;
 
-		SimpleStructuredQuery(ParametrizedQuery query) {
+		SimpleParametrizedQuery(PreprocessedQuery query) {
 			this.query = query;
 		}
 

@@ -29,7 +29,7 @@ class TestEntityQuery extends DefaultEntityQuery {
 	 */
 	TestEntityQuery(String query, boolean isNative) {
 
-		super(ParametrizedQuery.parse(isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query)),
+		super(PreprocessedQuery.parse(isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query)),
 				QueryEnhancerSelector.DEFAULT_SELECTOR
 						.select(isNative ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query)));
 	}

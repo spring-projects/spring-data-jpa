@@ -25,7 +25,8 @@ import org.springframework.data.repository.query.ReturnedType;
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
- * @since 2.7.0
+ * @author Mark Paluch
+ * @since 2.7
  */
 public interface QueryEnhancer {
 
@@ -80,7 +81,7 @@ public interface QueryEnhancer {
 	String rewrite(QueryRewriteInformation rewriteInformation);
 
 	/**
-	 * Creates a count projected query from the given original query using the provided <code>countProjection</code>.
+	 * Creates a count projected query from the given original query using the provided {@code countProjection}.
 	 *
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.

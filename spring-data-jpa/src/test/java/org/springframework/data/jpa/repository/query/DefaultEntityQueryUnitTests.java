@@ -164,7 +164,7 @@ class DefaultEntityQueryUnitTests {
 	@Test // GH-3784
 	void rewritesNamedLikeToUniqueParametersRetainingCountQuery() {
 
-		StructuredQuery query = new TestEntityQuery(
+		ParametrizedQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:firstname or u.firstname like :firstname% or u.firstname = :firstname",
 				false).deriveCountQuery(null);
 
@@ -197,7 +197,7 @@ class DefaultEntityQueryUnitTests {
 	@Test // GH-3784
 	void rewritesExpressionsLikeToUniqueParametersRetainingCountQuery() {
 
-		StructuredQuery query = new TestEntityQuery(
+		ParametrizedQuery query = new TestEntityQuery(
 				"select u from User u where u.firstname like %:#{firstname} or u.firstname like :#{firstname}%", false)
 				.deriveCountQuery(null);
 
@@ -355,7 +355,7 @@ class DefaultEntityQueryUnitTests {
 	void deriveCountQueryWithNamedInRetainsOrigin() {
 
 		String queryString = "select u from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins)";
-		StructuredQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
+		ParametrizedQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
 
 		assertThat(query.getQueryString())
 				.isEqualTo("select count(u) from User u where (:logins) IS NULL OR LOWER(u.login) IN (:logins_1)");
@@ -376,7 +376,7 @@ class DefaultEntityQueryUnitTests {
 	void deriveCountQueryWithPositionalInRetainsOrigin() {
 
 		String queryString = "select u from User u where (?1) IS NULL OR LOWER(u.login) IN (?1)";
-		StructuredQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
+		ParametrizedQuery query = new TestEntityQuery(queryString, false).deriveCountQuery(null);
 
 		assertThat(query.getQueryString())
 				.isEqualTo("select count(u) from User u where (?1) IS NULL OR LOWER(u.login) IN (?2)");
@@ -464,7 +464,7 @@ class DefaultEntityQueryUnitTests {
 				"select u from User u where foo = :#{bar} ORDER BY CASE WHEN (u.firstname >= :#{name}) THEN 0 ELSE 1 END",
 				false);
 
-		StructuredQuery countQuery = query.deriveCountQuery(null);
+		ParametrizedQuery countQuery = query.deriveCountQuery(null);
 
 		assertThat(countQuery.getParameterBindings()).hasSize(1);
 		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
@@ -489,7 +489,7 @@ class DefaultEntityQueryUnitTests {
 				"select u from User u where foo = ?#{bar} ORDER BY CASE WHEN (u.firstname >= ?#{name}) THEN 0 ELSE 1 END",
 				false);
 
-		StructuredQuery countQuery = query.deriveCountQuery(null);
+		ParametrizedQuery countQuery = query.deriveCountQuery(null);
 
 		assertThat(countQuery.getParameterBindings()).hasSize(1);
 		assertThat(countQuery.getParameterBindings()).extracting(ParameterBinding::getOrigin)
@@ -932,7 +932,7 @@ class DefaultEntityQueryUnitTests {
 	private void checkHasNamedParameter(String query, boolean expected, String label, boolean nativeQuery) {
 
 		DeclaredQuery source = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-		ParametrizedQuery bindableQuery = ParametrizedQuery.ParameterBindingParser.INSTANCE.parse(source.getQueryString(),
+		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(source.getQueryString(),
 				source::rewrite, it -> {});
 
 		assertThat(bindableQuery.getBindings().stream().anyMatch(it -> it.getIdentifier().hasName())) //

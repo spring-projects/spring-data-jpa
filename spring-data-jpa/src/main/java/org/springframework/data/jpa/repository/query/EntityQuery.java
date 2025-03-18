@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import org.jspecify.annotations.Nullable;
 
 /**
- * An extension to {@link StructuredQuery} exposing query information about its inner structure such as whether
+ * An extension to {@link ParametrizedQuery} exposing query information about its inner structure such as whether
  * constructor expressions (JPQL) are used or the default projection is used.
  * <p>
  * Entity Queries support derivation of {@link #deriveCountQuery(String) count queries} from the original query. They
@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * @author Diego Krupitza
  * @since 4.0
  */
-interface EntityQuery extends StructuredQuery {
+interface EntityQuery extends ParametrizedQuery {
 
 	/**
 	 * Create a new {@link EntityQuery} given {@link DeclaredQuery} and {@link QueryEnhancerSelector}.
@@ -39,7 +39,7 @@ interface EntityQuery extends StructuredQuery {
 	 */
 	static EntityQuery create(DeclaredQuery query, QueryEnhancerSelector selector) {
 
-		ParametrizedQuery preparsed = ParametrizedQuery.parse(query);
+		PreprocessedQuery preparsed = PreprocessedQuery.parse(query);
 		QueryEnhancerFactory enhancerFactory = selector.select(preparsed);
 
 		return new DefaultEntityQuery(preparsed, enhancerFactory);
@@ -73,7 +73,7 @@ interface EntityQuery extends StructuredQuery {
 	 * @param countQueryProjection an optional return type for the query.
 	 * @return a new {@literal IntrospectedQuery} instance.
 	 */
-	StructuredQuery deriveCountQuery(@Nullable String countQueryProjection);
+	ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection);
 
 	/**
 	 * Rewrite the query using the given

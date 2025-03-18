@@ -140,7 +140,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link StructuredQuery} using JPQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using JPQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using JPQL.
@@ -150,7 +150,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link StructuredQuery} using HQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using HQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using HQL.
@@ -160,7 +160,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	}
 
 	/**
-	 * Factory method to create a {@link JpaQueryEnhancer} for {@link StructuredQuery} using EQL grammar.
+	 * Factory method to create a {@link JpaQueryEnhancer} for {@link ParametrizedQuery} using EQL grammar.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @return a new {@link JpaQueryEnhancer} using EQL.

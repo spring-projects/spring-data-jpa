@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 /**
- * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link StructuredQuery}.
+ * Encapsulates different strategies for the creation of a {@link QueryEnhancer} from a {@link ParametrizedQuery}.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
