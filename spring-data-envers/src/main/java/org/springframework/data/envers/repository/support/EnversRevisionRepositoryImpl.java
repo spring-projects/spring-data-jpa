@@ -78,12 +78,12 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	 * Creates a new {@link EnversRevisionRepositoryImpl} using the given {@link JpaEntityInformation},
 	 * {@link RevisionEntityInformation} and {@link EntityManager}.
 	 *
-	 * @param entityInformation         must not be {@literal null}.
+	 * @param entityInformation must not be {@literal null}.
 	 * @param revisionEntityInformation must not be {@literal null}.
-	 * @param entityManager             must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
 	 */
 	public EnversRevisionRepositoryImpl(JpaEntityInformation<T, ?> entityInformation,
-										RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
+			RevisionEntityInformation revisionEntityInformation, EntityManager entityManager) {
 
 		Assert.notNull(entityInformation, "JpaEntityInformation must not be null!");
 		Assert.notNull(entityManager, "EntityManager must not be null!");
@@ -241,7 +241,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 			return metadata instanceof DefaultRevisionEntity defaultRevisionEntity //
 					? new DefaultRevisionMetadata(defaultRevisionEntity, revisionType) //
 					: new AnnotationRevisionMetadata<>(Hibernate.unproxy(metadata), RevisionNumber.class, RevisionTimestamp.class,
-					revisionType);
+							revisionType);
 		}
 
 		private static RevisionMetadata.RevisionType convertRevisionType(RevisionType datum) {
