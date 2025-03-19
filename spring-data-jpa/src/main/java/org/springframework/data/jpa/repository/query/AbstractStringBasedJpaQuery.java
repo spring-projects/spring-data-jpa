@@ -105,7 +105,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		});
 
 		this.countParameterBinder = Lazy.of(() -> this.createBinder(this.countQuery.get()));
-
 		this.queryRewriter = queryConfiguration.getQueryRewriter(method);
 
 		JpaParameters parameters = method.getParameters();

@@ -41,6 +41,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.QueryCreationException;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -54,6 +55,9 @@ import org.springframework.data.util.TypeInformation;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class NamedQueryUnitTests {
+
+	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+			QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT);
 
 	@Mock RepositoryMetadata metadata;
 	@Mock QueryExtractor extractor;
@@ -89,7 +93,8 @@ class NamedQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
-		assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, QueryEnhancerSelector.DEFAULT_SELECTOR, QueryRewriter.IdentityQueryRewriter.INSTANCE));
+		assertThatExceptionOfType(QueryCreationException.class)
+				.isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, CONFIG));
 	}
 
 	@Test // DATAJPA-142
@@ -101,7 +106,7 @@ class NamedQueryUnitTests {
 
 		TypedQuery<Long> countQuery = mock(TypedQuery.class);
 		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
-		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em, QueryEnhancerSelector.DEFAULT_SELECTOR, QueryRewriter.IdentityQueryRewriter.INSTANCE);
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em, CONFIG);
 
 		query.doCreateCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[1]));
 		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName(), Long.class);
