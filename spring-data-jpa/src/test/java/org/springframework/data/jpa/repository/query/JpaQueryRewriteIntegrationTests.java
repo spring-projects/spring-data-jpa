@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -44,7 +47,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Unit tests for repository with {@link Query} and {@link QueryRewrite}.
+ * Unit tests for repository with {@link Query} and {@link QueryRewriter}.
  *
  * @author Greg Turnquist
  * @author Krzysztof Krason
@@ -60,10 +63,12 @@ class JpaQueryRewriteIntegrationTests {
 	static final String REWRITTEN_QUERY = "rewritten query";
 	static final String SORT = "sort";
 	static Map<String, String> results = new HashMap<>();
+	static Set<String> queries = new LinkedHashSet<>();
 
 	@BeforeEach
 	void setUp() {
 		results.clear();
+		repository.deleteAll();
 	}
 
 	@Test
@@ -77,15 +82,15 @@ class JpaQueryRewriteIntegrationTests {
 				entry(SORT, Sort.unsorted().toString()));
 	}
 
-	@Test
+	@Test // GH-3801
 	void nonNativeQueryShouldHandleRewrites() {
 
-		repository.findByNonNativeQuery("Matthews");
+		repository.save(new User("D", "A", "foo@bar"));
 
-		assertThat(results).containsExactly( //
-				entry(ORIGINAL_QUERY, "select original_user_alias from User original_user_alias"), //
-				entry(REWRITTEN_QUERY, "select rewritten_user_alias from User rewritten_user_alias"), //
-				entry(SORT, Sort.unsorted().toString()));
+		repository.findByNonNativeQuery("Matthews", PageRequest.of(0, 1));
+
+		assertThat(queries).contains("select original_user_alias from User original_user_alias");
+		assertThat(queries).contains("select count(original_user_alias) from User original_user_alias");
 	}
 
 	@Test
@@ -169,7 +174,7 @@ class JpaQueryRewriteIntegrationTests {
 		List<User> findByNativeQuery(String param);
 
 		@Query(value = "select original_user_alias from User original_user_alias", queryRewriter = TestQueryRewriter.class)
-		List<User> findByNonNativeQuery(String param);
+		Page<User> findByNonNativeQuery(String param, PageRequest pageRequest);
 
 		@Query(value = "select original_user_alias from User original_user_alias", queryRewriter = TestQueryRewriter.class)
 		List<User> findByNonNativeSortedQuery(String param, Sort sort);
@@ -214,6 +219,7 @@ class JpaQueryRewriteIntegrationTests {
 		results.put(ORIGINAL_QUERY, query);
 		results.put(REWRITTEN_QUERY, rewrittenQuery);
 		results.put(SORT, sort.toString());
+		queries.add(query);
 
 		return rewrittenQuery;
 	}

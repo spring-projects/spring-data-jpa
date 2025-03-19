@@ -181,11 +181,9 @@ public final class JpaQueryLookupStrategy {
 						getCountQuery(method, namedQueries, em), queryRewriter, valueExpressionDelegate);
 			}
 
-			RepositoryQuery query = NamedQuery.lookupFrom(method, em);
+			RepositoryQuery query = NamedQuery.lookupFrom(method, em, queryRewriter);
 
-			return query != null //
-					? query //
-					: NO_QUERY;
+			return query != null ? query : NO_QUERY;
 		}
 
 		@Nullable

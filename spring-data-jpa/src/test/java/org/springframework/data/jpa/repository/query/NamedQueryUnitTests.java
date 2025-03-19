@@ -36,6 +36,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -88,7 +89,8 @@ class NamedQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
 		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
-		assertThatExceptionOfType(QueryCreationException.class).isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em));
+		assertThatExceptionOfType(QueryCreationException.class)
+				.isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, QueryRewriter.IdentityQueryRewriter.INSTANCE));
 	}
 
 	@Test // DATAJPA-142
@@ -100,7 +102,8 @@ class NamedQueryUnitTests {
 
 		TypedQuery<Long> countQuery = mock(TypedQuery.class);
 		when(em.createNamedQuery(eq(queryMethod.getNamedCountQueryName()), eq(Long.class))).thenReturn(countQuery);
-		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em);
+		NamedQuery query = (NamedQuery) NamedQuery.lookupFrom(queryMethod, em,
+				QueryRewriter.IdentityQueryRewriter.INSTANCE);
 
 		query.doCreateCountQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[1]));
 		verify(em, times(1)).createNamedQuery(queryMethod.getNamedCountQueryName(), Long.class);
