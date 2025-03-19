@@ -176,8 +176,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 Sometimes, no matter how many features you try to apply, it seems impossible to get Spring Data JPA to apply every thing
 you'd like to a query before it is sent to the `EntityManager`.
 
-You have the ability to get your hands on the query, right before it's sent to the `EntityManager` and "rewrite" it. That is,
-you can make any alterations at the last moment.
+You have the ability to get your hands on the query, right before it's sent to the `EntityManager` and "rewrite" it.
+That is, you can make any alterations at the last moment.
+Query rewriting applies to the actual query and, when applicable, to count queries.
+Count queries are optimized and therefore, either not necessary or a count is obtained through other means, such as derived from a Hibernate `SelectionQuery`.
+
 
 .Declare a QueryRewriter using `@Query`
 ====

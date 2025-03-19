@@ -22,7 +22,11 @@ import jakarta.persistence.TypedQuery;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -53,11 +57,12 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final boolean namedCountQueryIsPresent;
 	private final Lazy<DeclaredQuery> declaredQuery;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache;
+	private final QueryRewriter queryRewriter;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
 	 */
-	private NamedQuery(JpaQueryMethod method, EntityManager em) {
+	private NamedQuery(JpaQueryMethod method, EntityManager em, QueryRewriter queryRewriter) {
 
 		super(method, em);
 
@@ -65,6 +70,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		this.countQueryName = method.getNamedCountQueryName();
 		QueryExtractor extractor = method.getQueryExtractor();
 		this.countProjection = method.getCountQueryProjection();
+		this.queryRewriter = queryRewriter;
 
 		Parameters<?, ?> parameters = method.getParameters();
 
@@ -127,9 +133,10 @@ final class NamedQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
+	 * @param queryRewriter must not be {@literal null}.
 	 */
 	@Nullable
-	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em) {
+	public static RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em, QueryRewriter queryRewriter) {
 
 		String queryName = method.getNamedQueryName();
 
@@ -147,7 +154,7 @@ final class NamedQuery extends AbstractJpaQuery {
 					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
-		RepositoryQuery query = new NamedQuery(method, em);
+		RepositoryQuery query = new NamedQuery(method, em, queryRewriter);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Found named query '%s'", queryName));
 		}
@@ -187,6 +194,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		} else {
 
 			String countQueryString = declaredQuery.get().deriveCountQuery(countProjection).getQueryString();
+			countQueryString = potentiallyRewriteQuery(countQueryString, accessor.getSort(), accessor.getPageable());
 			cacheKey = countQueryString;
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
@@ -221,5 +229,21 @@ final class NamedQuery extends AbstractJpaQuery {
 		return declaredQuery.get().hasConstructorExpression() //
 				? null //
 				: super.getTypeToRead(returnedType);
+	}
+
+	/**
+	 * Use the {@link QueryRewriter}, potentially rewrite the query, using relevant {@link Sort} and {@link Pageable}
+	 * information.
+	 *
+	 * @param originalQuery
+	 * @param sort
+	 * @param pageable
+	 * @return
+	 */
+	private String potentiallyRewriteQuery(String originalQuery, Sort sort, Pageable pageable) {
+
+		return pageable.isPaged() //
+				? queryRewriter.rewrite(originalQuery, pageable) //
+				: queryRewriter.rewrite(originalQuery, sort);
 	}
 }

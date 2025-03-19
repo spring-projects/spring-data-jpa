@@ -26,6 +26,10 @@ import org.springframework.data.domain.Sort;
  * and tools intends to do has been done. You can customize the query to apply final changes. Rewriting can only make
  * use of already existing contextual data. That is, adding or replacing query text or reuse of bound parameters. Query
  * rewriting must not add additional bindable parameters as these cannot be materialized.
+ * <p>
+ * Query rewriting applies to the actual query and, when applicable, to count queries. Count queries are optimized and
+ * therefore, either not necessary or a count is obtained through other means, such as derived from a Hibernate
+ * {@code SelectionQuery}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
@@ -71,4 +75,5 @@ public interface QueryRewriter {
 			return query;
 		}
 	}
+
 }
