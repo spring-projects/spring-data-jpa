@@ -105,7 +105,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		});
 
 		this.countParameterBinder = Lazy.of(() -> this.createBinder(this.countQuery.get()));
-
 		this.queryRewriter = queryConfiguration.getQueryRewriter(method);
 
 		JpaParameters parameters = method.getParameters();
@@ -162,9 +161,11 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryString = countQuery.get().getQueryString();
 		EntityManager em = getEntityManager();
 
+		String queryStringToUse = potentiallyRewriteQuery(queryString, accessor.getSort(), accessor.getPageable());
+
 		Query query = getQueryMethod().isNativeQuery() //
-				? em.createNativeQuery(queryString) //
-				: em.createQuery(queryString, Long.class);
+				? em.createNativeQuery(queryStringToUse) //
+				: em.createQuery(queryStringToUse, Long.class);
 
 		countParameterBinder.get().bind(new QueryParameterSetter.BindableQuery(query), accessor,
 				QueryParameterSetter.ErrorHandling.LENIENT);
@@ -194,16 +195,17 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			ReturnedType returnedType) {
 
 		EntityManager em = getEntityManager();
+		String queryToUse = potentiallyRewriteQuery(query.getQueryString(), sort, pageable);
 
 		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
-			return em.createQuery(potentiallyRewriteQuery(query.getQueryString(), sort, pageable));
+			return em.createQuery(queryToUse);
 		}
 
 		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null //
-				? em.createQuery(potentiallyRewriteQuery(query.getQueryString(), sort, pageable)) //
-				: em.createQuery(potentiallyRewriteQuery(query.getQueryString(), sort, pageable), typeToRead);
+				? em.createQuery(queryToUse) //
+				: em.createQuery(queryToUse, typeToRead);
 	}
 
 	/**

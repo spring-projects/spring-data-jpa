@@ -169,7 +169,7 @@ public final class JpaQueryLookupStrategy {
 						configuration);
 			}
 
-			RepositoryQuery query = NamedQuery.lookupFrom(method, em, configuration.getSelector());
+			RepositoryQuery query = NamedQuery.lookupFrom(method, em, configuration);
 
 			return query != null ? query : NO_QUERY;
 		}
