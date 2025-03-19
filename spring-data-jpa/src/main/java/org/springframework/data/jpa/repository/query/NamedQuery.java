@@ -56,11 +56,12 @@ final class NamedQuery extends AbstractJpaQuery {
 	private final @Nullable String countProjection;
 	private final boolean namedCountQueryIsPresent;
 	private final Lazy<EntityQuery> entityQuery;
+	private final QueryRewriter queryRewriter;
 
 	/**
 	 * Creates a new {@link NamedQuery}.
 	 */
-	private NamedQuery(JpaQueryMethod method, EntityManager em, QueryEnhancerSelector selector, QueryRewriter queryRewriter) {
+	private NamedQuery(JpaQueryMethod method, EntityManager em, JpaQueryConfiguration queryConfiguration) {
 
 		super(method, em);
 
@@ -68,7 +69,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		this.countQueryName = method.getNamedCountQueryName();
 		QueryExtractor extractor = method.getQueryExtractor();
 		this.countProjection = method.getCountQueryProjection();
-		this.queryRewriter = queryRewriter;
+		this.queryRewriter = queryConfiguration.getQueryRewriter(method);
 
 		Parameters<?, ?> parameters = method.getParameters();
 
@@ -104,7 +105,7 @@ final class NamedQuery extends AbstractJpaQuery {
 			declaredQuery = DeclaredQuery.jpqlQuery(queryString);
 		}
 
-		this.entityQuery = Lazy.of(() -> EntityQuery.create(declaredQuery, selector));
+		this.entityQuery = Lazy.of(() -> EntityQuery.create(declaredQuery, queryConfiguration.getSelector()));
 	}
 
 	/**
@@ -138,9 +139,10 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param selector must not be {@literal null}.
+	 * @param queryConfiguration must not be {@literal null}.
 	 */
 	public static @Nullable RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em,
-			QueryEnhancerSelector selector) {
+			JpaQueryConfiguration queryConfiguration) {
 
 		String queryName = method.getNamedQueryName();
 
@@ -158,7 +160,7 @@ final class NamedQuery extends AbstractJpaQuery {
 					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
-		RepositoryQuery query = new NamedQuery(method, em, selector);
+		RepositoryQuery query = new NamedQuery(method, em, queryConfiguration);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Found named query '%s'", queryName));
 		}
@@ -193,6 +195,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		} else {
 
 			String countQueryString = entityQuery.get().deriveCountQuery(countProjection).getQueryString();
+			countQueryString = potentiallyRewriteQuery(countQueryString, accessor.getSort(), accessor.getPageable());
 			countQuery = em.createQuery(countQueryString, Long.class);
 		}
 
@@ -235,9 +238,9 @@ final class NamedQuery extends AbstractJpaQuery {
 	 * @param pageable
 	 * @return
 	 */
-	private String potentiallyRewriteQuery(String originalQuery, Sort sort, Pageable pageable) {
+	private String potentiallyRewriteQuery(String originalQuery, Sort sort, @Nullable Pageable pageable) {
 
-		return pageable.isPaged() //
+		return pageable != null && pageable.isPaged() //
 				? queryRewriter.rewrite(originalQuery, pageable) //
 				: queryRewriter.rewrite(originalQuery, sort);
 	}
