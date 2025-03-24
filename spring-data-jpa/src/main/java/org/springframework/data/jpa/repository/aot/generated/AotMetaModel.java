@@ -37,7 +37,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 /**
  * @author Christoph Strobl
  */
-public class AotMetaModel implements Metamodel {
+class AotMetaModel implements Metamodel {
 
 	private final String persistenceUnit;
 	private final Set<Class<?>> managedTypes;
@@ -105,7 +105,7 @@ public class AotMetaModel implements Metamodel {
 
 			@Override
 			public void addTransformer(ClassTransformer classTransformer) {
-				// just ingnore it
+				// just ignore it
 			}
 		};
 

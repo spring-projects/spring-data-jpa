@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static java.util.regex.Pattern.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +60,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 4.0
  */
-final class PreprocessedQuery implements DeclaredQuery {
+public final class PreprocessedQuery implements DeclaredQuery {
 
 	private final DeclaredQuery source;
 	private final List<ParameterBinding> bindings;
@@ -127,7 +127,7 @@ final class PreprocessedQuery implements DeclaredQuery {
 		return usesJdbcStyleParameters;
 	}
 
-	List<ParameterBinding> getBindings() {
+	public List<ParameterBinding> getBindings() {
 		return Collections.unmodifiableList(bindings);
 	}
 

@@ -15,9 +15,7 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME;
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_CONTEXT_BEAN_NAME;
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
@@ -54,7 +52,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.aot.generated.JpaRepsoitoryContributor;
+import org.springframework.data.jpa.repository.aot.generated.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
@@ -335,7 +333,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				return null;
 			}
 
-			return new JpaRepsoitoryContributor(repositoryContext);
+			return new JpaRepositoryContributor(repositoryContext);
 		}
 
 		@Nullable
