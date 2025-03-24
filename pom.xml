@@ -30,10 +30,10 @@
 		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>4.0.5</eclipselink>
 		<eclipselink-next>4.0.6-SNAPSHOT</eclipselink-next>
-		<hibernate>6.6.10.Final</hibernate>
+		<hibernate>6.6.11.Final</hibernate>
 		<hibernate-62>6.2.33.Final</hibernate-62>
-		<hibernate-66-snapshots>6.6.11-SNAPSHOT</hibernate-66-snapshots>
-		<hibernate-70>7.0.0.Beta1</hibernate-70>
+		<hibernate-66-snapshots>6.6.12-SNAPSHOT</hibernate-66-snapshots>
+		<hibernate-70>7.0.0.Beta5</hibernate-70>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
@@ -83,7 +83,8 @@
 			<id>hibernate-70</id>
 			<properties>
 				<hibernate>${hibernate-70}</hibernate>
-				<jakarta-persistence-api>3.2.0-M2</jakarta-persistence-api>
+				<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
+				<antlr>4.13.2</antlr>
 			</properties>
 			<repositories>
 				<repository>
@@ -99,7 +100,7 @@
 			<id>hibernate-70-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-70-snapshots}</hibernate>
-				<jakarta-persistence-api>3.2.0-M2</jakarta-persistence-api>
+				<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 			</properties>
 			<repositories>
 				<repository>
