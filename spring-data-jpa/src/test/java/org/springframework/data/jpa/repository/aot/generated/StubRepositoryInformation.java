@@ -18,6 +18,8 @@ package org.springframework.data.jpa.repository.aot.generated;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.core.CrudMethods;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -27,7 +29,6 @@ import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.util.Streamable;
 import org.springframework.data.util.TypeInformation;
-import org.springframework.lang.Nullable;
 
 /**
  * @author Christoph Strobl

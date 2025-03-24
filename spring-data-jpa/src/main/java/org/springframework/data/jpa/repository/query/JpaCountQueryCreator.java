@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -48,6 +49,24 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 			JpqlQueryTemplates templates, EntityManager em) {
 
 		super(tree, returnedType, provider, templates, em);
+
+		this.distinct = tree.isDistinct();
+		this.returnedType = returnedType;
+	}
+
+	/**
+	 * Creates a new {@link JpaCountQueryCreator}
+	 *
+	 * @param tree
+	 * @param returnedType
+	 * @param provider
+	 * @param templates
+	 * @param metamodel
+	 */
+	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, Metamodel metamodel) {
+
+		super(tree, returnedType, provider, templates, metamodel);
 
 		this.distinct = tree.isDistinct();
 		this.returnedType = returnedType;
