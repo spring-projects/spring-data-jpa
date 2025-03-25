@@ -324,7 +324,7 @@ A similar approach also works with named native queries, by adding the `.count` 
 Next to obtaining mapped results, native queries allow you to read the raw `Tuple` from the database by choosing a `Map` container as the method's return type.
 The resulting map contains key/value pairs representing the actual database column name and the value.
 
-.Native query retuning raw column name/value pairs
+.Native query returning raw column name/value pairs
 ====
 [source, java]
 ----
@@ -506,7 +506,7 @@ public interface ConcreteRepository
 
 In the preceding example, the `MappedTypeRepository` interface is the common parent interface for a few domain types extending `AbstractMappedType`.
 It also defines the generic `findAllByAttribute(…)` method, which can be used on instances of the specialized repository interfaces.
-If you now invoke `findByAllAttribute(…)` on `ConcreteRepository`, the query becomes `select t from ConcreteType t where t.attribute = ?1`.
+If you now invoke `findAllByAttribute(…)` on `ConcreteRepository`, the query becomes `select t from ConcreteType t where t.attribute = ?1`.
 
 You can also use Expressions to control arguments may also be used to control method arguments.
 In these expressions the entity name is not available, but the arguments are.
