@@ -34,6 +34,9 @@ abstract class StringAotQuery extends AotQuery {
 		super(parameterBindings);
 	}
 
+	/**
+	 * Creates a new {@code StringAotQuery} from a {@link DeclaredQuery}. Parses the query into {@link PreprocessedQuery}.
+	 */
 	static StringAotQuery of(DeclaredQuery query) {
 
 		if (query instanceof PreprocessedQuery pq) {
@@ -43,21 +46,37 @@ abstract class StringAotQuery extends AotQuery {
 		return new DeclaredAotQuery(PreprocessedQuery.parse(query));
 	}
 
+	/**
+	 * Creates a new {@code StringAotQuery} from a JPQL {@code queryString}. Parses the query into
+	 * {@link PreprocessedQuery}.
+	 */
 	static StringAotQuery jpqlQuery(String queryString) {
 		return of(DeclaredQuery.jpqlQuery(queryString));
 	}
 
+	/**
+	 * Creates a JPQL {@code StringAotQuery} using the given bindings and limit.
+	 */
 	public static StringAotQuery jpqlQuery(String queryString, List<ParameterBinding> bindings, Limit resultLimit) {
 		return new LimitedAotQuery(queryString, bindings, resultLimit);
 	}
 
+	/**
+	 * Creates a new {@code StringAotQuery} from a native (SQL) {@code queryString}. Parses the query into
+	 * {@link PreprocessedQuery}.
+	 */
 	static StringAotQuery nativeQuery(String queryString) {
 		return of(DeclaredQuery.nativeQuery(queryString));
 	}
 
+	/**
+	 * @return the underlying declared query.
+	 */
 	public abstract DeclaredQuery getQuery();
 
-	public abstract String getQueryString();
+	public String getQueryString() {
+		return getQuery().getQueryString();
+	}
 
 	@Override
 	public String toString() {
@@ -94,6 +113,8 @@ abstract class StringAotQuery extends AotQuery {
 	}
 
 	/**
+	 * Query with a limit associated.
+	 *
 	 * @author Mark Paluch
 	 */
 	static class LimitedAotQuery extends StringAotQuery {

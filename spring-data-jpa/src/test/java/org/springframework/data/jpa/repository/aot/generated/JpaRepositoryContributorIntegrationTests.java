@@ -219,6 +219,20 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
+	void shouldApplyAnnotatedLikeStartsEnds() {
+
+		// start with case
+		List<User> users = fragment.findAnnotatedLikeStartsEnds("S");
+		assertThat(users).extracting(User::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+
+		// ends case
+		users = fragment.findAnnotatedLikeStartsEnds("a");
+		assertThat(users).extracting(User::getEmailAddress).containsExactlyInAnyOrder("leia@resistance.gov",
+				"chewie@smuggler.net", "yoda@jedi.org");
+	}
+
+	@Test
 	void testAnnotatedMultilineFinderWithQuery() {
 
 		List<User> users = fragment.findAnnotatedMultilineQueryByLastname("S");
@@ -306,7 +320,6 @@ class JpaRepositoryContributorIntegrationTests {
 	@Test
 	void testDerivedFinderReturningPageOfProjections() {
 
-		// TODO: query.setParameter(1, "%s%%".formatted(lastname));
 		Page<UserDtoProjection> page = fragment.findUserProjectionByLastnameStartingWith("S",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
 
@@ -314,6 +327,9 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(page.getSize()).isEqualTo(2);
 		assertThat(page.getContent()).extracting(UserDtoProjection::getEmailAddress).containsExactly("han@smuggler.net",
 				"kylo@new-empire.com");
+
+		Page<UserDtoProjection> noResults = fragment.findUserProjectionByLastnameStartingWith("a",
+				PageRequest.of(0, 2, Sort.by("emailAddress")));
 	}
 
 	// modifying
@@ -345,9 +361,10 @@ class JpaRepositoryContributorIntegrationTests {
 
 	// old stuff below
 
-	// TODO:
 	void todo() {
 
+		// expressions, templated query with #{#entityName}
+		// synthetic parameters (keyset scrolling! yuck!)
 		// interface projections
 		// named queries
 		// dynamic projections

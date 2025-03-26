@@ -226,29 +226,47 @@ class JpaCodeBlocks {
 			for (ParameterBinding binding : query.getParameterBindings()) {
 
 				Object prepare = binding.prepare("s");
+				Object parameterIdentifier = getParameterName(binding.getIdentifier());
+				String valueFormat = parameterIdentifier instanceof CharSequence ? "$S" : "$L";
 
 				if (prepare instanceof String prepared && !prepared.equals("s")) {
+
 					String format = prepared.replaceAll("%", "%%").replace("s", "%s");
-					if (binding.getIdentifier().hasPosition()) {
-						builder.addStatement("$L.setParameter($L, $S.formatted($L))", queryVariableName,
-								binding.getIdentifier().getPosition(), format,
-								context.getParameterNameOfPosition(binding.getIdentifier().getPosition() - 1));
-					} else {
-						builder.addStatement("$L.setParameter($S, $S.formatted($L))", queryVariableName,
-								binding.getIdentifier().getName(), format, binding.getIdentifier().getName());
-					}
+					builder.addStatement("$L.setParameter(%s, $S.formatted($L))".formatted(valueFormat), queryVariableName,
+							parameterIdentifier, format, getParameter(binding.getOrigin()));
 				} else {
-					if (binding.getIdentifier().hasPosition()) {
-						builder.addStatement("$L.setParameter($L, $L)", queryVariableName, binding.getIdentifier().getPosition(),
-								context.getParameterNameOfPosition(binding.getIdentifier().getPosition() - 1));
-					} else {
-						builder.addStatement("$L.setParameter($S, $L)", queryVariableName, binding.getIdentifier().getName(),
-								binding.getIdentifier().getName());
-					}
+					builder.addStatement("$L.setParameter(%s, $L)".formatted(valueFormat), queryVariableName, parameterIdentifier,
+							getParameter(binding.getOrigin()));
 				}
 			}
 
 			return builder.build();
+		}
+
+		private Object getParameterName(ParameterBinding.BindingIdentifier identifier) {
+
+			if (identifier.hasPosition()) {
+				return identifier.getPosition();
+			}
+
+			return identifier.getName();
+
+		}
+
+		private Object getParameter(ParameterBinding.ParameterOrigin origin) {
+
+			if (origin.isMethodArgument() && origin instanceof ParameterBinding.MethodInvocationArgument mia) {
+
+				if (mia.identifier().hasPosition()) {
+					return context.getParameterNameOfPosition(mia.identifier().getPosition() - 1);
+				}
+
+				if (mia.identifier().hasName()) {
+					return mia.identifier().getName();
+				}
+			}
+
+			throw new UnsupportedOperationException("Not supported yet");
 		}
 
 		private CodeBlock applyHints(String queryVariableName, MergedAnnotation<QueryHints> queryHints) {
