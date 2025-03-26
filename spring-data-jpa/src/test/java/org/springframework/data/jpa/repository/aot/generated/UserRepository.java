@@ -19,6 +19,7 @@ import jakarta.persistence.QueryHint;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
@@ -27,14 +28,17 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
-public interface UserRepository extends CrudRepository<User, Integer> {
+// TODO: Querydsl, query by example
+interface UserRepository extends CrudRepository<User, Integer> {
 
 	List<User> findUserNoArgumentsBy();
 
@@ -63,6 +67,8 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 	Page<User> findPageOfUsersByLastnameStartingWith(String lastname, Pageable page);
 
 	Slice<User> findSliceOfUserByLastnameStartingWith(String lastname, Pageable page);
+
+	Stream<User> streamByLastnameLike(String lastname);
 
 	/* Annotated Queries */
 
@@ -105,6 +111,22 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.lastname like ?1%")
 	Slice<User> findAnnotatedQuerySliceOfUsersByLastname(String lastname, Pageable pageable);
 
+
+	// Value Expressions
+
+	@Query("select u from #{#entityName} u where u.emailAddress = ?1")
+	User findTemplatedByEmailAddress(String emailAddress);
+
+	@Query("select u from User u where u.emailAddress = :#{#emailAddress}")
+	User findValueExpressionNamedByEmailAddress(String emailAddress);
+
+	@Query("select u from User u where u.emailAddress = ?#{[0]} or u.firstname = ?${user.dir}")
+	User findValueExpressionPositionalByEmailAddress(String emailAddress);
+
+	@NativeQuery(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1",
+			sqlResultSetMapping = "emailDto")
+	User.EmailDto findEmailDtoByNativeQuery(Integer id);
+
 	// modifying
 
 	User deleteByEmailAddress(String username);
@@ -145,6 +167,23 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 
 	List<User> findByLastnameOrderByFirstname(String lastname);
 
+	/**
+	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at
+	 * {@code User}.
+	 */
 	User findByEmailAddress(String emailAddress);
+
+	@Query(name = "User.findByEmailAddress")
+	Page<User> findPagedByEmailAddress(Pageable pageable, String emailAddress);
+
+	@Query(name = "User.findByEmailAddress", countQuery = "SELECT CoUnT(u) FROM User u WHERE u.emailAddress = ?1")
+	Page<User> findPagedWithCountByEmailAddress(Pageable pageable, String emailAddress);
+
+	@Query(name = "User.findByEmailAddress", countName = "User.findByEmailAddress.count-provided")
+	Page<User> findPagedWithNamedCountByEmailAddress(Pageable pageable, String emailAddress);
+
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("update User u set u.lastname = ?1")
+	int renameAllUsersTo(String lastname);
 
 }

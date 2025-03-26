@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.core.convert.ConversionService;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -225,6 +225,7 @@ public abstract class JpaQueryExecution {
 		private final EntityManager em;
 		private final boolean flush;
 		private final boolean clear;
+		private final JpaQueryMethod method;
 
 		/**
 		 * Creates an execution that automatically flushes the given {@link EntityManager} before execution and/or clears
@@ -233,6 +234,7 @@ public abstract class JpaQueryExecution {
 		 * @param em Must not be {@literal null}.
 		 */
 		public ModifyingExecution(JpaQueryMethod method, EntityManager em) {
+			this.method = method;
 
 			Assert.notNull(em, "The EntityManager must not be null");
 
@@ -240,8 +242,9 @@ public abstract class JpaQueryExecution {
 
 			boolean isVoid = ClassUtils.isAssignable(returnType, Void.class);
 			boolean isInt = ClassUtils.isAssignable(returnType, Integer.class);
+			boolean isLong = ClassUtils.isAssignable(returnType, Long.class);
 
-			Assert.isTrue(isInt || isVoid,
+			Assert.isTrue(isInt || isLong || isVoid,
 					"Modifying queries can only use void or int/Integer as return type; Offending method: " + method);
 
 			this.em = em;
@@ -260,6 +263,10 @@ public abstract class JpaQueryExecution {
 
 			if (clear) {
 				em.clear();
+			}
+
+			if (ClassUtils.isAssignable(method.getReturnType(), Long.class)) {
+				return (long) result;
 			}
 
 			return result;

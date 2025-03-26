@@ -72,7 +72,7 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 				.addConstructorArgReference("jpaSharedEM_entityManagerFactory")
 				.addConstructorArgValue(getCreationContext(repositoryContext)).getBeanDefinition();
 
-		TestCompiler.forSystem().with(generationContext).compile(compiled -> {
+		TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
 			beanFactory.setBeanClassLoader(compiled.getClassLoader());
 			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition("fragment", aotGeneratedRepository);
 		});

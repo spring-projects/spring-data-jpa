@@ -21,6 +21,7 @@ import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ class JpaRepositoryContributorIntegrationTests {
 
 	@Autowired UserRepository fragment;
 	@Autowired EntityManager em;
+	User luke, leia, han, chewbacca, yoda, vader, kylo;
 
 	@Configuration
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
@@ -61,33 +63,67 @@ class JpaRepositoryContributorIntegrationTests {
 
 		em.createQuery("DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
 
-		User luke = new User("Luke", "Skywalker", "luke@jedi.org");
+		luke = new User("Luke", "Skywalker", "luke@jedi.org");
 		em.persist(luke);
 
-		User leia = new User("Leia", "Organa", "leia@resistance.gov");
+		leia = new User("Leia", "Organa", "leia@resistance.gov");
 		em.persist(leia);
 
-		User han = new User("Han", "Solo", "han@smuggler.net");
+		han = new User("Han", "Solo", "han@smuggler.net");
 		em.persist(han);
 
-		User chewbacca = new User("Chewbacca", "n/a", "chewie@smuggler.net");
+		chewbacca = new User("Chewbacca", "n/a", "chewie@smuggler.net");
 		em.persist(chewbacca);
 
-		User yoda = new User("Yoda", "n/a", "yoda@jedi.org");
+		yoda = new User("Yoda", "n/a", "yoda@jedi.org");
 		em.persist(yoda);
 
-		User vader = new User("Anakin", "Skywalker", "vader@empire.com");
+		vader = new User("Anakin", "Skywalker", "vader@empire.com");
 		em.persist(vader);
 
-		User kylo = new User("Ben", "Solo", "kylo@new-empire.com");
+		kylo = new User("Ben", "Solo", "kylo@new-empire.com");
 		em.persist(kylo);
 	}
 
 	@Test
-	void testFindDerivedFinderSingleEntity() {
+	void testFindDerivedQuerySingleEntity() {
+
+		User user = fragment.findOneByEmailAddress("luke@jedi.org");
+		assertThat(user.getLastname()).isEqualTo("Skywalker");
+	}
+
+	@Test
+	void shouldUseNamedQuery() {
 
 		User user = fragment.findByEmailAddress("luke@jedi.org");
 		assertThat(user.getLastname()).isEqualTo("Skywalker");
+	}
+
+	@Test
+	void shouldUseNamedQueryAndDeriveCountQuery() {
+
+		Page<User> user = fragment.findPagedByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldUseNamedQueryAndProvidedCountQuery() {
+
+		Page<User> user = fragment.findPagedWithCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldUseNamedQueryAndNamedCountQuery() {
+
+		Page<User> user = fragment.findPagedWithNamedCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
 	}
 
 	@Test
@@ -123,6 +159,14 @@ class JpaRepositoryContributorIntegrationTests {
 	void testDerivedFinderReturningList() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S");
+		assertThat(users).extracting(User::getEmailAddress).containsExactlyInAnyOrder("luke@jedi.org", "vader@empire.com",
+				"kylo@new-empire.com", "han@smuggler.net");
+	}
+
+	@Test
+	void shouldReturnStream() {
+
+		Stream<User> users = fragment.streamByLastnameLike("S%");
 		assertThat(users).extracting(User::getEmailAddress).containsExactlyInAnyOrder("luke@jedi.org", "vader@empire.com",
 				"kylo@new-empire.com", "han@smuggler.net");
 	}
@@ -304,6 +348,33 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
+	void shouldResolveTemplatedQuery() {
+
+		User user = fragment.findTemplatedByEmailAddress("han@smuggler.net");
+
+		assertThat(user).isNotNull();
+		assertThat(user.getFirstname()).isEqualTo("Han");
+	}
+
+	@Test
+	void shouldEvaluateExpressionByName() {
+
+		User user = fragment.findValueExpressionNamedByEmailAddress("han@smuggler.net");
+
+		assertThat(user).isNotNull();
+		assertThat(user.getFirstname()).isEqualTo("Han");
+	}
+
+	@Test
+	void shouldEvaluateExpressionByPosition() {
+
+		User user = fragment.findValueExpressionPositionalByEmailAddress("han@smuggler.net");
+
+		assertThat(user).isNotNull();
+		assertThat(user.getFirstname()).isEqualTo("Han");
+	}
+
+	@Test
 	void testDerivedFinderReturningListOfProjections() {
 
 		List<UserDtoProjection> users = fragment.findUserProjectionByLastnameStartingWith("S");
@@ -328,6 +399,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(page.getContent()).extracting(UserDtoProjection::getEmailAddress).containsExactly("han@smuggler.net",
 				"kylo@new-empire.com");
 
+		// TODO
 		Page<UserDtoProjection> noResults = fragment.findUserProjectionByLastnameStartingWith("a",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
 	}
@@ -347,6 +419,19 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(yodaShouldBeGone).isNull();
 	}
 
+	@Test
+	void shouldApplyModifying() {
+
+		int affected = fragment.renameAllUsersTo("Jones");
+
+		assertThat(affected).isEqualTo(7);
+
+		Object yodaShouldBeGone = em
+				.createQuery("SELECT u FROM %s u WHERE u.lastname = 'n/a'".formatted(User.class.getName()))
+				.getSingleResultOrNull();
+		assertThat(yodaShouldBeGone).isNull();
+	}
+
 	// native queries
 
 	@Test
@@ -359,22 +444,24 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(page.getContent()).containsExactly("Anakin", "Ben");
 	}
 
+	@Test
+	void shouldApplySqlResultSetMapping() {
+
+		User.EmailDto result = fragment.findEmailDtoByNativeQuery(kylo.getId());
+
+		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
+	}
+
 	// old stuff below
 
 	void todo() {
 
-		// expressions, templated query with #{#entityName}
-		// synthetic parameters (keyset scrolling! yuck!)
 		// interface projections
-		// named queries
 		// dynamic projections
 		// class type parameter
 
 		// entity graphs
-		// native queries
-		// delete
-		// @Modifying
-		// flush / clear
+		// synthetic parameters (keyset scrolling! yuck!)
 	}
 
 }

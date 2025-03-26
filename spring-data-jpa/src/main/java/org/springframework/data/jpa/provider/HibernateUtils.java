@@ -15,8 +15,11 @@
  */
 package org.springframework.data.jpa.provider;
 
+import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hibernate.query.spi.SqmQuery;
+import org.hibernate.query.sql.spi.NamedNativeQueryMemento;
+import org.hibernate.query.sqm.spi.NamedSqmQueryMemento;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -44,7 +47,6 @@ public abstract class HibernateUtils {
 	public @Nullable static String getHibernateQuery(Object query) {
 
 		try {
-
 			// Try the new Hibernate implementation first
 			if (query instanceof SqmQuery sqmQuery) {
 
@@ -57,6 +59,22 @@ public abstract class HibernateUtils {
 				return sqmQuery.getSqmStatement().toHqlString();
 			}
 
+			// Try the new Hibernate implementation first
+			if (query instanceof NamedSqmQueryMemento<?> sqmQuery) {
+
+				String hql = sqmQuery.getHqlString();
+
+				if (!hql.equals("<criteria>")) {
+					return hql;
+				}
+
+				return sqmQuery.getSqmStatement().toHqlString();
+			}
+
+			if (query instanceof NamedNativeQueryMemento<?> nativeQuery) {
+				return nativeQuery.getSqlString();
+			}
+
 			// Couple of cases in which this still breaks, see HHH-15389
 		} catch (RuntimeException o_O) {}
 
@@ -66,5 +84,29 @@ public abstract class HibernateUtils {
 		} else {
 			throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
 		}
+	}
+
+	public static boolean isNativeQuery(Object query) {
+
+		// Try the new Hibernate implementation first
+		if (query instanceof SqmQuery) {
+			return false;
+		}
+
+		if (query instanceof NativeQuery<?>) {
+			return true;
+		}
+
+		// Try the new Hibernate implementation first
+		if (query instanceof NamedSqmQueryMemento<?>) {
+
+			return false;
+		}
+
+		if (query instanceof NamedNativeQueryMemento<?>) {
+			return true;
+		}
+
+		return false;
 	}
 }

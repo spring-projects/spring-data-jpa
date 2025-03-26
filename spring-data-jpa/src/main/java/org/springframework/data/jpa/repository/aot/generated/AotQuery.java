@@ -58,4 +58,32 @@ abstract class AotQuery {
 		return getLimit().isLimited();
 	}
 
+	/**
+	 * @return whether the query a delete query.
+	 */
+	public boolean isDelete() {
+		return false;
+	}
+
+	/**
+	 * @return whether the query is an exists query.
+	 */
+	public boolean isExists() {
+		return false;
+	}
+
+	/**
+	 * @return {@literal true} if the query uses value expressions.
+	 */
+	public boolean hasExpression() {
+
+		for (ParameterBinding parameterBinding : parameterBindings) {
+			if (parameterBinding.getOrigin().isExpression()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 }
