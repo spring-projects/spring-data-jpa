@@ -232,7 +232,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
-	QueryExtractor getQueryExtractor() {
+	public QueryExtractor getQueryExtractor() {
 		return extractor;
 	}
 
@@ -430,7 +430,7 @@ public class JpaQueryMethod extends QueryMethod {
 	 *
 	 * @return
 	 */
-	String getNamedCountQueryName() {
+	public String getNamedCountQueryName() {
 
 		String annotatedName = getAnnotationValue("countName", String.class);
 		return StringUtils.hasText(annotatedName) ? annotatedName : getNamedQueryName() + ".count";

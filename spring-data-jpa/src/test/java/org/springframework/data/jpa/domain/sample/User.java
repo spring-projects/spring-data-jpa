@@ -60,6 +60,8 @@ import java.util.Set;
 @NamedQueries({ //
 		@NamedQuery(name = "User.findByEmailAddress", //
 				query = "SELECT u FROM User u WHERE u.emailAddress = ?1"), //
+		@NamedQuery(name = "User.findByEmailAddress.count-provided", //
+				query = "SELECT count(u) FROM User u WHERE u.emailAddress = ?1"), //
 		@NamedQuery(name = "User.findByNamedQueryWithAliasInInvertedOrder", //
 				query = "SELECT u.lastname AS lastname, u.firstname AS firstname FROM User u ORDER BY u.lastname ASC"),
 		@NamedQuery(name = "User.findByNamedQueryWithConstructorExpression",

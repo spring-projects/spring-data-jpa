@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.aot.generated;
 
 import jakarta.validation.constraints.Null;
 
+import java.util.function.Function;
+
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
@@ -34,13 +36,22 @@ record AotQueries(AotQuery result, AotQuery count) {
 	 * Derive a count query from the given query.
 	 */
 	public static AotQueries from(StringAotQuery query, @Null String countProjection, QueryEnhancerSelector selector) {
+		return from(query, StringAotQuery::getQuery, countProjection, selector);
+	}
 
-		QueryEnhancer queryEnhancer = selector.select(query.getQuery()).create(query.getQuery());
+	/**
+	 * Derive a count query from the given query.
+	 */
+	public static <T extends AotQuery> AotQueries from(T query, Function<T, DeclaredQuery> queryMapper,
+			@Null String countProjection, QueryEnhancerSelector selector) {
+
+		DeclaredQuery underlyingQuery = queryMapper.apply(query);
+		QueryEnhancer queryEnhancer = selector.select(underlyingQuery).create(underlyingQuery);
 
 		String derivedCountQuery = queryEnhancer
 				.createCountQueryFor(StringUtils.hasText(countProjection) ? countProjection : null);
 
-		DeclaredQuery countQuery = query.getQuery().rewrite(derivedCountQuery);
+		DeclaredQuery countQuery = underlyingQuery.rewrite(derivedCountQuery);
 		return new AotQueries(query, StringAotQuery.of(countQuery));
 	}
 

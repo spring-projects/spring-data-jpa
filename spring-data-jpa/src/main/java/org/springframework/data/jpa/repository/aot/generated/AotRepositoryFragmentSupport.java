@@ -35,7 +35,10 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.util.ConcurrentLruCache;
 
 /**
+ * Support class for JPA AOT repository fragments.
+ *
  * @author Mark Paluch
+ * @since 4.0
  */
 public class AotRepositoryFragmentSupport {
 

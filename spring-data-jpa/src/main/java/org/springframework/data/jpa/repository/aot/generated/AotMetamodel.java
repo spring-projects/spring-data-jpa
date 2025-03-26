@@ -36,8 +36,9 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 
 /**
  * @author Christoph Strobl
+ * @since 4.0
  */
-class AotMetaModel implements Metamodel {
+class AotMetamodel implements Metamodel {
 
 	private final String persistenceUnit;
 	private final Set<Class<?>> managedTypes;
@@ -45,21 +46,21 @@ class AotMetaModel implements Metamodel {
 	private final Lazy<Metamodel> metamodel = Lazy.of(() -> entityManagerFactory.get().getMetamodel());
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
 
-	public AotMetaModel(Set<Class<?>> managedTypes) {
+	public AotMetamodel(Set<Class<?>> managedTypes) {
 		this("dynamic-tests", managedTypes);
 	}
 
-	private AotMetaModel(String persistenceUnit, Set<Class<?>> managedTypes) {
+	private AotMetamodel(String persistenceUnit, Set<Class<?>> managedTypes) {
 		this.persistenceUnit = persistenceUnit;
 		this.managedTypes = managedTypes;
 	}
 
-	public static AotMetaModel hibernateModel(Class<?>... types) {
-		return new AotMetaModel(Set.of(types));
+	public static AotMetamodel hibernateModel(Class<?>... types) {
+		return new AotMetamodel(Set.of(types));
 	}
 
-	public static AotMetaModel hibernateModel(String persistenceUnit, Class<?>... types) {
-		return new AotMetaModel(persistenceUnit, Set.of(types));
+	public static AotMetamodel hibernateModel(String persistenceUnit, Class<?>... types) {
+		return new AotMetamodel(persistenceUnit, Set.of(types));
 	}
 
 	public <X> EntityType<X> entity(Class<X> cls) {
@@ -95,6 +96,11 @@ class AotMetaModel implements Metamodel {
 		return entityManager.get();
 	}
 
+	// TODO: Capture an existing factory bean (e.g. EntityManagerFactoryInfo) to extract PersistenceInfo
+	public EntityManagerFactory getEntityManagerFactory() {
+		return entityManagerFactory.get();
+	}
+
 	EntityManagerFactory init() {
 
 		MutablePersistenceUnitInfo persistenceUnitInfo = new MutablePersistenceUnitInfo() {
@@ -121,4 +127,5 @@ class AotMetaModel implements Metamodel {
 			}
 		}, Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect")).build();
 	}
+
 }

@@ -28,7 +28,7 @@ import org.jspecify.annotations.Nullable;
  * @author Diego Krupitza
  * @since 4.0
  */
-interface EntityQuery extends ParametrizedQuery {
+public interface EntityQuery extends ParametrizedQuery {
 
 	/**
 	 * Create a new {@link EntityQuery} given {@link DeclaredQuery} and {@link QueryEnhancerSelector}.

@@ -28,9 +28,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.springframework.data.domain.Limit;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -298,6 +298,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
+
+	@Modifying
+	@Query("delete from User u where u.emailAddress = ?1")
+	User deleteAnnotatedQueryByEmailAddress(String username);
 
 	/**
 	 * Explicitly mapped to a procedure with name "plus1inout" in database.

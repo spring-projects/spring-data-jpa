@@ -40,10 +40,10 @@ abstract class StringAotQuery extends AotQuery {
 	static StringAotQuery of(DeclaredQuery query) {
 
 		if (query instanceof PreprocessedQuery pq) {
-			return new DeclaredAotQuery(pq);
+			return new DeclaredAotQuery(pq, false);
 		}
 
-		return new DeclaredAotQuery(PreprocessedQuery.parse(query));
+		return new DeclaredAotQuery(PreprocessedQuery.parse(query), false);
 	}
 
 	/**
@@ -57,8 +57,9 @@ abstract class StringAotQuery extends AotQuery {
 	/**
 	 * Creates a JPQL {@code StringAotQuery} using the given bindings and limit.
 	 */
-	public static StringAotQuery jpqlQuery(String queryString, List<ParameterBinding> bindings, Limit resultLimit) {
-		return new LimitedAotQuery(queryString, bindings, resultLimit);
+	public static StringAotQuery jpqlQuery(String queryString, List<ParameterBinding> bindings, Limit resultLimit,
+			boolean delete, boolean exists) {
+		return new LimitedAotQuery(queryString, bindings, resultLimit, delete, exists);
 	}
 
 	/**
@@ -78,6 +79,14 @@ abstract class StringAotQuery extends AotQuery {
 		return getQuery().getQueryString();
 	}
 
+	/**
+	 * @return {@literal true} if query is expected to return the declared method type directly; {@literal false} if the
+	 *         result requires projection post-processing. See also {@code NativeJpaQuery#getTypeToQueryFor}.
+	 */
+	public abstract boolean returnsDeclaredMethodType();
+
+	public abstract StringAotQuery withReturnsDeclaredMethodType();
+
 	@Override
 	public String toString() {
 		return getQueryString();
@@ -90,10 +99,17 @@ abstract class StringAotQuery extends AotQuery {
 	static class DeclaredAotQuery extends StringAotQuery {
 
 		private final PreprocessedQuery query;
+		private final boolean returnsDeclaredMethodType;
 
-		DeclaredAotQuery(PreprocessedQuery query) {
+		DeclaredAotQuery(PreprocessedQuery query, boolean returnsDeclaredMethodType) {
 			super(query.getBindings());
 			this.query = query;
+			this.returnsDeclaredMethodType = returnsDeclaredMethodType;
+		}
+
+		@Override
+		public PreprocessedQuery getQuery() {
+			return query;
 		}
 
 		@Override
@@ -106,8 +122,14 @@ abstract class StringAotQuery extends AotQuery {
 			return query.isNative();
 		}
 
-		public PreprocessedQuery getQuery() {
-			return query;
+		@Override
+		public boolean returnsDeclaredMethodType() {
+			return returnsDeclaredMethodType;
+		}
+
+		@Override
+		public StringAotQuery withReturnsDeclaredMethodType() {
+			return new DeclaredAotQuery(query, returnsDeclaredMethodType);
 		}
 
 	}
@@ -121,11 +143,16 @@ abstract class StringAotQuery extends AotQuery {
 
 		private final String queryString;
 		private final Limit limit;
+		private final boolean delete;
+		private final boolean exists;
 
-		LimitedAotQuery(String queryString, List<ParameterBinding> parameterBindings, Limit limit) {
+		LimitedAotQuery(String queryString, List<ParameterBinding> parameterBindings, Limit limit, boolean delete,
+				boolean exists) {
 			super(parameterBindings);
 			this.queryString = queryString;
 			this.limit = limit;
+			this.delete = delete;
+			this.exists = exists;
 		}
 
 		@Override
@@ -146,6 +173,26 @@ abstract class StringAotQuery extends AotQuery {
 		@Override
 		public Limit getLimit() {
 			return limit;
+		}
+
+		@Override
+		public boolean isDelete() {
+			return delete;
+		}
+
+		@Override
+		public boolean isExists() {
+			return exists;
+		}
+
+		@Override
+		public boolean returnsDeclaredMethodType() {
+			return true;
+		}
+
+		@Override
+		public StringAotQuery withReturnsDeclaredMethodType() {
+			return this;
 		}
 
 	}
