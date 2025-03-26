@@ -125,8 +125,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 				aotQueries = buildPartTreeQuery(context, query);
 			}
 
-			body.addCode(JpaCodeBlocks.queryBlockBuilder(context).filter(aotQueries).build());
-			body.addCode(JpaCodeBlocks.queryExecutionBlockBuilder(context).build());
+			body.addCode(JpaCodeBlocks.queryBuilder(context).filter(aotQueries).queryHints(queryHints).build());
+			body.addCode(JpaCodeBlocks.executionBuilder(context).build());
 		});
 	}
 
