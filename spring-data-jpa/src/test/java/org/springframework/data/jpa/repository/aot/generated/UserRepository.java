@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.aot.generated;
 
+import jakarta.persistence.QueryHint;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -127,6 +130,9 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 	List<User> findAllUsingAnnotatedJpqlQuery(String firstname);
 
 	List<User> findByLastname(String lastname);
+
+	@QueryHints(value = { @QueryHint(name = "jakarta.persistence.cache.storeMode", value = "foo") }, forCounting = false)
+	List<User> findHintedByLastname(String lastname);
 
 	List<User> findByLastnameStartingWithOrderByFirstname(String lastname, Limit limit);
 

@@ -298,6 +298,12 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
+	void shouldApplyQueryHints() {
+		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
+				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
+	}
+
+	@Test
 	void testDerivedFinderReturningPageOfProjections() {
 
 		// TODO: query.setParameter(1, "%s%%".formatted(lastname));
@@ -344,8 +350,9 @@ class JpaRepositoryContributorIntegrationTests {
 
 		// interface projections
 		// named queries
+		// dynamic projections
+		// class type parameter
 
-		// query hints
 		// entity graphs
 		// native queries
 		// delete
