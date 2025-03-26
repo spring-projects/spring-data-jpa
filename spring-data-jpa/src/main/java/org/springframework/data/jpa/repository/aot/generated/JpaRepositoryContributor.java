@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.data.domain.KeysetScrollPosition;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -59,14 +61,12 @@ import org.springframework.util.StringUtils;
 public class JpaRepositoryContributor extends RepositoryContributor {
 
 	private final CollectionAwareProjectionFactory projectionFactory = new CollectionAwareProjectionFactory();
-	private final AotQueryCreator queryCreator;
 	private final AotMetaModel metaModel;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
 		super(repositoryContext);
 
 		this.metaModel = new AotMetaModel(repositoryContext.getResolvedTypes());
-		this.queryCreator = new AotQueryCreator(metaModel);
 	}
 
 	@Override
@@ -104,6 +104,12 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 					&& Pattern.compile("[\\?:][#$]\\{.*\\}").matcher(queryAnnotation.value()).find()) {
 				return null;
 			}
+		}
+
+		// no KeysetScrolling for now.
+		if (generationContext.getParameterNameOf(ScrollPosition.class) != null
+				|| generationContext.getParameterNameOf(KeysetScrollPosition.class) != null) {
+			return null;
 		}
 
 		// TODO: Named query via EntityManager, NamedQuery via properties, also for count queries.

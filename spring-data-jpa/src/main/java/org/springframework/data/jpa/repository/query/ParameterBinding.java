@@ -25,9 +25,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.expression.ValueExpression;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Parameter;
@@ -608,7 +608,7 @@ public class ParameterBinding {
 	 * @author Mark Paluch
 	 * @since 3.1.2
 	 */
-	sealed interface ParameterOrigin permits Expression, MethodInvocationArgument, Synthetic {
+	public sealed interface ParameterOrigin permits Expression, MethodInvocationArgument, Synthetic {
 
 		/**
 		 * Creates a {@link Expression} for the given {@code expression}.
