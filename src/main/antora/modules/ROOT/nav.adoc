@@ -25,6 +25,7 @@
 ** xref:repositories/core-extensions.adoc[]
 ** xref:repositories/query-keywords-reference.adoc[]
 ** xref:repositories/query-return-types-reference.adoc[]
+** xref:jpa/aot.adoc[]
 ** xref:jpa/faq.adoc[]
 ** xref:jpa/glossary.adoc[]
 
