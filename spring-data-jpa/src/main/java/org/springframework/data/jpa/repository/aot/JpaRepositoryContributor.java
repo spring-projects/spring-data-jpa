@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQueryReference;
+import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -57,6 +58,7 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
 import org.springframework.javapoet.TypeSpec;
@@ -76,13 +78,23 @@ import org.springframework.util.StringUtils;
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
 
-	private final AotMetamodel metaModel;
+	private final EntityManagerFactory emf;
+	private final Metamodel metaModel;
 	private final PersistenceProvider persistenceProvider;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
 		super(repositoryContext);
-		this.metaModel = new AotMetamodel(repositoryContext.getResolvedTypes());
-		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(metaModel.getEntityManagerFactory());
+		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes());
+		this.metaModel = amm;
+		this.emf = amm.getEntityManagerFactory();
+		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(amm.getEntityManagerFactory());
+	}
+
+	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
+		super(repositoryContext);
+		this.emf = entityManagerFactory;
+		this.metaModel = entityManagerFactory.getMetamodel();
+		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
 	}
 
 	@Override
@@ -118,6 +130,17 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			return null;
 		}
 
+		ReturnedType returnedType = queryMethod.getResultProcessor().getReturnedType();
+
+		// no interface/dynamic projections for now.
+		if (returnedType.isProjecting() && returnedType.getReturnedType().isInterface()) {
+			return null;
+		}
+
+		if (queryMethod.getParameters().hasDynamicProjection()) {
+			return null;
+		}
+
 		// no KeysetScrolling for now.
 		if (queryMethod.getParameters().hasScrollPositionParameter()) {
 			return null;
@@ -125,9 +148,13 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		if (queryMethod.isModifyingQuery()) {
 
-			Class<?> returnType = repositoryInformation.getReturnType(method).getType();
-			if (!ClassUtils.isVoidType(returnType)
-					&& !JpaCodeBlocks.QueryExecutionBlockBuilder.returnsModifying(returnType)) {
+			TypeInformation<?> returnType = repositoryInformation.getReturnType(method);
+
+			boolean returnsCount = JpaCodeBlocks.QueryExecutionBlockBuilder.returnsModifying(returnType.getType());
+
+			boolean isVoid = ClassUtils.isVoidType(returnType.getType());
+
+			if (!returnsCount && !isVoid) {
 				return null;
 			}
 		}
@@ -140,15 +167,14 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			MergedAnnotation<NativeQuery> nativeQuery = context.getAnnotation(NativeQuery.class);
 			MergedAnnotation<QueryHints> queryHints = context.getAnnotation(QueryHints.class);
 			MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
-			ReturnedType returnedType = context.getReturnedType();
 
 			body.add(context.codeBlocks().logDebug("invoking [%s]".formatted(context.getMethod().getName())));
 
 			AotQueries aotQueries = getQueries(context, query, selector, queryMethod, returnedType);
 
 			body.add(JpaCodeBlocks.queryBuilder(context, queryMethod).filter(aotQueries)
-					.queryReturnType(getQueryReturnType(aotQueries.result(), returnedType, context)).query(query)
-					.nativeQuery(nativeQuery).queryHints(queryHints).build());
+					.queryReturnType(getQueryReturnType(aotQueries.result(), returnedType, context)).nativeQuery(nativeQuery)
+					.queryHints(queryHints).build());
 
 			body.add(
 					JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result()).build());
@@ -178,8 +204,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", domainType.getName());
 		boolean isNative = query.getBoolean("nativeQuery");
-		Function<String, StringAotQuery> queryFunction = isNative ? StringAotQuery::nativeQuery
-				: StringAotQuery::jpqlQuery;
+		Function<String, StringAotQuery> queryFunction = isNative ? StringAotQuery::nativeQuery : StringAotQuery::jpqlQuery;
 		queryFunction = operator.andThen(queryFunction);
 
 		String queryString = query.getString("value");
@@ -251,8 +276,6 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		List<Class<?>> candidates = Arrays.asList(Object.class, returnedType.getDomainType(),
 				returnedType.getReturnedType(), returnedType.getTypeToRead(), void.class, null, Long.class, Integer.class,
 				Long.TYPE, Integer.TYPE, Number.class);
-
-		EntityManagerFactory emf = metaModel.getEntityManagerFactory();
 
 		for (Class<?> candidate : candidates) {
 

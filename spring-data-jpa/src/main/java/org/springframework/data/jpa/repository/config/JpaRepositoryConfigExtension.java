@@ -52,7 +52,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.aot.generated.JpaRepositoryContributor;
+import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;

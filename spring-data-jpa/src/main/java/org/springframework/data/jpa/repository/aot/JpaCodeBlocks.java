@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -55,7 +55,6 @@ import org.springframework.util.StringUtils;
 class JpaCodeBlocks {
 
 	/**
-	 * @param context
 	 * @return new {@link QueryBlockBuilder}.
 	 */
 	public static QueryBlockBuilder queryBuilder(AotQueryMethodGenerationContext context, JpaQueryMethod queryMethod) {
@@ -63,7 +62,6 @@ class JpaCodeBlocks {
 	}
 
 	/**
-	 * @param context
 	 * @return new {@link QueryExecutionBlockBuilder}.
 	 */
 	static QueryExecutionBlockBuilder executionBuilder(AotQueryMethodGenerationContext context,
@@ -79,9 +77,8 @@ class JpaCodeBlocks {
 		private final AotQueryMethodGenerationContext context;
 		private final JpaQueryMethod queryMethod;
 		private String queryVariableName = "query";
-		private AotQueries queries;
+		private @Nullable AotQueries queries;
 		private MergedAnnotation<QueryHints> queryHints = MergedAnnotation.missing();
-		private MergedAnnotation<org.springframework.data.jpa.repository.Query> query = MergedAnnotation.missing();
 		private @Nullable String sqlResultSetMapping;
 		private @Nullable Class<?> queryReturnType;
 
@@ -101,23 +98,17 @@ class JpaCodeBlocks {
 			return this;
 		}
 
-		public QueryBlockBuilder queryHints(MergedAnnotation<QueryHints> queryHints) {
-
-			this.queryHints = queryHints;
-			return this;
-		}
-
-		public QueryBlockBuilder query(MergedAnnotation<org.springframework.data.jpa.repository.Query> query) {
-
-			this.query = query;
-			return this;
-		}
-
 		public QueryBlockBuilder nativeQuery(MergedAnnotation<NativeQuery> nativeQuery) {
 
 			if (nativeQuery.isPresent()) {
 				this.sqlResultSetMapping = nativeQuery.getString("sqlResultSetMapping");
 			}
+			return this;
+		}
+
+		public QueryBlockBuilder queryHints(MergedAnnotation<QueryHints> queryHints) {
+
+			this.queryHints = queryHints;
 			return this;
 		}
 
@@ -142,7 +133,7 @@ class JpaCodeBlocks {
 
 			String queryStringNameVariableName = null;
 
-			if (queries.result() instanceof StringAotQuery sq) {
+			if (queries != null && queries.result() instanceof StringAotQuery sq) {
 
 				queryStringNameVariableName = "%sString".formatted(queryVariableName);
 				builder.addStatement("$T $L = $S", String.class, queryStringNameVariableName, sq.getQueryString());
@@ -156,9 +147,6 @@ class JpaCodeBlocks {
 				countQueryStringNameVariableName = "count%sString".formatted(StringUtils.capitalize(queryVariableName));
 				builder.addStatement("$T $L = $S", String.class, countQueryStringNameVariableName, sq.getQueryString());
 			}
-
-			// sorting
-			// TODO: refactor into sort builder
 
 			String sortParameterName = context.getSortParameterName();
 			if (sortParameterName == null && context.getPageableParameterName() != null) {
@@ -202,7 +190,7 @@ class JpaCodeBlocks {
 			builder.beginControlFlow("if ($L.isSorted())", sort);
 
 			builder.addStatement("$T declaredQuery = $T.$L($L)", DeclaredQuery.class, DeclaredQuery.class,
-					queries.isNative() ? "nativeQuery" : "jpqlQuery",
+					queries != null && queries.isNative() ? "nativeQuery" : "jpqlQuery",
 						queryString);
 
 			builder.addStatement("$L = rewriteQuery(declaredQuery, $L, $T.class)", queryString, sort, actualReturnType);
@@ -227,7 +215,7 @@ class JpaCodeBlocks {
 				builder.beginControlFlow("if ($L.isLimited())", limit);
 				builder.addStatement("$L.setMaxResults($L.max())", queryVariableName, limit);
 				builder.endControlFlow();
-			} else if (queries.result().isLimited()) {
+			} else if (queries != null && queries.result().isLimited()) {
 				builder.addStatement("$L.setMaxResults($L)", queryVariableName, queries.result().getLimit().max());
 			}
 
@@ -358,7 +346,7 @@ class JpaCodeBlocks {
 
 				Builder builder = CodeBlock.builder();
 				ParameterNameDiscoverer discoverer = new DefaultParameterNameDiscoverer();
-				String[] parameterNames = discoverer.getParameterNames(context.getMethod());
+				var parameterNames = discoverer.getParameterNames(context.getMethod());
 
 				String expressionString = expr.expression().getExpressionString();
 				// re-wrap expression

@@ -24,6 +24,7 @@ import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -169,7 +170,7 @@ class JpaQueryExecutionUnitTests {
 	@Test
 	void modifyingExecutionRejectsNonIntegerOrVoidReturnType() {
 
-		when(method.getReturnType()).thenReturn((Class) Long.class);
+		when(method.getReturnType()).thenReturn((Class) BigDecimal.class);
 		assertThatIllegalArgumentException().isThrownBy(() -> new ModifyingExecution(method, em));
 	}
 

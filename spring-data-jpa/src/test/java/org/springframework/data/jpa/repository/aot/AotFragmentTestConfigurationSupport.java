@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
