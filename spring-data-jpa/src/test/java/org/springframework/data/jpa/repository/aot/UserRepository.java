@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.QueryHint;
 
@@ -131,8 +131,7 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	User deleteByEmailAddress(String username);
 
-	Long deleteReturningDeleteCountByEmailAddress(String username);
-
+	// cannot generate delete and return a domain object
 	@Modifying
 	@Query("delete from User u where u.emailAddress = ?1")
 	User deleteAnnotatedQueryByEmailAddress(String username);

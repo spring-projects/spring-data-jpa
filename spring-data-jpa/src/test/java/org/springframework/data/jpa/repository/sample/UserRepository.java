@@ -300,10 +300,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
 
-	@Modifying
-	@Query("delete from User u where u.emailAddress = ?1")
-	User deleteAnnotatedQueryByEmailAddress(String username);
-
 	/**
 	 * Explicitly mapped to a procedure with name "plus1inout" in database.
 	 */

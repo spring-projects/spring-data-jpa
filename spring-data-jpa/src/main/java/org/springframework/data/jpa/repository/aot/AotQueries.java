@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
-import jakarta.validation.constraints.Null;
 
 import java.util.function.Function;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
@@ -35,7 +36,8 @@ record AotQueries(AotQuery result, AotQuery count) {
 	/**
 	 * Derive a count query from the given query.
 	 */
-	public static AotQueries from(StringAotQuery query, @Null String countProjection, QueryEnhancerSelector selector) {
+	public static AotQueries from(StringAotQuery query, @Nullable String countProjection,
+			QueryEnhancerSelector selector) {
 		return from(query, StringAotQuery::getQuery, countProjection, selector);
 	}
 
@@ -43,7 +45,7 @@ record AotQueries(AotQuery result, AotQuery count) {
 	 * Derive a count query from the given query.
 	 */
 	public static <T extends AotQuery> AotQueries from(T query, Function<T, DeclaredQuery> queryMapper,
-			@Null String countProjection, QueryEnhancerSelector selector) {
+			@Nullable String countProjection, QueryEnhancerSelector selector) {
 
 		DeclaredQuery underlyingQuery = queryMapper.apply(query);
 		QueryEnhancer queryEnhancer = selector.select(underlyingQuery).create(underlyingQuery);

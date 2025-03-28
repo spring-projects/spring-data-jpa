@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import java.lang.reflect.Method;
 
@@ -32,6 +32,7 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
+import org.springframework.data.util.Lazy;
 import org.springframework.util.ConcurrentLruCache;
 
 /**
@@ -48,11 +49,11 @@ public class AotRepositoryFragmentSupport {
 
 	private final ProjectionFactory projectionFactory;
 
-	private final ConcurrentLruCache<DeclaredQuery, QueryEnhancer> enhancers;
+	private final Lazy<ConcurrentLruCache<DeclaredQuery, QueryEnhancer>> enhancers;
 
-	private final ConcurrentLruCache<String, ValueExpression> expressions;
+	private final Lazy<ConcurrentLruCache<String, ValueExpression>> expressions;
 
-	private final ConcurrentLruCache<Method, ValueEvaluationContextProvider> contextProviders;
+	private final Lazy<ConcurrentLruCache<Method, ValueEvaluationContextProvider>> contextProviders;
 
 	protected AotRepositoryFragmentSupport(QueryEnhancerSelector selector,
 			RepositoryFactoryBeanSupport.FragmentCreationContext context) {
@@ -66,10 +67,10 @@ public class AotRepositoryFragmentSupport {
 		this.repositoryMetadata = repositoryMetadata;
 		this.valueExpressions = valueExpressions;
 		this.projectionFactory = projectionFactory;
-		this.enhancers = new ConcurrentLruCache<>(32, query -> selector.select(query).create(query));
-		this.expressions = new ConcurrentLruCache<>(32, valueExpressions::parse);
-		this.contextProviders = new ConcurrentLruCache<>(32, it -> valueExpressions
-				.createValueContextProvider(new JpaParameters(ParametersSource.of(repositoryMetadata, it))));
+		this.enhancers = Lazy.of(() -> new ConcurrentLruCache<>(32, query -> selector.select(query).create(query)));
+		this.expressions = Lazy.of(() -> new ConcurrentLruCache<>(32, valueExpressions::parse));
+		this.contextProviders = Lazy.of(() -> new ConcurrentLruCache<>(32, it -> valueExpressions
+				.createValueContextProvider(new JpaParameters(ParametersSource.of(repositoryMetadata, it)))));
 	}
 
 	/**
@@ -82,7 +83,7 @@ public class AotRepositoryFragmentSupport {
 	 */
 	protected String rewriteQuery(DeclaredQuery query, Sort sort, Class<?> returnedType) {
 
-		QueryEnhancer queryStringEnhancer = this.enhancers.get(query);
+		QueryEnhancer queryStringEnhancer = this.enhancers.get().get(query);
 		return queryStringEnhancer.rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(returnedType, repositoryMetadata.getDomainType(), projectionFactory)));
 	}
@@ -97,8 +98,8 @@ public class AotRepositoryFragmentSupport {
 	 */
 	protected @Nullable Object evaluateExpression(Method method, String expressionString, Object... args) {
 
-		ValueExpression expression = this.expressions.get(expressionString);
-		ValueEvaluationContextProvider contextProvider = this.contextProviders.get(method);
+		ValueExpression expression = this.expressions.get().get(expressionString);
+		ValueEvaluationContextProvider contextProvider = this.contextProviders.get().get(method);
 
 		return expression.evaluate(contextProvider.getEvaluationContext(args, expression.getExpressionDependencies()));
 	}

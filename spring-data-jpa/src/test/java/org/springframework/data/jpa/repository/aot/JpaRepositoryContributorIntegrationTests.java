@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.aot.generated;
+package org.springframework.data.jpa.repository.aot;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -399,9 +399,10 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(page.getContent()).extracting(UserDtoProjection::getEmailAddress).containsExactly("han@smuggler.net",
 				"kylo@new-empire.com");
 
-		// TODO
 		Page<UserDtoProjection> noResults = fragment.findUserProjectionByLastnameStartingWith("a",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
+
+		assertThat(noResults).isEmpty();
 	}
 
 	// modifying
@@ -417,6 +418,13 @@ class JpaRepositoryContributorIntegrationTests {
 				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
+	}
+
+	@Test
+	void shouldOmitAnnotatedDeleteReturningDomainType() {
+
+		assertThatException().isThrownBy(() -> fragment.deleteAnnotatedQueryByEmailAddress("foo"))
+				.withRootCauseInstanceOf(NoSuchMethodException.class);
 	}
 
 	@Test
@@ -456,11 +464,11 @@ class JpaRepositoryContributorIntegrationTests {
 
 	void todo() {
 
+		// entity graphs
 		// interface projections
 		// dynamic projections
 		// class type parameter
 
-		// entity graphs
 		// synthetic parameters (keyset scrolling! yuck!)
 	}
 
