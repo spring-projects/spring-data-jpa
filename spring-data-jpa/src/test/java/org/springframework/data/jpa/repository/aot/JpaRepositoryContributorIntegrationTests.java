@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.hibernate.proxy.HibernateProxy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,7 @@ class JpaRepositoryContributorIntegrationTests {
 	@Autowired UserRepository fragment;
 	@Autowired EntityManager em;
 	User luke, leia, han, chewbacca, yoda, vader, kylo;
+	Role smuggler, jedi, imperium;
 
 	@Configuration
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
@@ -62,17 +65,26 @@ class JpaRepositoryContributorIntegrationTests {
 	void beforeEach() {
 
 		em.createQuery("DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
+		em.createQuery("DELETE FROM %s".formatted(Role.class.getName())).executeUpdate();
+
+		smuggler = em.merge(new Role("Smuggler"));
+		jedi = em.merge(new Role("Jedi"));
+		imperium = em.merge(new Role("Imperium"));
 
 		luke = new User("Luke", "Skywalker", "luke@jedi.org");
+		luke.addRole(jedi);
 		em.persist(luke);
 
 		leia = new User("Leia", "Organa", "leia@resistance.gov");
 		em.persist(leia);
 
 		han = new User("Han", "Solo", "han@smuggler.net");
+		han.setManager(luke);
 		em.persist(han);
 
 		chewbacca = new User("Chewbacca", "n/a", "chewie@smuggler.net");
+		chewbacca.setManager(han);
+		chewbacca.addRole(smuggler);
 		em.persist(chewbacca);
 
 		yoda = new User("Yoda", "n/a", "yoda@jedi.org");
@@ -83,6 +95,9 @@ class JpaRepositoryContributorIntegrationTests {
 
 		kylo = new User("Ben", "Solo", "kylo@new-empire.com");
 		em.persist(kylo);
+
+		em.flush();
+		em.clear();
 	}
 
 	@Test
@@ -389,6 +404,27 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
+	void shouldApplyNamedEntityGraph() {
+
+		User chewie = fragment.findWithNamedEntityGraphByFirstname("Chewbacca");
+
+		assertThat(chewie.getManager()).isInstanceOf(HibernateProxy.class);
+		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
+	}
+
+	@Test
+	void shouldApplyDeclaredEntityGraph() {
+
+		User chewie = fragment.findWithDeclaredEntityGraphByFirstname("Chewbacca");
+
+		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
+
+		User han = chewie.getManager();
+		assertThat(han.getRoles()).isNotInstanceOf(HibernateProxy.class);
+		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
+	}
+
+	@Test
 	void testDerivedFinderReturningPageOfProjections() {
 
 		Page<UserDtoProjection> page = fragment.findUserProjectionByLastnameStartingWith("S",
@@ -464,7 +500,6 @@ class JpaRepositoryContributorIntegrationTests {
 
 	void todo() {
 
-		// entity graphs
 		// interface projections
 		// dynamic projections
 		// class type parameter

@@ -79,6 +79,7 @@ class JpaCodeBlocks {
 		private String queryVariableName = "query";
 		private @Nullable AotQueries queries;
 		private MergedAnnotation<QueryHints> queryHints = MergedAnnotation.missing();
+		private @Nullable AotEntityGraph entityGraph;
 		private @Nullable String sqlResultSetMapping;
 		private @Nullable Class<?> queryReturnType;
 
@@ -109,6 +110,11 @@ class JpaCodeBlocks {
 		public QueryBlockBuilder queryHints(MergedAnnotation<QueryHints> queryHints) {
 
 			this.queryHints = queryHints;
+			return this;
+		}
+
+		public QueryBlockBuilder entityGraph(@Nullable AotEntityGraph entityGraph) {
+			this.entityGraph = entityGraph;
 			return this;
 		}
 
@@ -162,7 +168,7 @@ class JpaCodeBlocks {
 			}
 
 			builder.add(createQuery(queryVariableName, queryStringNameVariableName, queries.result(),
-					this.sqlResultSetMapping, this.queryHints, this.queryReturnType));
+					this.sqlResultSetMapping, this.queryHints, this.entityGraph, this.queryReturnType));
 
 			builder.add(applyLimits(queries.result().isExists()));
 
@@ -173,7 +179,7 @@ class JpaCodeBlocks {
 				boolean queryHints = this.queryHints.isPresent() && this.queryHints.getBoolean("forCounting");
 
 				builder.add(createQuery(countQueryVariableName, countQueryStringNameVariableName, queries.count(), null,
-						queryHints ? this.queryHints : MergedAnnotation.missing(), Long.class));
+						queryHints ? this.queryHints : MergedAnnotation.missing(), null, Long.class));
 				builder.addStatement("return ($T) $L.getSingleResult()", Long.class, countQueryVariableName);
 
 				// end control flow does not work well with lambdas
@@ -190,8 +196,7 @@ class JpaCodeBlocks {
 			builder.beginControlFlow("if ($L.isSorted())", sort);
 
 			builder.addStatement("$T declaredQuery = $T.$L($L)", DeclaredQuery.class, DeclaredQuery.class,
-					queries != null && queries.isNative() ? "nativeQuery" : "jpqlQuery",
-						queryString);
+					queries != null && queries.isNative() ? "nativeQuery" : "jpqlQuery", queryString);
 
 			builder.addStatement("$L = rewriteQuery(declaredQuery, $L, $T.class)", queryString, sort, actualReturnType);
 			builder.endControlFlow();
@@ -238,12 +243,16 @@ class JpaCodeBlocks {
 
 		private CodeBlock createQuery(String queryVariableName, @Nullable String queryStringNameVariableName,
 				AotQuery query, @Nullable String sqlResultSetMapping, MergedAnnotation<QueryHints> queryHints,
-				@Nullable Class<?> queryReturnType) {
+				@Nullable AotEntityGraph entityGraph, @Nullable Class<?> queryReturnType) {
 
 			Builder builder = CodeBlock.builder();
 
 			builder.add(
 					doCreateQuery(queryVariableName, queryStringNameVariableName, query, sqlResultSetMapping, queryReturnType));
+
+			if (entityGraph != null) {
+				builder.add(applyEntityGraph(entityGraph, queryVariableName));
+			}
 
 			if (queryHints.isPresent()) {
 				builder.add(applyHints(queryVariableName, queryHints));
@@ -361,6 +370,43 @@ class JpaCodeBlocks {
 			}
 
 			throw new UnsupportedOperationException("Not supported yet");
+		}
+
+		private CodeBlock applyEntityGraph(AotEntityGraph entityGraph, String queryVariableName) {
+
+			CodeBlock.Builder builder = CodeBlock.builder();
+
+			if (StringUtils.hasText(entityGraph.name())) {
+
+				builder.addStatement("$T<?> entityGraph = $L.getEntityGraph($S)", jakarta.persistence.EntityGraph.class,
+						context.fieldNameOf(EntityManager.class), entityGraph.name());
+			} else {
+
+				builder.addStatement("$T<$T> entityGraph = $L.createEntityGraph($T.class)",
+						jakarta.persistence.EntityGraph.class, context.getActualReturnType().getType(),
+						context.fieldNameOf(EntityManager.class), context.getActualReturnType().getType());
+
+				for (String attributePath : entityGraph.attributePaths()) {
+
+					String[] pathComponents = StringUtils.delimitedListToStringArray(attributePath, ".");
+
+					StringBuilder chain = new StringBuilder("entityGraph");
+					for (int i = 0; i < pathComponents.length; i++) {
+
+						if (i < pathComponents.length - 1) {
+							chain.append(".addSubgraph($S)");
+						} else {
+							chain.append(".addAttributeNodes($S)");
+						}
+					}
+
+					builder.addStatement(chain.toString(), (Object[]) pathComponents);
+				}
+
+				builder.addStatement("$L.setHint($S, entityGraph)", queryVariableName, entityGraph.type().getKey());
+			}
+
+			return builder.build();
 		}
 
 		private CodeBlock applyHints(String queryVariableName, MergedAnnotation<QueryHints> queryHints) {
@@ -504,6 +550,5 @@ class JpaCodeBlocks {
 		}
 
 	}
-
 
 }
