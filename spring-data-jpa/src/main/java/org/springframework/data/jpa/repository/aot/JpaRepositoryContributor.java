@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Tuple;
@@ -23,16 +24,22 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -166,15 +173,17 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			MergedAnnotation<Query> query = context.getAnnotation(Query.class);
 			MergedAnnotation<NativeQuery> nativeQuery = context.getAnnotation(NativeQuery.class);
 			MergedAnnotation<QueryHints> queryHints = context.getAnnotation(QueryHints.class);
+			MergedAnnotation<EntityGraph> entityGraph = context.getAnnotation(EntityGraph.class);
 			MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
 
 			body.add(context.codeBlocks().logDebug("invoking [%s]".formatted(context.getMethod().getName())));
 
 			AotQueries aotQueries = getQueries(context, query, selector, queryMethod, returnedType);
+			AotEntityGraph aotEntityGraph = getAotEntityGraph(entityGraph, repositoryInformation, returnedType, queryMethod);
 
 			body.add(JpaCodeBlocks.queryBuilder(context, queryMethod).filter(aotQueries)
 					.queryReturnType(getQueryReturnType(aotQueries.result(), returnedType, context)).nativeQuery(nativeQuery)
-					.queryHints(queryHints).build());
+					.queryHints(queryHints).entityGraph(aotEntityGraph).build());
 
 			body.add(
 					JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result()).build());
@@ -358,6 +367,67 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		}
 
 		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	private @Nullable AotEntityGraph getAotEntityGraph(MergedAnnotation<EntityGraph> entityGraph,
+			RepositoryInformation information, ReturnedType returnedType, JpaQueryMethod queryMethod) {
+
+		if (!entityGraph.isPresent()) {
+			return null;
+		}
+
+		EntityGraph.EntityGraphType type = entityGraph.getEnum("type", EntityGraph.EntityGraphType.class);
+		String[] attributePaths = entityGraph.getStringArray("attributePaths");
+		Collection<String> entityGraphNames = getEntityGraphNames(entityGraph, information, queryMethod);
+		List<Class<?>> candidates = Arrays.asList(returnedType.getDomainType(), returnedType.getReturnedType(),
+				returnedType.getTypeToRead());
+
+		for (Class<?> candidate : candidates) {
+
+			Map<String, jakarta.persistence.EntityGraph<?>> namedEntityGraphs = emf
+					.getNamedEntityGraphs(Class.class.cast(candidate));
+
+			if (namedEntityGraphs.isEmpty()) {
+				continue;
+			}
+
+			for (String entityGraphName : entityGraphNames) {
+				if (namedEntityGraphs.containsKey(entityGraphName)) {
+					return new AotEntityGraph(entityGraphName, type, Collections.emptyList());
+				}
+			}
+		}
+
+		if (attributePaths.length > 0) {
+			return new AotEntityGraph(null, type, Arrays.asList(attributePaths));
+		}
+
+		return null;
+	}
+
+	private Set<String> getEntityGraphNames(MergedAnnotation<EntityGraph> entityGraph, RepositoryInformation information,
+			JpaQueryMethod queryMethod) {
+
+		Set<String> entityGraphNames = new LinkedHashSet<>();
+		String value = entityGraph.getString("value");
+
+		if (StringUtils.hasText(value)) {
+			entityGraphNames.add(value);
+		}
+		entityGraphNames.add(queryMethod.getNamedQueryName());
+		entityGraphNames.add(getFallbackEntityGraphName(information, queryMethod));
+		return entityGraphNames;
+	}
+
+	private String getFallbackEntityGraphName(RepositoryInformation information, JpaQueryMethod queryMethod) {
+
+		Class<?> domainType = information.getDomainType();
+		Entity entity = AnnotatedElementUtils.findMergedAnnotation(domainType, Entity.class);
+		String entityName = entity != null && StringUtils.hasText(entity.name()) ? entity.name()
+				: domainType.getSimpleName();
+
+		return entityName + "." + queryMethod.getName();
 	}
 
 }

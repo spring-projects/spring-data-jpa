@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -111,7 +112,6 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.lastname like ?1%")
 	Slice<User> findAnnotatedQuerySliceOfUsersByLastname(String lastname, Pageable pageable);
 
-
 	// Value Expressions
 
 	@Query("select u from #{#entityName} u where u.emailAddress = ?1")
@@ -139,7 +139,7 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	// native queries
 
 	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User",
-		nativeQuery = true)
+			nativeQuery = true)
 	Page<String> findByNativeQueryWithPageable(Pageable pageable);
 
 	// projections
@@ -157,6 +157,12 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	@QueryHints(value = { @QueryHint(name = "jakarta.persistence.cache.storeMode", value = "foo") }, forCounting = false)
 	List<User> findHintedByLastname(String lastname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.overview")
+	User findWithNamedEntityGraphByFirstname(String firstname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
+	User findWithDeclaredEntityGraphByFirstname(String firstname);
 
 	List<User> findByLastnameStartingWithOrderByFirstname(String lastname, Limit limit);
 
