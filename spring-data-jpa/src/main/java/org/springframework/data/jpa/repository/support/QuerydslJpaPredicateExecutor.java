@@ -297,6 +297,27 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return doCreateQuery(getQueryHintsForCount(), predicate);
 	}
 
+	protected JpaEntityInformation<T, ?> getEntityInformation() {
+		return entityInformation;
+	}
+
+	protected EntityPath<T> getPath() {
+		return path;
+	}
+
+	protected Querydsl getQuerydsl() {
+		return querydsl;
+	}
+
+	protected EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	@Nullable
+	public CrudMethodMetadata getMetadata() {
+		return metadata;
+	}
+
 	@Nullable
 	private CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;

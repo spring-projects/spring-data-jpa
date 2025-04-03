@@ -113,7 +113,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	 */
 	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
 
-		JpaRepositoryFactory jpaRepositoryFactory = new JpaRepositoryFactory(entityManager);
+		JpaRepositoryFactory jpaRepositoryFactory = createJpaRepositoryFactory(entityManager);
 		jpaRepositoryFactory.setEntityPathResolver(entityPathResolver);
 		jpaRepositoryFactory.setEscapeCharacter(escapeCharacter);
 
@@ -122,6 +122,11 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		}
 
 		return jpaRepositoryFactory;
+	}
+
+	protected JpaRepositoryFactory createJpaRepositoryFactory(EntityManager entityManager) {
+
+		return new JpaRepositoryFactory(entityManager);
 	}
 
 	@Override
@@ -135,5 +140,22 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	public void setEscapeCharacter(char escapeCharacter) {
 
 		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
+	}
+
+	@Nullable
+	protected EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	protected EntityPathResolver getEntityPathResolver() {
+		return entityPathResolver;
+	}
+
+	protected EscapeCharacter getEscapeCharacter() {
+		return escapeCharacter;
+	}
+
+	protected JpaQueryMethodFactory getQueryMethodFactory() {
+		return queryMethodFactory;
 	}
 }

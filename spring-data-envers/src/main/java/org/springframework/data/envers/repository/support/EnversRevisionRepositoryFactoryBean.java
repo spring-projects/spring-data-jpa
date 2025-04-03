@@ -25,7 +25,6 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
-import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.history.RevisionRepository;
 import org.springframework.data.repository.history.support.RevisionEntityInformation;
 
@@ -59,7 +58,7 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 	}
 
 	@Override
-	protected RepositoryFactorySupport createRepositoryFactory(EntityManager entityManager) {
+	protected JpaRepositoryFactory createJpaRepositoryFactory(EntityManager entityManager){
 		return new RevisionRepositoryFactory<T, ID, N>(entityManager, revisionEntityClass);
 	}
 
@@ -72,7 +71,6 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 	private static class RevisionRepositoryFactory<T, ID, N extends Number & Comparable<N>> extends JpaRepositoryFactory {
 
 		private final RevisionEntityInformation revisionEntityInformation;
-		private final EntityManager entityManager;
 
 		/**
 		 * Creates a new {@link RevisionRepositoryFactory} using the given {@link EntityManager} and revision entity class.
@@ -84,7 +82,6 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 
 			super(entityManager);
 
-			this.entityManager = entityManager;
 			this.revisionEntityInformation = Optional.ofNullable(revisionEntityClass) //
 					.filter(it -> !it.equals(DefaultRevisionEntity.class))//
 					.<RevisionEntityInformation> map(ReflectionRevisionEntityInformation::new) //
@@ -98,7 +95,7 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 					EnversRevisionRepositoryImpl.class, //
 					getEntityInformation(metadata.getDomainType()), //
 					revisionEntityInformation, //
-					entityManager //
+					getEntityManager() //
 			);
 
 			return RepositoryFragments //

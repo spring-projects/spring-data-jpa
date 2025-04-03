@@ -293,11 +293,39 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		return RepositoryFragments.empty();
 	}
 
-	private void invokeAwareMethods(JpaRepositoryConfigurationAware repository) {
+	protected void invokeAwareMethods(JpaRepositoryConfigurationAware repository) {
 
 		repository.setRepositoryMethodMetadata(crudMethodMetadata);
 		repository.setEscapeCharacter(escapeCharacter);
 		repository.setProjectionFactory(getProjectionFactory());
+	}
+
+	protected EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	protected QueryExtractor getExtractor() {
+		return extractor;
+	}
+
+	protected CrudMethodMetadata getCrudMethodMetadata() {
+		return crudMethodMetadata;
+	}
+
+	protected EntityPathResolver getEntityPathResolver() {
+		return entityPathResolver;
+	}
+
+	protected EscapeCharacter getEscapeCharacter() {
+		return escapeCharacter;
+	}
+
+	protected JpaQueryMethodFactory getQueryMethodFactory() {
+		return queryMethodFactory;
+	}
+
+	protected QueryRewriterProvider getQueryRewriterProvider() {
+		return queryRewriterProvider;
 	}
 
 	private static boolean isTransactionNeeded(Class<?> repositoryClass) {
