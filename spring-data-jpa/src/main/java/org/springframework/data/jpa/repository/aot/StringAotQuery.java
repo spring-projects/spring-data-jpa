@@ -21,6 +21,7 @@ import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 import org.springframework.data.jpa.repository.query.PreprocessedQuery;
+import org.springframework.data.jpa.repository.query.QueryProvider;
 
 /**
  * An AOT query represented by a string.
@@ -59,7 +60,7 @@ abstract class StringAotQuery extends AotQuery {
 	 */
 	public static StringAotQuery jpqlQuery(String queryString, List<ParameterBinding> bindings, Limit resultLimit,
 			boolean delete, boolean exists) {
-		return new LimitedAotQuery(queryString, bindings, resultLimit, delete, exists);
+		return new DerivedAotQuery(queryString, bindings, resultLimit, delete, exists);
 	}
 
 	/**
@@ -83,28 +84,34 @@ abstract class StringAotQuery extends AotQuery {
 	 * @return {@literal true} if query is expected to return the declared method type directly; {@literal false} if the
 	 *         result requires projection post-processing. See also {@code NativeJpaQuery#getTypeToQueryFor}.
 	 */
-	public abstract boolean returnsDeclaredMethodType();
+	public abstract boolean hasConstructorExpressionOrDefaultProjection();
 
-	public abstract StringAotQuery withReturnsDeclaredMethodType();
+	/**
+	 * @return a new {@link StringAotQuery} using constructor expressions or containing the default (primary alias)
+	 *         projection.
+	 */
+	public abstract StringAotQuery withConstructorExpressionOrDefaultProjection();
 
 	@Override
 	public String toString() {
 		return getQueryString();
 	}
 
+	public abstract StringAotQuery rewrite(QueryProvider rewritten);
+
 	/**
 	 * @author Christoph Strobl
 	 * @author Mark Paluch
 	 */
-	static class DeclaredAotQuery extends StringAotQuery {
+	private static class DeclaredAotQuery extends StringAotQuery {
 
 		private final PreprocessedQuery query;
-		private final boolean returnsDeclaredMethodType;
+		private final boolean constructorExpressionOrDefaultProjection;
 
-		DeclaredAotQuery(PreprocessedQuery query, boolean returnsDeclaredMethodType) {
+		DeclaredAotQuery(PreprocessedQuery query, boolean constructorExpressionOrDefaultProjection) {
 			super(query.getBindings());
 			this.query = query;
-			this.returnsDeclaredMethodType = returnsDeclaredMethodType;
+			this.constructorExpressionOrDefaultProjection = constructorExpressionOrDefaultProjection;
 		}
 
 		@Override
@@ -123,30 +130,35 @@ abstract class StringAotQuery extends AotQuery {
 		}
 
 		@Override
-		public boolean returnsDeclaredMethodType() {
-			return returnsDeclaredMethodType;
+		public boolean hasConstructorExpressionOrDefaultProjection() {
+			return constructorExpressionOrDefaultProjection;
 		}
 
 		@Override
-		public StringAotQuery withReturnsDeclaredMethodType() {
-			return new DeclaredAotQuery(query, returnsDeclaredMethodType);
+		public StringAotQuery withConstructorExpressionOrDefaultProjection() {
+			return new DeclaredAotQuery(query, true);
+		}
+
+		@Override
+		public StringAotQuery rewrite(QueryProvider rewritten) {
+			return new DeclaredAotQuery(query.rewrite(rewritten.getQueryString()), constructorExpressionOrDefaultProjection);
 		}
 
 	}
 
 	/**
-	 * Query with a limit associated.
+	 * PartTree (derived) Query with a limit associated.
 	 *
 	 * @author Mark Paluch
 	 */
-	static class LimitedAotQuery extends StringAotQuery {
+	private static class DerivedAotQuery extends StringAotQuery {
 
 		private final String queryString;
 		private final Limit limit;
 		private final boolean delete;
 		private final boolean exists;
 
-		LimitedAotQuery(String queryString, List<ParameterBinding> parameterBindings, Limit limit, boolean delete,
+		DerivedAotQuery(String queryString, List<ParameterBinding> parameterBindings, Limit limit, boolean delete,
 				boolean exists) {
 			super(parameterBindings);
 			this.queryString = queryString;
@@ -186,13 +198,18 @@ abstract class StringAotQuery extends AotQuery {
 		}
 
 		@Override
-		public boolean returnsDeclaredMethodType() {
-			return true;
+		public boolean hasConstructorExpressionOrDefaultProjection() {
+			return false;
 		}
 
 		@Override
-		public StringAotQuery withReturnsDeclaredMethodType() {
+		public StringAotQuery withConstructorExpressionOrDefaultProjection() {
 			return this;
+		}
+
+		@Override
+		public StringAotQuery rewrite(QueryProvider rewritten) {
+			return new DerivedAotQuery(rewritten.getQueryString(), this.getParameterBindings(), getLimit(), delete, exists);
 		}
 
 	}
