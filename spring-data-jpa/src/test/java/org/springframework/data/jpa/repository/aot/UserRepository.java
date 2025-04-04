@@ -38,7 +38,6 @@ import org.springframework.data.repository.CrudRepository;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-// TODO: Querydsl, query by example
 interface UserRepository extends CrudRepository<User, Integer> {
 
 	List<User> findUserNoArgumentsBy();
@@ -71,7 +70,9 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	Stream<User> streamByLastnameLike(String lastname);
 
-	/* Annotated Queries */
+	// -------------------------------------------------------------------------
+	// Declared Queries
+	// -------------------------------------------------------------------------
 
 	@Query("select u from User u where u.emailAddress = ?1")
 	User findAnnotatedQueryByEmailAddress(String username);
@@ -112,7 +113,9 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.lastname like ?1%")
 	Slice<User> findAnnotatedQuerySliceOfUsersByLastname(String lastname, Pageable pageable);
 
+	// -------------------------------------------------------------------------
 	// Value Expressions
+	// -------------------------------------------------------------------------
 
 	@Query("select u from #{#entityName} u where u.emailAddress = ?1")
 	User findTemplatedByEmailAddress(String emailAddress);
@@ -123,11 +126,58 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.emailAddress = ?#{[0]} or u.firstname = ?${user.dir}")
 	User findValueExpressionPositionalByEmailAddress(String emailAddress);
 
+	// -------------------------------------------------------------------------
+	// Projections: DTO
+	// -------------------------------------------------------------------------
+
+	List<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname);
+
+	Page<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname, Pageable page);
+
+	Names findDtoByEmailAddress(String emailAddress);
+
+	Page<Names> findDtoPageByEmailAddress(String emailAddress, Pageable pageable);
+
+	@Query("select u from User u where u.emailAddress = ?1")
+	Names findAnnotatedDtoEmailAddress(String emailAddress);
+
+	@Query("select u from User u where u.emailAddress = ?1")
+	Page<Names> findAnnotatedDtoPageByEmailAddress(String emailAddress, Pageable pageable);
+
 	@NativeQuery(value = "SELECT emailaddress, secondary_email_address FROM SD_User WHERE id = ?1",
 			sqlResultSetMapping = "emailDto")
 	User.EmailDto findEmailDtoByNativeQuery(Integer id);
 
-	// modifying
+	@Query(name = "User.findByEmailAddress")
+	Names findNamedDtoEmailAddress(String emailAddress);
+
+	// -------------------------------------------------------------------------
+	// Projections: Interface
+	// -------------------------------------------------------------------------
+
+	EmailOnly findEmailProjectionById(Integer id);
+
+	Page<EmailOnly> findProjectedPageByEmailAddress(String emailAddress, Pageable page);
+
+	Slice<EmailOnly> findProjectedSliceByEmailAddress(String lastname, Pageable page);
+
+	Stream<EmailOnly> streamProjectedByEmailAddress(String lastname);
+
+	@Query("select u from User u where u.emailAddress = ?1")
+	EmailOnly findAnnotatedEmailProjectionByEmailAddress(String emailAddress);
+
+	@Query("select u from User u where u.emailAddress = ?1")
+	Page<EmailOnly> findAnnotatedProjectedPageByEmailAddress(String emailAddress, Pageable page);
+
+	@NativeQuery(value = "SELECT emailaddress as emailAddress FROM SD_User WHERE id = ?1")
+	EmailOnly findEmailProjectionByNativeQuery(Integer id);
+
+	@Query(name = "User.findByEmailAddress")
+	EmailOnly findNamedProjectionEmailAddress(String emailAddress);
+
+	// -------------------------------------------------------------------------
+	// Modifying
+	// -------------------------------------------------------------------------
 
 	User deleteByEmailAddress(String username);
 
@@ -136,46 +186,22 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("delete from User u where u.emailAddress = ?1")
 	User deleteAnnotatedQueryByEmailAddress(String username);
 
-	// native queries
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
+	@Query("update User u set u.lastname = ?1")
+	int renameAllUsersTo(String lastname);
+
+	// -------------------------------------------------------------------------
+	// Native Queries
+	// -------------------------------------------------------------------------
 
 	@Query(value = "SELECT firstname FROM SD_User ORDER BY UCASE(firstname)", countQuery = "SELECT count(*) FROM SD_User",
 			nativeQuery = true)
 	Page<String> findByNativeQueryWithPageable(Pageable pageable);
 
-	// projections
+	// -------------------------------------------------------------------------
+	// Named Queries
+	// -------------------------------------------------------------------------
 
-	List<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname);
-
-	Page<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname, Pageable page);
-
-	// old ones
-
-	@Query("select u from User u where u.firstname = ?1")
-	List<User> findAllUsingAnnotatedJpqlQuery(String firstname);
-
-	List<User> findByLastname(String lastname);
-
-	@QueryHints(value = { @QueryHint(name = "jakarta.persistence.cache.storeMode", value = "foo") }, forCounting = false)
-	List<User> findHintedByLastname(String lastname);
-
-	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.overview")
-	User findWithNamedEntityGraphByFirstname(String firstname);
-
-	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
-	User findWithDeclaredEntityGraphByFirstname(String firstname);
-
-	List<User> findByLastnameStartingWithOrderByFirstname(String lastname, Limit limit);
-
-	List<User> findByLastname(String lastname, Sort sort);
-
-	List<User> findByLastname(String lastname, Pageable page);
-
-	List<User> findByLastnameOrderByFirstname(String lastname);
-
-	/**
-	 * Retrieve users by their email address. The finder {@literal User.findByEmailAddress} is declared as annotation at
-	 * {@code User}.
-	 */
 	User findByEmailAddress(String emailAddress);
 
 	@Query(name = "User.findByEmailAddress")
@@ -187,8 +213,27 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query(name = "User.findByEmailAddress", countName = "User.findByEmailAddress.count-provided")
 	Page<User> findPagedWithNamedCountByEmailAddress(Pageable pageable, String emailAddress);
 
-	@Modifying(flushAutomatically = true, clearAutomatically = true)
-	@Query("update User u set u.lastname = ?1")
-	int renameAllUsersTo(String lastname);
+	// -------------------------------------------------------------------------
+	// Query Hints
+	// -------------------------------------------------------------------------
+
+	@QueryHints(value = { @QueryHint(name = "jakarta.persistence.cache.storeMode", value = "foo") }, forCounting = false)
+	List<User> findHintedByLastname(String lastname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.overview")
+	User findWithNamedEntityGraphByFirstname(String firstname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
+	User findWithDeclaredEntityGraphByFirstname(String firstname);
+
+	@Query("select u from User u where u.emailAddress = ?1 AND TYPE(u) = ?2")
+	<T extends User> T findByEmailAddress(String emailAddress, Class<T> type);
+
+	interface EmailOnly {
+		String getEmailAddress();
+	}
+
+	record Names(String firstname, String lastname) {
+	}
 
 }

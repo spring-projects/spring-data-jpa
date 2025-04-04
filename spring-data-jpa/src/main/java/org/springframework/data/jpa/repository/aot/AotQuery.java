@@ -40,6 +40,9 @@ abstract class AotQuery {
 	 */
 	public abstract boolean isNative();
 
+	/**
+	 * @return the list of parameter bindings.
+	 */
 	public List<ParameterBinding> getParameterBindings() {
 		return parameterBindings;
 	}

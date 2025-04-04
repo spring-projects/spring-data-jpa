@@ -15,10 +15,16 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.Tuple;
+
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.CollectionFactory;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.expression.ValueExpression;
@@ -26,6 +32,7 @@ import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
+import org.springframework.data.jpa.util.TupleBackedMap;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
@@ -102,6 +109,52 @@ public class AotRepositoryFragmentSupport {
 		ValueEvaluationContextProvider contextProvider = this.contextProviders.get().get(method);
 
 		return expression.evaluate(contextProvider.getEvaluationContext(args, expression.getExpressionDependencies()));
+	}
+
+	protected <T> @Nullable T convertOne(@Nullable Object result, boolean nativeQuery, Class<T> projection) {
+
+		if (result == null) {
+			return null;
+		}
+
+		if (projection.isInstance(result)) {
+			return projection.cast(result);
+		}
+
+		return projectionFactory.createProjection(projection,
+				result instanceof Tuple t ? new TupleBackedMap(nativeQuery ? TupleBackedMap.underscoreAware(t) : t) : result);
+	}
+
+	protected @Nullable Object convertMany(@Nullable Object result, boolean nativeQuery, Class<?> projection) {
+
+		if (result == null) {
+			return null;
+		}
+
+		if (projection.isInstance(result)) {
+			return result;
+		}
+
+		if (result instanceof Stream<?> stream) {
+			return stream.map(it -> convertOne(it, nativeQuery, projection));
+		}
+
+		if (result instanceof Slice<?> slice) {
+			return slice.map(it -> convertOne(it, nativeQuery, projection));
+		}
+
+		if (result instanceof Collection<?> collection) {
+
+			Collection<@Nullable Object> target = CollectionFactory.createCollection(collection.getClass(),
+					collection.size());
+			for (Object o : collection) {
+				target.add(convertOne(o, nativeQuery, projection));
+			}
+
+			return target;
+		}
+
+		throw new UnsupportedOperationException("Cannot create projection for %s".formatted(result));
 	}
 
 	private record DefaultQueryRewriteInformation(Sort sort,

@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.query.QueryTypeMismatchException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,44 +103,17 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
+	void testDerivedFinderWithoutArguments() {
+
+		List<User> users = fragment.findUserNoArgumentsBy();
+		assertThat(users).hasSize(7).hasOnlyElementsOfType(User.class);
+	}
+
+	@Test
 	void testFindDerivedQuerySingleEntity() {
 
 		User user = fragment.findOneByEmailAddress("luke@jedi.org");
 		assertThat(user.getLastname()).isEqualTo("Skywalker");
-	}
-
-	@Test
-	void shouldUseNamedQuery() {
-
-		User user = fragment.findByEmailAddress("luke@jedi.org");
-		assertThat(user.getLastname()).isEqualTo("Skywalker");
-	}
-
-	@Test
-	void shouldUseNamedQueryAndDeriveCountQuery() {
-
-		Page<User> user = fragment.findPagedByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
-
-		assertThat(user).hasSize(1);
-		assertThat(user.getTotalElements()).isEqualTo(1);
-	}
-
-	@Test
-	void shouldUseNamedQueryAndProvidedCountQuery() {
-
-		Page<User> user = fragment.findPagedWithCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
-
-		assertThat(user).hasSize(1);
-		assertThat(user.getTotalElements()).isEqualTo(1);
-	}
-
-	@Test
-	void shouldUseNamedQueryAndNamedCountQuery() {
-
-		Page<User> user = fragment.findPagedWithNamedCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
-
-		assertThat(user).hasSize(1);
-		assertThat(user.getTotalElements()).isEqualTo(1);
 	}
 
 	@Test
@@ -161,13 +136,6 @@ class JpaRepositoryContributorIntegrationTests {
 
 		Boolean exists = fragment.existsUserByLastname("Skywalker");
 		assertThat(exists).isTrue();
-	}
-
-	@Test
-	void testDerivedFinderWithoutArguments() {
-
-		List<User> users = fragment.findUserNoArgumentsBy();
-		assertThat(users).hasSize(7).hasOnlyElementsOfType(User.class);
 	}
 
 	@Test
@@ -398,33 +366,6 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
-	void shouldApplyQueryHints() {
-		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
-				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
-	}
-
-	@Test
-	void shouldApplyNamedEntityGraph() {
-
-		User chewie = fragment.findWithNamedEntityGraphByFirstname("Chewbacca");
-
-		assertThat(chewie.getManager()).isInstanceOf(HibernateProxy.class);
-		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
-	}
-
-	@Test
-	void shouldApplyDeclaredEntityGraph() {
-
-		User chewie = fragment.findWithDeclaredEntityGraphByFirstname("Chewbacca");
-
-		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
-
-		User han = chewie.getManager();
-		assertThat(han.getRoles()).isNotInstanceOf(HibernateProxy.class);
-		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
-	}
-
-	@Test
 	void testDerivedFinderReturningPageOfProjections() {
 
 		Page<UserDtoProjection> page = fragment.findUserProjectionByLastnameStartingWith("S",
@@ -441,7 +382,128 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(noResults).isEmpty();
 	}
 
-	// modifying
+	@Test
+	void shouldApplySqlResultSetMapping() {
+
+		User.EmailDto result = fragment.findEmailDtoByNativeQuery(kylo.getId());
+
+		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyNamedDto() {
+
+		// named queries cannot be rewritten
+		assertThatExceptionOfType(QueryTypeMismatchException.class)
+				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress()));
+	}
+
+	@Test
+	void shouldApplyDerivedDto() {
+
+		UserRepository.Names names = fragment.findDtoByEmailAddress(kylo.getEmailAddress());
+
+		assertThat(names.lastname()).isEqualTo(kylo.getLastname());
+		assertThat(names.firstname()).isEqualTo(kylo.getFirstname());
+	}
+
+	@Test
+	void shouldApplyDerivedDtoPage() {
+
+		Page<UserRepository.Names> names = fragment.findDtoPageByEmailAddress(kylo.getEmailAddress(), PageRequest.of(0, 1));
+
+		assertThat(names).hasSize(1);
+		assertThat(names.getContent().get(0).lastname()).isEqualTo(kylo.getLastname());
+	}
+
+	@Test
+	void shouldApplyAnnotatedDto() {
+
+		UserRepository.Names names = fragment.findAnnotatedDtoEmailAddress(kylo.getEmailAddress());
+
+		assertThat(names.lastname()).isEqualTo(kylo.getLastname());
+		assertThat(names.firstname()).isEqualTo(kylo.getFirstname());
+	}
+
+	@Test
+	void shouldApplyAnnotatedDtoPage() {
+
+		Page<UserRepository.Names> names = fragment.findAnnotatedDtoPageByEmailAddress(kylo.getEmailAddress(),
+				PageRequest.of(0, 1));
+
+		assertThat(names).hasSize(1);
+		assertThat(names.getContent().get(0).lastname()).isEqualTo(kylo.getLastname());
+	}
+
+	@Test
+	void shouldApplyDerivedQueryInterfaceProjection() {
+
+		UserRepository.EmailOnly result = fragment.findEmailProjectionById(kylo.getId());
+
+		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyInterfaceProjectionPage() {
+
+		Page<UserRepository.EmailOnly> result = fragment.findProjectedPageByEmailAddress(kylo.getEmailAddress(),
+				PageRequest.of(0, 1));
+
+		assertThat(result).hasSize(1);
+		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyInterfaceProjectionSlice() {
+
+		Slice<UserRepository.EmailOnly> result = fragment.findProjectedSliceByEmailAddress(kylo.getEmailAddress(),
+				PageRequest.of(0, 1));
+
+		assertThat(result).hasSize(1);
+		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyInterfaceProjectionToDerivedQueryStream() {
+
+		Stream<UserRepository.EmailOnly> result = fragment.streamProjectedByEmailAddress(kylo.getEmailAddress());
+
+		assertThat(result).hasSize(1).map(UserRepository.EmailOnly::getEmailAddress).contains(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyAnnotatedQueryInterfaceProjection() {
+
+		UserRepository.EmailOnly result = fragment.findAnnotatedEmailProjectionByEmailAddress(kylo.getEmailAddress());
+
+		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyAnnotatedInterfaceProjectionQueryPage() {
+
+		Page<UserRepository.EmailOnly> result = fragment.findAnnotatedProjectedPageByEmailAddress(kylo.getEmailAddress(),
+				PageRequest.of(0, 1));
+
+		assertThat(result).hasSize(1);
+		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyNativeInterfaceProjection() {
+
+		UserRepository.EmailOnly result = fragment.findEmailProjectionByNativeQuery(kylo.getId());
+
+		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
+
+	@Test
+	void shouldApplyNamedQueryInterfaceProjection() {
+
+		UserRepository.EmailOnly result = fragment.findNamedProjectionEmailAddress(kylo.getEmailAddress());
+
+		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
+	}
 
 	@Test
 	void testDerivedDeleteSingle() {
@@ -476,8 +538,6 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(yodaShouldBeGone).isNull();
 	}
 
-	// native queries
-
 	@Test
 	void nativeQuery() {
 
@@ -489,22 +549,86 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test
-	void shouldApplySqlResultSetMapping() {
+	void shouldUseNamedQuery() {
 
-		User.EmailDto result = fragment.findEmailDtoByNativeQuery(kylo.getId());
-
-		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
+		User user = fragment.findByEmailAddress("luke@jedi.org");
+		assertThat(user.getLastname()).isEqualTo("Skywalker");
 	}
 
-	// old stuff below
+	@Test
+	void shouldUseNamedQueryAndDeriveCountQuery() {
+
+		Page<User> user = fragment.findPagedByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldUseNamedQueryAndProvidedCountQuery() {
+
+		Page<User> user = fragment.findPagedWithCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldUseNamedQueryAndNamedCountQuery() {
+
+		Page<User> user = fragment.findPagedWithNamedCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
+
+		assertThat(user).hasSize(1);
+		assertThat(user.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void shouldApplyQueryHints() {
+		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
+				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
+	}
+
+	@Test
+	void shouldApplyNamedEntityGraph() {
+
+		User chewie = fragment.findWithNamedEntityGraphByFirstname("Chewbacca");
+
+		assertThat(chewie.getManager()).isInstanceOf(HibernateProxy.class);
+		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
+	}
+
+	@Test
+	void shouldApplyDeclaredEntityGraph() {
+
+		User chewie = fragment.findWithDeclaredEntityGraphByFirstname("Chewbacca");
+
+		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
+
+		User han = chewie.getManager();
+		assertThat(han.getRoles()).isNotInstanceOf(HibernateProxy.class);
+		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
+	}
+
+	@Test
+	void shouldQuerySubtype() {
+
+		SpecialUser snoopy = new SpecialUser();
+		snoopy.setFirstname("Snoopy");
+		snoopy.setLastname("n/a");
+		snoopy.setEmailAddress("dog@home.com");
+		em.persist(snoopy);
+
+		SpecialUser result = fragment.findByEmailAddress("dog@home.com", SpecialUser.class);
+
+		assertThat(result).isNotNull();
+		assertThat(result).isInstanceOf(SpecialUser.class);
+	}
 
 	void todo() {
 
-		// interface projections
-		// dynamic projections
-		// class type parameter
+		// dynamic projections: Not implemented
+		// keyset scrolling
 
-		// synthetic parameters (keyset scrolling! yuck!)
 	}
 
 }

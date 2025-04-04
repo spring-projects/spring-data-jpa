@@ -25,18 +25,13 @@ import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -50,13 +45,13 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.SlicedExe
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.StreamExecution;
 import org.springframework.data.jpa.repository.support.QueryHints;
 import org.springframework.data.jpa.util.JpaMetamodel;
+import org.springframework.data.jpa.util.TupleBackedMap;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.model.PreferredConstructorDiscoverer;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
-import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -344,7 +339,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			Assert.notNull(type, "Returned type must not be null");
 
 			this.type = type;
-			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
+			this.tupleWrapper = nativeQuery ? TupleBackedMap::underscoreAware : UnaryOperator.identity();
 			this.dtoProjection = type.isProjecting() && !type.getReturnedType().isInterface()
 					&& !type.getInputProperties().isEmpty();
 
@@ -468,180 +463,6 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return ClassUtils.isAssignable(to, from);
 		}
 
-		/**
-		 * A {@link Map} implementation which delegates all calls to a {@link Tuple}. Depending on the provided
-		 * {@link Tuple} implementation it might return the same value for various keys of which only one will appear in the
-		 * key/entry set.
-		 *
-		 * @author Jens Schauder
-		 */
-		private static class TupleBackedMap implements Map<String, Object> {
-
-			private static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified";
-
-			private final Tuple tuple;
-
-			TupleBackedMap(Tuple tuple) {
-				this.tuple = tuple;
-			}
-
-			@Override
-			public int size() {
-				return tuple.getElements().size();
-			}
-
-			@Override
-			public boolean isEmpty() {
-				return tuple.getElements().isEmpty();
-			}
-
-			/**
-			 * If the key is not a {@code String} or not a key of the backing {@link Tuple} this returns {@code false}.
-			 * Otherwise this returns {@code true} even when the value from the backing {@code Tuple} is {@code null}.
-			 *
-			 * @param key the key for which to get the value from the map.
-			 * @return whether the key is an element of the backing tuple.
-			 */
-			@Override
-			public boolean containsKey(Object key) {
-
-				try {
-					tuple.get((String) key);
-					return true;
-				} catch (IllegalArgumentException e) {
-					return false;
-				}
-			}
-
-			@Override
-			public boolean containsValue(Object value) {
-				return Arrays.asList(tuple.toArray()).contains(value);
-			}
-
-			/**
-			 * If the key is not a {@code String} or not a key of the backing {@link Tuple} this returns {@code null}.
-			 * Otherwise the value from the backing {@code Tuple} is returned, which also might be {@code null}.
-			 *
-			 * @param key the key for which to get the value from the map.
-			 * @return the value of the backing {@link Tuple} for that key or {@code null}.
-			 */
-			@Override
-			public @Nullable Object get(Object key) {
-
-				if (!(key instanceof String)) {
-					return null;
-				}
-
-				try {
-					return tuple.get((String) key);
-				} catch (IllegalArgumentException e) {
-					return null;
-				}
-			}
-
-			@Override
-			public Object put(String key, Object value) {
-				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
-			}
-
-			@Override
-			public Object remove(Object key) {
-				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
-			}
-
-			@Override
-			public void putAll(Map<? extends String, ?> m) {
-				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
-			}
-
-			@Override
-			public void clear() {
-				throw new UnsupportedOperationException(UNMODIFIABLE_MESSAGE);
-			}
-
-			@Override
-			public Set<String> keySet() {
-
-				return tuple.getElements().stream() //
-						.map(TupleElement::getAlias) //
-						.collect(Collectors.toSet());
-			}
-
-			@Override
-			public Collection<Object> values() {
-				return Arrays.asList(tuple.toArray());
-			}
-
-			@Override
-			public Set<Entry<String, Object>> entrySet() {
-
-				return tuple.getElements().stream() //
-						.map(e -> new HashMap.SimpleEntry<String, Object>(e.getAlias(), tuple.get(e))) //
-						.collect(Collectors.toSet());
-			}
-		}
 	}
 
-	private static class FallbackTupleWrapper implements Tuple {
-
-		private final Tuple delegate;
-		private final UnaryOperator<String> fallbackNameTransformer = JdbcUtils::convertPropertyNameToUnderscoreName;
-
-		FallbackTupleWrapper(Tuple delegate) {
-			this.delegate = delegate;
-		}
-
-		@Override
-		public <X> X get(TupleElement<X> tupleElement) {
-			return get(tupleElement.getAlias(), tupleElement.getJavaType());
-		}
-
-		@Override
-		public <X> X get(String s, Class<X> type) {
-			try {
-				return delegate.get(s, type);
-			} catch (IllegalArgumentException original) {
-				try {
-					return delegate.get(fallbackNameTransformer.apply(s), type);
-				} catch (IllegalArgumentException next) {
-					original.addSuppressed(next);
-					throw original;
-				}
-			}
-		}
-
-		@Override
-		public Object get(String s) {
-			try {
-				return delegate.get(s);
-			} catch (IllegalArgumentException original) {
-				try {
-					return delegate.get(fallbackNameTransformer.apply(s));
-				} catch (IllegalArgumentException next) {
-					original.addSuppressed(next);
-					throw original;
-				}
-			}
-		}
-
-		@Override
-		public <X> X get(int i, Class<X> aClass) {
-			return delegate.get(i, aClass);
-		}
-
-		@Override
-		public Object get(int i) {
-			return delegate.get(i);
-		}
-
-		@Override
-		public Object[] toArray() {
-			return delegate.toArray();
-		}
-
-		@Override
-		public List<TupleElement<?>> getElements() {
-			return delegate.getElements();
-		}
-	}
 }
