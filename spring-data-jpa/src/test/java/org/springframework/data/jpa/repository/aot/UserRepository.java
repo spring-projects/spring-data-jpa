@@ -32,6 +32,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.repository.CrudRepository;
 
 /**
@@ -229,6 +230,12 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.emailAddress = ?1 AND TYPE(u) = ?2")
 	<T extends User> T findByEmailAddress(String emailAddress, Class<T> type);
 
+	@Query(value = "select u from PLACEHOLDER u where u.emailAddress = ?1", queryRewriter = MyQueryRewriter.class)
+	User findAndApplyQueryRewriter(String emailAddress);
+
+	@Query(value = "select u from OTHER u where u.emailAddress = ?1", queryRewriter = MyQueryRewriter.class)
+	Page<User> findAndApplyQueryRewriter(String emailAddress, Pageable pageable);
+
 	interface EmailOnly {
 		String getEmailAddress();
 	}
@@ -236,4 +243,16 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	record Names(String firstname, String lastname) {
 	}
 
+	static class MyQueryRewriter implements QueryRewriter {
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query.replaceAll("PLACEHOLDER", "User");
+		}
+
+		@Override
+		public String rewrite(String query, Pageable pageRequest) {
+			return query.replaceAll("OTHER", "User");
+		}
+	}
 }
