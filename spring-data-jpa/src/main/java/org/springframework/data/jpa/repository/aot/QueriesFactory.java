@@ -51,12 +51,16 @@ import org.springframework.util.StringUtils;
  */
 class QueriesFactory {
 
+	private final EntityManagerFactory entityManagerFactory;
 	private final Metamodel metamodel;
-	private final EntityManagerFactory emf;
 
-	public QueriesFactory(AotMetamodel metamodel, EntityManagerFactory emf) {
+	public QueriesFactory(EntityManagerFactory entityManagerFactory) {
+		this(entityManagerFactory, entityManagerFactory.getMetamodel());
+	}
+
+	public QueriesFactory(EntityManagerFactory entityManagerFactory, Metamodel metamodel) {
 		this.metamodel = metamodel;
-		this.emf = emf;
+		this.entityManagerFactory = entityManagerFactory;
 	}
 
 	/**
@@ -183,7 +187,7 @@ class QueriesFactory {
 
 		for (Class<?> candidate : candidates) {
 
-			Map<String, ? extends TypedQueryReference<?>> namedQueries = emf.getNamedQueries(candidate);
+			Map<String, ? extends TypedQueryReference<?>> namedQueries = entityManagerFactory.getNamedQueries(candidate);
 
 			if (namedQueries.containsKey(queryName)) {
 				return namedQueries.get(queryName);

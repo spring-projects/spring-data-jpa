@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import java.lang.reflect.Method;
 
@@ -68,8 +69,16 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes());
 
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(amm.getEntityManagerFactory());
-		this.queriesFactory = new QueriesFactory(amm, amm.getEntityManagerFactory());
+		this.queriesFactory = new QueriesFactory(amm.getEntityManagerFactory(), amm);
 		this.entityGraphLookup = new EntityGraphLookup(amm.getEntityManagerFactory());
+	}
+
+	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
+		super(repositoryContext);
+
+		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
+		this.queriesFactory = new QueriesFactory(entityManagerFactory);
+		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
 	}
 
 	@Override

@@ -19,7 +19,7 @@
 
 <!--	<logger name="org.testcontainers" level="debug" />-->
 
-	<logger name="org.springframework.data.repository.aot.generate.RepositoryContributor" level="trace" />
+	<!--	<logger name="org.springframework.data.repository.aot.generate.RepositoryContributor" level="trace" /> -->
 
 	<root level="error">
 		<appender-ref ref="console"/>

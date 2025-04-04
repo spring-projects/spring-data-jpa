@@ -55,6 +55,23 @@
 
 	<profiles>
 		<profile>
+			<id>jmh</id>
+			<dependencies>
+				<dependency>
+					<groupId>com.github.mp911de.microbenchmark-runner</groupId>
+					<artifactId>microbenchmark-runner-junit5</artifactId>
+					<version>0.4.0.RELEASE</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<repositories>
+				<repository>
+					<id>jitpack.io</id>
+					<url>https://jitpack.io</url>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
 			<id>hibernate-70-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-70-snapshots}</hibernate>

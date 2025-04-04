@@ -18,10 +18,6 @@ package org.springframework.data.jpa.benchmark;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
 
 import java.util.List;
 import java.util.Properties;
@@ -40,25 +36,35 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
+import org.springframework.aot.test.generate.TestGenerationContext;
+import org.springframework.core.test.tools.TestCompiler;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.benchmark.model.IPersonProjection;
 import org.springframework.data.jpa.benchmark.model.Person;
 import org.springframework.data.jpa.benchmark.model.Profile;
 import org.springframework.data.jpa.benchmark.repository.PersonRepository;
+import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
+import org.springframework.data.jpa.repository.aot.TestJpaAotRepositoryContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
+import org.springframework.data.projection.ProjectionFactory;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryComposition;
+import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.util.ObjectUtils;
 
 /**
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 @Testable
 @Fork(1)
-@Warmup(time = 2, iterations = 3)
-@Measurement(time = 2)
+@Warmup(time = 1, iterations = 3)
+@Measurement(time = 1, iterations = 3)
 @Timeout(time = 2)
-public class RepositoryFinderBenchmarks {
+public class AotRepositoryQueryMethodBenchmarks {
 
 	private static final String PERSON_FIRSTNAME = "first";
 	private static final String COLUMN_PERSON_FIRSTNAME = "firstname";
@@ -66,7 +72,12 @@ public class RepositoryFinderBenchmarks {
 	@State(Scope.Benchmark)
 	public static class BenchmarkParameters {
 
+		public static Class<?> aot;
+		public static TestJpaAotRepositoryContext<PersonRepository> repositoryContext = new TestJpaAotRepositoryContext<>(
+				PersonRepository.class, null);
+
 		EntityManager entityManager;
+		RepositoryComposition.RepositoryFragments fragments;
 		PersonRepository repositoryProxy;
 
 		@Setup(Level.Iteration)
@@ -95,7 +106,56 @@ public class RepositoryFinderBenchmarks {
 				}
 			}
 
-			this.repositoryProxy = createRepository();
+			if (this.aot == null) {
+
+				TestGenerationContext generationContext = new TestGenerationContext(PersonRepository.class);
+
+				new JpaRepositoryContributor(repositoryContext, entityManager.getEntityManagerFactory())
+						.contribute(generationContext);
+
+				TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
+
+					try {
+						this.aot = compiled.getClassLoader().loadClass(PersonRepository.class.getName() + "Impl__Aot");
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				});
+			}
+
+			try {
+				RepositoryFactoryBeanSupport.FragmentCreationContext creationContext = getCreationContext(repositoryContext);
+				fragments = RepositoryComposition.RepositoryFragments
+						.just(aot.getConstructor(EntityManager.class, RepositoryFactoryBeanSupport.FragmentCreationContext.class)
+								.newInstance(entityManager, creationContext));
+
+				this.repositoryProxy = createRepository(fragments);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		private RepositoryFactoryBeanSupport.FragmentCreationContext getCreationContext(
+				TestJpaAotRepositoryContext<?> repositoryContext) {
+
+			RepositoryFactoryBeanSupport.FragmentCreationContext creationContext = new RepositoryFactoryBeanSupport.FragmentCreationContext() {
+				@Override
+				public RepositoryMetadata getRepositoryMetadata() {
+					return repositoryContext.getRepositoryInformation();
+				}
+
+				@Override
+				public ValueExpressionDelegate getValueExpressionDelegate() {
+					return ValueExpressionDelegate.create();
+				}
+
+				@Override
+				public ProjectionFactory getProjectionFactory() {
+					return new SpelAwareProxyProjectionFactory();
+				}
+			};
+
+			return creationContext;
 		}
 
 		@TearDown(Level.Iteration)
@@ -125,27 +185,21 @@ public class RepositoryFinderBenchmarks {
 			entityManager = entityManagerFactory.createEntityManager();
 		}
 
-		PersonRepository createRepository() {
+		public PersonRepository createRepository(RepositoryComposition.RepositoryFragments fragments) {
 			JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(entityManager);
-			return repositoryFactory.getRepository(PersonRepository.class);
+			return repositoryFactory.getRepository(PersonRepository.class, fragments);
 		}
+
+	}
+
+	protected PersonRepository doCreateRepository(EntityManager entityManager) {
+		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(entityManager);
+		return repositoryFactory.getRepository(PersonRepository.class);
 	}
 
 	@Benchmark
 	public PersonRepository repositoryBootstrap(BenchmarkParameters parameters) {
-		return parameters.createRepository();
-	}
-
-	@Benchmark
-	public List<Person> baselineEntityManagerCriteriaQuery(BenchmarkParameters parameters) {
-
-		CriteriaBuilder criteriaBuilder = parameters.entityManager.getCriteriaBuilder();
-		CriteriaQuery<Person> query = criteriaBuilder.createQuery(Person.class);
-		Root<Person> root = query.from(Person.class);
-		TypedQuery<Person> typedQuery = parameters.entityManager
-				.createQuery(query.where(criteriaBuilder.equal(root.get(COLUMN_PERSON_FIRSTNAME), PERSON_FIRSTNAME)));
-
-		return typedQuery.getResultList();
+		return parameters.createRepository(parameters.fragments);
 	}
 
 	@Benchmark
@@ -173,10 +227,10 @@ public class RepositoryFinderBenchmarks {
 		return parameters.repositoryProxy.findAllByFirstname(PERSON_FIRSTNAME);
 	}
 
-	@Benchmark
+	/*@Benchmark
 	public List<IPersonProjection> derivedFinderMethodWithInterfaceProjection(BenchmarkParameters parameters) {
 		return parameters.repositoryProxy.findAllAndProjectToInterfaceByFirstname(PERSON_FIRSTNAME);
-	}
+	} */
 
 	@Benchmark
 	public List<Person> stringBasedQuery(BenchmarkParameters parameters) {
@@ -185,7 +239,8 @@ public class RepositoryFinderBenchmarks {
 
 	@Benchmark
 	public List<Person> stringBasedQueryDynamicSort(BenchmarkParameters parameters) {
-		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME, Sort.by(COLUMN_PERSON_FIRSTNAME));
+		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME,
+				Sort.by(COLUMN_PERSON_FIRSTNAME));
 	}
 
 	@Benchmark
