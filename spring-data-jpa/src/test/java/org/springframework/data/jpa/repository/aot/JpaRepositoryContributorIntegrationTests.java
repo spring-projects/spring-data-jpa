@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -622,6 +623,18 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(result).isNotNull();
 		assertThat(result).isInstanceOf(SpecialUser.class);
+	}
+
+	@Test
+	void shouldApplyQueryRewriter() {
+
+		User result = fragment.findAndApplyQueryRewriter(kylo.getEmailAddress());
+
+		assertThat(result).isNotNull();
+
+		Page<User> page = fragment.findAndApplyQueryRewriter(kylo.getEmailAddress(), Pageable.unpaged());
+
+		assertThat(page).isNotEmpty();
 	}
 
 	void todo() {

@@ -38,6 +38,9 @@ This optimization moves query method processing from runtime to build-time, whic
 The resulting AOT repository fragment follows the naming scheme of `<Repository FQCN>Impl__Aot` and is placed in the same package as the repository interface.
 You can find all queries in their String form for generated repository query methods.
 
+NOTE: Consider AOT repository classes an internal optimization.
+Do not use them directly in your code as generation and implementation details may change in future releases.
+
 === Running with AOT Repositories
 
 AOT is a mandatory step to transform a Spring application to a native executable, so it is automatically enabled when running in this mode.
@@ -79,9 +82,9 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 * `CrudRepository` and other base interface methods
 * Querydsl and Query by Example methods
 * Methods whose implementation would be overly complex
-** Methods accepting `ScrollPosition (e.g. `Keyset` pagination)
+** Methods accepting `ScrollPosition` (e.g. `Keyset` pagination)
 ** Stored procedure query methods annotated with `@Procedure`
-** For now: Dynamic and interface projections
+** Dynamic projections
 
 [[aot.repositories.json]]
 == Repository Metadata
