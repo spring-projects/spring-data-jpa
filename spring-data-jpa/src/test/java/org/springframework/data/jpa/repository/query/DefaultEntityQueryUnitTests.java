@@ -932,8 +932,8 @@ class DefaultEntityQueryUnitTests {
 
 	private void checkHasNamedParameter(String query, boolean expected, String label) {
 
-		DeclaredQuery source = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(source.getQueryString(),
+		DeclaredQuery source = DeclaredQuery.jpqlQuery(query);
+		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(query,
 				source::rewrite, it -> {});
 
 		assertThat(bindableQuery.getBindings().stream().anyMatch(it -> it.getIdentifier().hasName())) //
