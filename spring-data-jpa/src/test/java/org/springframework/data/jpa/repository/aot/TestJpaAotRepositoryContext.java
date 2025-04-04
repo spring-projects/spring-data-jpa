@@ -37,7 +37,7 @@ import org.springframework.lang.Nullable;
 /**
  * @author Christoph Strobl
  */
-class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
+public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 
 	private final StubRepositoryInformation repositoryInformation;
 	private final Class<T> repositoryInterface;

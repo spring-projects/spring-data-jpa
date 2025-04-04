@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.aot;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
@@ -27,7 +28,6 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFragment;
-import org.springframework.data.util.Streamable;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -111,7 +111,7 @@ class StubRepositoryInformation implements RepositoryInformation {
 	}
 
 	@Override
-	public Streamable<Method> getQueryMethods() {
+	public List<Method> getQueryMethods() {
 		return null;
 	}
 
