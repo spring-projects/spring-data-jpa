@@ -41,6 +41,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Diego Krupitza
  * @author Mark Paluch
  * @author Aleksei Elin
+ * @author Gunha Hwang
  */
 class DefaultEntityQueryUnitTests {
 
@@ -740,32 +741,32 @@ class DefaultEntityQueryUnitTests {
 	@Test // DATAJPA-1200
 	void testHasNamedParameter() {
 
-		checkHasNamedParameter("select something from x where id = :id", true, "named parameter", true);
-		checkHasNamedParameter("in the :id middle", true, "middle", false);
-		checkHasNamedParameter(":id start", true, "beginning", false);
-		checkHasNamedParameter(":id", true, "alone", false);
-		checkHasNamedParameter("select something from x where id = :id", true, "named parameter", true);
-		checkHasNamedParameter(":UPPERCASE", true, "uppercase", false);
-		checkHasNamedParameter(":lowercase", true, "lowercase", false);
-		checkHasNamedParameter(":2something", true, "beginning digit", false);
-		checkHasNamedParameter(":2", true, "only digit", false);
-		checkHasNamedParameter(":.something", true, "dot", false);
-		checkHasNamedParameter(":_something", true, "underscore", false);
-		checkHasNamedParameter(":$something", true, "dollar", false);
-		checkHasNamedParameter(":\uFE0F", true, "non basic latin emoji", false); //
-		checkHasNamedParameter(":\u4E01", true, "chinese japanese korean", false);
+		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
+		checkHasNamedParameter("in the :id middle", true, "middle");
+		checkHasNamedParameter(":id start", true, "beginning");
+		checkHasNamedParameter(":id", true, "alone");
+		checkHasNamedParameter("select something from x where id = :id", true, "named parameter");
+		checkHasNamedParameter(":UPPERCASE", true, "uppercase");
+		checkHasNamedParameter(":lowercase", true, "lowercase");
+		checkHasNamedParameter(":2something", true, "beginning digit");
+		checkHasNamedParameter(":2", true, "only digit");
+		checkHasNamedParameter(":.something", true, "dot");
+		checkHasNamedParameter(":_something", true, "underscore");
+		checkHasNamedParameter(":$something", true, "dollar");
+		checkHasNamedParameter(":\uFE0F", true, "non basic latin emoji"); //
+		checkHasNamedParameter(":\u4E01", true, "chinese japanese korean");
 
-		checkHasNamedParameter("no bind variable", false, "no bind variable", false);
-		checkHasNamedParameter(":\u2004whitespace", false, "non basic latin whitespace", false);
-		checkHasNamedParameter("select something from x where id = ?1", false, "indexed parameter", true);
-		checkHasNamedParameter("::", false, "double colon", false);
-		checkHasNamedParameter(":", false, "end of query", false);
-		checkHasNamedParameter(":\u0003", false, "non-printable", false);
-		checkHasNamedParameter(":*", false, "basic latin emoji", false);
-		checkHasNamedParameter("\\:", false, "escaped colon", false);
-		checkHasNamedParameter("::id", false, "double colon with identifier", false);
-		checkHasNamedParameter("\\:id", false, "escaped colon with identifier", false);
-		checkHasNamedParameter("select something from x where id = #something", false, "hash", true);
+		checkHasNamedParameter("no bind variable", false, "no bind variable");
+		checkHasNamedParameter(":\u2004whitespace", false, "non basic latin whitespace");
+		checkHasNamedParameter("select something from x where id = ?1", false, "indexed parameter");
+		checkHasNamedParameter("::", false, "double colon");
+		checkHasNamedParameter(":", false, "end of query");
+		checkHasNamedParameter(":\u0003", false, "non-printable");
+		checkHasNamedParameter(":*", false, "basic latin emoji");
+		checkHasNamedParameter("\\:", false, "escaped colon");
+		checkHasNamedParameter("::id", false, "double colon with identifier");
+		checkHasNamedParameter("\\:id", false, "escaped colon with identifier");
+		checkHasNamedParameter("select something from x where id = #something", false, "hash");
 	}
 
 	@Test // DATAJPA-1235
@@ -929,10 +930,10 @@ class DefaultEntityQueryUnitTests {
 				.hasSize(expectedSize);
 	}
 
-	private void checkHasNamedParameter(String query, boolean expected, String label, boolean nativeQuery) {
+	private void checkHasNamedParameter(String query, boolean expected, String label) {
 
-		DeclaredQuery source = nativeQuery ? DeclaredQuery.nativeQuery(query) : DeclaredQuery.jpqlQuery(query);
-		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(source.getQueryString(),
+		DeclaredQuery source = DeclaredQuery.jpqlQuery(query);
+		PreprocessedQuery bindableQuery = PreprocessedQuery.ParameterBindingParser.INSTANCE.parse(query,
 				source::rewrite, it -> {});
 
 		assertThat(bindableQuery.getBindings().stream().anyMatch(it -> it.getIdentifier().hasName())) //
