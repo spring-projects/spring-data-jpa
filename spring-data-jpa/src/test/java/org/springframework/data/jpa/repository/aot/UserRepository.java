@@ -33,7 +33,9 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 /**
  * @author Christoph Strobl
@@ -235,6 +237,15 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	@Query(value = "select u from OTHER u where u.emailAddress = ?1", queryRewriter = MyQueryRewriter.class)
 	Page<User> findAndApplyQueryRewriter(String emailAddress, Pageable pageable);
+
+	// -------------------------------------------------------------------------
+	// Unsupported: Procedures
+	// -------------------------------------------------------------------------
+	@Procedure(name = "User.plus1IO") // Named
+	Integer namedProcedure(@Param("arg") Integer arg);
+
+	@Procedure(value = "sp_add") // Stored procedure
+	Integer providedProcedure(@Param("arg") Integer arg);
 
 	interface EmailOnly {
 		String getEmailAddress();

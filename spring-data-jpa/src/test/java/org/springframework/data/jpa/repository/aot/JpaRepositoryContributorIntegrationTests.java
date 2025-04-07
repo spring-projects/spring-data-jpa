@@ -103,21 +103,21 @@ class JpaRepositoryContributorIntegrationTests {
 		em.clear();
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderWithoutArguments() {
 
 		List<User> users = fragment.findUserNoArgumentsBy();
 		assertThat(users).hasSize(7).hasOnlyElementsOfType(User.class);
 	}
 
-	@Test
+	@Test // GH-3830
 	void testFindDerivedQuerySingleEntity() {
 
 		User user = fragment.findOneByEmailAddress("luke@jedi.org");
 		assertThat(user.getLastname()).isEqualTo("Skywalker");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testFindDerivedFinderOptionalEntity() {
 
 		Optional<User> user = fragment.findOptionalOneByEmailAddress("yoda@jedi.org");
@@ -125,21 +125,21 @@ class JpaRepositoryContributorIntegrationTests {
 				.hasValueSatisfying(it -> assertThat(it).extracting(User::getFirstname).isEqualTo("Yoda"));
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedCount() {
 
 		Long value = fragment.countUsersByLastname("Skywalker");
 		assertThat(value).isEqualTo(2L);
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedExists() {
 
 		Boolean exists = fragment.existsUserByLastname("Skywalker");
 		assertThat(exists).isTrue();
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningList() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S");
@@ -147,7 +147,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "han@smuggler.net");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldReturnStream() {
 
 		Stream<User> users = fragment.streamByLastnameLike("S%");
@@ -155,14 +155,14 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "han@smuggler.net");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testLimitedDerivedFinder() {
 
 		List<User> users = fragment.findTop2ByLastnameStartingWith("S");
 		assertThat(users).hasSize(2);
 	}
 
-	@Test
+	@Test // GH-3830
 	void testSortedDerivedFinder() {
 
 		List<User> users = fragment.findByLastnameStartingWithOrderByEmailAddress("S");
@@ -170,14 +170,14 @@ class JpaRepositoryContributorIntegrationTests {
 				"luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderWithLimitArgument() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Limit.of(2));
 		assertThat(users).hasSize(2);
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderWithSort() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Sort.by("emailAddress"));
@@ -185,21 +185,21 @@ class JpaRepositoryContributorIntegrationTests {
 				"luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderWithSortAndLimit() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Sort.by("emailAddress"), Limit.of(2));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningListWithPageable() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", PageRequest.of(0, 2, Sort.by("emailAddress")));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningPage() {
 
 		Page<User> page = fragment.findPageOfUsersByLastnameStartingWith("S",
@@ -211,7 +211,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningSlice() {
 
 		Slice<User> slice = fragment.findSliceOfUserByLastnameStartingWith("S",
@@ -223,14 +223,14 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderReturningSingleValueWithQuery() {
 
 		User user = fragment.findAnnotatedQueryByEmailAddress("yoda@jedi.org");
 		assertThat(user).isNotNull().extracting(User::getFirstname).isEqualTo("Yoda");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderReturningListWithQuery() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastname("S");
@@ -238,7 +238,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderUsingNamedParameterPlaceholderReturningListWithQuery() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastnameParameter("S");
@@ -246,7 +246,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyAnnotatedLikeStartsEnds() {
 
 		// start with case
@@ -260,7 +260,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"chewie@smuggler.net", "yoda@jedi.org");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedMultilineFinderWithQuery() {
 
 		List<User> users = fragment.findAnnotatedMultilineQueryByLastname("S");
@@ -268,14 +268,14 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderWithQueryAndLimit() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastname("S", Limit.of(2));
 		assertThat(users).hasSize(2);
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderWithQueryAndSort() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastname("S", Sort.by("emailAddress"));
@@ -283,21 +283,21 @@ class JpaRepositoryContributorIntegrationTests {
 				"luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderWithQueryLimitAndSort() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastname("S", Limit.of(2), Sort.by("emailAddress"));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderReturningListWithPageable() {
 
 		List<User> users = fragment.findAnnotatedQueryByLastname("S", PageRequest.of(0, 2, Sort.by("emailAddress")));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderReturningPage() {
 
 		Page<User> page = fragment.findAnnotatedQueryPageOfUsersByLastname("S",
@@ -309,7 +309,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testPagingAnnotatedQueryWithSort() {
 
 		Page<User> page = fragment.findAnnotatedQueryPageWithStaticSort("S", PageRequest.of(0, 2, Sort.unsorted()));
@@ -320,7 +320,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testAnnotatedFinderReturningSlice() {
 
 		Slice<User> slice = fragment.findAnnotatedQuerySliceOfUsersByLastname("S",
@@ -331,7 +331,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldResolveTemplatedQuery() {
 
 		User user = fragment.findTemplatedByEmailAddress("han@smuggler.net");
@@ -340,7 +340,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getFirstname()).isEqualTo("Han");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldEvaluateExpressionByName() {
 
 		User user = fragment.findValueExpressionNamedByEmailAddress("han@smuggler.net");
@@ -349,7 +349,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getFirstname()).isEqualTo("Han");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldEvaluateExpressionByPosition() {
 
 		User user = fragment.findValueExpressionPositionalByEmailAddress("han@smuggler.net");
@@ -358,7 +358,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getFirstname()).isEqualTo("Han");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningListOfProjections() {
 
 		List<UserDtoProjection> users = fragment.findUserProjectionByLastnameStartingWith("S");
@@ -366,7 +366,7 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedFinderReturningPageOfProjections() {
 
 		Page<UserDtoProjection> page = fragment.findUserProjectionByLastnameStartingWith("S",
@@ -383,7 +383,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(noResults).isEmpty();
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplySqlResultSetMapping() {
 
 		User.EmailDto result = fragment.findEmailDtoByNativeQuery(kylo.getId());
@@ -391,7 +391,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyNamedDto() {
 
 		// named queries cannot be rewritten
@@ -399,7 +399,7 @@ class JpaRepositoryContributorIntegrationTests {
 				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress()));
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyDerivedDto() {
 
 		UserRepository.Names names = fragment.findDtoByEmailAddress(kylo.getEmailAddress());
@@ -408,7 +408,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(names.firstname()).isEqualTo(kylo.getFirstname());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyDerivedDtoPage() {
 
 		Page<UserRepository.Names> names = fragment.findDtoPageByEmailAddress(kylo.getEmailAddress(), PageRequest.of(0, 1));
@@ -417,7 +417,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(names.getContent().get(0).lastname()).isEqualTo(kylo.getLastname());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyAnnotatedDto() {
 
 		UserRepository.Names names = fragment.findAnnotatedDtoEmailAddress(kylo.getEmailAddress());
@@ -426,7 +426,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(names.firstname()).isEqualTo(kylo.getFirstname());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyAnnotatedDtoPage() {
 
 		Page<UserRepository.Names> names = fragment.findAnnotatedDtoPageByEmailAddress(kylo.getEmailAddress(),
@@ -436,7 +436,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(names.getContent().get(0).lastname()).isEqualTo(kylo.getLastname());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyDerivedQueryInterfaceProjection() {
 
 		UserRepository.EmailOnly result = fragment.findEmailProjectionById(kylo.getId());
@@ -444,7 +444,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyInterfaceProjectionPage() {
 
 		Page<UserRepository.EmailOnly> result = fragment.findProjectedPageByEmailAddress(kylo.getEmailAddress(),
@@ -454,7 +454,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyInterfaceProjectionSlice() {
 
 		Slice<UserRepository.EmailOnly> result = fragment.findProjectedSliceByEmailAddress(kylo.getEmailAddress(),
@@ -464,7 +464,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyInterfaceProjectionToDerivedQueryStream() {
 
 		Stream<UserRepository.EmailOnly> result = fragment.streamProjectedByEmailAddress(kylo.getEmailAddress());
@@ -472,7 +472,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result).hasSize(1).map(UserRepository.EmailOnly::getEmailAddress).contains(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyAnnotatedQueryInterfaceProjection() {
 
 		UserRepository.EmailOnly result = fragment.findAnnotatedEmailProjectionByEmailAddress(kylo.getEmailAddress());
@@ -480,7 +480,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyAnnotatedInterfaceProjectionQueryPage() {
 
 		Page<UserRepository.EmailOnly> result = fragment.findAnnotatedProjectedPageByEmailAddress(kylo.getEmailAddress(),
@@ -490,7 +490,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getContent().get(0).getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyNativeInterfaceProjection() {
 
 		UserRepository.EmailOnly result = fragment.findEmailProjectionByNativeQuery(kylo.getId());
@@ -498,7 +498,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyNamedQueryInterfaceProjection() {
 
 		UserRepository.EmailOnly result = fragment.findNamedProjectionEmailAddress(kylo.getEmailAddress());
@@ -506,7 +506,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getEmailAddress()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test
+	@Test // GH-3830
 	void testDerivedDeleteSingle() {
 
 		User result = fragment.deleteByEmailAddress("yoda@jedi.org");
@@ -519,14 +519,14 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(yodaShouldBeGone).isNull();
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldOmitAnnotatedDeleteReturningDomainType() {
 
 		assertThatException().isThrownBy(() -> fragment.deleteAnnotatedQueryByEmailAddress("foo"))
 				.withRootCauseInstanceOf(NoSuchMethodException.class);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyModifying() {
 
 		int affected = fragment.renameAllUsersTo("Jones");
@@ -539,7 +539,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(yodaShouldBeGone).isNull();
 	}
 
-	@Test
+	@Test // GH-3830
 	void nativeQuery() {
 
 		Page<String> page = fragment.findByNativeQueryWithPageable(PageRequest.of(0, 2));
@@ -549,14 +549,14 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(page.getContent()).containsExactly("Anakin", "Ben");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldUseNamedQuery() {
 
 		User user = fragment.findByEmailAddress("luke@jedi.org");
 		assertThat(user.getLastname()).isEqualTo("Skywalker");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldUseNamedQueryAndDeriveCountQuery() {
 
 		Page<User> user = fragment.findPagedByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
@@ -565,7 +565,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getTotalElements()).isEqualTo(1);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldUseNamedQueryAndProvidedCountQuery() {
 
 		Page<User> user = fragment.findPagedWithCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
@@ -574,7 +574,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getTotalElements()).isEqualTo(1);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldUseNamedQueryAndNamedCountQuery() {
 
 		Page<User> user = fragment.findPagedWithNamedCountByEmailAddress(PageRequest.of(0, 1), "luke@jedi.org");
@@ -583,13 +583,13 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getTotalElements()).isEqualTo(1);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyQueryHints() {
 		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
 				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyNamedEntityGraph() {
 
 		User chewie = fragment.findWithNamedEntityGraphByFirstname("Chewbacca");
@@ -598,7 +598,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyDeclaredEntityGraph() {
 
 		User chewie = fragment.findWithDeclaredEntityGraphByFirstname("Chewbacca");
@@ -610,7 +610,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldQuerySubtype() {
 
 		SpecialUser snoopy = new SpecialUser();
@@ -625,7 +625,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result).isInstanceOf(SpecialUser.class);
 	}
 
-	@Test
+	@Test // GH-3830
 	void shouldApplyQueryRewriter() {
 
 		User result = fragment.findAndApplyQueryRewriter(kylo.getEmailAddress());

@@ -20,11 +20,11 @@ import jakarta.persistence.PersistenceContext;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
-
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
@@ -54,7 +54,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	private @Nullable BeanFactory beanFactory;
 	private @Nullable EntityManager entityManager;
-	private EntityPathResolver entityPathResolver;
+	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 	private @Nullable JpaQueryMethodFactory queryMethodFactory;
 	private @Nullable Function<BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;

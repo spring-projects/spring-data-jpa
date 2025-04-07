@@ -16,6 +16,8 @@
 package org.springframework.data.jpa.repository.aot;
 
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
@@ -23,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
+import org.springframework.data.repository.aot.generate.QueryMetadata;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,6 +69,54 @@ record AotQueries(AotQuery result, AotQuery count) {
 
 	public boolean isNative() {
 		return result().isNative();
+	}
+
+	public QueryMetadata toMetadata(boolean paging) {
+		return new AotQueryMetadata(paging);
+	}
+
+	/**
+	 * String and Named Query-based {@link QueryMetadata}.
+	 */
+	private class AotQueryMetadata implements QueryMetadata {
+
+		private final boolean paging;
+
+		AotQueryMetadata(boolean paging) {
+			this.paging = paging;
+		}
+
+		@Override
+		public Map<String, Object> serialize() {
+
+			Map<String, Object> serialized = new LinkedHashMap<>();
+
+			if (result() instanceof NamedAotQuery nq) {
+
+				serialized.put("name", nq.getName());
+				serialized.put("query", nq.getQueryString());
+			}
+
+			if (result() instanceof StringAotQuery sq) {
+				serialized.put("query", sq.getQueryString());
+			}
+
+			if (paging) {
+
+				if (count() instanceof NamedAotQuery nq) {
+
+					serialized.put("count-name", nq.getName());
+					serialized.put("count-query", nq.getQueryString());
+				}
+
+				if (count() instanceof StringAotQuery sq) {
+					serialized.put("count-query", sq.getQueryString());
+				}
+			}
+
+			return serialized;
+		}
+
 	}
 
 }

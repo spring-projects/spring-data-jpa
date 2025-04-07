@@ -107,7 +107,12 @@ class StubRepositoryInformation implements RepositoryInformation {
 
 	@Override
 	public boolean isQueryMethod(Method method) {
-		return false;
+
+		if (isBaseClassMethod(method)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	@Override
@@ -124,4 +129,10 @@ class StubRepositoryInformation implements RepositoryInformation {
 	public Method getTargetClassMethod(Method method) {
 		return null;
 	}
+
+	@Override
+	public RepositoryComposition getRepositoryComposition() {
+		return baseComposition;
+	}
+
 }
