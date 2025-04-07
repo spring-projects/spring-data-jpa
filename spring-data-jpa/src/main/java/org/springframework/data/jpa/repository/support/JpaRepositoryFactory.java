@@ -47,6 +47,7 @@ import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.QueryCreationListener;
 import org.springframework.data.repository.core.support.RepositoryComposition.RepositoryFragments;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
+import org.springframework.data.repository.core.support.RepositoryFragment;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
 import org.springframework.data.repository.query.CachingValueExpressionDelegate;
 import org.springframework.data.repository.query.QueryLookupStrategy;
@@ -298,7 +299,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 					getEntityInformation(metadata.getDomainType()), entityManager, resolver, crudMethodMetadata);
 			invokeAwareMethods(querydslJpaPredicateExecutor);
 
-			return RepositoryFragments.just(querydslJpaPredicateExecutor);
+			return RepositoryFragments
+					.of(RepositoryFragment.implemented(QuerydslPredicateExecutor.class, querydslJpaPredicateExecutor));
 		}
 
 		return RepositoryFragments.empty();

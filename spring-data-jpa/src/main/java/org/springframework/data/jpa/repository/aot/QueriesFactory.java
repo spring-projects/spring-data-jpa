@@ -73,11 +73,11 @@ class QueriesFactory {
 	 * @param returnedType
 	 * @return
 	 */
-	public AotQueries createQueries(AotQueryMethodGenerationContext context, MergedAnnotation<Query> query,
+	public AotQueries createQueries(RepositoryInformation repositoryInformation, MergedAnnotation<Query> query,
 			QueryEnhancerSelector selector, JpaQueryMethod queryMethod, ReturnedType returnedType) {
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("value"))) {
-			return buildStringQuery(context.getRepositoryInformation().getDomainType(), returnedType, selector, query,
+			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query,
 					queryMethod);
 		}
 
@@ -86,7 +86,7 @@ class QueriesFactory {
 			return buildNamedQuery(returnedType, selector, namedQuery, query, queryMethod);
 		}
 
-		return buildPartTreeQuery(returnedType, context, query, queryMethod);
+		return buildPartTreeQuery(returnedType, repositoryInformation, query, queryMethod);
 	}
 
 	private AotQueries buildStringQuery(Class<?> domainType, ReturnedType returnedType, QueryEnhancerSelector selector,
@@ -159,7 +159,7 @@ class QueriesFactory {
 
 		String countProjection = query.isPresent() ? query.getString("countProjection") : null;
 		return AotQueries.from(aotQuery, it -> {
-			return StringAotQuery.of(aotQuery.getQueryString()).getQuery();
+			return StringAotQuery.of(aotQuery.getQuery()).getQuery();
 		}, countProjection, selector);
 	}
 
@@ -197,10 +197,10 @@ class QueriesFactory {
 		return null;
 	}
 
-	private AotQueries buildPartTreeQuery(ReturnedType returnedType, AotQueryMethodGenerationContext context,
+	private AotQueries buildPartTreeQuery(ReturnedType returnedType, RepositoryInformation repositoryInformation,
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
-		PartTree partTree = new PartTree(context.getMethod().getName(), context.getRepositoryInformation().getDomainType());
+		PartTree partTree = new PartTree(queryMethod.getName(), repositoryInformation.getDomainType());
 		// TODO make configurable
 		JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
 

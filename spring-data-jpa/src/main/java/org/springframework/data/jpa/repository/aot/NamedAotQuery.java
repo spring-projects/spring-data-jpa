@@ -30,12 +30,12 @@ import org.springframework.data.jpa.repository.query.PreprocessedQuery;
 class NamedAotQuery extends AotQuery {
 
 	private final String name;
-	private final DeclaredQuery queryString;
+	private final DeclaredQuery query;
 
 	private NamedAotQuery(String name, DeclaredQuery queryString, List<ParameterBinding> parameterBindings) {
 		super(parameterBindings);
 		this.name = name;
-		this.queryString = queryString;
+		this.query = queryString;
 	}
 
 	/**
@@ -51,13 +51,17 @@ class NamedAotQuery extends AotQuery {
 		return name;
 	}
 
-	public DeclaredQuery getQueryString() {
-		return queryString;
+	public DeclaredQuery getQuery() {
+		return query;
+	}
+
+	public String getQueryString() {
+		return getQuery().getQueryString();
 	}
 
 	@Override
 	public boolean isNative() {
-		return queryString.isNative();
+		return query.isNative();
 	}
 
 }
