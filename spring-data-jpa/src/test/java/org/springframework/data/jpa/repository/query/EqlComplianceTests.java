@@ -72,6 +72,7 @@ class EqlComplianceTests {
 
 		assertQuery("SELECT COUNT(e) FROM Employee e");
 		assertQuery("SELECT MAX(e.salary) FROM Employee e");
+		assertQuery("select sum(i.size.foo.bar.new) from Item i");
 		assertQuery("SELECT NEW com.acme.reports.EmpReport(e.firstName, e.lastName, e.salary) FROM Employee e");
 	}
 
@@ -342,8 +343,11 @@ class EqlComplianceTests {
 		assertQuery("SELECT toDo FROM Employee e JOIN e.toDoList toDo WHERE INDEX(toDo) = 1");
 		assertQuery("SELECT p FROM Employee e JOIN e.priorities p WHERE KEY(p) = 'high'");
 		assertQuery("SELECT e FROM Employee e WHERE SIZE(e.managedEmployees) < 2");
+		assertQuery("SELECT e FROM Employee e WHERE SIZE(e.managedEmployees.new) < 2");
 		assertQuery("SELECT e FROM Employee e WHERE e.managedEmployees IS EMPTY");
+		assertQuery("SELECT e FROM Employee e WHERE e.managedEmployee.size.new IS EMPTY");
 		assertQuery("SELECT e FROM Employee e WHERE 'write code' MEMBER OF e.responsibilities");
+		assertQuery("SELECT e FROM Employee e WHERE 'write code' MEMBER OF e.responsibilities.size");
 		assertQuery("SELECT p FROM Project p WHERE TYPE(p) = LargeProject");
 
 		/**
