@@ -2469,21 +2469,37 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override
 	public List<JpaQueryParsingToken> visitCollection_valued_field(EqlParser.Collection_valued_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitSingle_valued_object_field(EqlParser.Single_valued_object_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitState_field(EqlParser.State_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitCollection_value_field(EqlParser.Collection_value_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
