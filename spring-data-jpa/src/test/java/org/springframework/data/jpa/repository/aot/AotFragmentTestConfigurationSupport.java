@@ -57,13 +57,13 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface) {
 		this.repositoryInterface = repositoryInterface;
-		this.repositoryContext = new TestJpaAotRepositoryContext<>(UserRepository.class, null);
+		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, null);
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		TestGenerationContext generationContext = new TestGenerationContext(UserRepository.class);
+		TestGenerationContext generationContext = new TestGenerationContext(repositoryInterface);
 
 		new JpaRepositoryContributor(repositoryContext).contribute(generationContext);
 
