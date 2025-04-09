@@ -96,7 +96,6 @@ class AotMetamodel implements Metamodel {
 		return entityManager.get();
 	}
 
-	// TODO: Capture an existing factory bean (e.g. EntityManagerFactoryInfo) to extract PersistenceInfo
 	public EntityManagerFactory getEntityManagerFactory() {
 		return entityManagerFactory.get();
 	}
@@ -125,7 +124,8 @@ class AotMetamodel implements Metamodel {
 			public List<String> getManagedClassNames() {
 				return persistenceUnitInfo.getManagedClassNames();
 			}
-		}, Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect")).build();
+		}, Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect", "hibernate.boot.allow_jdbc_metadata_access",
+				"false")).build();
 	}
 
 }

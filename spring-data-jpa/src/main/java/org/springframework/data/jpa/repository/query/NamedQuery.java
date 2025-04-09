@@ -34,6 +34,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link RepositoryQuery} based on {@link jakarta.persistence.NamedQuery}s.
@@ -97,12 +98,26 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		String queryString = extractor.extractQueryString(namedQuery);
 
-		// TODO: What is queryString is null?
 		DeclaredQuery declaredQuery;
-		if (method.isNativeQuery() || (namedQuery != null && namedQuery.toString().contains("NativeQuery"))) {
-			declaredQuery = DeclaredQuery.nativeQuery(queryString);
-		} else {
-			declaredQuery = DeclaredQuery.jpqlQuery(queryString);
+		if (StringUtils.hasText(queryString)) {
+			if (method.isNativeQuery() || namedQuery.toString().contains("NativeQuery")) {
+				declaredQuery = DeclaredQuery.nativeQuery(queryString);
+			} else {
+				declaredQuery = DeclaredQuery.jpqlQuery(queryString);
+			}
+		}
+		else {
+			declaredQuery = new DeclaredQuery() {
+				@Override
+				public boolean isNative() {
+					return false;
+				}
+
+				@Override
+				public String getQueryString() {
+					return "";
+				}
+			};
 		}
 
 		this.entityQuery = Lazy.of(() -> EntityQuery.create(declaredQuery, queryConfiguration.getSelector()));

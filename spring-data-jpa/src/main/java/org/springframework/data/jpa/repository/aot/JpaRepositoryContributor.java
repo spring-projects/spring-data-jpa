@@ -189,8 +189,6 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			MergedAnnotation<EntityGraph> entityGraph = context.getAnnotation(EntityGraph.class);
 			MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
 
-			body.add(context.codeBlocks().logDebug("invoking [%s]".formatted(context.getMethod().getName())));
-
 			AotEntityGraph aotEntityGraph = entityGraphLookup.findEntityGraph(entityGraph, repositoryInformation,
 					returnedType, queryMethod);
 

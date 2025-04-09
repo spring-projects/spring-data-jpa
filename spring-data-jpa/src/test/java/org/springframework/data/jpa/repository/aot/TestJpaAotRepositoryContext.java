@@ -25,6 +25,8 @@ import java.util.Set;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.test.tools.ClassFile;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -35,6 +37,8 @@ import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.lang.Nullable;
 
 /**
+ * Test {@link AotRepositoryContext} implementation for JPA repositories.
+ *
  * @author Christoph Strobl
  */
 public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
@@ -54,6 +58,11 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	@Override
 	public ConfigurableListableBeanFactory getBeanFactory() {
 		return null;
+	}
+
+	@Override
+	public Environment getEnvironment() {
+		return new StandardEnvironment();
 	}
 
 	@Override
