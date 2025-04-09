@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -91,15 +92,30 @@ public class JpaQueryMethod extends QueryMethod {
 	/**
 	 * Creates a {@link JpaQueryMethod}.
 	 *
-	 * @param method must not be {@literal null}
-	 * @param metadata must not be {@literal null}
-	 * @param factory must not be {@literal null}
-	 * @param extractor must not be {@literal null}
+	 * @param method must not be {@literal null}.
+	 * @param metadata must not be {@literal null}.
+	 * @param factory must not be {@literal null}.
+	 * @param extractor must not be {@literal null}.
 	 */
 	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
 			QueryExtractor extractor) {
+		this(method, metadata, factory, extractor, JpaParameters::new);
+	}
 
-		super(method, metadata, factory);
+	/**
+	 * Creates a {@link JpaQueryMethod}.
+	 *
+	 * @param method must not be {@literal null}.
+	 * @param metadata must not be {@literal null}.
+	 * @param factory must not be {@literal null}.
+	 * @param extractor must not be {@literal null}.
+	 * @param parametersFunction function to obtain {@link JpaParameters}, must not be {@literal null}.
+	 * @since 3.5
+	 */
+	public JpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
+			QueryExtractor extractor, Function<ParametersSource, JpaParameters> parametersFunction) {
+
+		super(method, metadata, factory, parametersFunction);
 
 		Assert.notNull(method, "Method must not be null");
 		Assert.notNull(extractor, "Query extractor must not be null");
@@ -411,11 +427,6 @@ public class JpaQueryMethod extends QueryMethod {
 		}
 
 		return targetType.cast(AnnotationUtils.getValue(annotation, attribute));
-	}
-
-	@Override
-	protected Parameters<?, ?> createParameters(ParametersSource parametersSource) {
-		return new JpaParameters(parametersSource);
 	}
 
 	@Override

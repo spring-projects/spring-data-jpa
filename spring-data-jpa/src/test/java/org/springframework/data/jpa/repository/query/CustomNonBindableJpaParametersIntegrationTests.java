@@ -92,19 +92,6 @@ class CustomNonBindableJpaParametersIntegrationTests {
 
 	}
 
-	private static class NonBindableAwareJpaQueryMethod extends JpaQueryMethod {
-
-		NonBindableAwareJpaQueryMethod(Method method, RepositoryMetadata metadata, ProjectionFactory factory,
-				QueryExtractor extractor) {
-			super(method, metadata, factory, extractor);
-		}
-
-		@Override
-		protected JpaParameters createParameters(ParametersSource source) {
-			return new NonBindableAwareJpaParameters(source);
-		}
-	}
-
 	private static class NonBindableAwareJpaQueryMethodFactory implements JpaQueryMethodFactory {
 
 		private final QueryExtractor extractor;
@@ -115,7 +102,7 @@ class CustomNonBindableJpaParametersIntegrationTests {
 
 		@Override
 		public JpaQueryMethod build(Method method, RepositoryMetadata metadata, ProjectionFactory factory) {
-			return new NonBindableAwareJpaQueryMethod(method, metadata, factory, extractor);
+			return new JpaQueryMethod(method, metadata, factory, extractor, NonBindableAwareJpaParameters::new);
 		}
 	}
 
