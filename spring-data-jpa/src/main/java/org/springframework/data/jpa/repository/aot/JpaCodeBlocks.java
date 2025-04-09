@@ -45,6 +45,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
 import org.springframework.javapoet.TypeName;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -140,6 +141,8 @@ class JpaCodeBlocks {
 		 */
 		public CodeBlock build() {
 
+			Assert.notNull(queries, "Queries must not be null");
+
 			boolean isProjecting = context.getReturnedType().isProjecting();
 			Class<?> actualReturnType = isProjecting ? context.getActualReturnType().toClass()
 					: context.getRepositoryInformation().getDomainType();
@@ -153,7 +156,6 @@ class JpaCodeBlocks {
 			builder.add("\n");
 
 			String queryStringVariableName = null;
-
 			String queryRewriterName = null;
 
 			if (queries.result() instanceof StringAotQuery && queryRewriter != QueryRewriter.IdentityQueryRewriter.class) {
@@ -162,7 +164,7 @@ class JpaCodeBlocks {
 				builder.addStatement("$T $L = new $T()", queryRewriter, queryRewriterName, queryRewriter);
 			}
 
-			if (queries != null && queries.result() instanceof StringAotQuery sq) {
+			if (queries.result() instanceof StringAotQuery sq) {
 
 				queryStringVariableName = "%sString".formatted(queryVariableName);
 				builder.add(buildQueryString(sq, queryStringVariableName));
@@ -183,7 +185,8 @@ class JpaCodeBlocks {
 			}
 
 			if ((StringUtils.hasText(sortParameterName) || StringUtils.hasText(dynamicReturnType))
-					&& queries.result() instanceof StringAotQuery) {
+					&& queries != null && queries.result() instanceof StringAotQuery
+					&& StringUtils.hasText(queryStringVariableName)) {
 				builder.add(applyRewrite(sortParameterName, dynamicReturnType, queryStringVariableName, actualReturnType));
 			}
 
@@ -605,7 +608,7 @@ class JpaCodeBlocks {
 				}
 			} else if (aotQuery != null && aotQuery.isExists()) {
 				builder.addStatement("return !$L.getResultList().isEmpty()", queryVariableName);
-			} else {
+			} else if (aotQuery != null) {
 
 				if (context.getReturnedType().isProjecting()) {
 

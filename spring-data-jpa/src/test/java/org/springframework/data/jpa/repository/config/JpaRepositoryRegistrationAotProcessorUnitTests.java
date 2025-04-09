@@ -31,6 +31,8 @@ import org.springframework.aot.generate.InMemoryGeneratedFiles;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.repository.config.AotRepositoryContext;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.javapoet.ClassName;
@@ -114,6 +116,11 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		@Override
 		public ConfigurableListableBeanFactory getBeanFactory() {
 			return null;
+		}
+
+		@Override
+		public Environment getEnvironment() {
+			return new StandardEnvironment();
 		}
 
 		@Override

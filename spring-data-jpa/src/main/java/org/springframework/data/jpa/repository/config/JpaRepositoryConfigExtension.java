@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.config;
 import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnit;
@@ -38,6 +39,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -325,22 +327,29 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
-		protected RepositoryContributor contribute(AotRepositoryContext repositoryContext, GenerationContext generationContext) {
+		protected @Nullable RepositoryContributor contribute(AotRepositoryContext repositoryContext,
+				GenerationContext generationContext) {
 
-			// don't register domain types nor annotations.
-
-			if (!AotContext.aotGeneratedRepositoriesEnabled()) {
+			boolean enabled = Boolean.parseBoolean(
+					repositoryContext.getEnvironment().getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
+			if (!enabled) {
 				return null;
 			}
 
-			return new JpaRepositoryContributor(repositoryContext);
+			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
+			EntityManagerFactory emf = beanFactory.getBeanProvider(EntityManagerFactory.class).getIfAvailable();
+
+			return emf != null ? new JpaRepositoryContributor(repositoryContext, emf)
+					: new JpaRepositoryContributor(repositoryContext);
 		}
 
 		@Nullable
 		@Override
+		@SuppressWarnings("NullAway")
 		protected RepositoryConfiguration<?> getRepositoryMetadata(RegisteredBean bean) {
 			RepositoryConfiguration<?> configuration = super.getRepositoryMetadata(bean);
-			if (!configuration.getRepositoryBaseClassName().isEmpty()) {
+
+			if (configuration != null && configuration.getRepositoryBaseClassName().isPresent()) {
 				return configuration;
 			}
 			return new Meh<>(configuration);
