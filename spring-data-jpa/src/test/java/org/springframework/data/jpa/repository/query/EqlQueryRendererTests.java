@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class EqlQueryRendererTests {
 
@@ -1041,12 +1042,14 @@ class EqlQueryRendererTests {
 		assertQuery("select te from TestEntity te where te.lateral = :lateral");
 	}
 
-	@Test
+	@Test // GH-3834
 	void reservedWordsShouldWork() {
 
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.externalId = :externalId");
 		assertQuery("select ie.object from ItemExample ie left join ie.object io where io.externalId = :externalId");
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.object = :externalId");
 		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
+		assertQuery("select f from FooEntity f where upper(f.name) IN :names");
+		assertQuery("select f from FooEntity f where f.size IN :sizes");
 	}
 }

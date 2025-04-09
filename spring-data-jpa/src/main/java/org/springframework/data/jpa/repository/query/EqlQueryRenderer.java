@@ -1155,8 +1155,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.state_valued_path_expression() != null) {
-			builder.append(visit(ctx.state_valued_path_expression()));
+		if (ctx.string_expression() != null) {
+			builder.append(visit(ctx.string_expression()));
 		}
 		if (ctx.type_discriminator() != null) {
 			builder.append(visit(ctx.type_discriminator()));
