@@ -337,7 +337,7 @@ between_expression
     ;
 
 in_expression
-    : (state_valued_path_expression | type_discriminator) (NOT)? IN (('(' in_item (',' in_item)* ')') | ( '(' subquery ')') | collection_valued_input_parameter)
+    : (string_expression | type_discriminator) (NOT)? IN (('(' in_item (',' in_item)* ')') | ( '(' subquery ')') | collection_valued_input_parameter)
     ;
 
 in_item

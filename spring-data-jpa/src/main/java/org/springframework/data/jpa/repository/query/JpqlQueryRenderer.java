@@ -1078,8 +1078,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.state_valued_path_expression() != null) {
-			builder.appendExpression(visit(ctx.state_valued_path_expression()));
+		if (ctx.string_expression() != null) {
+			builder.appendExpression(visit(ctx.string_expression()));
 		}
 		if (ctx.type_discriminator() != null) {
 			builder.appendExpression(visit(ctx.type_discriminator()));
