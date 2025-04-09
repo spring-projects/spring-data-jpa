@@ -1228,8 +1228,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
-		if (ctx.state_valued_path_expression() != null) {
-			tokens.addAll(visit(ctx.state_valued_path_expression()));
+		if (ctx.string_expression() != null) {
+			tokens.addAll(visit(ctx.string_expression()));
 		}
 		if (ctx.type_discriminator() != null) {
 			tokens.addAll(visit(ctx.type_discriminator()));

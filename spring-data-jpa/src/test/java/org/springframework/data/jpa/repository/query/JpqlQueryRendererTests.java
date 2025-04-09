@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.1
  */
 class JpqlQueryRendererTests {
@@ -1033,7 +1034,7 @@ class JpqlQueryRendererTests {
 		assertQuery(source);
 	}
 
-	@Test
+	@Test // GH-3834
 	void reservedWordsShouldWork() {
 
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.externalId = :externalId");
