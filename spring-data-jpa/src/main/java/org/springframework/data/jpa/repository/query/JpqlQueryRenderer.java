@@ -2108,21 +2108,36 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitCollection_valued_field(JpqlParser.Collection_valued_fieldContext ctx) {
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public QueryTokenStream visitSingle_valued_object_field(JpqlParser.Single_valued_object_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public QueryTokenStream visitState_field(JpqlParser.State_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public QueryTokenStream visitCollection_value_field(JpqlParser.Collection_value_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
