@@ -2164,7 +2164,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			tokens.add(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
-		} else if(ctx.LONGLITERAL() != null) {
+		} else if (ctx.LONGLITERAL() != null) {
 			tokens.add(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else if (ctx.boolean_literal() != null) {
 			tokens.addAll(visit(ctx.boolean_literal()));
@@ -2226,7 +2226,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 			return List.of(new JpaQueryParsingToken(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.FLOATLITERAL()));
-		} else if(ctx.LONGLITERAL() != null) {
+		} else if (ctx.LONGLITERAL() != null) {
 			return List.of(new JpaQueryParsingToken(ctx.LONGLITERAL()));
 		} else {
 			return List.of();
@@ -2275,21 +2275,36 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override
 	public List<JpaQueryParsingToken> visitCollection_valued_field(JpqlParser.Collection_valued_fieldContext ctx) {
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitSingle_valued_object_field(JpqlParser.Single_valued_object_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitState_field(JpqlParser.State_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 
 	@Override
 	public List<JpaQueryParsingToken> visitCollection_value_field(JpqlParser.Collection_value_fieldContext ctx) {
+
+		if (ctx.reserved_word() != null) {
+			return visit(ctx.reserved_word());
+		}
 		return visit(ctx.identification_variable());
 	}
 

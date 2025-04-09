@@ -681,18 +681,22 @@ subtype
 
 collection_valued_field
     : identification_variable
+    | reserved_word
     ;
 
 single_valued_object_field
     : identification_variable
+    | reserved_word
     ;
 
 state_field
     : identification_variable
+    | reserved_word
     ;
 
 collection_value_field
     : identification_variable
+    | reserved_word
     ;
 
 entity_name

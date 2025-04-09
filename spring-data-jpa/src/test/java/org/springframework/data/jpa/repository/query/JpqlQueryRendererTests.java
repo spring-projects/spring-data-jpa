@@ -1033,4 +1033,13 @@ class JpqlQueryRendererTests {
 		assertQuery(source);
 	}
 
+	@Test
+	void reservedWordsShouldWork() {
+
+		assertQuery("select ie from ItemExample ie left join ie.object io where io.externalId = :externalId");
+		assertQuery("select ie.object from ItemExample ie left join ie.object io where io.externalId = :externalId");
+		assertQuery("select ie from ItemExample ie left join ie.object io where io.object = :externalId");
+		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
+	}
+
 }
