@@ -28,9 +28,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.springframework.data.domain.Sort;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Predicates;
 import org.springframework.lang.CheckReturnValue;
@@ -124,13 +124,18 @@ public final class JpqlQueryBuilder {
 			}
 
 			@Override
-			public Select instantiate(String resultType, Collection<JpqlQueryBuilder.PathExpression> paths) {
+			public Select instantiate(String resultType, Collection<? extends JpqlQueryBuilder.Expression> paths) {
 				return new Select(postProcess(new ConstructorExpression(resultType, new Multiselect(from, paths))), from);
 			}
 
 			@Override
-			public Select select(Collection<JpqlQueryBuilder.PathExpression> paths) {
+			public Select select(Collection<? extends JpqlQueryBuilder.Expression> paths) {
 				return new Select(postProcess(new Multiselect(from, paths)), from);
+			}
+
+			@Override
+			public Select select(Selection selection) {
+				return new Select(postProcess(selection), from);
 			}
 
 			Selection postProcess(Selection selection) {
@@ -243,11 +248,34 @@ public final class JpqlQueryBuilder {
 	 * Create a new ordering expression.
 	 *
 	 * @param sortExpression
+	 * @return
+	 * @since 4.0
+	 */
+	public static Expression orderBy(Expression sortExpression) {
+		return new OrderExpression(sortExpression, null, Sort.NullHandling.NATIVE);
+	}
+
+	/**
+	 * Create a new ordering expression.
+	 *
+	 * @param sortExpression
 	 * @param order
 	 * @return
 	 */
 	public static Expression orderBy(Expression sortExpression, Sort.Order order) {
-		return new OrderExpression(sortExpression, order);
+		return new OrderExpression(sortExpression, order.getDirection(), order.getNullHandling());
+	}
+
+	/**
+	 * Create a new ordering expression.
+	 *
+	 * @param sortExpression
+	 * @param direction
+	 * @return
+	 * @since 4.0
+	 */
+	public static Expression orderBy(Expression sortExpression, Sort.Direction direction) {
+		return new OrderExpression(sortExpression, direction, Sort.NullHandling.NATIVE);
 	}
 
 	/**
@@ -431,7 +459,7 @@ public final class JpqlQueryBuilder {
 		 * @return
 		 */
 		@CheckReturnValue
-		default Select instantiate(Class<?> resultType, Collection<JpqlQueryBuilder.PathExpression> paths) {
+		default Select instantiate(Class<?> resultType, Collection<? extends JpqlQueryBuilder.Expression> paths) {
 			return instantiate(resultType.getName(), paths);
 		}
 
@@ -440,10 +468,10 @@ public final class JpqlQueryBuilder {
 		 *
 		 * @param resultType
 		 * @param paths
-		 * @return
+		 * @returninstanti
 		 */
 		@CheckReturnValue
-		Select instantiate(String resultType, Collection<JpqlQueryBuilder.PathExpression> paths);
+		Select instantiate(String resultType, Collection<? extends JpqlQueryBuilder.Expression> paths);
 
 		/**
 		 * Specify a multi-select.
@@ -452,7 +480,7 @@ public final class JpqlQueryBuilder {
 		 * @return
 		 */
 		@CheckReturnValue
-		Select select(Collection<JpqlQueryBuilder.PathExpression> paths);
+		Select select(Collection<? extends JpqlQueryBuilder.Expression> paths);
 
 		/**
 		 * Select a single attribute.
@@ -465,9 +493,18 @@ public final class JpqlQueryBuilder {
 			return select(List.of(path));
 		}
 
+		/**
+		 * Select a single attribute.
+		 *
+		 * @param selection
+		 * @return
+		 */
+		@CheckReturnValue
+		Select select(Selection selection);
+
 	}
 
-	interface Selection {
+	public interface Selection {
 		String render(RenderContext context);
 	}
 
@@ -530,7 +567,7 @@ public final class JpqlQueryBuilder {
 	 *
 	 * @param source
 	 */
-	record EntitySelection(Entity source) implements Selection {
+	record EntitySelection(Entity source) implements Selection, Expression {
 
 		@Override
 		public String render(RenderContext context) {
@@ -568,7 +605,7 @@ public final class JpqlQueryBuilder {
 	 * @param resultType
 	 * @param multiselect
 	 */
-	record ConstructorExpression(String resultType, Multiselect multiselect) implements Selection {
+	record ConstructorExpression(String resultType, Multiselect multiselect) implements Selection, Expression {
 
 		@Override
 		public String render(RenderContext context) {
@@ -588,22 +625,22 @@ public final class JpqlQueryBuilder {
 	 * @param source
 	 * @param paths
 	 */
-	record Multiselect(Origin source, Collection<JpqlQueryBuilder.PathExpression> paths) implements Selection {
+	record Multiselect(Origin source, Collection<? extends JpqlQueryBuilder.Expression> paths) implements Selection {
 
 		@Override
 		public String render(RenderContext context) {
 
 			StringBuilder builder = new StringBuilder();
 
-			for (PathExpression path : paths) {
+			for (Expression path : paths) {
 
 				if (!builder.isEmpty()) {
 					builder.append(", ");
 				}
 
 				builder.append(path.render(context));
-				if (!context.isConstructorContext()) {
-					builder.append(" ").append(path.getPropertyPath().getSegment());
+				if (!context.isConstructorContext() && path instanceof AliasedExpression ae) {
+					builder.append(" ").append(ae.getAlias());
 				}
 			}
 
@@ -677,6 +714,47 @@ public final class JpqlQueryBuilder {
 		 * @return
 		 */
 		String render(RenderContext context);
+
+		default AliasedExpression as(String alias) {
+
+			if (this instanceof DefaultAliasedExpression de) {
+				return new DefaultAliasedExpression(de.delegate, alias);
+			}
+
+			return new DefaultAliasedExpression(this, alias);
+		}
+	}
+
+	/**
+	 * Aliased expression.
+	 *
+	 * @since 4.0
+	 */
+	public interface AliasedExpression extends Expression {
+
+		/**
+		 * @return the expression alias.
+		 */
+		String getAlias();
+
+	}
+
+	record DefaultAliasedExpression(Expression delegate, String alias) implements AliasedExpression {
+
+		@Override
+		public String render(RenderContext context) {
+			return delegate.render(context);
+		}
+
+		@Override
+		public String getAlias() {
+			return alias();
+		}
+
+		@Override
+		public String toString() {
+			return render(RenderContext.EMPTY);
+		}
 	}
 
 	/**
@@ -812,7 +890,8 @@ public final class JpqlQueryBuilder {
 		}
 	}
 
-	record OrderExpression(Expression sortExpression, Sort.Order order) implements Expression {
+	record OrderExpression(Expression sortExpression, @org.springframework.lang.Nullable Sort.Direction direction,
+			Sort.NullHandling nullHandling) implements Expression {
 
 		@Override
 		public String render(RenderContext context) {
@@ -820,14 +899,17 @@ public final class JpqlQueryBuilder {
 			StringBuilder builder = new StringBuilder();
 
 			builder.append(sortExpression.render(context));
-			builder.append(" ");
 
-			builder.append(order.isDescending() ? TOKEN_DESC : TOKEN_ASC);
+			if (direction != null) {
 
-			if (order.getNullHandling() == Sort.NullHandling.NULLS_FIRST) {
-				builder.append(" NULLS FIRST");
-			} else if (order.getNullHandling() == Sort.NullHandling.NULLS_LAST) {
-				builder.append(" NULLS LAST");
+				builder.append(" ");
+				builder.append(direction.isDescending() ? TOKEN_DESC : TOKEN_ASC);
+
+				if (nullHandling == Sort.NullHandling.NULLS_FIRST) {
+					builder.append(" NULLS FIRST");
+				} else if (nullHandling == Sort.NullHandling.NULLS_LAST) {
+					builder.append(" NULLS LAST");
+				}
 			}
 
 			return builder.toString();
@@ -1395,7 +1477,8 @@ public final class JpqlQueryBuilder {
 	 * @param origin
 	 * @param onTheJoin whether the path should target the join itself instead of matching {@link PropertyPath}.
 	 */
-	record PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin) implements PathExpression {
+	record PathAndOrigin(PropertyPath path, Origin origin,
+			boolean onTheJoin) implements PathExpression, AliasedExpression {
 
 		@Override
 		public PropertyPath getPropertyPath() {
@@ -1410,6 +1493,11 @@ public final class JpqlQueryBuilder {
 			} else {
 				return context.getAlias(origin());
 			}
+		}
+
+		@Override
+		public String getAlias() {
+			return path().getSegment();
 		}
 	}
 

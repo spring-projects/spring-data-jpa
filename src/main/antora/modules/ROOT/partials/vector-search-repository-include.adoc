@@ -1,0 +1,21 @@
+.Using `SearchResult<T>` in a Repository Search Method
+====
+[source,java]
+----
+interface CommentRepository extends Repository<Comment, String> {
+
+  SearchResults<Comment> searchByCountryAndEmbeddingNear(String country, Vector vector, Score distance,
+    Limit limit);
+
+  @Query("""
+      SELECT c, cosine_distance(c.embedding, :embedding) as distance FROM Comment c
+      WHERE c.country = ?1
+        AND cosine_distance(c.embedding, :embedding) <= :distance
+      ORDER BY distance asc""")
+  SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
+      Score distance);
+}
+
+SearchResults<Comment> results = repository.searchByCountryAndEmbeddingNear("en", Vector.of(…), Score.of(0.9), Limit.of(10));
+----
+====

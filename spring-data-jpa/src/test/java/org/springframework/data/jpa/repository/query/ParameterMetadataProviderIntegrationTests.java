@@ -26,6 +26,10 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.Similarity;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Param;
@@ -41,6 +45,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  * @soundtrack Elephants Crossing - We are (Irrelephant)
  */
 @ExtendWith(SpringExtension.class)
@@ -78,6 +83,52 @@ class ParameterMetadataProviderIntegrationTests {
 		assertThat(binding.prepare(1)).isEqualTo(1);
 	}
 
+	@Test // GH-
+	void appliesScoreValuePreparation() throws Exception {
+
+		ParameterMetadataProvider provider = createProvider(
+				Sample.class.getMethod("findByVectorWithin", Vector.class, Score.class));
+		ParameterBinding.PartTreeParameterBinding vector = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterBinding.PartTreeParameterBinding score = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterMetadataProvider.ScoreParameterBinding binding = provider.normalize(score, SimilarityNormalizer.EUCLIDEAN);
+
+		assertThat(binding.prepare(Score.of(1))).isEqualTo(0.0);
+		assertThat(binding.prepare(Score.of(0.5))).isEqualTo(1.0);
+		assertThat(provider.getBindings()).hasSize(2).contains(binding).doesNotContain(score);
+	}
+
+	@Test // GH-
+	void appliesLowerRangeValuePreparation() throws Exception {
+
+		ParameterMetadataProvider provider = createProvider(
+				Sample.class.getMethod("findByVectorWithin", Vector.class, Range.class));
+		ParameterBinding.PartTreeParameterBinding vector = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterBinding.PartTreeParameterBinding score = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterMetadataProvider.ScoreParameterBinding lower = provider.lower(score, SimilarityNormalizer.EUCLIDEAN);
+
+		Range<Similarity> range = Similarity.between(0.5, 1);
+
+		assertThat(lower.prepare(range)).isEqualTo(1.0);
+		assertThat(provider.getBindings()).hasSize(2).contains(lower).doesNotContain(score);
+	}
+
+	@Test // GH-
+	void appliesRangeValuePreparation() throws Exception {
+
+		ParameterMetadataProvider provider = createProvider(
+				Sample.class.getMethod("findByVectorWithin", Vector.class, Range.class));
+		ParameterBinding.PartTreeParameterBinding vector = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterBinding.PartTreeParameterBinding score = provider.next(new Part("VectorWithin", WithVector.class));
+		ParameterMetadataProvider.ScoreParameterBinding lower = provider.lower(score, SimilarityNormalizer.EUCLIDEAN);
+		ParameterMetadataProvider.ScoreParameterBinding upper = provider.upper(score, SimilarityNormalizer.EUCLIDEAN);
+
+		Range<Similarity> range = Similarity.between(0.5, 1);
+
+		assertThat(lower.prepare(range)).isEqualTo(1.0);
+		assertThat(upper.prepare(range)).isEqualTo(0.0);
+		assertThat(provider.getBindings()).hasSize(3).contains(lower, upper).doesNotContain(score);
+	}
+
 	private ParameterMetadataProvider createProvider(Method method) {
 
 		JpaParameters parameters = new JpaParameters(ParametersSource.of(method));
@@ -102,5 +153,13 @@ class ParameterMetadataProviderIntegrationTests {
 		User findByLastname(String lastname);
 
 		User findByAgeContaining(@Param("age") Integer age);
+
+		User findByVectorWithin(Vector vector, Score score);
+
+		User findByVectorWithin(Vector vector, Range<Score> score);
+	}
+
+	static class WithVector {
+		Vector vector;
 	}
 }

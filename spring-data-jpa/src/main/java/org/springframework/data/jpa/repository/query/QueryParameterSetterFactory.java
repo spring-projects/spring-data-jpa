@@ -305,6 +305,10 @@ abstract class QueryParameterSetterFactory {
 				return super.create(binding, query);
 			}
 
+			if (binding instanceof ParameterMetadataProvider.ScoreParameterBinding) {
+				return super.create(binding, query);
+			}
+
 			return null;
 		}
 	}

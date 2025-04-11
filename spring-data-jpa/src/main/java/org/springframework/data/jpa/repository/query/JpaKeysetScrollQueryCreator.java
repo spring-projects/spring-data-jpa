@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.domain.KeysetScrollPosition;
@@ -49,7 +51,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 			JpqlQueryTemplates templates, JpaEntityInformation<?, ?> entityInformation, KeysetScrollPosition scrollPosition,
 			EntityManager em) {
 
-		super(tree, type, provider, templates, em);
+		super(tree, type, provider, templates, em.getMetamodel());
 
 		this.entityInformation = entityInformation;
 		this.scrollPosition = scrollPosition;

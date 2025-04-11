@@ -1,0 +1,28 @@
+Annotated search methods must define the entire JPQL query to run a Vector Search.
+
+.Using `@Query` Search Methods
+====
+[source,java]
+----
+interface CommentRepository extends Repository<Comment, String> {
+
+  @Query("""
+      SELECT c, cosine_distance(c.embedding, :embedding) as distance FROM Comment c
+      WHERE c.country = ?1
+        AND cosine_distance(c.embedding, :embedding) <= :distance
+      ORDER BY distance asc""")
+  SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
+      Score distance);
+
+  @Query("""
+      SELECT c FROM Comment c
+      WHERE c.country = ?1
+        AND cosine_distance(c.embedding, :embedding) <= :distance
+      ORDER BY cosine_distance(c.embedding, :embedding) asc""")
+  List<WithVector> findAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+}
+----
+====
+
+Vector Search methods are not required to include a score or distance in their projection.
+When using annotated search methods returning `SearchResults`, the execution mechanism assumes that if a second projection column is present that this one holds the score value.

@@ -15,8 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.ScoringFunction;
+import org.springframework.data.domain.Similarity;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -66,6 +74,56 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	 */
 	protected Object potentiallyUnwrap(Object parameterValue) {
 		return parameterValue;
+	}
+
+	/**
+	 * Returns the {@link ScoringFunction}.
+	 *
+	 * @return
+	 */
+	public ScoringFunction getScoringFunction() {
+		return doWithScore(Score::getFunction, Score.class::isInstance, ScoringFunction::unspecified);
+	}
+
+	/**
+	 * Returns whether to normalize similarities (i.e. translate the database-specific score into {@link Similarity}).
+	 *
+	 * @return
+	 */
+	public boolean normalizeSimilarity() {
+		return doWithScore(it -> true, Similarity.class::isInstance, () -> false);
+	}
+
+	/**
+	 * Returns the {@link ScoringFunction}.
+	 *
+	 * @return
+	 */
+	public <T> T doWithScore(Function<Score, T> function, Predicate<Score> scoreFilter, Supplier<T> defaultValue) {
+
+		Score score = getScore();
+		if (score != null && scoreFilter.test(score)) {
+			return function.apply(score);
+		}
+
+		JpaParameters parameters = getParameters();
+		if (parameters.hasScoreRangeParameter()) {
+
+			Range<Score> range = getScoreRange();
+
+			if (range != null && range.getLowerBound().isBounded()
+					&& scoreFilter.test(range.getLowerBound().getValue().get())) {
+				return function.apply(range.getUpperBound().getValue().get());
+			}
+
+			if (range != null && range.getUpperBound().isBounded()
+					&& scoreFilter.test(range.getUpperBound().getValue().get())) {
+				return function.apply(range.getUpperBound().getValue().get());
+			}
+
+		}
+
+		return defaultValue.get();
 	}
 
 }

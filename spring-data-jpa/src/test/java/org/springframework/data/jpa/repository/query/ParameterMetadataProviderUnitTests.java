@@ -61,25 +61,4 @@ class ParameterMetadataProviderUnitTests {
 				.withMessageContaining("parameter");
 	}
 
-	@Test // GH-3137
-	void returnAugmentedValueForStringExpressions() {
-
-		when(part.getProperty().getLeafProperty().isCollection()).thenReturn(false);
-		when(part.getProperty().getType()).thenReturn((Class) String.class);
-
-		assertThat(createParameterMetadata(Part.Type.STARTING_WITH).prepare("starting with")).isEqualTo("starting with%");
-		assertThat(createParameterMetadata(Part.Type.ENDING_WITH).prepare("ending with")).isEqualTo("%ending with");
-		assertThat(createParameterMetadata(Part.Type.CONTAINING).prepare("containing")).isEqualTo("%containing%");
-		assertThat(createParameterMetadata(Part.Type.NOT_CONTAINING).prepare("not containing"))
-				.isEqualTo("%not containing%");
-		assertThat(createParameterMetadata(Part.Type.LIKE).prepare("%like%")).isEqualTo("%like%");
-		assertThat(createParameterMetadata(Part.Type.IS_NULL).prepare(null)).isEqualTo(null);
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private ParameterMetadataProvider.ParameterMetadata createParameterMetadata(Part.Type partType) {
-
-		when(part.getType()).thenReturn(partType);
-		return new ParameterMetadataProvider.ParameterMetadata(part.getProperty().getType(), part, null, EscapeCharacter.DEFAULT, 1, JpqlQueryTemplates.LOWER);
-	}
 }

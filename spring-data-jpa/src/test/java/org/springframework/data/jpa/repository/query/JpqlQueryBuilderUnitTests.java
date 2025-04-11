@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link JpqlQueryBuilder}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class JpqlQueryBuilderUnitTests {
 
@@ -75,6 +76,15 @@ class JpqlQueryBuilderUnitTests {
 	void literalExpressionRendersAsIs() {
 		Expression expression = expression("CONCAT(person.lastName, ‘, ’, person.firstName))");
 		assertThat(expression.render(RenderContext.EMPTY)).isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName))");
+	}
+
+	@Test // GH-
+	void aliasedExpression() {
+
+		// aliasing is contextual and happens during selection rendering. E.g. constructor expressions don't use aliases.
+		Expression expression = expression("CONCAT(person.lastName, ‘, ’, person.firstName)").as("concatted");
+		assertThat(expression.render(RenderContext.EMPTY))
+				.isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName)");
 	}
 
 	@Test // GH-3588
