@@ -1,0 +1,18 @@
+====
+[source,java]
+----
+class Comment {
+
+  @Id String id;
+  String country;
+  String comment;
+
+  @Column(name = "the_embedding")
+  @JdbcTypeCode(SqlTypes.VECTOR)
+  @Array(length = 5)
+  Vector embedding;
+
+  // getters, setters, …
+}
+----
+====

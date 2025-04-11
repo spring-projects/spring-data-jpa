@@ -40,8 +40,11 @@ import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
@@ -743,7 +746,8 @@ class JpaQueryCreatorTests {
 
 		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(parameterAccessor,
 				EscapeCharacter.DEFAULT, templates);
-		return new JpaQueryCreator(tree, returnedType, parameterMetadataProvider, templates, entityManager);
+		return new JpaQueryCreator(tree, false, returnedType, parameterMetadataProvider, templates,
+				entityManager.getMetamodel());
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -979,6 +983,21 @@ class JpaQueryCreatorTests {
 		public ParameterAccessor bindableParameters() {
 
 			return new ParameterAccessor() {
+				@Override
+				public @Nullable Vector getVector() {
+					return null;
+				}
+
+				@Override
+				public @Nullable Score getScore() {
+					return null;
+				}
+
+				@Override
+				public @Nullable Range<Score> getScoreRange() {
+					return null;
+				}
+
 				@Override
 				public @Nullable ScrollPosition getScrollPosition() {
 					return null;

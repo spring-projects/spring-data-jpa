@@ -1,0 +1,38 @@
+Hibernate translates distance function calls to native database functions for PGvector and Oracle.
+Their result is typically a distance.
+When using `Similarity` instead of `Score`, Spring Data normalizes distance scores into a similarity score between 0 and 1. The higher the score, the more similar the two vectors are.
+// END
+
+.Using `Score` and `Similarity` in a Repository Search Methods
+====
+[source,java]
+----
+interface CommentRepository extends Repository<Comment, String> {
+
+  SearchResults<Comment> searchByEmbeddingNear(Vector vector, ScoringFunction function);
+
+  SearchResults<Comment> searchByEmbeddingNear(Vector vector, Score score);
+
+  SearchResults<Comment> searchByEmbeddingNear(Vector vector, Similarity similarity);
+
+  SearchResults<Comment> searchByEmbeddingNear(Vector vector, Range<Similarity> range);
+}
+
+repository.searchByEmbeddingNear(Vector.of(…), ScoringFunction.cosine());                               <1>
+
+repository.searchByEmbeddingNear(Vector.of(…), Score.of(0.9, ScoringFunction.cosine()));                <2>
+
+repository.searchByEmbeddingNear(Vector.of(…), Similarity.of(0.9, ScoringFunction.cosine()));           <3>
+
+repository.searchByEmbeddingNear(Vector.of(…), Similarity.between(0.5, 1, ScoringFunction.euclidean()));<4>
+----
+
+<1> Run a search and return results that are similar to the given `Vector` applying Cosine scoring.
+<2> Run a search and return results with a score of `0.9` or smaller using the Cosine distance.
+<3> Run a search and normalize the score into a similarity value.
+Return results with a similarity of `0.9`  or greater using Cosine scoring.
+<4> Run a search and normalize the score into a similarity value.
+Return results with a similarity of between `0.5` and `1.0`  or greater using Euclidean scoring.
+====
+
+NOTE: JPA requires a `ScoringFunction` to be provided when creating `Score` or `Similarity` instances to select a scoring function.

@@ -89,6 +89,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
 			<scope>test</scope>
@@ -161,6 +167,28 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Oracle testing support -->
+
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc17</artifactId>
+			<version>${oracle}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ucp17</artifactId>
+			<version>${oracle}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>oracle-free</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>io.vavr</groupId>
 			<artifactId>vavr</artifactId>
@@ -181,6 +209,13 @@
 					<artifactId>byte-buddy</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>${hibernate.groupId}.orm</groupId>
+			<artifactId>hibernate-vector</artifactId>
+			<version>${hibernate}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -318,6 +353,7 @@
 								<exclude>**/EclipseLink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
+								<exclude>**/Oracle*</exclude>
 							</excludes>
 							<argLine>
 								-Xmx4G

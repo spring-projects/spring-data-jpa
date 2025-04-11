@@ -23,10 +23,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -160,6 +163,15 @@ public class ParameterBinding {
 	 * @param valueToBind value to prepare
 	 */
 	public @Nullable Object prepare(@Nullable Object valueToBind) {
+
+		if (valueToBind instanceof Score score) {
+			return score.getValue();
+		}
+
+		if (valueToBind instanceof Vector v) {
+			return v.getType() == Float.TYPE ? v.toFloatArray() : v.toDoubleArray();
+		}
+
 		return valueToBind;
 	}
 
@@ -216,6 +228,7 @@ public class ParameterBinding {
 		private final Type type;
 		private final boolean ignoreCase;
 		private final boolean noWildcards;
+		private final @Nullable Object value;
 
 		public PartTreeParameterBinding(BindingIdentifier identifier, ParameterOrigin origin, Class<?> parameterType,
 				Part part, @Nullable Object value, JpqlQueryTemplates templates, EscapeCharacter escape) {
@@ -225,7 +238,7 @@ public class ParameterBinding {
 			this.parameterType = parameterType;
 			this.templates = templates;
 			this.escape = escape;
-
+			this.value = value;
 			this.type = value == null
 					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
 							? Type.IS_NULL
@@ -241,9 +254,14 @@ public class ParameterBinding {
 			return Type.IS_NULL.equals(type);
 		}
 
+		public @Nullable Object getValue() {
+			return value;
+		}
+
 		@Override
 		public @Nullable Object prepare(@Nullable Object value) {
 
+			value = super.prepare(value);
 			if (value == null || parameterType == null) {
 				return value;
 			}
@@ -306,6 +324,9 @@ public class ParameterBinding {
 			return Collections.singleton(value);
 		}
 
+		public String lower() {
+			return null;
+		}
 	}
 
 	/**
@@ -389,7 +410,7 @@ public class ParameterBinding {
 		@Override
 		public @Nullable Object prepare(@Nullable Object value) {
 
-			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
+			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(super.prepare(value));
 			if (unwrapped == null) {
 				return null;
 			}
@@ -544,6 +565,26 @@ public class ParameterBinding {
 		default int getPosition() {
 			throw new IllegalStateException("No position associated");
 		}
+
+		/**
+		 * Map the name of the binding to a new name using the given {@link Function} if the binding has a name. If the
+		 * binding is not associated with a name, then the binding is returned unchanged.
+		 *
+		 * @param nameMapper must not be {@literal null}.
+		 * @return the transformed {@link BindingIdentifier} if the binding has a name, otherwise the binding itself.
+		 * @since 4.0
+		 */
+		BindingIdentifier mapName(Function<? super String, ? extends String> nameMapper);
+
+		/**
+		 * Associate a position with the binding.
+		 *
+		 * @param position
+		 * @return the new binding identifier with the position.
+		 * @since 4.0
+		 */
+		BindingIdentifier withPosition(int position);
+
 	}
 
 	private record Named(String name) implements BindingIdentifier {
@@ -562,6 +603,16 @@ public class ParameterBinding {
 		public String toString() {
 			return name();
 		}
+
+		@Override
+		public BindingIdentifier mapName(Function<? super String, ? extends String> nameMapper) {
+			return new Named(nameMapper.apply(name()));
+		}
+
+		@Override
+		public BindingIdentifier withPosition(int position) {
+			return new NamedAndIndexed(name, position);
+		}
 	}
 
 	private record Indexed(int position) implements BindingIdentifier {
@@ -574,6 +625,16 @@ public class ParameterBinding {
 		@Override
 		public int getPosition() {
 			return position();
+		}
+
+		@Override
+		public BindingIdentifier mapName(Function<? super String, ? extends String> nameMapper) {
+			return this;
+		}
+
+		@Override
+		public BindingIdentifier withPosition(int position) {
+			return new Indexed(position);
 		}
 
 		@Override
@@ -602,6 +663,16 @@ public class ParameterBinding {
 		@Override
 		public int getPosition() {
 			return position();
+		}
+
+		@Override
+		public BindingIdentifier mapName(Function<? super String, ? extends String> nameMapper) {
+			return new NamedAndIndexed(nameMapper.apply(name), position);
+		}
+
+		@Override
+		public BindingIdentifier withPosition(int position) {
+			return new NamedAndIndexed(name, position);
 		}
 
 		@Override

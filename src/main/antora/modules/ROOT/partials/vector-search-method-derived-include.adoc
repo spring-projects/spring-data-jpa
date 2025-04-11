@@ -1,0 +1,16 @@
+.Using `Near` and `Within` Keywords in Repository Search Methods
+====
+[source,java]
+----
+interface CommentRepository extends Repository<Comment, String> {
+
+  SearchResults<Comment> searchByEmbeddingNear(Vector vector, Score score);
+
+  SearchResults<Comment> searchByEmbeddingWithin(Vector vector, Range<Similarity> range);
+
+  SearchResults<Comment> searchByCountryAndEmbeddingWithin(String country, Vector vector, Range<Similarity> range);
+}
+----
+====
+
+Derived search methods can declare predicates on domain model attributes and Vector parameters.
