@@ -224,7 +224,8 @@ class QueriesFactory {
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, EscapeCharacter.DEFAULT,
 				templates);
-		JpaQueryCreator queryCreator = new JpaQueryCreator(partTree, returnedType, metadataProvider, templates, metamodel);
+		JpaQueryCreator queryCreator = new JpaQueryCreator(partTree, false, returnedType, metadataProvider, templates,
+				metamodel);
 
 		return StringAotQuery.jpqlQuery(queryCreator.createQuery(), metadataProvider.getBindings(),
 				partTree.getResultLimit(), partTree.isDelete(), partTree.isExistsProjection());

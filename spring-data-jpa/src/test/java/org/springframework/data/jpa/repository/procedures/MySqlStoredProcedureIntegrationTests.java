@@ -23,6 +23,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.NamedStoredProcedureQuery;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +39,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.support.TestcontainerConfigSupport;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -223,10 +225,15 @@ class MySqlStoredProcedureIntegrationTests {
 			basePackageClasses = Config.class, //
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeRepositoryWithNoCursor.class))
 	@EnableTransactionManagement
-	static class Config extends StoredProcedureConfigSupport {
+	static class Config extends TestcontainerConfigSupport {
 
 		public Config() {
 			super(MySQLDialect.class, new ClassPathResource("scripts/mysql-stored-procedures.sql"));
+		}
+
+		@Override
+		protected Collection<String> getPackagesToScan() {
+			return List.of(getClass().getPackageName());
 		}
 
 		@SuppressWarnings("resource")

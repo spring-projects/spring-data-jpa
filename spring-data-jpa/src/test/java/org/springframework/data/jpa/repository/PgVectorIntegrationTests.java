@@ -1,0 +1,348 @@
+/*
+ * Copyright 2015-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.data.jpa.repository;
+
+import static org.assertj.core.api.Assertions.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.net.URL;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.type.SqlTypes;
+import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.SearchResult;
+import org.springframework.data.domain.SearchResults;
+import org.springframework.data.domain.Similarity;
+import org.springframework.data.domain.Vector;
+import org.springframework.data.domain.VectorScoringFunctions;
+import org.springframework.data.jpa.convert.VectorConverters;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.support.TestcontainerConfigSupport;
+import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.testcontainers.containers.PostgreSQLContainer;
+
+/**
+ * Testcase to verify {@link org.springframework.jdbc.object.StoredProcedure}s work with Postgres.
+ *
+ * @author Mark Paluch
+ */
+@Transactional
+@Rollback(value = false)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = PgVectorIntegrationTests.Config.class)
+class PgVectorIntegrationTests {
+
+	Vector VECTOR = Vector.of(0.2001f, 0.32345f, 0.43456f, 0.54567f, 0.65678f);
+
+	@Autowired VectorSearchRepository repository;
+
+	@BeforeEach
+	void setUp() {
+
+		WithVector w1 = new WithVector("de", "one", new float[] { 0.1001f, 0.22345f, 0.33456f, 0.44567f, 0.55678f });
+		WithVector w2 = new WithVector("de", "two", new float[] { 0.2001f, 0.32345f, 0.43456f, 0.54567f, 0.65678f });
+		WithVector w3 = new WithVector("en", "three", new float[] { 0.9001f, 0.82345f, 0.73456f, 0.64567f, 0.55678f });
+		WithVector w4 = new WithVector("de", "four",
+				new float[] { 0.9001f, 0.92345f, 0.93456f, 0.94567f, 0.95678f });
+
+		repository.deleteAllInBatch();
+		repository.saveAllAndFlush(Arrays.asList(w1, w2, w3, w4));
+	}
+
+	@ParameterizedTest
+	@MethodSource("scoringFunctions")
+	void shouldApplyVectorSearchWithDistance(VectorScoringFunctions functions) {
+
+		SearchResults<WithVector> results = repository.searchTop2ByCountryAndEmbeddingWithin("de", VECTOR,
+				Similarity.of(0.1, functions));
+
+		assertThat(results).hasSize(2).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
+				.containsOnly("de", "de");
+
+		assertThat(results).extracting(SearchResult::getContent).extracting(WithVector::getDescription)
+				.containsExactlyInAnyOrder("two", "one");
+	}
+
+	static Set<VectorScoringFunctions> scoringFunctions() {
+		return EnumSet.of(VectorScoringFunctions.COSINE, VectorScoringFunctions.INNER_PRODUCT,
+				VectorScoringFunctions.EUCLIDEAN);
+	}
+
+	@Test
+	void shouldRunStringQuery() {
+
+		List<WithVector> results = repository.findAnnotatedByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(2, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(WithVector::getCountry).containsOnly("de", "de", "de");
+		assertThat(results).extracting(WithVector::getDescription).containsSequence("two", "one", "four");
+	}
+
+	@Test
+	void shouldRunStringQueryWithDistance() {
+
+		SearchResults<WithVector> results = repository.searchAnnotatedByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(2, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
+				.containsOnly("de", "de", "de");
+		assertThat(results).extracting(SearchResult::getContent).extracting(WithVector::getDescription)
+				.containsSequence("two", "one", "four");
+
+		SearchResult<WithVector> result = results.getContent().get(0);
+		assertThat(result.getScore().getValue()).isGreaterThanOrEqualTo(0);
+		assertThat(result.getScore().getFunction()).isEqualTo(VectorScoringFunctions.COSINE);
+	}
+
+	@Test
+	void shouldApplyVectorSearchWithRange() {
+
+		SearchResults<WithVector> results = repository.searchAllByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.between(0, 1, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
+				.containsOnly("de", "de", "de");
+		assertThat(results).extracting(SearchResult::getContent).extracting(WithVector::getDescription)
+				.containsSequence("two", "one", "four");
+	}
+
+	@Test
+	void shouldApplyVectorSearchAndReturnList() {
+
+		List<WithVector> results = repository.findAllByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(0, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(WithVector::getCountry).containsOnly("de", "de", "de");
+		assertThat(results).extracting(WithVector::getDescription).containsSequence("one", "two", "four");
+
+	}
+
+	@Test
+	void shouldProjectVectorSearchAsInterface() {
+
+		SearchResults<WithDescription> results = repository.searchInterfaceProjectionByCountryAndEmbeddingWithin("de",
+				VECTOR, Score.of(0, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithDescription::getDescription)
+				.containsSequence("two", "one", "four");
+	}
+
+	@Test
+	void shouldProjectVectorSearchAsDto() {
+
+		SearchResults<DescriptionDto> results = repository.searchDtoByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(0, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(DescriptionDto::getDescription)
+				.containsSequence("two", "one", "four");
+	}
+
+	@Test
+	void shouldProjectVectorSearchDynamically() {
+
+		SearchResults<DescriptionDto> dtos = repository.searchDynamicByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(0, VectorScoringFunctions.COSINE), DescriptionDto.class);
+
+		assertThat(dtos).hasSize(3).extracting(SearchResult::getContent).extracting(DescriptionDto::getDescription)
+				.containsSequence("two", "one", "four");
+
+		SearchResults<WithDescription> proxies = repository.searchDynamicByCountryAndEmbeddingWithin("de", VECTOR,
+				Score.of(0, VectorScoringFunctions.COSINE), WithDescription.class);
+
+		assertThat(proxies).hasSize(3).extracting(SearchResult::getContent).extracting(WithDescription::getDescription)
+				.containsSequence("two", "one", "four");
+	}
+
+	@Entity
+	@Table(name = "with_vector")
+	public static class WithVector {
+
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY) //
+		private Integer id;
+
+		private String country;
+		private String description;
+
+		@Column(name = "the_embedding")
+		@JdbcTypeCode(SqlTypes.VECTOR)
+		@Array(length = 5) private float[] embedding;
+
+		public WithVector() {}
+
+		public WithVector(String country, String description, float[] embedding) {
+			this.country = country;
+			this.description = description;
+			this.embedding = embedding;
+		}
+
+		public Integer getId() {
+			return id;
+		}
+
+		public void setId(Integer id) {
+			this.id = id;
+		}
+
+		public String getCountry() {
+			return country;
+		}
+
+		public void setCountry(String country) {
+			this.country = country;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public float[] getEmbedding() {
+			return embedding;
+		}
+
+		public void setEmbedding(float[] embedding) {
+			this.embedding = embedding;
+		}
+	}
+
+	interface WithDescription {
+		String getDescription();
+	}
+
+	static class DescriptionDto {
+
+		private final String description;
+
+		public DescriptionDto(String description) {
+			this.description = description;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+	}
+
+	interface VectorSearchRepository extends JpaRepository<WithVector, Integer> {
+
+		List<WithVector> findAllByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+
+		@Query("""
+				SELECT w FROM org.springframework.data.jpa.repository.PgVectorIntegrationTests$WithVector w
+				WHERE w.country = ?1
+					AND cosine_distance(w.embedding, :embedding) <= :distance
+				ORDER BY cosine_distance(w.embedding, :embedding) asc""")
+		List<WithVector> findAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+
+		@Query("""
+				SELECT w, cosine_distance(w.embedding, :embedding) as distance FROM org.springframework.data.jpa.repository.PgVectorIntegrationTests$WithVector w
+				WHERE w.country = ?1
+					AND cosine_distance(w.embedding, :embedding) <= :distance
+				ORDER BY distance asc""")
+		SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
+				Score distance);
+
+		SearchResults<WithVector> searchAllByCountryAndEmbeddingWithin(String country, Vector embedding,
+				Range<Score> distance);
+
+		SearchResults<WithVector> searchTop2ByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+
+		SearchResults<WithDescription> searchInterfaceProjectionByCountryAndEmbeddingWithin(String country,
+				Vector embedding, Score distance);
+
+		SearchResults<DescriptionDto> searchDtoByCountryAndEmbeddingWithin(String country, Vector embedding,
+				Score distance);
+
+		<T> SearchResults<T> searchDynamicByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance,
+				Class<T> projection);
+
+	}
+
+	@EnableJpaRepositories(considerNestedRepositories = true,
+			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = VectorSearchRepository.class))
+	@EnableTransactionManagement
+	static class Config extends TestcontainerConfigSupport {
+
+		public Config() {
+			super(PostgreSQLDialect.class, new ClassPathResource("scripts/pgvector.sql"));
+		}
+
+		@Override
+		protected String getSchemaAction() {
+			return "none";
+		}
+
+		@Override
+		protected PersistenceManagedTypes getManagedTypes() {
+			return new PersistenceManagedTypes() {
+				@Override
+				public List<String> getManagedClassNames() {
+					return List.of(WithVector.class.getName(), VectorConverters.VectorAsDoubleArrayConverter.class.getName(),
+							VectorConverters.VectorAsFloatArrayConverter.class.getName());
+				}
+
+				@Override
+				public List<String> getManagedPackages() {
+					return List.of();
+				}
+
+				@Override
+				public @Nullable URL getPersistenceUnitRootUrl() {
+					return null;
+				}
+			};
+		}
+
+		@SuppressWarnings("resource")
+		@Bean(initMethod = "start", destroyMethod = "start")
+		public PostgreSQLContainer<?> container() {
+
+			return new PostgreSQLContainer<>("pgvector/pgvector:pg17") //
+					.withUsername("postgres").withReuse(true);
+		}
+	}
+}

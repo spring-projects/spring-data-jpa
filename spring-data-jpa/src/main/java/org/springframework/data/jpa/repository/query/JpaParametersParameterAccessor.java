@@ -17,6 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -66,6 +69,30 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	 */
 	protected Object potentiallyUnwrap(Object parameterValue) {
 		return parameterValue;
+	}
+
+	public ScoringFunction getScoringFunction() {
+
+		Score score = getScore();
+		if (score != null) {
+			return score.getFunction();
+		}
+
+		JpaParameters parameters = getParameters();
+		if (parameters.hasScoreRangeParameter()) {
+
+			Range<Score> range = getScoreRange();
+
+			if (range.getUpperBound().isBounded()) {
+				return range.getUpperBound().getValue().get().getFunction();
+			}
+
+			if (range.getLowerBound().isBounded()) {
+				return range.getLowerBound().getValue().get().getFunction();
+			}
+		}
+
+		return ScoringFunction.UNSPECIFIED;
 	}
 
 }

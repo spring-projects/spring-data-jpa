@@ -20,7 +20,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.dialect.PostgreSQLDialect;
@@ -36,6 +38,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.support.TestcontainerConfigSupport;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -128,10 +131,15 @@ class PostgresStoredProcedureNullHandlingIntegrationTests {
 	@EnableJpaRepositories(considerNestedRepositories = true,
 			includeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = TestModelRepository.class))
 	@EnableTransactionManagement
-	static class Config extends StoredProcedureConfigSupport {
+	static class Config extends TestcontainerConfigSupport {
 
 		public Config() {
 			super(PostgreSQLDialect.class, new ClassPathResource("scripts/postgres-nullable-stored-procedures.sql"));
+		}
+
+		@Override
+		protected Collection<String> getPackagesToScan() {
+			return List.of(getClass().getPackageName());
 		}
 
 		@SuppressWarnings("resource")

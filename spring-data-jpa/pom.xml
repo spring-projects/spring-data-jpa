@@ -89,6 +89,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
 			<scope>test</scope>
@@ -181,6 +187,13 @@
 					<artifactId>byte-buddy</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>${hibernate.groupId}.orm</groupId>
+			<artifactId>hibernate-vector</artifactId>
+			<version>${hibernate}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>

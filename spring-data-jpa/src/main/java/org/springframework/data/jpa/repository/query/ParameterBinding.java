@@ -27,6 +27,9 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.Similarity;
+import org.springframework.data.domain.Vector;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -160,6 +163,19 @@ public class ParameterBinding {
 	 * @param valueToBind value to prepare
 	 */
 	public @Nullable Object prepare(@Nullable Object valueToBind) {
+
+		if (valueToBind instanceof Similarity similarity) {
+			return 1 - similarity.getValue();
+		}
+
+		if (valueToBind instanceof Score score) {
+			return score.getValue();
+		}
+
+		if (valueToBind instanceof Vector v) {
+			return v.getType() == Float.TYPE ? v.toFloatArray() : v.toDoubleArray();
+		}
+
 		return valueToBind;
 	}
 
@@ -216,6 +232,7 @@ public class ParameterBinding {
 		private final Type type;
 		private final boolean ignoreCase;
 		private final boolean noWildcards;
+		private final @Nullable Object value;
 
 		public PartTreeParameterBinding(BindingIdentifier identifier, ParameterOrigin origin, Class<?> parameterType,
 				Part part, @Nullable Object value, JpqlQueryTemplates templates, EscapeCharacter escape) {
@@ -225,7 +242,7 @@ public class ParameterBinding {
 			this.parameterType = parameterType;
 			this.templates = templates;
 			this.escape = escape;
-
+			this.value = value;
 			this.type = value == null
 					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
 							? Type.IS_NULL
@@ -241,9 +258,14 @@ public class ParameterBinding {
 			return Type.IS_NULL.equals(type);
 		}
 
+		public @Nullable Object getValue() {
+			return value;
+		}
+
 		@Override
 		public @Nullable Object prepare(@Nullable Object value) {
 
+			value = super.prepare(value);
 			if (value == null || parameterType == null) {
 				return value;
 			}
@@ -389,7 +411,7 @@ public class ParameterBinding {
 		@Override
 		public @Nullable Object prepare(@Nullable Object value) {
 
-			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(value);
+			Object unwrapped = PersistenceProvider.unwrapTypedParameterValue(super.prepare(value));
 			if (unwrapped == null) {
 				return null;
 			}

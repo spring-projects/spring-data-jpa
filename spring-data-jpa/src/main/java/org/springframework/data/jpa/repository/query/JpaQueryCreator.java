@@ -28,12 +28,21 @@ import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Range;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.ScoringFunction;
+import org.springframework.data.domain.Similarity;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.VectorScoringFunctions;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
@@ -65,6 +74,18 @@ import org.springframework.util.Assert;
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
 
+	private static final Map<ScoringFunction, DistanceFunction> DISTANCE_FUNCTIONS = Map.of(VectorScoringFunctions.COSINE,
+			new DistanceFunction("cosine_distance", Sort.Direction.ASC), VectorScoringFunctions.EUCLIDEAN,
+			new DistanceFunction("euclidean_distance", Sort.Direction.ASC), VectorScoringFunctions.TAXICAB,
+			new DistanceFunction("taxicab_distance", Sort.Direction.ASC), VectorScoringFunctions.HAMMING,
+			new DistanceFunction("hamming_distance", Sort.Direction.ASC), VectorScoringFunctions.INNER_PRODUCT,
+			new DistanceFunction("negative_inner_product", Sort.Direction.DESC));
+
+	record DistanceFunction(String distanceFunction, Sort.Direction direction) {
+
+	}
+
+	private final boolean searchQuery;
 	private final ReturnedType returnedType;
 	private final ParameterMetadataProvider provider;
 	private final JpqlQueryTemplates templates;
@@ -79,21 +100,28 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	 * Create a new {@link JpaQueryCreator}.
 	 *
 	 * @param tree must not be {@literal null}.
+	 * @param searchQuery
 	 * @param type must not be {@literal null}.
-	 * @param templates must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 */
 	public JpaQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, EntityManager em) {
-
-		this(tree, type, provider, templates, em.getMetamodel());
+		this(tree, false, type, provider, templates, em.getMetamodel());
 	}
 
 	public JpaQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates,
+			Metamodel metamodel) {
+		this(tree, false, type, provider, templates, metamodel);
+	}
+
+	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
 		JpqlQueryTemplates templates, Metamodel metamodel) {
 
 		super(tree);
+		this.searchQuery = searchQuery;
 		this.tree = tree;
 		this.returnedType = type;
 		this.provider = provider;
@@ -198,28 +226,41 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 			return select;
 		}
 
-		for (Sort.Order order : sort) {
+		if (sort.isSorted()) {
 
-			JpqlQueryBuilder.Expression expression;
-			QueryUtils.checkSortExpression(order);
+			for (Sort.Order order : sort) {
 
-			try {
-				expression = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
-						PropertyPath.from(order.getProperty(), entityType.getJavaType()));
-			} catch (PropertyReferenceException e) {
+				JpqlQueryBuilder.Expression expression;
+				QueryUtils.checkSortExpression(order);
 
-				if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
-					expression = JpqlQueryBuilder.expression(order.getProperty());
-				} else {
-					throw e;
+				try {
+					expression = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+							PropertyPath.from(order.getProperty(), entityType.getJavaType()));
+				} catch (PropertyReferenceException e) {
+
+					if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+						expression = JpqlQueryBuilder.expression(order.getProperty());
+					} else {
+						throw e;
+					}
+				}
+
+				if (order.isIgnoreCase()) {
+					expression = JpqlQueryBuilder.function(templates.getIgnoreCaseOperator(), expression);
+				}
+
+				select.orderBy(JpqlQueryBuilder.orderBy(expression, order));
+			}
+		} else {
+
+			if (searchQuery) {
+
+				DistanceFunction distanceFunction = DISTANCE_FUNCTIONS.get(provider.getScoringFunction());
+				if (distanceFunction != null) {
+					select
+							.orderBy(JpqlQueryBuilder.orderBy(JpqlQueryBuilder.expression("distance"), distanceFunction.direction()));
 				}
 			}
-
-			if (order.isIgnoreCase()) {
-				expression = JpqlQueryBuilder.function(templates.getIgnoreCaseOperator(), expression);
-			}
-
-			select.orderBy(JpqlQueryBuilder.orderBy(expression, order));
 		}
 
 		return select;
@@ -248,17 +289,46 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				requiredSelection = getRequiredSelection(sort, returnedType);
 			}
 
-			List<JpqlQueryBuilder.PathExpression> paths = new ArrayList<>(requiredSelection.size());
+			List<JpqlQueryBuilder.Expression> paths = new ArrayList<>(requiredSelection.size());
 			for (String selection : requiredSelection) {
 				paths.add(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
 						PropertyPath.from(selection, returnedType.getDomainType()), true));
 			}
 
+			JpqlQueryBuilder.Expression distance = null;
+			if (searchQuery) {
+				distance = getDistanceExpression();
+			}
+
 			if (useTupleQuery()) {
 
+				if (searchQuery) {
+					paths.add((distance != null ? distance : JpqlQueryBuilder.literal(0)).as("distance"));
+				}
 				return selectStep.select(paths);
 			} else {
-				return selectStep.instantiate(returnedType.getReturnedType(), paths);
+
+				JpqlQueryBuilder.ConstructorExpression expression = new JpqlQueryBuilder.ConstructorExpression(
+						returnedType.getReturnedType().getName(), new JpqlQueryBuilder.Multiselect(entity, paths));
+
+				List<JpqlQueryBuilder.Expression> selection = new ArrayList<>(2);
+				selection.add(expression);
+
+				if (searchQuery) {
+					selection.add((distance != null ? distance : JpqlQueryBuilder.literal(0)).as("distance"));
+				}
+
+				return selectStep.select(selection);
+			}
+		}
+
+		if (searchQuery) {
+
+			JpqlQueryBuilder.Expression distance = getDistanceExpression();
+
+			if (distance != null) {
+				return selectStep.select(new JpqlQueryBuilder.Multiselect(entity,
+						Arrays.asList(new JpqlQueryBuilder.EntitySelection(entity), distance.as("distance"))));
 			}
 		}
 
@@ -285,6 +355,34 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		} else {
 			return selectStep.entity();
 		}
+	}
+
+	@org.springframework.lang.Nullable
+	private JpqlQueryBuilder.Expression getDistanceExpression() {
+
+		DistanceFunction distanceFunction = DISTANCE_FUNCTIONS.get(provider.getScoringFunction());
+
+		if (distanceFunction != null) {
+			JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+					getVectorPath(), true);
+			return JpqlQueryBuilder.function(distanceFunction.distanceFunction(), pas,
+					placeholder(provider.getVectorBinding()));
+		}
+
+		return null;
+	}
+
+	PropertyPath getVectorPath() {
+
+		for (PartTree.OrPart parts : tree) {
+			for (Part part : parts) {
+				if (part.getType() == NEAR || part.getType() == WITHIN) {
+					return part.getProperty();
+				}
+			}
+		}
+
+		throw new IllegalStateException("No vector path found");
 	}
 
 	Collection<String> getRequiredSelection(Sort sort, ReturnedType returnedType) {
@@ -419,9 +517,81 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 					where = JpqlQueryBuilder.where(entity, property);
 					return type.equals(IS_NOT_EMPTY) ? where.isNotEmpty() : where.isEmpty();
 
+				case WITHIN:
+				case NEAR:
+					PartTreeParameterBinding vector = provider.next(part);
+					PartTreeParameterBinding within = provider.next(part);
+
+					if (within.getValue() instanceof Range<?> r) {
+
+						Range<Score> range = (Range<Score>) within.getValue();
+
+						if (range.getUpperBound().isBounded() || range.getUpperBound().isBounded()) {
+
+							Range.Bound<Score> lower = range.getLowerBound();
+							Range.Bound<Score> upper = range.getUpperBound();
+
+							String distanceFunction = getDistanceFunction(provider.getScoringFunction());
+							JpqlQueryBuilder.Expression distance = JpqlQueryBuilder.function(distanceFunction, pas,
+									placeholder(vector));
+
+							JpqlQueryBuilder.Predicate lowerPredicate = null;
+							JpqlQueryBuilder.Predicate upperPredicate = null;
+							if (lower.isBounded()) {
+
+								JpqlQueryBuilder.Expression distanceValue = JpqlQueryBuilder
+										.expression("" + lower.getValue().get().getValue());
+
+								where = JpqlQueryBuilder.where(distance);
+
+								lowerPredicate = lower.isInclusive() ? where.gte(distanceValue) : where.gt(distanceValue);
+							}
+
+							if (upper.isBounded()) {
+
+								JpqlQueryBuilder.Expression distanceValue = JpqlQueryBuilder
+										.expression("" + upper.getValue().get().getValue());
+
+								where = JpqlQueryBuilder.where(distance);
+
+								upperPredicate = upper.isInclusive() ? where.lte(distanceValue) : where.lt(distanceValue);
+							}
+
+							if (lowerPredicate != null && upperPredicate != null) {
+								return lowerPredicate.and(upperPredicate);
+							} else if (lowerPredicate != null) {
+								return lowerPredicate;
+							} else if (upperPredicate != null) {
+								return upperPredicate;
+							}
+						}
+					}
+
+					if (within.getValue() instanceof Score score) {
+
+						String distanceFunction = getDistanceFunction(score.getFunction());
+						JpqlQueryBuilder.Expression distanceValue = placeholder(within);
+						JpqlQueryBuilder.Expression distance = JpqlQueryBuilder.function(distanceFunction, pas,
+								placeholder(vector));
+
+						return score instanceof Similarity ? JpqlQueryBuilder.where(distance).lte(distanceValue)
+								: JpqlQueryBuilder.where(distance).gte(distanceValue);
+					}
+
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
+		}
+
+		private static String getDistanceFunction(ScoringFunction scoringFunction) {
+
+			DistanceFunction distanceFunction = JpaQueryCreator.DISTANCE_FUNCTIONS.get(scoringFunction);
+
+			if (distanceFunction == null) {
+				throw new IllegalArgumentException("Unsupported ScoringFunction: %s".formatted(scoringFunction.getName()));
+			}
+
+			return distanceFunction.distanceFunction();
 		}
 
 		/**

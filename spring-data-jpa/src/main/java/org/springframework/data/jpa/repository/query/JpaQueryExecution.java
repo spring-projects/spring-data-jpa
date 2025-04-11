@@ -18,8 +18,10 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
+import jakarta.persistence.Tuple;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,12 +34,17 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Score;
+import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.SearchResult;
+import org.springframework.data.domain.SearchResults;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
+import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
@@ -120,6 +127,69 @@ public abstract class JpaQueryExecution {
 		@Override
 		protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 			return query.createQuery(accessor).getResultList();
+		}
+	}
+
+	static class SearchResultExecution extends JpaQueryExecution {
+
+		private final JpaQueryExecution delegate;
+		private final ReturnedType returnedType;
+		private final ScoringFunction function;
+
+		SearchResultExecution(JpaQueryExecution delegate, ReturnedType returnedType, ScoringFunction function) {
+			this.delegate = delegate;
+			this.returnedType = returnedType;
+			this.function = function;
+		}
+
+		@Override
+		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+
+			Object result = delegate.execute(query, accessor);
+
+			if (result instanceof Tuple || result instanceof Object[]) {
+				return map(result);
+			}
+
+			if (result instanceof Collection<?> c) {
+
+				List<SearchResult<Object>> objects = new ArrayList<>(c.size());
+
+				for (Object o : c) {
+					objects.add(o instanceof Tuple || o instanceof Object[] ? map(o) : new SearchResult<>(o, 0));
+				}
+
+				return new SearchResults<>(objects);
+			}
+
+			return result;
+		}
+
+		private @Nullable SearchResult<Object> map(Object result) {
+
+			if (result instanceof Tuple t) {
+
+				Object value = returnedType.needsCustomConstruction() ? t : t.get(0);
+				try {
+					return new SearchResult<>(value, Score.of(t.get("distance", Number.class).doubleValue(), function));
+				} catch (RuntimeException e) {
+					return new SearchResult<>(value, Score.of(0, function));
+				}
+			}
+
+			if (result instanceof Object[] objects) {
+
+				Object value = returnedType.needsCustomConstruction() ? objects : objects[0];
+
+				try {
+
+					return new SearchResult<>(value, Score.of(((Number) (objects[objects.length - 1])).doubleValue(), function));
+				} catch (RuntimeException e) {
+					return new SearchResult<>(value, Score.of(0, function));
+				}
+			}
+
+			return null;
 		}
 	}
 

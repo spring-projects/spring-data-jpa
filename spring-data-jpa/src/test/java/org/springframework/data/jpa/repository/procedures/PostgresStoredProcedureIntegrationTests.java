@@ -42,6 +42,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.query.Procedure;
+import org.springframework.data.jpa.repository.support.TestcontainerConfigSupport;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -292,7 +293,7 @@ class PostgresStoredProcedureIntegrationTests {
 	@EnableJpaRepositories(considerNestedRepositories = true,
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = EmployeeRepositoryWithRefCursor.class))
 	@EnableTransactionManagement
-	static class Config extends StoredProcedureConfigSupport {
+	static class Config extends TestcontainerConfigSupport {
 
 		public Config() {
 			super(PostgreSQLDialect.class, new ClassPathResource("scripts/postgres-stored-procedures.sql"));

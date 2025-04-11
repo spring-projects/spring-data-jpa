@@ -221,7 +221,7 @@ class AbstractJpaQueryTests {
 		}
 
 		@Override
-		protected JpaQueryExecution getExecution() {
+		protected JpaQueryExecution getExecution(JpaParametersParameterAccessor accessor) {
 			return execution;
 		}
 

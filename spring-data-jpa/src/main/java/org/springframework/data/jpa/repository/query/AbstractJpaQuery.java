@@ -101,7 +101,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 				return new StreamExecution();
 			} else if (method.isProcedureQuery()) {
 				return new ProcedureExecution(method.isCollectionQuery());
-			} else if (method.isCollectionQuery()) {
+			} else if (method.isCollectionQuery() || method.isSearchQuery()) {
 				return new CollectionExecution();
 			} else if (method.isSliceQuery()) {
 				return new SlicedExecution();
@@ -140,7 +140,9 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	@Override
 	public @Nullable Object execute(Object[] parameters) {
-		return doExecute(getExecution(), parameters);
+
+		JpaParametersParameterAccessor accessor = obtainParameterAccessor(parameters);
+		return doExecute(getExecution(accessor), accessor);
 	}
 
 	/**
@@ -148,9 +150,8 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 * @param values
 	 * @return
 	 */
-	private @Nullable Object doExecute(JpaQueryExecution execution, Object[] values) {
+	private @Nullable Object doExecute(JpaQueryExecution execution, JpaParametersParameterAccessor accessor) {
 
-		JpaParametersParameterAccessor accessor = obtainParameterAccessor(values);
 		Object result = execution.execute(this, accessor);
 
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
@@ -167,9 +168,16 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		return new JpaParametersParameterAccessor(method.getParameters(), values);
 	}
 
-	protected JpaQueryExecution getExecution() {
+	protected JpaQueryExecution getExecution(JpaParametersParameterAccessor accessor) {
 
 		JpaQueryExecution execution = this.execution.getNullable();
+
+		if (method.isSearchQuery()) {
+
+			ReturnedType returnedType = method.getResultProcessor().withDynamicProjection(accessor).getReturnedType();
+			return new JpaQueryExecution.SearchResultExecution(execution == null ? new SingleEntityExecution() : execution,
+					returnedType, accessor.getScoringFunction());
+		}
 
 		if (execution != null) {
 			return execution;

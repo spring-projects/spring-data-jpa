@@ -124,7 +124,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	}
 
 	@Override
-	protected JpaQueryExecution getExecution() {
+	protected JpaQueryExecution getExecution(JpaParametersParameterAccessor accessor) {
 
 		if (this.getQueryMethod().isScrollQuery()) {
 			return new ScrollExecution(this.tree.getSort(), new ScrollDelegate<>(entityInformation));
@@ -134,7 +134,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			return new ExistsExecution();
 		}
 
-		return super.getExecution();
+		return super.getExecution(accessor);
 	}
 
 	private static void validate(PartTree tree, JpaParameters parameters, String methodName) {
@@ -297,9 +297,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			JpqlQueryCreator creator = new CacheableJpqlQueryCreator(sort,
-					new JpaQueryCreator(tree, returnedType, provider, templates, em));
+					new JpaQueryCreator(tree, getQueryMethod().isSearchQuery(), returnedType, provider, templates,
+							em.getMetamodel()));
 
-			if (accessor.getParameters().hasDynamicProjection()) {
+			if (accessor.getParameters().hasDynamicProjection() || getQueryMethod().isSearchQuery()) {
 				return creator;
 			}
 

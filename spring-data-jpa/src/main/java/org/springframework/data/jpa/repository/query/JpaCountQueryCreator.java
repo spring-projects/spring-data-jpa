@@ -48,7 +48,7 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, EntityManager em) {
 
-		super(tree, returnedType, provider, templates, em);
+		super(tree, returnedType, provider, templates, em.getMetamodel());
 
 		this.distinct = tree.isDistinct();
 		this.returnedType = returnedType;
