@@ -342,7 +342,12 @@ in_expression
 
 in_item
     : literal
+    | string_expression
+    | boolean_literal
+    | numeric_literal
+    | date_time_timestamp_literal
     | single_valued_input_parameter
+    | conditional_expression
     ;
 
 like_expression
