@@ -604,6 +604,14 @@ class JpqlQueryRendererTests {
 				GROUP BY c.country
 				HAVING COUNT(c) > 30
 				""");
+
+		assertQuery("""
+				SELECT COUNT(f)
+				FROM FooEntity f
+				WHERE f.name IN ('Y', 'Basic', 'Remit')
+							AND f.size = 10
+				HAVING COUNT(f) > 0
+				""");
 	}
 
 	@Test
