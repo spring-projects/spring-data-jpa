@@ -1113,8 +1113,18 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.literal() != null) {
 			return visit(ctx.literal());
+		} else if (ctx.string_expression() != null) {
+			return visit(ctx.string_expression());
+		} else if (ctx.boolean_literal() != null) {
+			return visit(ctx.boolean_literal());
+		} else if (ctx.numeric_literal() != null) {
+			return visit(ctx.numeric_literal());
+		} else if (ctx.date_time_timestamp_literal() != null) {
+			return visit(ctx.date_time_timestamp_literal());
 		} else if (ctx.single_valued_input_parameter() != null) {
 			return visit(ctx.single_valued_input_parameter());
+		} else if (ctx.conditional_expression() != null) {
+			return visit(ctx.conditional_expression());
 		}
 
 		return QueryTokenStream.empty();
