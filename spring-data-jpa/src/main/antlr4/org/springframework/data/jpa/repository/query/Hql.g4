@@ -89,8 +89,8 @@ orderedQuery
     ;
 
 query
-    : selectClause fromClause? whereClause? (groupByClause havingClause?)? # SelectQuery
-    | fromClause whereClause? (groupByClause havingClause?)? selectClause? # FromQuery
+    : selectClause fromClause? whereClause? groupByClause? havingClause? # SelectQuery
+    | fromClause whereClause? groupByClause? havingClause? selectClause? # FromQuery
     ;
 
 queryOrder
