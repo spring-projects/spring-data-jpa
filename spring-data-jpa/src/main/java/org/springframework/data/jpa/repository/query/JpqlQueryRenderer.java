@@ -1191,15 +1191,24 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 	@Override
 	public List<JpaQueryParsingToken> visitIn_item(JpqlParser.In_itemContext ctx) {
 
-		List<JpaQueryParsingToken> tokens = new ArrayList<>();
 
 		if (ctx.literal() != null) {
-			tokens.addAll(visit(ctx.literal()));
+			return visit(ctx.literal());
+		} else if (ctx.string_expression() != null) {
+			return visit(ctx.string_expression());
+		} else if (ctx.boolean_literal() != null) {
+			return visit(ctx.boolean_literal());
+		} else if (ctx.numeric_literal() != null) {
+			return visit(ctx.numeric_literal());
+		} else if (ctx.date_time_timestamp_literal() != null) {
+			return visit(ctx.date_time_timestamp_literal());
 		} else if (ctx.single_valued_input_parameter() != null) {
-			tokens.addAll(visit(ctx.single_valued_input_parameter()));
+			return visit(ctx.single_valued_input_parameter());
+		} else if (ctx.conditional_expression() != null) {
+			return visit(ctx.conditional_expression());
 		}
 
-		return tokens;
+		return new ArrayList<>();
 	}
 
 	@Override

@@ -562,6 +562,18 @@ class EqlQueryRendererTests {
 	}
 
 	@Test
+	void inClauseWithFunctionAndLiterals() {
+
+		assertQuery("""
+				select f from FooEntity f where upper(f.name) IN ('Y', 'Basic', 'Remit')
+				""");
+		assertQuery(
+				"""
+						select count(f) from FooEntity f where f.status IN (com.example.eql_bug_check.entity.FooStatus.FOO, com.example.eql_bug_check.entity.FooStatus.BAR)
+						""");
+	}
+
+	@Test
 	void notEqualsForTypeShouldWork() {
 
 		assertQuery("""
