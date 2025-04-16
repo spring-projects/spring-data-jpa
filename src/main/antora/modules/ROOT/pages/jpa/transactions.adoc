@@ -89,3 +89,7 @@ Typically, you want the `readOnly` flag to be set to `true`, as most of the quer
 You can use transactions for read-only queries and mark them as such by setting the `readOnly` flag. Doing so does not, however, act as a check that you do not trigger a manipulating query (although some databases reject `INSERT` and `UPDATE` statements inside a read-only transaction). The `readOnly` flag is instead propagated as a hint to the underlying JDBC driver for performance optimizations. Furthermore, Spring performs some optimizations on the underlying JPA provider. For example, when used with Hibernate, the flush mode is set to `NEVER` when you configure a transaction as `readOnly`, which causes Hibernate to skip dirty checks (a noticeable improvement on large object trees).
 ====
 
+[NOTE]
+====
+While this example shows `@Transactional` on the repository interface, we generally recommend defining transaction boundaries at the service layer to reflect business logic units and ensure consistency.
+====
