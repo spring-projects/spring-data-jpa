@@ -91,5 +91,5 @@ You can use transactions for read-only queries and mark them as such by setting 
 
 [NOTE]
 ====
-While this example shows `@Transactional` on the repository interface, we generally recommend defining transaction boundaries at the service layer to reflect business logic units and ensure consistency.
+While examples discuss `@Transactional` usage on the repository, we generally recommend declaring transaction boundaries when starting a unit of work to ensure proper consistency and desired transaction participation.
 ====
