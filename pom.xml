@@ -39,8 +39,8 @@
 		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
 		<jsqlparser>5.0</jsqlparser>
-		<mysql-connector-java>9.1.0</mysql-connector-java>
-		<postgresql>42.7.4</postgresql>
+		<mysql-connector-java>9.2.0</mysql-connector-java>
+		<postgresql>42.7.5</postgresql>
 		<springdata.commons>3.5.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
