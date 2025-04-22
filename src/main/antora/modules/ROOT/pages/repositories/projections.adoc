@@ -50,10 +50,10 @@ Consider the following queries:
 ----
 interface UserRepository extends Repository<User, Long> {
 
-  @Query("SELECT u FROM USER u")                                 <1>
+  @Query("SELECT u FROM USER u WHERE u.lastname = :lastname")                       <1>
   List<UserDto> findByLastname(String lastname);
 
-  @Query("SELECT u.firstname, u.lastname FROM USER u")           <2>
+  @Query("SELECT u.firstname, u.lastname FROM USER u WHERE u.lastname = :lastname") <2>
   List<UserDto> findMultipleColumnsByLastname(String lastname);
 }
 
@@ -61,9 +61,9 @@ record UserDto(String firstname, String lastname){}
 ----
 
 <1> Selection of the top-level entity.
-This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u`.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u WHERE u.lastname = :lastname`.
 <2> Multi-select of `firstname` and `lastname` properties.
-This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u`.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u WHERE u.lastname = :lastname`.
 ====
 
 [WARNING]
