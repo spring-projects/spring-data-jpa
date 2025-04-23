@@ -56,7 +56,13 @@ public interface Specification<T> extends Serializable {
 
 		return spec == null //
 				? (root, query, builder) -> null //
-				: (root, query, builder) -> builder.not(spec.toPredicate(root, query, builder));
+				: (root, query, builder) -> {
+			Predicate predicate = spec.toPredicate(root, query, builder);
+			if(predicate != null) {
+				return builder.not(predicate);
+			}
+			return builder.disjunction();
+		};
 	}
 
 	/**
