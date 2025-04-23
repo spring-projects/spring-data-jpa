@@ -139,6 +139,17 @@ class SpecificationUnitTests {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
+	@Test // #3849
+	void notWithNullPredicate() {
+		Specification<Object> spec = (r, q, cb) -> null;
+
+		Specification<Object> notSpec = Specification.not(spec);
+
+		notSpec.toPredicate(root, query, builder);
+		
+		verify(builder).disjunction();
+	}
+
 	static class SerializableSpecification implements Serializable, Specification<Object> {
 
 		@Override
