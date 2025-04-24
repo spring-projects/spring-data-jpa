@@ -386,7 +386,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		}
 
 		@Override
-		public BooleanExpression compare(Expression<?> propertyExpression, @Nullable Object value) {
+		public BooleanExpression compare(String property, Expression<?> propertyExpression, @Nullable Object value) {
 			return Expressions.booleanOperation(Ops.EQ, propertyExpression,
 					value == null ? NullExpression.DEFAULT : ConstantImpl.create(value));
 		}

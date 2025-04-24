@@ -77,10 +77,10 @@ class JpaKeysetScrollQueryCreatorTests {
 		String query = creator.createQuery();
 
 		assertThat(query).containsIgnoringWhitespaces("""
-				SELECT u FROM org.springframework.data.jpa.domain.sample.User u WHERE (u.firstname LIKE ?1 ESCAPE '\\')
-				AND (u.firstname < ?2
-				OR u.firstname = ?3 AND u.emailAddress < ?4
-				OR u.firstname = ?5 AND u.emailAddress = ?6 AND u.id < ?7)
+				SELECT u FROM org.springframework.data.jpa.domain.sample.User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
+				AND (u.firstname < :keyset_firstname
+				OR u.firstname = :keyset_firstname AND u.emailAddress < :keyset_emailAddress
+				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id < :keyset_id)
 				ORDER BY u.firstname desc, u.emailAddress desc, u.id desc
 				""");
 	}

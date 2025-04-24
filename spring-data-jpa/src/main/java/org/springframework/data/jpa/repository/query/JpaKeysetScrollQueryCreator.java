@@ -19,14 +19,13 @@ import jakarta.persistence.EntityManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.springframework.data.domain.KeysetScrollPosition;
+import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -76,12 +75,22 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 
 		JpqlQueryBuilder.Select query = buildQuery(keysetSpec.sort());
 
-		AtomicInteger counter = new AtomicInteger(provider.getBindings().size());
-		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(getFrom(), getEntity(), value -> {
+		Map<String, Map<Object, ParameterBinding>> cachedBindings = new LinkedHashMap<>();
+		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(getFrom(), getEntity(),
+				(property, value) -> {
 
-			syntheticBindings.add(provider.nextSynthetic(value, scrollPosition));
-			return placeholder(counter.incrementAndGet());
-		});
+					Map<Object, ParameterBinding> bindings = cachedBindings.computeIfAbsent(property, k -> new LinkedHashMap<>());
+
+					ParameterBinding parameterBinding = bindings.computeIfAbsent(value, o -> {
+
+						ParameterBinding binding = provider.nextSynthetic(sanitize(property), value, scrollPosition);
+						syntheticBindings.add(binding);
+						return binding;
+					});
+
+					return placeholder(parameterBinding);
+				});
+
 		JpqlQueryBuilder.Predicate predicateToUse = getPredicate(predicate, keysetPredicate);
 
 		if (predicateToUse != null) {
@@ -91,6 +100,29 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 		return query;
 	}
 
+	private static String sanitize(String property) {
+
+		StringBuilder buffer = new StringBuilder(10 + property.length());
+
+		// max length 24
+		buffer.append("keyset_");
+
+		char[] charArray = property.toCharArray();
+		for (int i = 0; i < charArray.length; i++) {
+
+			if (buffer.length() > 24) {
+				break;
+			}
+
+			if (Character.isDigit(charArray[i]) || Character.isLetter(charArray[i])) {
+				buffer.append(charArray[i]);
+			} else if (charArray[i] == '.') {
+				buffer.append('_');
+			}
+		}
+
+		return buffer.toString();
+	}
 
 	private static JpqlQueryBuilder.@Nullable Predicate getPredicate(JpqlQueryBuilder.@Nullable Predicate predicate,
 			JpqlQueryBuilder.@Nullable Predicate keysetPredicate) {

@@ -523,6 +523,14 @@ class UserRepositoryFinderTests {
 				});
 	}
 
+	@Test // GH-3857
+	void shouldApplyParameterNames() {
+
+		assertThat(userRepository.findAnnotatedWithParameterNameQuery(oliver.getLastname())).hasSize(2);
+		assertThat(userRepository.findWithParameterNameByLastnameStartingWithOrLastnameEndingWith(oliver.getLastname(),
+				oliver.getLastname())).hasSize(2);
+	}
+
 	@ParameterizedTest // GH-3076
 	@ValueSource(classes = { UserRoleCountDtoProjection.class, UserRoleCountInterfaceProjection.class })
 	<T> void dynamicProjectionWithEntityAndAggregated(Class<T> resultType) {

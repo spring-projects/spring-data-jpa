@@ -24,12 +24,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -60,6 +62,7 @@ public class ParameterMetadataProvider {
 
 	private final Iterator<? extends Parameter> parameters;
 	private final List<ParameterBinding> bindings;
+	private final Set<String> syntheticParameterNames = new LinkedHashSet<>();
 	private final @Nullable Iterator<Object> bindableParameterValues;
 	private final EscapeCharacter escape;
 	private final JpqlQueryTemplates templates;
@@ -176,7 +179,8 @@ public class ParameterMetadataProvider {
 
 		int currentPosition = ++position;
 
-		BindingIdentifier bindingIdentifier = BindingIdentifier.of(currentPosition);
+		BindingIdentifier bindingIdentifier = parameter.getName().map(it -> BindingIdentifier.of(it, currentPosition))
+				.orElseGet(() -> BindingIdentifier.of(currentPosition));
 
 		/* identifier refers to bindable parameters, not _all_ parameters index */
 		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(bindingIdentifier);
@@ -195,15 +199,24 @@ public class ParameterMetadataProvider {
 	/**
 	 * Builds a new synthetic {@link ParameterBinding} for the given value.
 	 *
+	 * @param nameHint
 	 * @param value
 	 * @param source
 	 * @return a new {@link ParameterBinding} for the given value and source.
 	 */
-	public ParameterBinding nextSynthetic(Object value, Object source) {
+	public ParameterBinding nextSynthetic(String nameHint, Object value, Object source) {
 
 		int currentPosition = ++position;
+		String bindingName = nameHint;
 
-		return new ParameterBinding(BindingIdentifier.of(currentPosition), ParameterOrigin.synthetic(value, source));
+		if (!syntheticParameterNames.add(bindingName)) {
+
+			bindingName = bindingName + "_" + currentPosition;
+			syntheticParameterNames.add(bindingName);
+		}
+
+		return new ParameterBinding(BindingIdentifier.of(bindingName, currentPosition),
+				ParameterOrigin.synthetic(value, source));
 	}
 
 	public JpaParameters getParameters() {
