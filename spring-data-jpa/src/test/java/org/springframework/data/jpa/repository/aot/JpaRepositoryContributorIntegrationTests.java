@@ -320,6 +320,13 @@ class JpaRepositoryContributorIntegrationTests {
 				"vader@empire.com");
 	}
 
+	@Test // GH-3857
+	void appliesCustomParameterNaming() {
+
+		assertThat(fragment.findAnnotatedWithParameterNameQuery("S")).hasSize(4);
+		assertThat(fragment.findWithParameterNameByLastnameStartingWithOrLastnameEndingWith("S", "S")).hasSize(4);
+	}
+
 	@Test // GH-3830
 	void testAnnotatedFinderReturningSlice() {
 

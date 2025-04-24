@@ -33,9 +33,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Sort;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
 import org.springframework.data.jpa.repository.query.ParameterBinding.PartTreeParameterBinding;
@@ -73,6 +73,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	private final EntityType<?> entityType;
 	private final JpqlQueryBuilder.Entity entity;
 	private final Metamodel metamodel;
+	private final boolean useNamedParameters;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -96,6 +97,23 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		this.tree = tree;
 		this.returnedType = type;
 		this.provider = provider;
+
+		JpaParameters bindableParameters = provider.getParameters().getBindableParameters();
+
+		boolean useNamedParameters = false;
+		for (JpaParameters.JpaParameter bindableParameter : bindableParameters) {
+
+			if (bindableParameter.isNamedParameter()) {
+				useNamedParameters = true;
+			}
+
+			if (useNamedParameters && !bindableParameter.isNamedParameter()) {
+				useNamedParameters = false;
+				break;
+			}
+		}
+
+		this.useNamedParameters = useNamedParameters;
 		this.templates = templates;
 		this.escape = provider.getEscape();
 		this.entityType = metamodel.entity(type.getDomainType());
@@ -274,11 +292,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	}
 
 	JpqlQueryBuilder.Expression placeholder(ParameterBinding binding) {
-		return placeholder(binding.getRequiredPosition());
-	}
 
-	JpqlQueryBuilder.Expression placeholder(int position) {
-		return JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(position));
+		if (useNamedParameters && binding.hasName()) {
+			return JpqlQueryBuilder.parameter(ParameterPlaceholder.named(binding.getRequiredName()));
+		}
+
+		return JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(binding.getRequiredPosition()));
 	}
 
 	/**

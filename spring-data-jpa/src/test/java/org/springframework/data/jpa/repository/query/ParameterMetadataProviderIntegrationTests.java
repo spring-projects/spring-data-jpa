@@ -50,22 +50,22 @@ class ParameterMetadataProviderIntegrationTests {
 	@PersistenceContext EntityManager em;
 
 	@Test // DATAJPA-758
-	void usesIndexedParametersForExplicityNamedParameters() throws Exception {
+	void usesNamedParametersForExplicitlyNamedParameters() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByFirstname", String.class));
 		ParameterBinding.PartTreeParameterBinding metadata = provider.next(new Part("firstname", User.class));
 
-		assertThat(metadata.getName()).isNull();
+		assertThat(metadata.getName()).isEqualTo("name");
 		assertThat(metadata.getPosition()).isEqualTo(1);
 	}
 
 	@Test // DATAJPA-758
-	void usesIndexedParameters() throws Exception {
+	void usesNamedParameters() throws Exception {
 
 		ParameterMetadataProvider provider = createProvider(Sample.class.getMethod("findByLastname", String.class));
 		ParameterBinding.PartTreeParameterBinding metadata = provider.next(new Part("lastname", User.class));
 
-		assertThat(metadata.getName()).isNull();
+		assertThat(metadata.getName()).isEqualTo("lastname");
 		assertThat(metadata.getPosition()).isEqualTo(1);
 	}
 

@@ -117,6 +117,16 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	Slice<User> findAnnotatedQuerySliceOfUsersByLastname(String lastname, Pageable pageable);
 
 	// -------------------------------------------------------------------------
+	// Projections: Parameter naming
+	// -------------------------------------------------------------------------
+
+	@Query("select u from User u where u.lastname like %:name or u.lastname like :name% ORDER BY u.lastname")
+	List<User> findAnnotatedWithParameterNameQuery(@Param("name") String lastname);
+
+	List<User> findWithParameterNameByLastnameStartingWithOrLastnameEndingWith(@Param("l1") String l1,
+			@Param("l2") String l2);
+
+	// -------------------------------------------------------------------------
 	// Value Expressions
 	// -------------------------------------------------------------------------
 

@@ -740,6 +740,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	Window<User> findBy(OffsetScrollPosition position);
 
+	@Query("select u from User u where u.lastname like %:name or u.lastname like :name% ORDER BY u.lastname")
+	List<User> findAnnotatedWithParameterNameQuery(@Param("name") String lastname);
+
+	List<User> findWithParameterNameByLastnameStartingWithOrLastnameEndingWith(@Param("l1") String l1,
+			@Param("l2") String l2);
+
 	@Retention(RetentionPolicy.RUNTIME)
 	@Query("select u, count(r) from User u left outer join u.roles r group by u")
 	@interface UserRoleCountProjectingQuery {

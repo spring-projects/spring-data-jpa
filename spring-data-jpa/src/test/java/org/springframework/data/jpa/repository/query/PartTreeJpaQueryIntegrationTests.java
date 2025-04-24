@@ -112,7 +112,7 @@ class PartTreeJpaQueryIntegrationTests {
 
 		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { "Matthews", PageRequest.of(0, 1) }));
 		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
-				.contains("firstname %s ?".formatted(criteria.endsWith("Not") ? "!=" : "="));
+				.contains("firstname %s :".formatted(criteria.endsWith("Not") ? "!=" : "="));
 
 		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { null, PageRequest.of(0, 1) }));
 

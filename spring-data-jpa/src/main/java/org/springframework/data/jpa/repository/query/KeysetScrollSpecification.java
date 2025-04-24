@@ -117,7 +117,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		}
 
 		@Override
-		public Predicate compare(Expression<Comparable> propertyExpression, @Nullable Object value) {
+		public Predicate compare(String property, Expression<Comparable> propertyExpression, @Nullable Object value) {
 			return value == null ? cb.isNull(propertyExpression) : cb.equal(propertyExpression, value);
 		}
 
@@ -163,15 +163,17 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 			if (value == null) {
 				return order.isAscending() ? where.isNull() : where.isNotNull();
 			}
-			return order.isAscending() ? where.gt(factory.capture(value)) : where.lt(factory.capture(value));
+			return order.isAscending() ? where.gt(factory.capture(order.getProperty(), value))
+					: where.lt(factory.capture(order.getProperty(), value));
 		}
 
 		@Override
-		public JpqlQueryBuilder.Predicate compare(JpqlQueryBuilder.Expression propertyExpression, @Nullable Object value) {
+		public JpqlQueryBuilder.Predicate compare(String property, JpqlQueryBuilder.Expression propertyExpression,
+				@Nullable Object value) {
 
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
 
-			return value == null ? where.isNull() : where.eq(factory.capture(value));
+			return value == null ? where.isNull() : where.eq(factory.capture(property, value));
 		}
 
 		@Override
@@ -186,6 +188,6 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 	}
 
 	public interface ParameterFactory {
-		JpqlQueryBuilder.Expression capture(Object value);
+		JpqlQueryBuilder.Expression capture(String name, Object value);
 	}
 }

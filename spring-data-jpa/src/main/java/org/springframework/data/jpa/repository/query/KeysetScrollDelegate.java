@@ -22,9 +22,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.domain.KeysetScrollPosition;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition.Direction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
@@ -104,7 +104,7 @@ public class KeysetScrollDelegate {
 					break;
 				}
 
-				sortConstraint.add(strategy.compare(propertyExpression, o));
+				sortConstraint.add(strategy.compare(inner.getProperty(), propertyExpression, o));
 				j++;
 			}
 
@@ -215,11 +215,12 @@ public class KeysetScrollDelegate {
 		/**
 		 * Create an equals-comparison object.
 		 *
+		 * @param property name of the property.
 		 * @param propertyExpression must not be {@literal null}.
 		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the comparison predicate.
 		 */
-		P compare(E propertyExpression, @Nullable Object value);
+		P compare(String property, E propertyExpression, @Nullable Object value);
 
 		/**
 		 * AND-combine the {@code intermediate} predicates.

@@ -15,10 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Sort.Direction.*;
 
 import jakarta.persistence.EntityManager;
 
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Limit;
@@ -493,6 +492,14 @@ class UserRepositoryFinderTests {
 					assertThat(projection.roleCount())
 							.isCloseTo(musicians.get(projection.user().getFirstname()).getRoles().size(), Offset.offset(0L));
 				});
+	}
+
+	@Test // GH-3857
+	void shouldApplyParameterNames() {
+
+		assertThat(userRepository.findAnnotatedWithParameterNameQuery(oliver.getLastname())).hasSize(2);
+		assertThat(userRepository.findWithParameterNameByLastnameStartingWithOrLastnameEndingWith(oliver.getLastname(),
+				oliver.getLastname())).hasSize(2);
 	}
 
 	@ParameterizedTest // GH-3076

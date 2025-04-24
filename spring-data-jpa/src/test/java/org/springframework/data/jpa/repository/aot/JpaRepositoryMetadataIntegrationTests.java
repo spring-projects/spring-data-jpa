@@ -32,7 +32,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Integration tests for the {@link UserRepository} JSON metadata.
+ * Integration tests for the {@link UserRepository} JSON metadata via {@link JpaRepositoryContributor}.
  *
  * @author Mark Paluch
  */
@@ -77,7 +77,7 @@ class JpaRepositoryMetadataIntegrationTests {
 
 		assertThatJson(json).inPath("$.methods[0]").isObject().containsEntry("name", "countUsersByLastname");
 		assertThatJson(json).inPath("$.methods[0].query").isObject().containsEntry("query",
-				"SELECT COUNT(u) FROM org.springframework.data.jpa.domain.sample.User u WHERE u.lastname = ?1");
+				"SELECT COUNT(u) FROM org.springframework.data.jpa.domain.sample.User u WHERE u.lastname = :lastname");
 	}
 
 	@Test // GH-3830

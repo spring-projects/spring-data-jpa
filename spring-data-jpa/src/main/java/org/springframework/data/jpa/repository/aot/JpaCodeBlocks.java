@@ -427,13 +427,7 @@ class JpaCodeBlocks {
 		}
 
 		private Object getParameterName(ParameterBinding.BindingIdentifier identifier) {
-
-			if (identifier.hasPosition()) {
-				return identifier.getPosition();
-			}
-
-			return identifier.getName();
-
+			return identifier.hasName() ? identifier.getName() : Integer.valueOf(identifier.getPosition());
 		}
 
 		private Object getParameter(ParameterBinding.ParameterOrigin origin) {

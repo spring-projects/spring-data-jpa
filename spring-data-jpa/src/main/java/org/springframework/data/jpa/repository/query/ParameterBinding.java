@@ -82,6 +82,14 @@ public class ParameterBinding {
 	}
 
 	/**
+	 * @return {@literal true} if the binding identifier is associated with a name.
+	 * @since 4.0
+	 */
+	boolean hasName() {
+		return identifier.hasName();
+	}
+
+	/**
 	 * @return the name
 	 * @throws IllegalStateException if the name is not available.
 	 * @since 2.0
