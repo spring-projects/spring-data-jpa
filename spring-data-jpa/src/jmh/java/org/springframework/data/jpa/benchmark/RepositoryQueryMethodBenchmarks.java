@@ -42,6 +42,7 @@ import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.benchmark.model.Person;
+import org.springframework.data.jpa.benchmark.model.PersonDto;
 import org.springframework.data.jpa.benchmark.model.Profile;
 import org.springframework.data.jpa.benchmark.repository.PersonRepository;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
@@ -193,6 +194,12 @@ public class RepositoryQueryMethodBenchmarks {
 	public List<Person> stringBasedQueryDynamicSort(BenchmarkParameters parameters) {
 		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME,
 				Sort.by(COLUMN_PERSON_FIRSTNAME));
+	}
+
+	@Benchmark
+	public List<PersonDto> stringBasedQueryDynamicSortAndProjection(BenchmarkParameters parameters) {
+		return parameters.repositoryProxy.findAllWithAnnotatedQueryByFirstname(PERSON_FIRSTNAME,
+				Sort.by(COLUMN_PERSON_FIRSTNAME), PersonDto.class);
 	}
 
 	@Benchmark
