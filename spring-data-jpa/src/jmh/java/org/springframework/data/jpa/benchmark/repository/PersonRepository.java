@@ -38,6 +38,9 @@ public interface PersonRepository extends ListCrudRepository<Person, Integer> {
 	@Query("SELECT p FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1")
 	List<Person> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort);
 
+	@Query("SELECT p FROM org.springframework.data.jpa.benchmark.model.Person p WHERE p.firstname = ?1")
+	<T> List<T> findAllWithAnnotatedQueryByFirstname(String firstname, Sort sort, Class<T> projection);
+
 	@Query(value = "SELECT * FROM person WHERE firstname = ?1", nativeQuery = true)
 	List<Person> findAllWithNativeQueryByFirstname(String firstname);
 
