@@ -170,6 +170,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.projectionFactory = projectionFactory;
 	}
 
+	protected EntityManager getEntityManager(){
+		return this.entityManager;
+	}
+
 	@Nullable
 	protected CrudMethodMetadata getRepositoryMethodMetadata() {
 		return metadata;
