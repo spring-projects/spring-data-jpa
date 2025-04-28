@@ -39,6 +39,7 @@ import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.SearchResult;
 import org.springframework.data.domain.SearchResults;
+import org.springframework.data.domain.Similarity;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
@@ -135,11 +136,17 @@ public abstract class JpaQueryExecution {
 		private final JpaQueryExecution delegate;
 		private final ReturnedType returnedType;
 		private final ScoringFunction function;
+		private final boolean normalizeSimilarity;
+		private final SimilarityNormalizer normalizer;
 
-		SearchResultExecution(JpaQueryExecution delegate, ReturnedType returnedType, ScoringFunction function) {
+		SearchResultExecution(JpaQueryExecution delegate, ReturnedType returnedType, ScoringFunction function,
+				boolean normalizeSimilarity) {
+
 			this.delegate = delegate;
 			this.returnedType = returnedType;
 			this.function = function;
+			this.normalizeSimilarity = normalizeSimilarity;
+			this.normalizer = normalizeSimilarity ? SimilarityNormalizer.get(function) : SimilarityNormalizer.IDENTITY;
 		}
 
 		@Override
@@ -171,26 +178,31 @@ public abstract class JpaQueryExecution {
 
 				Object value = returnedType.needsCustomConstruction() ? t : t.get(0);
 				try {
-					return new SearchResult<>(value, Score.of(t.get("distance", Number.class).doubleValue(), function));
+					return new SearchResult<>(value, getScore(t.get("distance", Number.class).doubleValue()));
 				} catch (RuntimeException e) {
-					return new SearchResult<>(value, Score.of(0, function));
+					return new SearchResult<>(value, getScore(0));
 				}
 			}
 
 			if (result instanceof Object[] objects) {
 
 				Object value = returnedType.needsCustomConstruction() ? objects : objects[0];
-
 				try {
 
-					return new SearchResult<>(value, Score.of(((Number) (objects[objects.length - 1])).doubleValue(), function));
+					return new SearchResult<>(value, getScore(((Number) (objects[objects.length - 1])).doubleValue()));
 				} catch (RuntimeException e) {
-					return new SearchResult<>(value, Score.of(0, function));
+					return new SearchResult<>(value, getScore(0));
 				}
 			}
 
 			return null;
 		}
+
+		private Score getScore(double score) {
+			return normalizeSimilarity ? Similarity.raw(normalizer.getSimilarity(score), function)
+					: Score.of(score, function);
+		}
+
 	}
 
 	/**

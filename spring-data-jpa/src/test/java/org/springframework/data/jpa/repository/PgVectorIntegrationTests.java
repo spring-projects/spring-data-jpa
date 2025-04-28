@@ -98,19 +98,49 @@ class PgVectorIntegrationTests {
 	@MethodSource("scoringFunctions")
 	void shouldApplyVectorSearchWithDistance(VectorScoringFunctions functions) {
 
-		SearchResults<WithVector> results = repository.searchTop2ByCountryAndEmbeddingWithin("de", VECTOR,
-				Similarity.of(0.1, functions));
+		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithin("de", VECTOR,
+				Similarity.of(0, functions));
 
-		assertThat(results).hasSize(2).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
 				.containsOnly("de", "de");
 
 		assertThat(results).extracting(SearchResult::getContent).extracting(WithVector::getDescription)
-				.containsExactlyInAnyOrder("two", "one");
+				.containsExactlyInAnyOrder("two", "one", "four");
 	}
 
 	static Set<VectorScoringFunctions> scoringFunctions() {
 		return EnumSet.of(VectorScoringFunctions.COSINE, VectorScoringFunctions.INNER_PRODUCT,
 				VectorScoringFunctions.EUCLIDEAN);
+	}
+
+	@Test
+	void shouldNormalizeEuclideanSimilarity() {
+
+		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithin("de", VECTOR,
+				Similarity.of(0.99, VectorScoringFunctions.EUCLIDEAN));
+
+		assertThat(results).hasSize(1);
+
+		SearchResult<WithVector> two = results.getContent().get(0);
+
+		assertThat(two.getContent().getDescription()).isEqualTo("two");
+		assertThat(two.getScore()).isInstanceOf(Similarity.class);
+		assertThat(two.getScore().getValue()).isGreaterThan(0.99);
+	}
+
+	@Test
+	void shouldNormalizeCosineSimilarity() {
+
+		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithin("de", VECTOR,
+				Similarity.of(0.999, VectorScoringFunctions.COSINE));
+
+		assertThat(results).hasSize(1);
+
+		SearchResult<WithVector> two = results.getContent().get(0);
+
+		assertThat(two.getContent().getDescription()).isEqualTo("two");
+		assertThat(two.getScore()).isInstanceOf(Similarity.class);
+		assertThat(two.getScore().getValue()).isGreaterThan(0.99);
 	}
 
 	@Test
@@ -143,7 +173,7 @@ class PgVectorIntegrationTests {
 	void shouldApplyVectorSearchWithRange() {
 
 		SearchResults<WithVector> results = repository.searchAllByCountryAndEmbeddingWithin("de", VECTOR,
-				Score.between(0, 1, VectorScoringFunctions.COSINE));
+				Similarity.between(0, 1, VectorScoringFunctions.COSINE));
 
 		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
 				.containsOnly("de", "de", "de");
@@ -155,18 +185,17 @@ class PgVectorIntegrationTests {
 	void shouldApplyVectorSearchAndReturnList() {
 
 		List<WithVector> results = repository.findAllByCountryAndEmbeddingWithin("de", VECTOR,
-				Score.of(0, VectorScoringFunctions.COSINE));
+				Score.of(10, VectorScoringFunctions.COSINE));
 
 		assertThat(results).hasSize(3).extracting(WithVector::getCountry).containsOnly("de", "de", "de");
 		assertThat(results).extracting(WithVector::getDescription).containsSequence("one", "two", "four");
-
 	}
 
 	@Test
 	void shouldProjectVectorSearchAsInterface() {
 
 		SearchResults<WithDescription> results = repository.searchInterfaceProjectionByCountryAndEmbeddingWithin("de",
-				VECTOR, Score.of(0, VectorScoringFunctions.COSINE));
+				VECTOR, Score.of(10, VectorScoringFunctions.COSINE));
 
 		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithDescription::getDescription)
 				.containsSequence("two", "one", "four");
@@ -176,7 +205,7 @@ class PgVectorIntegrationTests {
 	void shouldProjectVectorSearchAsDto() {
 
 		SearchResults<DescriptionDto> results = repository.searchDtoByCountryAndEmbeddingWithin("de", VECTOR,
-				Score.of(0, VectorScoringFunctions.COSINE));
+				Score.of(10, VectorScoringFunctions.COSINE));
 
 		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(DescriptionDto::getDescription)
 				.containsSequence("two", "one", "four");
@@ -186,13 +215,13 @@ class PgVectorIntegrationTests {
 	void shouldProjectVectorSearchDynamically() {
 
 		SearchResults<DescriptionDto> dtos = repository.searchDynamicByCountryAndEmbeddingWithin("de", VECTOR,
-				Score.of(0, VectorScoringFunctions.COSINE), DescriptionDto.class);
+				Score.of(10, VectorScoringFunctions.COSINE), DescriptionDto.class);
 
 		assertThat(dtos).hasSize(3).extracting(SearchResult::getContent).extracting(DescriptionDto::getDescription)
 				.containsSequence("two", "one", "four");
 
 		SearchResults<WithDescription> proxies = repository.searchDynamicByCountryAndEmbeddingWithin("de", VECTOR,
-				Score.of(0, VectorScoringFunctions.COSINE), WithDescription.class);
+				Score.of(10, VectorScoringFunctions.COSINE), WithDescription.class);
 
 		assertThat(proxies).hasSize(3).extracting(SearchResult::getContent).extracting(WithDescription::getDescription)
 				.containsSequence("two", "one", "four");
@@ -248,6 +277,11 @@ class PgVectorIntegrationTests {
 		public void setEmbedding(float[] embedding) {
 			this.embedding = embedding;
 		}
+
+		@Override
+		public String toString() {
+			return "WithVector{" + "country='" + country + '\'' + ", description='" + description + '\'' + '}';
+		}
 	}
 
 	interface WithDescription {
@@ -287,9 +321,9 @@ class PgVectorIntegrationTests {
 				Score distance);
 
 		SearchResults<WithVector> searchAllByCountryAndEmbeddingWithin(String country, Vector embedding,
-				Range<Score> distance);
+				Range<Similarity> distance);
 
-		SearchResults<WithVector> searchTop2ByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+		SearchResults<WithVector> searchTop5ByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
 
 		SearchResults<WithDescription> searchInterfaceProjectionByCountryAndEmbeddingWithin(String country,
 				Vector embedding, Score distance);

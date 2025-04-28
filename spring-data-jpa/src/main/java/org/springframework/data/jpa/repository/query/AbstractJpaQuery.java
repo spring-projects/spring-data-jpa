@@ -176,7 +176,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			ReturnedType returnedType = method.getResultProcessor().withDynamicProjection(accessor).getReturnedType();
 			return new JpaQueryExecution.SearchResultExecution(execution == null ? new SingleEntityExecution() : execution,
-					returnedType, accessor.getScoringFunction());
+					returnedType, accessor.getScoringFunction(), accessor.normalizeSimilarity());
 		}
 
 		if (execution != null) {

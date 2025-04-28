@@ -296,13 +296,15 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 						entityManager);
 			}
 
-			JpqlQueryCreator creator = new CacheableJpqlQueryCreator(sort,
-					new JpaQueryCreator(tree, getQueryMethod().isSearchQuery(), returnedType, provider, templates,
-							em.getMetamodel()));
-
-			if (accessor.getParameters().hasDynamicProjection() || getQueryMethod().isSearchQuery()) {
-				return creator;
+			JpaParameters parameters = getQueryMethod().getParameters();
+			if (accessor.getParameters().hasDynamicProjection() || getQueryMethod().isSearchQuery()
+					|| parameters.hasScoreRangeParameter() || parameters.hasScoreParameter()) {
+				return new JpaQueryCreator(tree, getQueryMethod().isSearchQuery(), returnedType, provider, templates,
+						em.getMetamodel());
 			}
+
+			JpqlQueryCreator creator = new CacheableJpqlQueryCreator(sort, new JpaQueryCreator(tree,
+					getQueryMethod().isSearchQuery(), returnedType, provider, templates, em.getMetamodel()));
 
 			cache.put(sort, accessor, creator);
 

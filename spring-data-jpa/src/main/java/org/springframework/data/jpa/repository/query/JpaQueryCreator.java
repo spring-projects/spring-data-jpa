@@ -40,7 +40,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScoringFunction;
-import org.springframework.data.domain.Similarity;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.VectorScoringFunctions;
 
@@ -75,11 +74,14 @@ import org.springframework.util.Assert;
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
 
 	private static final Map<ScoringFunction, DistanceFunction> DISTANCE_FUNCTIONS = Map.of(VectorScoringFunctions.COSINE,
-			new DistanceFunction("cosine_distance", Sort.Direction.ASC), VectorScoringFunctions.EUCLIDEAN,
-			new DistanceFunction("euclidean_distance", Sort.Direction.ASC), VectorScoringFunctions.TAXICAB,
-			new DistanceFunction("taxicab_distance", Sort.Direction.ASC), VectorScoringFunctions.HAMMING,
-			new DistanceFunction("hamming_distance", Sort.Direction.ASC), VectorScoringFunctions.INNER_PRODUCT,
-			new DistanceFunction("negative_inner_product", Sort.Direction.DESC));
+			new DistanceFunction("cosine_distance", Sort.Direction.ASC), //
+			VectorScoringFunctions.EUCLIDEAN, new DistanceFunction("euclidean_distance", Sort.Direction.ASC), //
+			VectorScoringFunctions.TAXICAB, new DistanceFunction("taxicab_distance", Sort.Direction.ASC), //
+			VectorScoringFunctions.HAMMING, new DistanceFunction("hamming_distance", Sort.Direction.ASC), //
+			VectorScoringFunctions.INNER_PRODUCT, new DistanceFunction("negative_inner_product", Sort.Direction.ASC), //
+
+			// TODO: Do we need both, dot and inner product? Aren't these the same in some sense?
+			VectorScoringFunctions.DOT, new DistanceFunction("negative_inner_product", Sort.Direction.ASC));
 
 	record DistanceFunction(String distanceFunction, Sort.Direction direction) {
 
@@ -94,6 +96,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	private final EntityType<?> entityType;
 	private final JpqlQueryBuilder.Entity entity;
 	private final Metamodel metamodel;
+	private final SimilarityNormalizer similarityNormalizer;
 	private final boolean useNamedParameters;
 
 	/**
@@ -147,6 +150,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		this.entityType = metamodel.entity(type.getDomainType());
 		this.entity = JpqlQueryBuilder.entity(returnedType.getDomainType());
 		this.metamodel = metamodel;
+		this.similarityNormalizer = provider.getSimilarityNormalizer();
 	}
 
 	Bindable<?> getFrom() {
@@ -405,7 +409,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	 * @return
 	 */
 	private JpqlQueryBuilder.Predicate toPredicate(Part part) {
-		return new PredicateBuilder(part).build();
+		return new PredicateBuilder(part, similarityNormalizer).build();
 	}
 
 	/**
@@ -413,21 +417,23 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	 *
 	 * @author Phil Webb
 	 * @author Oliver Gierke
+	 * @author Mark Paluch
 	 */
 	private class PredicateBuilder {
 
 		private final Part part;
+		private final SimilarityNormalizer normalizer;
 
 		/**
 		 * Creates a new {@link PredicateBuilder} for the given {@link Part}.
 		 *
 		 * @param part must not be {@literal null}.
+		 * @param normalizer must not be {@literal null}.
 		 */
-		public PredicateBuilder(Part part) {
-
-			Assert.notNull(part, "Part must not be null");
+		public PredicateBuilder(Part part, SimilarityNormalizer normalizer) {
 
 			this.part = part;
+			this.normalizer = normalizer;
 		}
 
 		/**
@@ -537,24 +543,17 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 							JpqlQueryBuilder.Predicate lowerPredicate = null;
 							JpqlQueryBuilder.Predicate upperPredicate = null;
+
+							// Score is a distance function, you typically want less when you specify a lower boundary,
+							// therefore lower and upper predicates are inverted.
 							if (lower.isBounded()) {
-
-								JpqlQueryBuilder.Expression distanceValue = JpqlQueryBuilder
-										.expression("" + lower.getValue().get().getValue());
-
-								where = JpqlQueryBuilder.where(distance);
-
-								lowerPredicate = lower.isInclusive() ? where.gte(distanceValue) : where.gt(distanceValue);
+								JpqlQueryBuilder.Expression distanceValue = placeholder(provider.lower(within, normalizer));
+								lowerPredicate = getUpperPredicate(lower.isInclusive(), distance, distanceValue);
 							}
 
 							if (upper.isBounded()) {
-
-								JpqlQueryBuilder.Expression distanceValue = JpqlQueryBuilder
-										.expression("" + upper.getValue().get().getValue());
-
-								where = JpqlQueryBuilder.where(distance);
-
-								upperPredicate = upper.isInclusive() ? where.lte(distanceValue) : where.lt(distanceValue);
+								JpqlQueryBuilder.Expression distanceValue = placeholder(provider.upper(within, normalizer));
+								upperPredicate = getLowerPredicate(upper.isInclusive(), distance, distanceValue);
 							}
 
 							if (lowerPredicate != null && upperPredicate != null) {
@@ -570,17 +569,36 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 					if (within.getValue() instanceof Score score) {
 
 						String distanceFunction = getDistanceFunction(score.getFunction());
-						JpqlQueryBuilder.Expression distanceValue = placeholder(within);
+						JpqlQueryBuilder.Expression distanceValue = placeholder(provider.normalize(within, normalizer));
 						JpqlQueryBuilder.Expression distance = JpqlQueryBuilder.function(distanceFunction, pas,
 								placeholder(vector));
 
-						return score instanceof Similarity ? JpqlQueryBuilder.where(distance).lte(distanceValue)
-								: JpqlQueryBuilder.where(distance).gte(distanceValue);
+						return getUpperPredicate(true, distance, distanceValue);
 					}
 
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}
+		}
+
+		private JpqlQueryBuilder.Predicate getLowerPredicate(boolean inclusive, JpqlQueryBuilder.Expression lhs,
+				JpqlQueryBuilder.Expression distance) {
+			return doLower(inclusive, lhs, distance);
+		}
+
+		private JpqlQueryBuilder.Predicate getUpperPredicate(boolean inclusive, JpqlQueryBuilder.Expression lhs,
+				JpqlQueryBuilder.Expression distance) {
+			return doUpper(inclusive, lhs, distance);
+		}
+
+		private static JpqlQueryBuilder.Predicate doLower(boolean inclusive, JpqlQueryBuilder.Expression lhs,
+				JpqlQueryBuilder.Expression distance) {
+			return inclusive ? JpqlQueryBuilder.where(lhs).gte(distance) : JpqlQueryBuilder.where(lhs).gt(distance);
+		}
+
+		private static JpqlQueryBuilder.Predicate doUpper(boolean inclusive, JpqlQueryBuilder.Expression lhs,
+				JpqlQueryBuilder.Expression distance) {
+			return inclusive ? JpqlQueryBuilder.where(lhs).lte(distance) : JpqlQueryBuilder.where(lhs).lt(distance);
 		}
 
 		private static String getDistanceFunction(ScoringFunction scoringFunction) {
