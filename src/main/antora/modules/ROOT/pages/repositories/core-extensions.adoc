@@ -82,7 +82,7 @@ dependencies {
 
 Or if you use an OpenFeign fork:
 
-[openfeign-tabs]
+[tabs]
 ======
 Maven::
 +
