@@ -32,9 +32,9 @@ import org.springframework.data.domain.VectorScoringFunctions;
 public class SimilarityNormalizer {
 
 	/**
-	 * Identity normalizer for {@link ScoringFunction#UNSPECIFIED} scoring function without altering the score.
+	 * Identity normalizer for {@link ScoringFunction#unspecified()} scoring function without altering the score.
 	 */
-	public static final SimilarityNormalizer IDENTITY = new SimilarityNormalizer(ScoringFunction.UNSPECIFIED,
+	public static final SimilarityNormalizer IDENTITY = new SimilarityNormalizer(ScoringFunction.unspecified(),
 			DoubleUnaryOperator.identity(), DoubleUnaryOperator.identity());
 
 	/**
@@ -52,7 +52,7 @@ public class SimilarityNormalizer {
 	/**
 	 * Normalizer for Negative Inner Product (Dot) scores using {@code negative_inner_product(…)} as the scoring function.
 	 */
-	public static final SimilarityNormalizer DOT = new SimilarityNormalizer(VectorScoringFunctions.DOT,
+	public static final SimilarityNormalizer DOT_PRODUCT = new SimilarityNormalizer(VectorScoringFunctions.DOT_PRODUCT,
 			it -> (1 - it) / 2, it -> 1 - (it * 2));
 
 	private static final Map<ScoringFunction, SimilarityNormalizer> NORMALIZERS = new HashMap<>();
@@ -60,8 +60,7 @@ public class SimilarityNormalizer {
 	static {
 		NORMALIZERS.put(EUCLIDEAN.scoringFunction, EUCLIDEAN);
 		NORMALIZERS.put(COSINE.scoringFunction, COSINE);
-		NORMALIZERS.put(DOT.scoringFunction, DOT);
-		NORMALIZERS.put(VectorScoringFunctions.INNER_PRODUCT, DOT);
+		NORMALIZERS.put(DOT_PRODUCT.scoringFunction, DOT_PRODUCT);
 	}
 
 	private final ScoringFunction scoringFunction;

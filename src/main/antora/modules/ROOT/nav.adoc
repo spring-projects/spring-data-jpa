@@ -14,6 +14,7 @@
 ** xref:jpa/stored-procedures.adoc[]
 ** xref:jpa/specifications.adoc[]
 ** xref:repositories/query-by-example.adoc[]
+** xref:repositories/vector-search.adoc[]
 ** xref:jpa/transactions.adoc[]
 ** xref:jpa/locking.adoc[]
 ** xref:auditing.adoc[]

@@ -58,13 +58,19 @@ class SimilarityNormalizerUnitTests {
 	@Test
 	void normalizesNegativeInnerProduct() {
 
-		assertThat(SimilarityNormalizer.DOT.getSimilarity(-0.8465620279312134)).isCloseTo(0.9232810139656067, offset(0.01));
-		assertThat(SimilarityNormalizer.DOT.getSimilarity(-1.0626180171966553)).isCloseTo(1.0313090085983276, offset(0.01));
-		assertThat(SimilarityNormalizer.DOT.getSimilarity(-2.0293400287628174)).isCloseTo(1.5146700143814087, offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getSimilarity(-0.8465620279312134)).isCloseTo(0.9232810139656067,
+				offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getSimilarity(-1.0626180171966553)).isCloseTo(1.0313090085983276,
+				offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getSimilarity(-2.0293400287628174)).isCloseTo(1.5146700143814087,
+				offset(0.01));
 
-		assertThat(SimilarityNormalizer.DOT.getScore(0.9232810139656067)).isCloseTo(-0.8465620279312134, offset(0.01));
-		assertThat(SimilarityNormalizer.DOT.getScore(1.0313090085983276)).isCloseTo(-1.0626180171966553, offset(0.01));
-		assertThat(SimilarityNormalizer.DOT.getScore(1.5146700143814087)).isCloseTo(-2.0293400287628174, offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getScore(0.9232810139656067)).isCloseTo(-0.8465620279312134,
+				offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getScore(1.0313090085983276)).isCloseTo(-1.0626180171966553,
+				offset(0.01));
+		assertThat(SimilarityNormalizer.DOT_PRODUCT.getScore(1.5146700143814087)).isCloseTo(-2.0293400287628174,
+				offset(0.01));
 	}
 
 }

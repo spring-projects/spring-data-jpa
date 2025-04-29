@@ -496,7 +496,7 @@ public final class JpqlQueryBuilder {
 		/**
 		 * Select a single attribute.
 		 *
-		 * @param path
+		 * @param selection
 		 * @return
 		 */
 		@CheckReturnValue

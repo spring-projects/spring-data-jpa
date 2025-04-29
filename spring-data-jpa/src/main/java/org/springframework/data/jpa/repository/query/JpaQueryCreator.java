@@ -78,10 +78,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 			VectorScoringFunctions.EUCLIDEAN, new DistanceFunction("euclidean_distance", Sort.Direction.ASC), //
 			VectorScoringFunctions.TAXICAB, new DistanceFunction("taxicab_distance", Sort.Direction.ASC), //
 			VectorScoringFunctions.HAMMING, new DistanceFunction("hamming_distance", Sort.Direction.ASC), //
-			VectorScoringFunctions.INNER_PRODUCT, new DistanceFunction("negative_inner_product", Sort.Direction.ASC), //
-
-			// TODO: Do we need both, dot and inner product? Aren't these the same in some sense?
-			VectorScoringFunctions.DOT, new DistanceFunction("negative_inner_product", Sort.Direction.ASC));
+			VectorScoringFunctions.DOT_PRODUCT, new DistanceFunction("negative_inner_product", Sort.Direction.ASC));
 
 	record DistanceFunction(String distanceFunction, Sort.Direction direction) {
 
@@ -103,7 +100,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	 * Create a new {@link JpaQueryCreator}.
 	 *
 	 * @param tree must not be {@literal null}.
-	 * @param searchQuery
 	 * @param type must not be {@literal null}.
 	 * @param provider must not be {@literal null}.
 	 * @param templates must not be {@literal null}.
@@ -124,6 +120,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		JpqlQueryTemplates templates, Metamodel metamodel) {
 
 		super(tree);
+
 		this.searchQuery = searchQuery;
 		this.tree = tree;
 		this.returnedType = type;
@@ -606,7 +603,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 			DistanceFunction distanceFunction = JpaQueryCreator.DISTANCE_FUNCTIONS.get(scoringFunction);
 
 			if (distanceFunction == null) {
-				throw new IllegalArgumentException("Unsupported ScoringFunction: %s".formatted(scoringFunction.getName()));
+				throw new IllegalArgumentException(
+						"Unsupported ScoringFunction: %s. Make sure to declare a supported ScoringFunction when creating Score/Similarity instances."
+								.formatted(scoringFunction.getName()));
 			}
 
 			return distanceFunction.distanceFunction();

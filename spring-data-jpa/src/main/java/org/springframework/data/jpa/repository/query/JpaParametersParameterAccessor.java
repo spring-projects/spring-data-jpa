@@ -82,7 +82,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	 * @return
 	 */
 	public ScoringFunction getScoringFunction() {
-		return doWithScore(Score::getFunction, Score.class::isInstance, () -> ScoringFunction.UNSPECIFIED);
+		return doWithScore(Score::getFunction, Score.class::isInstance, ScoringFunction::unspecified);
 	}
 
 	/**

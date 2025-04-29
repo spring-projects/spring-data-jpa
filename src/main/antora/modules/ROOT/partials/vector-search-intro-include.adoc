@@ -1,0 +1,31 @@
+To use Hibernate Vector Search, you need to add the following dependencies to your project.
+
+The following example shows how to set up dependencies in Maven and Gradle:
+
+[tabs]
+======
+Maven::
++
+[source,xml,indent=0,subs="verbatim,quotes",role="primary"]
+----
+<dependencies>
+    <dependency>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-vector</artifactId>
+      <version>${hibernate.version}</version>
+    </dependency>
+</dependencies>
+
+----
+
+Gradle::
++
+====
+[source,groovy,indent=0,subs="verbatim,quotes",role="secondary"]
+----
+dependencies {
+    implementation 'org.hibernate.orm:hibernate-vector:${hibernateVersion}'
+}
+----
+====
+======

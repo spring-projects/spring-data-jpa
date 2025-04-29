@@ -49,6 +49,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
+import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.domain.SearchResult;
 import org.springframework.data.domain.SearchResults;
 import org.springframework.data.domain.Similarity;
@@ -109,7 +110,7 @@ class PgVectorIntegrationTests {
 	}
 
 	static Set<VectorScoringFunctions> scoringFunctions() {
-		return EnumSet.of(VectorScoringFunctions.COSINE, VectorScoringFunctions.INNER_PRODUCT,
+		return EnumSet.of(VectorScoringFunctions.COSINE, VectorScoringFunctions.DOT_PRODUCT,
 				VectorScoringFunctions.EUCLIDEAN);
 	}
 
@@ -167,6 +168,21 @@ class PgVectorIntegrationTests {
 		SearchResult<WithVector> result = results.getContent().get(0);
 		assertThat(result.getScore().getValue()).isGreaterThanOrEqualTo(0);
 		assertThat(result.getScore().getFunction()).isEqualTo(VectorScoringFunctions.COSINE);
+	}
+
+	@Test
+	void shouldRunStringQueryWithFloatDistance() {
+
+		SearchResults<WithVector> results = repository.searchAnnotatedByCountryAndEmbeddingWithin("de", VECTOR, 2);
+
+		assertThat(results).hasSize(3).extracting(SearchResult::getContent).extracting(WithVector::getCountry)
+				.containsOnly("de", "de", "de");
+		assertThat(results).extracting(SearchResult::getContent).extracting(WithVector::getDescription)
+				.containsSequence("two", "one", "four");
+
+		SearchResult<WithVector> result = results.getContent().get(0);
+		assertThat(result.getScore().getValue()).isGreaterThanOrEqualTo(0);
+		assertThat(result.getScore().getFunction()).isEqualTo(ScoringFunction.unspecified());
 	}
 
 	@Test
@@ -319,6 +335,14 @@ class PgVectorIntegrationTests {
 				ORDER BY distance asc""")
 		SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
 				Score distance);
+
+		@Query("""
+				SELECT w, cosine_distance(w.embedding, :embedding) as distance FROM org.springframework.data.jpa.repository.PgVectorIntegrationTests$WithVector w
+				WHERE w.country = ?1
+					AND cosine_distance(w.embedding, :embedding) <= :distance
+				ORDER BY distance asc""")
+		SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
+				float distance);
 
 		SearchResults<WithVector> searchAllByCountryAndEmbeddingWithin(String country, Vector embedding,
 				Range<Similarity> distance);
