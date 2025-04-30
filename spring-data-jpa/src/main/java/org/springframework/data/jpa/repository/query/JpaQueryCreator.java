@@ -37,13 +37,12 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.VectorScoringFunctions;
-
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.repository.query.JpqlQueryBuilder.ParameterPlaceholder;
 import org.springframework.data.jpa.repository.query.ParameterBinding.PartTreeParameterBinding;
@@ -71,7 +70,8 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jinmyeong Kim
  */
-public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate> implements JpqlQueryCreator {
+public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
+		implements JpqlQueryCreator {
 
 	private static final Map<ScoringFunction, DistanceFunction> DISTANCE_FUNCTIONS = Map.of(VectorScoringFunctions.COSINE,
 			new DistanceFunction("cosine_distance", Sort.Direction.ASC), //
@@ -111,13 +111,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	}
 
 	public JpaQueryCreator(PartTree tree, ReturnedType type, ParameterMetadataProvider provider,
-			JpqlQueryTemplates templates,
-			Metamodel metamodel) {
+			JpqlQueryTemplates templates, Metamodel metamodel) {
 		this(tree, false, type, provider, templates, metamodel);
 	}
 
 	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
-		JpqlQueryTemplates templates, Metamodel metamodel) {
+			JpqlQueryTemplates templates, Metamodel metamodel) {
 
 		super(tree);
 
@@ -488,11 +487,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 					PartTreeParameterBinding parameter = provider.next(part, String.class);
 					JpqlQueryBuilder.Expression parameterExpression = potentiallyIgnoreCase(part.getProperty(),
 							placeholder(parameter));
+
 					// Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
 					String escapeChar = Character.toString(escape.getEscapeCharacter());
-					return
-
-					type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING)
+					return type.equals(NOT_LIKE) || type.equals(NOT_CONTAINING)
 							? whereIgnoreCase.notLike(parameterExpression, escapeChar)
 							: whereIgnoreCase.like(parameterExpression, escapeChar);
 				case TRUE:
@@ -519,7 +517,6 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 					where = JpqlQueryBuilder.where(entity, property);
 					return type.equals(IS_NOT_EMPTY) ? where.isNotEmpty() : where.isEmpty();
-
 				case WITHIN:
 				case NEAR:
 					PartTreeParameterBinding vector = provider.next(part);
@@ -527,7 +524,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 					if (within.getValue() instanceof Range<?> r) {
 
-						Range<Score> range = (Range<Score>) within.getValue();
+						Range<Score> range = (Range<Score>) r;
 
 						if (range.getUpperBound().isBounded() || range.getUpperBound().isBounded()) {
 
@@ -573,6 +570,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 						return getUpperPredicate(true, distance, distanceValue);
 					}
 
+					throw new InvalidDataAccessApiUsageException(
+							"Near/Within keywords must be used with a Score or Range<Score> type");
 				default:
 					throw new IllegalArgumentException("Unsupported keyword " + type);
 			}

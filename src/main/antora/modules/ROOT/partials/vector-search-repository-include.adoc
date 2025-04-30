@@ -14,7 +14,6 @@ interface CommentRepository extends Repository<Comment, String> {
       ORDER BY distance asc""")
   SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
       Score distance);
-
 }
 
 SearchResults<Comment> results = repository.searchByCountryAndEmbeddingNear("en", Vector.of(…), Score.of(0.9), Limit.of(10));

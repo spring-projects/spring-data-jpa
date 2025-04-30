@@ -18,7 +18,7 @@ package org.springframework.data.jpa.repository;
 import java.net.URL;
 import java.util.List;
 
-import org.hibernate.dialect.PostgreSQLDialect;
+import org.hibernate.dialect.OracleDialect;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -33,16 +33,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.oracle.OracleContainer;
+import org.testcontainers.utility.MountableFile;
 
 /**
- * Testcase to verify Vector Search work with Postgres (PGvector).
+ * Testcase to verify Vector Search work with Oracle.
  *
  * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = PgVectorIntegrationTests.Config.class)
-class PgVectorIntegrationTests extends AbstractVectorIntegrationTests {
+@ContextConfiguration(classes = OracleVectorIntegrationTests.Config.class)
+class OracleVectorIntegrationTests extends AbstractVectorIntegrationTests {
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = VectorSearchRepository.class))
@@ -50,7 +51,7 @@ class PgVectorIntegrationTests extends AbstractVectorIntegrationTests {
 	static class Config extends TestcontainerConfigSupport {
 
 		public Config() {
-			super(PostgreSQLDialect.class, new ClassPathResource("scripts/pgvector.sql"));
+			super(OracleDialect.class, new ClassPathResource("scripts/oracle-vector.sql"));
 		}
 
 		@Override
@@ -75,16 +76,18 @@ class PgVectorIntegrationTests extends AbstractVectorIntegrationTests {
 				public @Nullable URL getPersistenceUnitRootUrl() {
 					return null;
 				}
-			};
 
+			};
 		}
 
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start", destroyMethod = "start")
-		public PostgreSQLContainer<?> container() {
+		public OracleContainer container() {
 
-			return new PostgreSQLContainer<>("pgvector/pgvector:pg17") //
-					.withUsername("postgres").withReuse(true);
+			return new OracleContainer("gvenzl/oracle-free:23-slim") //
+					.withReuse(true)
+					.withCopyFileToContainer(MountableFile.forClasspathResource("/scripts/oracle-vector-initialize.sql"),
+							"/container-entrypoint-initdb.d/initialize.sql");
 		}
 
 	}

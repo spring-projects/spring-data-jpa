@@ -20,7 +20,6 @@ interface CommentRepository extends Repository<Comment, String> {
         AND cosine_distance(c.embedding, :embedding) <= :distance
       ORDER BY cosine_distance(c.embedding, :embedding) asc""")
   List<WithVector> findAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
-
 }
 ----
 ====

@@ -15,7 +15,6 @@ Maven::
       <version>${hibernate.version}</version>
     </dependency>
 </dependencies>
-
 ----
 
 Gradle::
@@ -29,3 +28,5 @@ dependencies {
 ----
 ====
 ======
+
+NOTE: While you can use `Vector` as type for queries, you cannot use it in your domain model as Hibernate requires float or double arrays as vector types.

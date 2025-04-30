@@ -13,4 +13,4 @@ interface CommentRepository extends Repository<Comment, String> {
 ----
 ====
 
-Derived Search Methods can define domain model attributes and Vector parameters.
+Derived search methods can declare predicates on domain model attributes and Vector parameters.

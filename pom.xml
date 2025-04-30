@@ -38,6 +38,7 @@
 		<jsqlparser>5.0</jsqlparser>
 		<mysql-connector-java>9.1.0</mysql-connector-java>
 		<postgresql>42.7.4</postgresql>
+		<oracle>23.7.0.25.01</oracle>
 		<springdata.commons>4.0.0-SEARCH-RESULT-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
@@ -116,6 +117,19 @@
 								<configuration>
 									<includes>
 										<include>**/Postgres*IntegrationTests.java
+										</include>
+									</includes>
+								</configuration>
+							</execution>
+							<execution>
+								<id>oracle-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<configuration>
+									<includes>
+										<include>**/Oracle*IntegrationTests.java
 										</include>
 									</includes>
 								</configuration>

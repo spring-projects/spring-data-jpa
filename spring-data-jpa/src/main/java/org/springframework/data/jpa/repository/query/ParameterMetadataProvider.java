@@ -78,8 +78,8 @@ public class ParameterMetadataProvider {
 	 * @param escape must not be {@literal null}.
 	 * @param templates must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(JpaParametersParameterAccessor accessor,
-			EscapeCharacter escape, JpqlQueryTemplates templates) {
+	public ParameterMetadataProvider(JpaParametersParameterAccessor accessor, EscapeCharacter escape,
+			JpqlQueryTemplates templates) {
 		this(accessor.iterator(), accessor, accessor.getParameters(), escape, templates);
 	}
 
@@ -91,8 +91,7 @@ public class ParameterMetadataProvider {
 	 * @param escape must not be {@literal null}.
 	 * @param templates must not be {@literal null}.
 	 */
-	public ParameterMetadataProvider(JpaParameters parameters, EscapeCharacter escape,
-			JpqlQueryTemplates templates) {
+	public ParameterMetadataProvider(JpaParameters parameters, EscapeCharacter escape, JpqlQueryTemplates templates) {
 		this(null, null, parameters, escape, templates);
 	}
 
@@ -106,8 +105,8 @@ public class ParameterMetadataProvider {
 	 * @param templates must not be {@literal null}.
 	 */
 	private ParameterMetadataProvider(@Nullable Iterator<Object> bindableParameterValues,
-			@Nullable JpaParametersParameterAccessor accessor, JpaParameters parameters,
-			EscapeCharacter escape, JpqlQueryTemplates templates) {
+			@Nullable JpaParametersParameterAccessor accessor, JpaParameters parameters, EscapeCharacter escape,
+			JpqlQueryTemplates templates) {
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(escape, "EscapeCharacter must not be null");
 		Assert.notNull(templates, "JpqlQueryTemplates must not be null");
@@ -196,14 +195,16 @@ public class ParameterMetadataProvider {
 		int currentPosition = ++position;
 		int currentBindMarker = ++bindMarker;
 
-		BindingIdentifier bindingIdentifier = parameter.getName().map(it -> BindingIdentifier.of(it, currentPosition))
+		BindingIdentifier bindingIdentifier = parameter.getName().map(it -> BindingIdentifier.of(it, currentBindMarker))
+				.orElseGet(() -> BindingIdentifier.of(currentBindMarker));
+
+		BindingIdentifier origin = parameter.getName().map(it -> BindingIdentifier.of(it, currentPosition))
 				.orElseGet(() -> BindingIdentifier.of(currentPosition));
 
 		/* identifier refers to bindable parameters, not _all_ parameters index */
-		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(BindingIdentifier.of(currentPosition));
-		PartTreeParameterBinding binding = new PartTreeParameterBinding(BindingIdentifier.of(currentBindMarker),
-				methodParameter, reifiedType,
-				part, value, templates, escape);
+		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(origin);
+		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier,
+				methodParameter, reifiedType, part, value, templates, escape);
 
 		// PartTreeParameterBinding is more expressive than a potential ParameterBinding for Vector.
 		bindings.add(binding);
@@ -284,7 +285,7 @@ public class ParameterMetadataProvider {
 
 		BindingIdentifier identifier = within.getIdentifier();
 		RangeParameterBinding rangeBinding = new RangeParameterBinding(
-				identifier.mapName(name -> name + "_upper").withPosition(bindMarker), within.getOrigin(), true, normalizer);
+				identifier.mapName(name -> name + "_lower").withPosition(bindMarker), within.getOrigin(), true, normalizer);
 		bindings.add(rangeBinding);
 
 		return rangeBinding;
