@@ -40,7 +40,7 @@ public abstract class AbstractEntity<ID> implements Persistable<ID> {
     return isNew; <2>
   }
 
-  @PrePersist <3>
+  @PostPersist <3>
   @PostLoad
   void markNotNew() {
     this.isNew = false;
