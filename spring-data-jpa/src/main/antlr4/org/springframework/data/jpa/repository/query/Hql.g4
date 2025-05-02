@@ -114,7 +114,12 @@ joinSpecifier
 fromRoot
     : entityName variable?
     | LATERAL? '(' subquery ')' variable?
+    | functionCallAsFromSource variable?
     ;
+
+functionCallAsFromSource
+    : identifier '(' (expression (',' expression)*)? ')'
+    ;    
 
 join
     : joinType JOIN FETCH? joinTarget joinRestriction? // Spec BNF says joinType isn't optional, but text says that it is.
@@ -123,6 +128,11 @@ join
 joinTarget
     : path variable?                        # JoinPath
     | LATERAL? '(' subquery ')' variable?   # JoinSubquery
+    | functionCallAsJoinTarget variable?    # JoinFunctionCall
+    ;
+
+functionCallAsJoinTarget
+    : identifier '(' (expression (',' expression)*)? ')'
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-update

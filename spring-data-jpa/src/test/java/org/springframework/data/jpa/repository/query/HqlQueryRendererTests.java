@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Yannick Brandt
+ * @author oscar.fanchin
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -1944,4 +1945,254 @@ class HqlQueryRendererTests {
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.object = :externalId");
 		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
 	}
+
+	@Test // GH-3864 - Added support for Set Return function (SRF) support H7 parsing and
+			// rendering
+	void fromSRFWithAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue ) d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date ) d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function() d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue , :longValue ) d
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void fromSRFWithoutAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue )
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date )
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function()
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue , :longValue )
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinEntityToSRFWithFunctionAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function(:date , :integerValue ) d on (e.id = d.idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function(:date ) d on (e.id = d.idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function() d on (e.id = d.idFunction)
+				""");
+
+		assertQuery(
+				"""
+							select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+							from EntityClass e join some_function(:date , :integerValue , :longValue ) d on (e.id = d.idFunction)
+						""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinEntityToSRFWithoutFunctionAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function(:date , :integerValue ) on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function(:date ) on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function() on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from EntityClass e join some_function(:date , :integerValue , :longValue ) on (e.id = idFunction)
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinSRFToEntityWithoutFunctionWithAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue ) d join EntityClass e on (e.id = d.idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date ) d join EntityClass e on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function() d join EntityClass e on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+			    	select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+			    	from some_function(:date , :integerValue , :longValue ) d join EntityClass e on (e.id = d.idFunction)
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinSRFToEntityWithoutFunctionWithoutAlias() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue ) join EntityClass e on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date ) join EntityClass e on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function() join EntityClass e on (e.id = idFunction)
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from some_function(:date , :integerValue , :longValue ) join EntityClass e on (e.id = idFunction)
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void selectSRFIntoSubquery() {
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from (select x.idFunction idFunction, x.nameFunction nameFunction
+					from some_function(:date , :integerValue ) x) d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from (select x.idFunction idFunction, x.nameFunction nameFunction
+					from some_function(:date ) x) d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from (select x.idFunction idFunction, x.nameFunction nameFunction
+					from some_function() x) d
+				""");
+
+		assertQuery("""
+					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+					from (select x.idFunction idFunction, x.nameFunction nameFunction
+					from some_function(:date , :integerValue , :longValue ) x) d
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinEntityToSRFIntoSubquery() {
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date , :integerValue ) x ) d on (k.id = d.idFunction)
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date ) x ) d on (k.id = d.idFunction)
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function() x ) d on (k.id = d.idFunction)
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date , :integerValue , :longValue ) x ) d on (k.id = d.idFunction)
+				""");
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinLateralEntityToSRF() {
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date , :integerValue ) x where x.idFunction = k.id ) d
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date ) x where x.idFunction = k.id ) d
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function() x where x.idFunction = k.id ) d
+				""");
+
+		assertQuery("""
+				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				   from EntityClass k
+				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				   from some_function(:date , :integerValue , :longValue ) x where x.idFunction = k.id ) d
+				""");
+
+	}
+
+	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
+			// rendering
+	void joinTwoFunctions() {
+		assertQuery("""
+				   select new com.example.dto.SampleDto(d.idFunction, d.nameFunction) 
+				   from some_function(:date , :integerValue ) d 
+				   inner join some_function_single_param(:date ) k on (d.idFunction = k.idFunctionSP)
+				""");
+
+	}
+
 }

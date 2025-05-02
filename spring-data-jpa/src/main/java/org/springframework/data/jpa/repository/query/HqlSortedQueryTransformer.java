@@ -31,6 +31,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author oscar.fanchin
  * @since 3.1
  */
 @SuppressWarnings("ConstantValue")
@@ -121,6 +122,19 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		return tokens;
 	}
+	
+	@Override
+	public QueryTokenStream visitJoinFunctionCall(HqlParser.JoinFunctionCallContext ctx) {
+
+		QueryTokenStream tokens = super.visitJoinFunctionCall(ctx);
+
+		if (ctx.variable() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(tokens.getLast());
+		}
+
+		return tokens;
+	}
+	
 
 	@Override
 	public QueryTokenStream visitVariable(HqlParser.VariableContext ctx) {

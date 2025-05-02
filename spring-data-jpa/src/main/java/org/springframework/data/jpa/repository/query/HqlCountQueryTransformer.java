@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author oscar.fanchin
  * @since 3.1
  */
 @SuppressWarnings("ConstantValue")
@@ -37,11 +38,13 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
 	private final boolean containsCTE;
+	private final boolean containsFromFunction;
 
 	HqlCountQueryTransformer(@Nullable String countProjection, HibernateQueryInformation queryInformation) {
 		this.countProjection = countProjection;
 		this.primaryFromAlias = queryInformation.getAlias();
 		this.containsCTE = queryInformation.hasCte();
+		this.containsFromFunction = queryInformation.hasFromFunction();
 	}
 
 	@Override
@@ -150,7 +153,15 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			if (ctx.variable() != null) {
 				builder.appendExpression(visit(ctx.variable()));
 			}
+		} else if (ctx.functionCallAsFromSource() != null) {
+
+			builder.appendExpression(visit(ctx.functionCallAsFromSource()));
+
+			if (ctx.variable() != null) {
+				builder.appendExpression(visit(ctx.variable()));
+			}
 		}
+
 
 		return builder;
 	}
@@ -194,7 +205,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			} else {
 
 				// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
-				if (containsCTE) {
+				if (containsCTE || containsFromFunction) {
 					nested.append(QueryTokens.token("*"));
 				} else {
 
