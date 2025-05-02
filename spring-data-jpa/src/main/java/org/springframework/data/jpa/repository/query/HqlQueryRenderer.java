@@ -31,6 +31,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Oscar Fanchin
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
@@ -61,6 +62,24 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitStart(HqlParser.StartContext ctx) {
 		return visit(ctx.ql_statement());
+	}
+
+	@Override
+	public QueryTokenStream visitFunctionCallAsFromSource(HqlParser.FunctionCallAsFromSourceContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.identifier()));
+
+		builder.append(TOKEN_OPEN_PAREN);
+
+		if (!ctx.expression().isEmpty()) {
+			builder.append(QueryTokenStream.concatExpressions(ctx.expression(), this::visit, TOKEN_COMMA));
+		}
+
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
 	}
 
 	@Override
@@ -386,6 +405,14 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			if (ctx.variable() != null) {
 				builder.appendExpression(visit(ctx.variable()));
 			}
+
+		} else if (ctx.functionCallAsFromSource() != null) {
+
+			builder.appendExpression(visit(ctx.functionCallAsFromSource()));
+
+			if (ctx.variable() != null) {
+				builder.appendExpression(visit(ctx.variable()));
+			}
 		}
 
 		return builder;
@@ -445,6 +472,39 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.variable() != null) {
 			builder.appendExpression(visit(ctx.variable()));
 		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitJoinFunctionCall(HqlParser.JoinFunctionCallContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.functionCallAsJoinTarget()));
+
+		if (ctx.variable() != null) {
+			builder.appendExpression(visit(ctx.variable()));
+		}
+
+		return builder;
+
+	}
+
+	@Override
+	public QueryTokenStream visitFunctionCallAsJoinTarget(HqlParser.FunctionCallAsJoinTargetContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.identifier()));
+
+		builder.append(TOKEN_OPEN_PAREN);
+
+		if (!ctx.expression().isEmpty()) {
+			builder.append(QueryTokenStream.concatExpressions(ctx.expression(), this::visit, TOKEN_COMMA));
+		}
+
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
 	}

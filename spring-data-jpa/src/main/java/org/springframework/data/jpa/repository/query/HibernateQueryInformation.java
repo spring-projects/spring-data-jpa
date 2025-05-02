@@ -23,19 +23,29 @@ import org.jspecify.annotations.Nullable;
  * Hibernate-specific query details capturing common table expression details.
  *
  * @author Mark Paluch
+ * @author oscar.fanchin
  * @since 3.5
  */
 class HibernateQueryInformation extends QueryInformation {
 
 	private final boolean hasCte;
+	
+	private final boolean hasFromFunction;
+	
 
 	public HibernateQueryInformation(@Nullable String alias, List<QueryToken> projection,
-			boolean hasConstructorExpression, boolean hasCte) {
+			boolean hasConstructorExpression, boolean hasCte,boolean hasFromFunction) {
 		super(alias, projection, hasConstructorExpression);
 		this.hasCte = hasCte;
+		this.hasFromFunction = hasFromFunction;
 	}
 
 	public boolean hasCte() {
 		return hasCte;
 	}
+	
+	public boolean hasFromFunction() {
+		return hasFromFunction;
+	}
+	
 }

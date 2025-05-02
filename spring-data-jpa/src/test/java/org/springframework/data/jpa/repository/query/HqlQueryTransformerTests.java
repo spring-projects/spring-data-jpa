@@ -1133,6 +1133,33 @@ class HqlQueryTransformerTests {
 		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee",
 				"select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
 	}
+	
+	
+	@Test // GH-3864
+	void testCountFromFunctionWithAlias() {
+
+		// given
+		var original = "select x.id, x.value from some_function(:date , :integerValue ) x";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).contains("select count(*) from some_function(:date , :integerValue ) x");
+	}	
+	
+	@Test // GH-3864
+	void testCountFromFunctionNoAlias() {
+
+		// given
+		var original = "select id, value from some_function(:date , :integerValue )";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).contains("select count(*) from some_function(:date , :integerValue )");
+	}
 
 	@Test // GH-3427
 	void sortShouldBeAppendedWithSpacingInCaseOfSetOperator() {
