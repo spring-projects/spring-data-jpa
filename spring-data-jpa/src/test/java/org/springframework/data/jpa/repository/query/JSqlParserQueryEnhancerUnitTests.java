@@ -245,6 +245,17 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
+	@Test // GH-3869
+	void shouldWorkWithParenthesedSelect() {
+
+		DefaultEntityQuery query = new TestEntityQuery("(SELECT is_contained_in(:innerId, :outerId))", true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
+
+		assertThat(query.getQueryString()).isEqualTo("(SELECT is_contained_in(:innerId, :outerId))");
+		assertThat(query.getAlias()).isNull();
+		assertThat(queryEnhancer.getProjection()).isEqualTo("is_contained_in(:innerId, :outerId)");
+	}
+
 	@ParameterizedTest // GH-2641
 	@MethodSource("mergeStatementWorksSource")
 	void mergeStatementWorksWithJSqlParser(String queryString, String alias) {
@@ -271,31 +282,9 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 						null));
 	}
 
-	@Test // GH-3869
-	void shouldWorkWithParenthesedSelect() {
-
-		String query = "(SELECT is_contained_in(:innerId, :outerId))";
-
-		StringQuery stringQuery = new StringQuery(query, true);
-		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
-
-		assertThat(stringQuery.getQueryString()).isEqualTo(query);
-		assertThat(stringQuery.getAlias()).isNull();
-		assertThat(queryEnhancer.getProjection()).isEqualTo("is_contained_in(:innerId, :outerId)");
-	}
-
 	private static DefaultQueryRewriteInformation getRewriteInformation(Sort sort) {
 		return new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
-	}
-
-	@Test // GH-3869
-	void shouldWorkWithoutFromClause() {
-		String query = "SELECT is_contained_in(:innerId, :outerId)";
-
-		StringQuery stringQuery = new StringQuery(query, true);
-
-		assertThat(stringQuery.getQueryString()).isEqualTo(query);
 	}
 
 }

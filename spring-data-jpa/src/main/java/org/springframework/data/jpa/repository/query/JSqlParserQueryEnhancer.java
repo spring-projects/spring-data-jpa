@@ -360,7 +360,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return applySortingToSetOperationList(setOperationList, sort);
 		}
 
-		doWithPlainSelect (selectStatement , it -> {
+		doWithPlainSelect(selectStatement, it -> {
 
 			List<OrderByElement> orderByElements = new ArrayList<>(16);
 			for (Sort.Order order : sort) {
