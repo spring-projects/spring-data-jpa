@@ -36,7 +36,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Geoffrey Deremetz
  * @author Christoph Strobl
  */
-public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
@@ -232,6 +232,17 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
+	@Test // GH-3869
+	void shouldWorkWithParenthesedSelect() {
+
+		DefaultEntityQuery query = new TestEntityQuery("(SELECT is_contained_in(:innerId, :outerId))", true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
+
+		assertThat(query.getQueryString()).isEqualTo("(SELECT is_contained_in(:innerId, :outerId))");
+		assertThat(query.getAlias()).isNull();
+		assertThat(queryEnhancer.getProjection()).isEqualTo("is_contained_in(:innerId, :outerId)");
+	}
+
 	@ParameterizedTest // GH-2641
 	@MethodSource("mergeStatementWorksSource")
 	void mergeStatementWorksWithJSqlParser(String queryString, String alias) {
@@ -261,15 +272,6 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	private static DefaultQueryRewriteInformation getRewriteInformation(Sort sort) {
 		return new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
-	}
-
-	@Test // GH-3869
-	void shouldWorkWithoutFromClause() {
-		String query = "SELECT is_contained_in(:innerId, :outerId)";
-
-		StringQuery stringQuery = new StringQuery(query, true);
-
-		assertThat(stringQuery.getQueryString()).isEqualTo(query);
 	}
 
 }
