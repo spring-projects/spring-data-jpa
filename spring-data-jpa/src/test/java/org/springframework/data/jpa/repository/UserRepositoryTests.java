@@ -456,7 +456,6 @@ class UserRepositoryTests {
 
 	@Test
 	void testUsesQueryAnnotation() {
-
 		assertThat(repository.findByAnnotatedQuery("gierke@synyx.de")).isNull();
 	}
 

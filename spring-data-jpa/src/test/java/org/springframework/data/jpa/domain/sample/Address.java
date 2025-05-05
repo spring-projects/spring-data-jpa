@@ -17,6 +17,8 @@ package org.springframework.data.jpa.domain.sample;
 
 import jakarta.persistence.Embeddable;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * @author Thomas Darimont
  */
@@ -51,5 +53,27 @@ public class Address {
 
 	public String getStreetNo() {
 		return streetNo;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Address address)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(country, address.country)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(city, address.city)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(streetName, address.streetName)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(streetNo, address.streetNo);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHash(country, city, streetName, streetNo);
 	}
 }
