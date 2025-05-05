@@ -34,7 +34,7 @@ import org.springframework.data.domain.Sort;
  * @author Geoffrey Deremetz
  * @author Christoph Strobl
  */
-public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery declaredQuery) {
@@ -258,12 +258,16 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	}
 
 	@Test // GH-3869
-	void shouldWorkWithoutFromClause() {
-		String query = "SELECT is_contained_in(:innerId, :outerId)";
+	void shouldWorkWithParenthesedSelect() {
+
+		String query = "(SELECT is_contained_in(:innerId, :outerId))";
 
 		StringQuery stringQuery = new StringQuery(query, true);
+		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(stringQuery);
 
 		assertThat(stringQuery.getQueryString()).isEqualTo(query);
+		assertThat(stringQuery.getAlias()).isNull();
+		assertThat(queryEnhancer.getProjection()).isEqualTo("is_contained_in(:innerId, :outerId)");
 	}
 
 }

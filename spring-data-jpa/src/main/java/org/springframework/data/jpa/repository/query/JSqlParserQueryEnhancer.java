@@ -48,8 +48,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Predicates;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -145,24 +148,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 		if (ParsedType.SELECT.equals(parsedType)) {
 
-			Select selectStatement = (Select) statement;
-
-			/*
-			 * For all the other types ({@link ValuesStatement} and {@link SetOperationList}) it does not make sense to provide
-			 * alias since:
-			 * ValuesStatement has no alias
-			 * SetOperation can have multiple alias for each operation item
-			 */
-			if (!(selectStatement instanceof PlainSelect selectBody)) {
-				return null;
-			}
-
-			if (selectBody.getFromItem() == null) {
-				return null;
-			}
-
-			Alias alias = selectBody.getFromItem().getAlias();
-			return alias == null ? null : alias.getName();
+			return doWithPlainSelect(statement, it -> it.getFromItem() == null || it.getFromItem().getAlias() == null,
+					it -> it.getFromItem().getAlias().getName(), () -> null);
 		}
 
 		return null;
@@ -175,20 +162,24 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	private static Set<String> getSelectionAliases(Statement statement) {
 
-		if (!(statement instanceof PlainSelect select) || CollectionUtils.isEmpty(select.getSelectItems())) {
-			return Collections.emptySet();
+		if (statement instanceof SetOperationList sel) {
+			statement = sel.getSelect(0);
 		}
 
-		Set<String> set = new HashSet<>(select.getSelectItems().size());
+		return doWithPlainSelect(statement, it -> CollectionUtils.isEmpty(it.getSelectItems()), it -> {
 
-		for (SelectItem<?> selectItem : select.getSelectItems()) {
-			Alias alias = selectItem.getAlias();
-			if (alias != null) {
-				set.add(alias.getName());
+			Set<String> set = new HashSet<>(it.getSelectItems().size(), 1.0f);
+
+			for (SelectItem<?> selectItem : it.getSelectItems()) {
+				Alias alias = selectItem.getAlias();
+				if (alias != null) {
+					set.add(alias.getName());
+				}
 			}
-		}
 
-		return set;
+			return set;
+
+		}, Collections::emptySet);
 	}
 
 	/**
@@ -198,21 +189,74 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 */
 	private static Set<String> getJoinAliases(Statement statement) {
 
-		if (!(statement instanceof PlainSelect selectBody) || CollectionUtils.isEmpty(selectBody.getJoins())) {
-			return Collections.emptySet();
+		if (statement instanceof SetOperationList sel) {
+			statement = sel.getSelect(0);
 		}
 
-		Set<String> set = new HashSet<>(selectBody.getJoins().size());
+		return doWithPlainSelect(statement, it -> CollectionUtils.isEmpty(it.getJoins()), it -> {
 
-		for (Join join : selectBody.getJoins()) {
-			Alias alias = join.getRightItem().getAlias();
-			if (alias != null) {
-				set.add(alias.getName());
+			Set<String> set = new HashSet<>(it.getJoins().size(), 1.0f);
+
+			for (Join join : it.getJoins()) {
+				Alias alias = join.getRightItem().getAlias();
+				if (alias != null) {
+					set.add(alias.getName());
+				}
+			}
+			return set;
+
+		}, Collections::emptySet);
+	}
+
+	/**
+	 * Apply a {@link java.util.function.Function mapping function} to the {@link PlainSelect} of the given
+	 * {@link Statement} is or contains a {@link PlainSelect}.
+	 *
+	 * @param statement
+	 * @param mapper
+	 * @param fallback
+	 * @return
+	 * @param <T>
+	 */
+	private static <T> T doWithPlainSelect(Statement statement, java.util.function.Function<PlainSelect, T> mapper,
+			Supplier<T> fallback) {
+
+		Predicate<PlainSelect> neverSkip = Predicates.isFalse();
+		return doWithPlainSelect(statement, neverSkip, mapper, fallback);
+	}
+
+	/**
+	 * Apply a {@link java.util.function.Function mapping function} to the {@link PlainSelect} of the given
+	 * {@link Statement} is or contains a {@link PlainSelect}.
+	 * <p>
+	 * The operation is only applied if {@link Predicate skipIf} returns {@literal false} for the given statement
+	 * returning the fallback value from {@code fallback}.
+	 *
+	 * @param statement
+	 * @param skipIf
+	 * @param mapper
+	 * @param fallback
+	 * @return
+	 * @param <T>
+	 */
+	private static <T> T doWithPlainSelect(Statement statement, Predicate<PlainSelect> skipIf,
+			java.util.function.Function<PlainSelect, T> mapper, Supplier<T> fallback) {
+
+		if (!(statement instanceof Select select)) {
+			return fallback.get();
+		}
+
+		try {
+			if (skipIf.test(select.getPlainSelect())) {
+				return fallback.get();
 			}
 		}
+		// e.g. SetOperationList is a subclass of Select but it is not a PlainSelect
+		catch (ClassCastException e) {
+			return fallback.get();
+		}
 
-		return set;
-
+		return mapper.apply(select.getPlainSelect());
 	}
 
 	private static String detectProjection(Statement statement) {
@@ -231,18 +275,17 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 			// using the first one since for setoperations the projection has to be the same
 			selectBody = setOperationList.getSelects().get(0);
+		}
 
-			if (!(selectBody instanceof PlainSelect)) {
-				return "";
+		return doWithPlainSelect(selectBody, it -> CollectionUtils.isEmpty(it.getSelectItems()), it -> {
+
+			StringJoiner joiner = new StringJoiner(", ");
+			for (SelectItem<?> selectItem : it.getSelectItems()) {
+				joiner.add(selectItem.toString());
 			}
-		}
+			return joiner.toString().trim();
 
-		StringJoiner joiner = new StringJoiner(", ");
-		for (SelectItem<?> selectItem : selectBody.getPlainSelect().getSelectItems()) {
-			joiner.add(selectItem.toString());
-		}
-		return joiner.toString().trim();
-
+		}, () -> "");
 	}
 
 	/**
@@ -328,20 +371,22 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return applySortingToSetOperationList(setOperationList, sort);
 		}
 
-		if (!(selectStatement instanceof PlainSelect selectBody)) {
-			return selectStatement.toString();
-		}
+		doWithPlainSelect(selectStatement, it -> {
 
-		List<OrderByElement> orderByElements = new ArrayList<>(16);
-		for (Sort.Order order : sort) {
-			orderByElements.add(getOrderClause(joinAliases, selectAliases, alias, order));
-		}
+			List<OrderByElement> orderByElements = new ArrayList<>(16);
+			for (Sort.Order order : sort) {
+				orderByElements.add(getOrderClause(joinAliases, selectAliases, alias, order));
+			}
 
-		if (CollectionUtils.isEmpty(selectBody.getOrderByElements())) {
-			selectBody.setOrderByElements(orderByElements);
-		} else {
-			selectBody.getOrderByElements().addAll(orderByElements);
-		}
+			if (CollectionUtils.isEmpty(it.getOrderByElements())) {
+				it.setOrderByElements(orderByElements);
+			} else {
+				it.getOrderByElements().addAll(orderByElements);
+			}
+
+			return null;
+
+		}, () -> "");
 
 		return selectStatement.toString();
 	}
@@ -356,18 +401,13 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");
 
 		Statement statement = (Statement) deserialize(this.serialized);
-		/*
-		  We only support count queries for {@link PlainSelect}.
-		 */
-		if (!(statement instanceof PlainSelect selectBody)) {
-			return this.query.getQueryString();
-		}
 
-		return createCountQueryFor(this.query, selectBody, countProjection, primaryAlias);
+		return doWithPlainSelect(statement, it -> createCountQueryFor(it, countProjection, primaryAlias),
+				this.query::getQueryString);
 	}
 
-	private static String createCountQueryFor(DeclaredQuery query, PlainSelect selectBody,
-			@Nullable String countProjection, @Nullable String primaryAlias) {
+	private static String createCountQueryFor(PlainSelect selectBody, @Nullable String countProjection,
+			@Nullable String primaryAlias) {
 
 		// remove order by
 		selectBody.setOrderByElements(null);
