@@ -237,7 +237,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		StringJoiner joiner = new StringJoiner(", ");
-		for (SelectItem<?> selectItem : ((PlainSelect) selectBody).getSelectItems()) {
+    	for (SelectItem<?> selectItem : selectBody.getPlainSelect().getSelectItems()) {
 			joiner.add(selectItem.toString());
 		}
 		return joiner.toString().trim();

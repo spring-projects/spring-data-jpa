@@ -257,4 +257,13 @@ public class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 						null));
 	}
 
+	@Test // GH-3869
+	void shouldWorkWithoutFromClause() {
+		String query = "SELECT is_contained_in(:innerId, :outerId)";
+
+		StringQuery stringQuery = new StringQuery(query, true);
+
+		assertThat(stringQuery.getQueryString()).isEqualTo(query);
+	}
+
 }
