@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
@@ -32,6 +33,8 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 	INSTANCE;
 
 	EmptyIntrospectedQuery() {}
+
+
 
 	@Override
 	public boolean hasParameterBindings() {
@@ -58,7 +61,17 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
+	public <T> T doWithEnhancer(Function<QueryEnhancer, T> function) {
+		return null;
+	}
+
+	@Override
 	public boolean hasConstructorExpression() {
+		return false;
+	}
+
+	@Override
+	public boolean isNative() {
 		return false;
 	}
 

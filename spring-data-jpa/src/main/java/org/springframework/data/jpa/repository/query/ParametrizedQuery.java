@@ -30,7 +30,7 @@ import java.util.List;
  * @see EntityQuery#create(DeclaredQuery, QueryEnhancerSelector)
  * @see TemplatedQuery#create(String, JpaQueryMethod, JpaQueryConfiguration)
  */
-interface ParametrizedQuery extends QueryProvider {
+public interface ParametrizedQuery extends QueryProvider {
 
 	/**
 	 * @return whether the underlying query has at least one parameter.

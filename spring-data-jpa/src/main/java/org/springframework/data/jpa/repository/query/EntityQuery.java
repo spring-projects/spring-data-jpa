@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.function.Function;
+
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -46,11 +48,25 @@ public interface EntityQuery extends ParametrizedQuery {
 	}
 
 	/**
+	 * Apply a {@link Function} to the query enhancer used by this query.
+	 *
+	 * @param function the callback function.
+	 * @return
+	 * @param <T>
+	 */
+	<T extends @Nullable Object> T doWithEnhancer(Function<QueryEnhancer, T> function);
+
+	/**
 	 * Returns whether the query is using a constructor expression.
 	 *
 	 * @since 1.10
 	 */
 	boolean hasConstructorExpression();
+
+	/**
+	 * @return whether the underlying query has at least one named parameter.
+	 */
+	boolean isNative();
 
 	/**
 	 * Returns whether the query uses the default projection, i.e. returns the main alias defined for the query.

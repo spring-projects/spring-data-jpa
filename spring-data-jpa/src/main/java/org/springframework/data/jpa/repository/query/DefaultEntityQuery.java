@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
@@ -44,6 +45,11 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 	DefaultEntityQuery(PreprocessedQuery query, QueryEnhancerFactory queryEnhancerFactory) {
 		this.query = query;
 		this.queryEnhancer = queryEnhancerFactory.create(query);
+	}
+
+	@Override
+	public <T> T doWithEnhancer(Function<QueryEnhancer, T> function) {
+		return function.apply(queryEnhancer);
 	}
 
 	@Override

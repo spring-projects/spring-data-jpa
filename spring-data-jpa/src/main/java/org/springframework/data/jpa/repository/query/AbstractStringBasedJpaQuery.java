@@ -161,7 +161,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		Class<?> returnedJavaType = processor.getReturnedType().getReturnedType();
 
 		if (query.isDefaultProjection() || !returnedType.isProjecting() || returnedJavaType.isInterface()
-				|| query.isNativeQuery()) {
+				|| query.isNative()) {
 			return returnedType;
 		}
 
@@ -178,23 +178,23 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return new NonProjectingReturnedType(returnedType);
 		}
 
-		String alias = query.getAlias();
-		String projection = query.getProjection();
+		String projectionToUse = query.<@Nullable String> doWithEnhancer(queryEnhancer -> {
 
-		// we can handle single-column and no function projections here only
-		if (StringUtils.hasText(projection) && (projection.indexOf(',') != -1 || projection.indexOf('(') != -1)) {
-			return returnedType;
-		}
+			String alias = queryEnhancer.detectAlias();
+			String projection = queryEnhancer.getProjection();
 
-		if (StringUtils.hasText(alias) && StringUtils.hasText(projection)) {
-			alias = alias.trim();
-			projection = projection.trim();
-			if (projection.startsWith(alias + ".")) {
-				projection = projection.substring(alias.length() + 1);
+			// we can handle single-column and no function projections here only
+			if (StringUtils.hasText(projection) && (projection.indexOf(',') != -1 || projection.indexOf('(') != -1)) {
+				return null;
 			}
-		}
 
-		if (StringUtils.hasText(projection)) {
+			if (StringUtils.hasText(alias) && StringUtils.hasText(projection)) {
+				alias = alias.trim();
+				projection = projection.trim();
+				if (projection.startsWith(alias + ".")) {
+					projection = projection.substring(alias.length() + 1);
+				}
+			}
 
 			int space = projection.indexOf(' ');
 
@@ -202,10 +202,15 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 				projection = projection.substring(0, space);
 			}
 
+			return projection;
+		});
+
+		if (StringUtils.hasText(projectionToUse)) {
+
 			Class<?> propertyType;
 
 			try {
-				PropertyPath from = PropertyPath.from(projection, getQueryMethod().getEntityInformation().getJavaType());
+				PropertyPath from = PropertyPath.from(projectionToUse, getQueryMethod().getEntityInformation().getJavaType());
 				propertyType = from.getLeafType();
 			} catch (PropertyReferenceException ignored) {
 				propertyType = null;
@@ -223,7 +228,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return returnedType;
 	}
 
-	String getSortedQueryString(Sort sort, ReturnedType returnedType) {
+	QueryProvider getSortedQuery(Sort sort, ReturnedType returnedType) {
 		return querySortRewriter.getSorted(query, sort, returnedType);
 	}
 
