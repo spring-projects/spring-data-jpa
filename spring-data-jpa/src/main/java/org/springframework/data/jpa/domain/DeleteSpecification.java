@@ -24,9 +24,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
-import org.springframework.lang.CheckReturnValue;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.CheckReturnValue;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
@@ -159,7 +159,7 @@ public interface DeleteSpecification<T> extends Serializable {
 		return (root, delete, builder) -> {
 
 			Predicate predicate = spec.toPredicate(root, delete, builder);
-			return predicate != null ? builder.not(predicate) : null;
+			return predicate != null ? builder.not(predicate) : builder.disjunction();
 		};
 	}
 

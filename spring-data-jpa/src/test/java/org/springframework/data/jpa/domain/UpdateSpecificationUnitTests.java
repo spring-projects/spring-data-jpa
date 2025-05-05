@@ -160,6 +160,17 @@ class UpdateSpecificationUnitTests implements Serializable {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
+	@Test // GH-3849
+	void notWithNullPredicate() {
+
+		when(builder.disjunction()).thenReturn(mock(Predicate.class));
+
+		UpdateSpecification<Object> notSpec = UpdateSpecification.not((r, q, cb) -> null);
+
+		assertThat(notSpec.toPredicate(root, update, builder)).isNotNull();
+		verify(builder).disjunction();
+	}
+
 	static class SerializableSpecification implements Serializable, UpdateSpecification<Object> {
 
 		@Override

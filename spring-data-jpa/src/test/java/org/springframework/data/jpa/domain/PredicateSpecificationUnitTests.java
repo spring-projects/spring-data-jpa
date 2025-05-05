@@ -158,6 +158,17 @@ class PredicateSpecificationUnitTests implements Serializable {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
+	@Test // GH-3849
+	void notWithNullPredicate() {
+
+		when(builder.disjunction()).thenReturn(mock(Predicate.class));
+
+		PredicateSpecification<Object> notSpec = PredicateSpecification.not((r, cb) -> null);
+
+		assertThat(notSpec.toPredicate(root, builder)).isNotNull();
+		verify(builder).disjunction();
+	}
+
 	static class SerializableSpecification implements Serializable, PredicateSpecification<Object> {
 
 		@Override

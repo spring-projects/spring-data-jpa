@@ -131,7 +131,6 @@ class SpecificationUnitTests {
 		Predicate secondPredicate = mock(Predicate.class);
 
 		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
-
 		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
 
 		first.or(second).toPredicate(root, query, builder);
@@ -139,14 +138,14 @@ class SpecificationUnitTests {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
-	@Test // #3849
+	@Test // GH-3849
 	void notWithNullPredicate() {
-		Specification<Object> spec = (r, q, cb) -> null;
 
-		Specification<Object> notSpec = Specification.not(spec);
+		when(builder.disjunction()).thenReturn(mock(Predicate.class));
 
-		notSpec.toPredicate(root, query, builder);
-		
+		Specification<Object> notSpec = Specification.not((r, q, cb) -> null);
+
+		assertThat(notSpec.toPredicate(root, query, builder)).isNotNull();
 		verify(builder).disjunction();
 	}
 

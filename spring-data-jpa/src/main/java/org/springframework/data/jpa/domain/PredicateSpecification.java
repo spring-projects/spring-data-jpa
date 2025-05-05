@@ -23,9 +23,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.StreamSupport;
 
-import org.springframework.lang.CheckReturnValue;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.lang.CheckReturnValue;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 
@@ -113,7 +113,7 @@ public interface PredicateSpecification<T> extends Serializable {
 		return (root, builder) -> {
 
 			Predicate predicate = spec.toPredicate(root, builder);
-			return predicate != null ? builder.not(predicate) : null;
+			return predicate != null ? builder.not(predicate) : builder.disjunction();
 		};
 	}
 
