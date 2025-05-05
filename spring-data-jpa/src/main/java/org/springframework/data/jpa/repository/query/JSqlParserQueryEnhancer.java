@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
  * @author Christoph Strobl
+ * @author Diego Pedregal
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -237,7 +238,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		}
 
 		StringJoiner joiner = new StringJoiner(", ");
-    	for (SelectItem<?> selectItem : selectBody.getPlainSelect().getSelectItems()) {
+		for (SelectItem<?> selectItem : selectBody.getPlainSelect().getSelectItems()) {
 			joiner.add(selectItem.toString());
 		}
 		return joiner.toString().trim();
