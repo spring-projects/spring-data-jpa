@@ -18,12 +18,17 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -48,7 +53,8 @@ import org.springframework.util.StringUtils;
  */
 abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
-	private final DeclaredQuery query;
+	private final StringQuery query;
+	private final Map<Class<?>, Boolean> knownProjections = new ConcurrentHashMap<>();
 	private final Lazy<DeclaredQuery> countQuery;
 	private final ValueExpressionDelegate valueExpressionDelegate;
 	private final QueryParameterSetter.QueryMetadataCache metadataCache = new QueryParameterSetter.QueryMetadataCache();
@@ -120,7 +126,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		Sort sort = accessor.getSort();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		ReturnedType returnedType = processor.getReturnedType();
+		ReturnedType returnedType = getReturnedType(processor);
 		String sortedQueryString = getSortedQueryString(sort, returnedType);
 		Query query = createJpaQuery(sortedQueryString, sort, accessor.getPageable(), returnedType);
 
@@ -129,6 +135,81 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		// it is ok to reuse the binding contained in the ParameterBinder, although we create a new query String because the
 		// parameters in the query do not change.
 		return parameterBinder.get().bindAndPrepare(query, metadata, accessor);
+	}
+
+	/**
+	 * Post-process {@link ReturnedType} to determine if the query is projecting by checking the projection and property
+	 * assignability.
+	 *
+	 * @param processor
+	 * @return
+	 */
+	private ReturnedType getReturnedType(ResultProcessor processor) {
+
+		ReturnedType returnedType = processor.getReturnedType();
+		Class<?> returnedJavaType = processor.getReturnedType().getReturnedType();
+
+		if (query.isDefaultProjection() || !returnedType.isProjecting() || returnedJavaType.isInterface()
+				|| query.isNativeQuery()) {
+			return returnedType;
+		}
+
+		Boolean known = knownProjections.get(returnedJavaType);
+
+		if (known != null && known) {
+			return returnedType;
+		}
+
+		if ((known != null && !known) || returnedJavaType.isArray()) {
+			if (known == null) {
+				knownProjections.put(returnedJavaType, false);
+			}
+			return new NonProjectingReturnedType(returnedType);
+		}
+
+		String alias = query.getAlias();
+		String projection = query.getProjection();
+
+		// we can handle single-column and no function projections here only
+		if (StringUtils.hasText(projection) && (projection.indexOf(',') != -1 || projection.indexOf('(') != -1)) {
+			return returnedType;
+		}
+
+		if (StringUtils.hasText(alias) && StringUtils.hasText(projection)) {
+			alias = alias.trim();
+			projection = projection.trim();
+			if (projection.startsWith(alias + ".")) {
+				projection = projection.substring(alias.length() + 1);
+			}
+		}
+
+		if (StringUtils.hasText(projection)) {
+
+			int space = projection.indexOf(' ');
+
+			if (space != -1) {
+				projection = projection.substring(0, space);
+			}
+
+			Class<?> propertyType;
+
+			try {
+				PropertyPath from = PropertyPath.from(projection, getQueryMethod().getEntityInformation().getJavaType());
+				propertyType = from.getLeafType();
+			} catch (PropertyReferenceException ignored) {
+				propertyType = null;
+			}
+
+			if (propertyType == null
+					|| (returnedJavaType.isAssignableFrom(propertyType) || propertyType.isAssignableFrom(returnedJavaType))) {
+				knownProjections.put(returnedJavaType, false);
+				return new NonProjectingReturnedType(returnedType);
+			} else {
+				knownProjections.put(returnedJavaType, true);
+			}
+		}
+
+		return returnedType;
 	}
 
 	String getSortedQueryString(Sort sort, ReturnedType returnedType) {
@@ -346,6 +427,48 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			int result = queryString != null ? queryString.hashCode() : 0;
 			result = 31 * result + (sort != null ? sort.hashCode() : 0);
 			return result;
+		}
+	}
+
+	/**
+	 * Non-projecting {@link ReturnedType} wrapper that delegates to the original {@link ReturnedType} but always returns
+	 * {@code false} for {@link #isProjecting()}. This type is to indicate that this query is not projecting, even if the
+	 * original {@link ReturnedType} was because we e.g. select a nested property and do not want DTO constructor
+	 * expression rewriting to kick in.
+	 */
+	private static class NonProjectingReturnedType extends ReturnedType {
+
+		private final ReturnedType delegate;
+
+		NonProjectingReturnedType(ReturnedType delegate) {
+			super(delegate.getDomainType());
+			this.delegate = delegate;
+		}
+
+		@Override
+		public boolean isProjecting() {
+			return false;
+		}
+
+		@Override
+		public Class<?> getReturnedType() {
+			return delegate.getReturnedType();
+		}
+
+		@Override
+		public boolean needsCustomConstruction() {
+			return false;
+		}
+
+		@Override
+		@Nullable
+		public Class<?> getTypeToRead() {
+			return delegate.getTypeToRead();
+		}
+
+		@Override
+		public List<String> getInputProperties() {
+			return delegate.getInputProperties();
 		}
 	}
 }

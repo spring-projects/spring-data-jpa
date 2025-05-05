@@ -15,10 +15,8 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.domain.Sort.Direction.DESC;
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.domain.Sort.Direction.*;
 
 import jakarta.persistence.EntityManager;
 
@@ -33,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Limit;
@@ -43,6 +42,7 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
@@ -422,6 +422,11 @@ class UserRepositoryFinderTests {
 
 		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
 				.contains("Dave", "Carter", "Oliver August");
+
+		dtos = userRepository.findRecordProjectionWithFunctions();
+
+		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::lastname) //
+				.contains("matthews", "beauford");
 	}
 
 	@Test // GH-3076
@@ -440,6 +445,29 @@ class UserRepositoryFinderTests {
 
 		assertThat(dtos).flatExtracting(UserRepository.UserExcerpt::firstname) //
 				.contains("Dave", "Carter", "Oliver August");
+	}
+
+	@Test // GH-3862
+	void shouldNotRewritePrimitiveSelectionToDtoProjection() {
+
+		oliver.setAge(28);
+		em.persist(oliver);
+
+		assertThat(userRepository.findAgeByAnnotatedQuery(oliver.getEmailAddress())).contains(28);
+	}
+
+	@Test // GH-3862
+	void shouldNotRewritePropertySelectionToDtoProjection() {
+
+		Address address = new Address("DE", "Dresden", "some street", "12345");
+		dave.setAddress(address);
+		userRepository.save(dave);
+		em.flush();
+		em.clear();
+
+		assertThat(userRepository.findAddressByAnnotatedQuery(dave.getEmailAddress())).contains(address);
+		assertThat(userRepository.findCityByAnnotatedQuery(dave.getEmailAddress())).contains("Dresden");
+		assertThat(userRepository.findRolesByAnnotatedQuery(dave.getEmailAddress())).contains(singer);
 	}
 
 	@Test // GH-3076

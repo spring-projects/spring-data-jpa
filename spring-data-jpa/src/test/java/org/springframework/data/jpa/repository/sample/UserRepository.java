@@ -37,6 +37,7 @@ import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -723,11 +724,38 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u")
 	List<UserExcerpt> findRecordProjection();
 
+	@Query("select u.firstname, LOWER(u.lastname) from User u")
+	List<UserExcerpt> findRecordProjectionWithFunctions();
+
 	@Query("select u from User u")
 	<T> List<T> findRecordProjection(Class<T> projectionType);
 
 	@Query("select u.firstname, u.lastname from User u")
 	List<UserExcerpt> findMultiselectRecordProjection();
+
+	/**
+	 * Retrieves a user age by email.
+	 */
+	@Query("select u.age from User u where u.emailAddress = ?1")
+	Optional<Integer> findAgeByAnnotatedQuery(String emailAddress);
+
+	/**
+	 * Retrieves a user address by email.
+	 */
+	@Query("select u.address from User u where u.emailAddress = ?1")
+	Optional<Address> findAddressByAnnotatedQuery(String emailAddress);
+
+	/**
+	 * Retrieves a user roles by email.
+	 */
+	@Query("select u.roles from User u where u.emailAddress = ?1")
+	Set<Role> findRolesByAnnotatedQuery(String emailAddress);
+
+	/**
+	 * Retrieves a user address city by email.
+	 */
+	@Query("select u.address.city from User u where u.emailAddress = ?1")
+	String findCityByAnnotatedQuery(String emailAddress);
 
 	@UserRoleCountProjectingQuery
 	List<UserRoleCountDtoProjection> dtoProjectionEntityAndAggregatedValue();

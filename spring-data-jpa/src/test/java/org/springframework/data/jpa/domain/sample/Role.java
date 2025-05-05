@@ -19,6 +19,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
+import org.springframework.util.ObjectUtils;
+
 /**
  * Sample domain class representing roles. Mapped with XML.
  *
@@ -54,5 +56,18 @@ public class Role {
 
 	public boolean isNew() {
 		return id == null;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Role role)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(id, role.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHash(id);
 	}
 }
