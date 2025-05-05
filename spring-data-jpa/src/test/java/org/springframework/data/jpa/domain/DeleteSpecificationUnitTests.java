@@ -160,6 +160,17 @@ class DeleteSpecificationUnitTests implements Serializable {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
+	@Test // GH-3849
+	void notWithNullPredicate() {
+
+		when(builder.disjunction()).thenReturn(mock(Predicate.class));
+
+		DeleteSpecification<Object> notSpec = DeleteSpecification.not((r, q, cb) -> null);
+
+		assertThat(notSpec.toPredicate(root, delete, builder)).isNotNull();
+		verify(builder).disjunction();
+	}
+
 	static class SerializableSpecification implements Serializable, DeleteSpecification<Object> {
 
 		@Override
