@@ -549,6 +549,7 @@ trim_specification
 
 cast_function
     : CAST '(' single_valued_path_expression identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    | CAST '(' (scalar_expression | state_valued_path_expression) AS identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
     ;
 
 function_invocation
@@ -969,7 +970,6 @@ TREAT                       : T R E A T;
 TRIM                        : T R I M;
 TRUE                        : T R U E;
 TYPE                        : T Y P E;
-UNION                       : U N I O N;
 UPDATE                      : U P D A T E;
 UPPER                       : U P P E R;
 VALUE                       : V A L U E;

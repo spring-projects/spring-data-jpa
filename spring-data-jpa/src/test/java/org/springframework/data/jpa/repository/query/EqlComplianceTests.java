@@ -412,4 +412,13 @@ class EqlComplianceTests {
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT null OR e.active = true)");
 		assertQuery("SELECT e FROM Employee e WHERE (e.active IS NOT NULL OR e.active = true)");
 	}
+
+	@Test // GH-3863
+	void standardJpaCastSyntax() {
+		
+		// Test standard JPA cast syntax with AS keyword
+		assertQuery("SELECT i FROM Item i WHERE cast(i.date AS date) <= cast(:currentDateTime AS date)");
+		assertQuery("SELECT i FROM Item i WHERE CAST(i.id AS INTEGER) > 50000");
+		assertQuery("SELECT CAST(e.salary AS NUMERIC(10, 2)) FROM Employee e");
+	}
 }

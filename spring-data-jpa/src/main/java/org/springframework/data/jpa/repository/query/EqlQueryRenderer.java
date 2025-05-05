@@ -1958,16 +1958,35 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		builder.append(QueryTokens.token(ctx.CAST()));
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.appendInline(visit(ctx.single_valued_path_expression()));
-		builder.append(TOKEN_SPACE);
-		builder.appendInline(visit(ctx.identification_variable()));
-
-		if (ctx.numeric_literal() != null) {
-
-			builder.append(TOKEN_OPEN_PAREN);
-			builder.appendInline(QueryTokenStream.concat(ctx.numeric_literal(), this::visit, TOKEN_COMMA));
-			builder.append(TOKEN_CLOSE_PAREN);
+		
+		if (ctx.AS() != null) {
+			// Handle the standard JPA CAST syntax: CAST(expression AS type)
+			if (ctx.scalar_expression() != null) {
+				builder.appendInline(visit(ctx.scalar_expression()));
+			} else if (ctx.state_valued_path_expression() != null) {
+				builder.appendInline(visit(ctx.state_valued_path_expression()));
+			}
+			builder.append(QueryTokens.expression(ctx.AS()));
+			builder.appendInline(visit(ctx.identification_variable()));
+			
+			if (ctx.numeric_literal() != null && !ctx.numeric_literal().isEmpty()) {
+				builder.append(TOKEN_OPEN_PAREN);
+				builder.appendInline(QueryTokenStream.concat(ctx.numeric_literal(), this::visit, TOKEN_COMMA));
+				builder.append(TOKEN_CLOSE_PAREN);
+			}
+		} else {
+			// Handle the original EclipseLink syntax: CAST(path type)
+			builder.appendInline(visit(ctx.single_valued_path_expression()));
+			builder.append(TOKEN_SPACE);
+			builder.appendInline(visit(ctx.identification_variable()));
+			
+			if (ctx.numeric_literal() != null && !ctx.numeric_literal().isEmpty()) {
+				builder.append(TOKEN_OPEN_PAREN);
+				builder.appendInline(QueryTokenStream.concat(ctx.numeric_literal(), this::visit, TOKEN_COMMA));
+				builder.append(TOKEN_CLOSE_PAREN);
+			}
 		}
+		
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
