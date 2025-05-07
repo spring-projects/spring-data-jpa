@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.springframework.data.querydsl.QuerydslUtils.*;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Tuple;
 
@@ -32,7 +30,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.projection.CollectionAwareProjectionFactory;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,7 +37,6 @@ import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -79,6 +75,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private JpaRepositoryFragmentsContributor fragmentsContributor = JpaRepositoryFragmentsContributor.DEFAULT;
 	private QueryEnhancerSelector queryEnhancerSelector = QueryEnhancerSelector.DEFAULT_SELECTOR;
 	private JpaQueryMethodFactory queryMethodFactory;
 	private QueryRewriterProvider queryRewriterProvider;
@@ -157,6 +154,17 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
 		this.escapeCharacter = escapeCharacter;
+	}
+
+	/**
+	 * Configures the {@link JpaRepositoryFragmentsContributor} to be used. Defaults to
+	 * {@link JpaRepositoryFragmentsContributor#DEFAULT}.
+	 *
+	 * @param fragmentsContributor
+	 * @since 4.0
+	 */
+	public void setFragmentsContributor(JpaRepositoryFragmentsContributor fragmentsContributor) {
+		this.fragmentsContributor = fragmentsContributor;
 	}
 
 	/**
@@ -259,51 +267,39 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-
 		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
 	}
 
 	@Override
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata) {
-
 		return getRepositoryFragments(metadata, entityManager, entityPathResolver, this.crudMethodMetadata);
 	}
 
 	/**
-	 * Creates {@link RepositoryFragments} based on {@link RepositoryMetadata} to add JPA-specific extensions. Typically
+	 * Creates {@link RepositoryFragments} based on {@link RepositoryMetadata} to add JPA-specific extensions. Typically,
 	 * adds a {@link QuerydslJpaPredicateExecutor} if the repository interface uses Querydsl.
 	 * <p>
-	 * Can be overridden by subclasses to customize {@link RepositoryFragments}.
+	 * Built-in fragment contribution can be customized by configuring {@link JpaRepositoryFragmentsContributor}.
 	 *
 	 * @param metadata repository metadata.
 	 * @param entityManager the entity manager.
 	 * @param resolver resolver to translate a plain domain class into a {@link EntityPath}.
 	 * @param crudMethodMetadata metadata about the invoked CRUD methods.
-	 * @return
+	 * @return {@link RepositoryFragments} to be added to the repository.
 	 * @since 2.5.1
 	 */
 	protected RepositoryFragments getRepositoryFragments(RepositoryMetadata metadata, EntityManager entityManager,
 			EntityPathResolver resolver, CrudMethodMetadata crudMethodMetadata) {
 
-		boolean isQueryDslRepository = QUERY_DSL_PRESENT
-				&& QuerydslPredicateExecutor.class.isAssignableFrom(metadata.getRepositoryInterface());
+		RepositoryFragments fragments = this.fragmentsContributor.contribute(metadata,
+				getEntityInformation(metadata.getDomainType()), entityManager, resolver);
 
-		if (isQueryDslRepository) {
-
-			if (metadata.isReactiveRepository()) {
-				throw new InvalidDataAccessApiUsageException(
-						"Cannot combine Querydsl and reactive repository support in a single interface");
-			}
-
-			QuerydslJpaPredicateExecutor<?> querydslJpaPredicateExecutor = new QuerydslJpaPredicateExecutor<>(
-					getEntityInformation(metadata.getDomainType()), entityManager, resolver, crudMethodMetadata);
-			invokeAwareMethods(querydslJpaPredicateExecutor);
-
-			return RepositoryFragments
-					.of(RepositoryFragment.implemented(QuerydslPredicateExecutor.class, querydslJpaPredicateExecutor));
+		for (RepositoryFragment<?> fragment : fragments) {
+			fragment.getImplementation().filter(JpaRepositoryConfigurationAware.class::isInstance)
+					.ifPresent(it -> invokeAwareMethods((JpaRepositoryConfigurationAware) it));
 		}
 
-		return RepositoryFragments.empty();
+		return fragments;
 	}
 
 	private void invokeAwareMethods(JpaRepositoryConfigurationAware repository) {

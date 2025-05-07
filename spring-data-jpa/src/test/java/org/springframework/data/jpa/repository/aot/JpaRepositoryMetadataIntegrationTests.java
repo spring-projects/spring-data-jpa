@@ -61,7 +61,7 @@ class JpaRepositoryMetadataIntegrationTests {
 
 		assertThatJson(json).isObject() //
 				.containsEntry("name", UserRepository.class.getName()) //
-				.containsEntry("module", "") // TODO: JPA should be here
+				.containsEntry("module", "JPA") //
 				.containsEntry("type", "IMPERATIVE");
 	}
 

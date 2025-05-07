@@ -55,9 +55,10 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private @Nullable BeanFactory beanFactory;
 	private @Nullable EntityManager entityManager;
 	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
+	private JpaRepositoryFragmentsContributor repositoryFragmentsContributor = JpaRepositoryFragmentsContributor.DEFAULT;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
 	private @Nullable JpaQueryMethodFactory queryMethodFactory;
-	private @Nullable Function<BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;
+	private @Nullable Function<@Nullable BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;
 
 	/**
 	 * Creates a new {@link JpaRepositoryFactoryBean} for the given repository interface.
@@ -100,20 +101,24 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		this.entityPathResolver = resolver.getIfAvailable(() -> SimpleEntityPathResolver.INSTANCE);
 	}
 
-	/**
-	 * Configures the {@link JpaQueryMethodFactory} to be used. Will expect a canonical bean to be present but will
-	 * fallback to {@link org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory} in case none is
-	 * available.
-	 *
-	 * @param resolver may be {@literal null}.
-	 */
-	@Autowired
-	public void setQueryMethodFactory(ObjectProvider<JpaQueryMethodFactory> resolver) { // TODO: nullable insteand of ObjectProvider
+	@Override
+	public JpaRepositoryFragmentsContributor getRepositoryFragmentsContributor() {
+		return repositoryFragmentsContributor;
+	}
 
-		JpaQueryMethodFactory factory = resolver.getIfAvailable();
-		if (factory != null) {
-			this.queryMethodFactory = factory;
-		}
+	/**
+	 * Configures the {@link JpaRepositoryFragmentsContributor} to contribute built-in fragment functionality to the
+	 * repository.
+	 *
+	 * @param repositoryFragmentsContributor must not be {@literal null}.
+	 * @since 4.0
+	 */
+	public void setRepositoryFragmentsContributor(JpaRepositoryFragmentsContributor repositoryFragmentsContributor) {
+		this.repositoryFragmentsContributor = repositoryFragmentsContributor;
+	}
+
+	public void setEscapeCharacter(char escapeCharacter) {
+		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
 	}
 
 	/**
@@ -153,6 +158,23 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		};
 	}
 
+	/**
+	 * Configures the {@link JpaQueryMethodFactory} to be used. Will expect a canonical bean to be present but will
+	 * fallback to {@link org.springframework.data.jpa.repository.query.DefaultJpaQueryMethodFactory} in case none is
+	 * available.
+	 *
+	 * @param resolver may be {@literal null}.
+	 */
+	@Autowired
+	public void setQueryMethodFactory(ObjectProvider<JpaQueryMethodFactory> resolver) { // TODO: nullable insteand of
+																																											// ObjectProvider
+
+		JpaQueryMethodFactory factory = resolver.getIfAvailable();
+		if (factory != null) {
+			this.queryMethodFactory = factory;
+		}
+	}
+
 	@Override
 	protected RepositoryFactorySupport doCreateRepositoryFactory() {
 
@@ -169,6 +191,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
 		factory.setEntityPathResolver(entityPathResolver);
 		factory.setEscapeCharacter(escapeCharacter);
+		factory.setFragmentsContributor(getRepositoryFragmentsContributor());
 
 		if (queryMethodFactory != null) {
 			factory.setQueryMethodFactory(queryMethodFactory);
@@ -189,8 +212,4 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		super.afterPropertiesSet();
 	}
 
-	public void setEscapeCharacter(char escapeCharacter) {
-
-		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
-	}
 }
