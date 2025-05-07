@@ -15,13 +15,15 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.aop.framework.Advised;
 import org.springframework.core.OverridingClassLoader;
 import org.springframework.data.jpa.domain.sample.User;
@@ -62,6 +65,7 @@ class JpaRepositoryFactoryUnitTests {
 	private JpaRepositoryFactory factory;
 
 	@Mock EntityManager entityManager;
+	@Mock PersistenceUnitUtil persistenceUnitUtil;
 	@Mock Metamodel metamodel;
 	@Mock
 	@SuppressWarnings("rawtypes") JpaEntityInformation entityInformation;
@@ -74,6 +78,7 @@ class JpaRepositoryFactoryUnitTests {
 		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
 		when(entityManager.getDelegate()).thenReturn(entityManager);
 		when(emf.createEntityManager()).thenReturn(entityManager);
+		when(emf.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 
 		// Setup standard factory configuration
 		factory = new JpaRepositoryFactory(entityManager) {
@@ -139,6 +144,9 @@ class JpaRepositoryFactoryUnitTests {
 
 	@Test
 	void createsProxyWithCustomBaseClass() {
+
+		when(metamodel.managedType(any()))
+				.thenReturn(mock(ManagedType.class, withSettings().extraInterfaces(IdentifiableType.class)));
 
 		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);

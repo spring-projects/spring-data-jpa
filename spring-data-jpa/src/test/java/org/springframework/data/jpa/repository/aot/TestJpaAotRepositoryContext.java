@@ -81,6 +81,11 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	}
 
 	@Override
+	public String getModuleName() {
+		return "JPA";
+	}
+
+	@Override
 	public Set<String> getBasePackages() {
 		return Set.of("org.springframework.data.dummy.repository.aot");
 	}

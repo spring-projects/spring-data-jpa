@@ -89,6 +89,11 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		}
 
 		@Override
+		public String getModuleName() {
+			return "JPA";
+		}
+
+		@Override
 		public Set<String> getBasePackages() {
 			return Collections.singleton(this.getClass().getPackageName());
 		}

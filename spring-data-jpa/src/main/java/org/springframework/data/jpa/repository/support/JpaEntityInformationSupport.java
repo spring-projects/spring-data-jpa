@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityInformation<T, ID>
 		implements JpaEntityInformation<T, ID> {
 
-	private JpaEntityMetadata<T> metadata;
+	private final JpaEntityMetadata<T> metadata;
 
 	/**
 	 * Creates a new {@link JpaEntityInformationSupport} with the given domain class.
