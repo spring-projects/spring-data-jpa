@@ -68,6 +68,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	private final EntityGraphLookup entityGraphLookup;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
+
 		super(repositoryContext);
 
 		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes());
@@ -78,6 +79,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
+
 		super(repositoryContext);
 
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
