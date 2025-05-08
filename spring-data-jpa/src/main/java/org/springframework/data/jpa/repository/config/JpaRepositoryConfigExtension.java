@@ -325,6 +325,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
+		String GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
+
 		protected @Nullable RepositoryContributor contribute(AotRepositoryContext repositoryContext,
 				GenerationContext generationContext) {
 
@@ -334,11 +336,20 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				return null;
 			}
 
-			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
-			EntityManagerFactory emf = beanFactory.getBeanProvider(EntityManagerFactory.class).getIfAvailable();
+			boolean useEntityManager = Boolean.parseBoolean(
+					repositoryContext.getEnvironment().getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
 
-			return emf != null ? new JpaRepositoryContributor(repositoryContext, emf)
-					: new JpaRepositoryContributor(repositoryContext);
+			if (useEntityManager) {
+
+				ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
+				EntityManagerFactory emf = beanFactory.getBeanProvider(EntityManagerFactory.class).getIfAvailable();
+
+				if (emf != null) {
+					return new JpaRepositoryContributor(repositoryContext, emf);
+				}
+			}
+
+			return new JpaRepositoryContributor(repositoryContext);
 		}
 	}
 }
