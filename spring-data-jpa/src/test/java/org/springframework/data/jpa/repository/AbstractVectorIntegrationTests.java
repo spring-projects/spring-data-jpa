@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,7 +36,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
@@ -53,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Testcase to verify Vector Search work with Hibernate.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @Transactional
 @Rollback(value = false)
@@ -65,10 +65,11 @@ abstract class AbstractVectorIntegrationTests {
 	@BeforeEach
 	void setUp() {
 
-		WithVector w1 = new WithVector("de", "one", new float[] { 0.1001f, 0.22345f, 0.33456f, 0.44567f, 0.55678f });
-		WithVector w2 = new WithVector("de", "two", new float[] { 0.2001f, 0.32345f, 0.43456f, 0.54567f, 0.65678f });
-		WithVector w3 = new WithVector("en", "three", new float[] { 0.9001f, 0.82345f, 0.73456f, 0.64567f, 0.55678f });
-		WithVector w4 = new WithVector("de", "four", new float[] { 0.9001f, 0.92345f, 0.93456f, 0.94567f, 0.95678f });
+		WithVector w1 = new WithVector("de", "one", "d1", new float[] { 0.1001f, 0.22345f, 0.33456f, 0.44567f, 0.55678f });
+		WithVector w2 = new WithVector("de", "two", "d2", new float[] { 0.2001f, 0.32345f, 0.43456f, 0.54567f, 0.65678f });
+		WithVector w3 = new WithVector("en", "three", "d3",
+				new float[] { 0.9001f, 0.82345f, 0.73456f, 0.64567f, 0.55678f });
+		WithVector w4 = new WithVector("de", "four", "d4", new float[] { 0.9001f, 0.92345f, 0.93456f, 0.94567f, 0.95678f });
 
 		repository.deleteAllInBatch();
 		repository.saveAllAndFlush(Arrays.asList(w1, w2, w3, w4));
@@ -93,7 +94,7 @@ abstract class AbstractVectorIntegrationTests {
 				VectorScoringFunctions.EUCLIDEAN);
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldNormalizeEuclideanSimilarity() {
 
 		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithin("de", VECTOR,
@@ -108,7 +109,16 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(two.getScore().getValue()).isGreaterThan(0.99);
 	}
 
-	@Test
+	@Test // GH-3868
+	void orderTargetsProperty() {
+
+		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithinOrderByDistance("de", VECTOR,
+				Similarity.of(0, VectorScoringFunctions.EUCLIDEAN));
+
+		assertThat(results.getContent()).extracting(it -> it.getContent().getDistance()).containsExactly("d1", "d2", "d4");
+	}
+
+	@Test// GH-3868
 	void shouldNormalizeCosineSimilarity() {
 
 		SearchResults<WithVector> results = repository.searchTop5ByCountryAndEmbeddingWithin("de", VECTOR,
@@ -123,7 +133,7 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(two.getScore().getValue()).isGreaterThan(0.99);
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldRunStringQuery() {
 
 		List<WithVector> results = repository.findAnnotatedByCountryAndEmbeddingWithin("de", VECTOR,
@@ -133,7 +143,7 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(results).extracting(WithVector::getDescription).containsSequence("two", "one", "four");
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldRunStringQueryWithDistance() {
 
 		SearchResults<WithVector> results = repository.searchAnnotatedByCountryAndEmbeddingWithin("de", VECTOR,
@@ -149,7 +159,7 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(result.getScore().getFunction()).isEqualTo(VectorScoringFunctions.COSINE);
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldRunStringQueryWithFloatDistance() {
 
 		SearchResults<WithVector> results = repository.searchAnnotatedByCountryAndEmbeddingWithin("de", VECTOR, 2);
@@ -164,7 +174,7 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(result.getScore().getFunction()).isEqualTo(ScoringFunction.unspecified());
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldApplyVectorSearchWithRange() {
 
 		SearchResults<WithVector> results = repository.searchAllByCountryAndEmbeddingWithin("de", VECTOR,
@@ -176,7 +186,7 @@ abstract class AbstractVectorIntegrationTests {
 				.containsSequence("two", "one", "four");
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldApplyVectorSearchAndReturnList() {
 
 		List<WithVector> results = repository.findAllByCountryAndEmbeddingWithin("de", VECTOR,
@@ -186,7 +196,7 @@ abstract class AbstractVectorIntegrationTests {
 		assertThat(results).extracting(WithVector::getDescription).containsSequence("one", "two", "four");
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldProjectVectorSearchAsInterface() {
 
 		SearchResults<WithDescription> results = repository.searchInterfaceProjectionByCountryAndEmbeddingWithin("de",
@@ -196,7 +206,7 @@ abstract class AbstractVectorIntegrationTests {
 				.containsSequence("two", "one", "four");
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldProjectVectorSearchAsDto() {
 
 		SearchResults<DescriptionDto> results = repository.searchDtoByCountryAndEmbeddingWithin("de", VECTOR,
@@ -206,7 +216,7 @@ abstract class AbstractVectorIntegrationTests {
 				.containsSequence("two", "one", "four");
 	}
 
-	@Test
+	@Test // GH-3868
 	void shouldProjectVectorSearchDynamically() {
 
 		SearchResults<DescriptionDto> dtos = repository.searchDynamicByCountryAndEmbeddingWithin("de", VECTOR,
@@ -233,16 +243,19 @@ abstract class AbstractVectorIntegrationTests {
 		private String country;
 		private String description;
 
+		private String distance;
+
 		@Column(name = "the_embedding")
 		@JdbcTypeCode(SqlTypes.VECTOR)
 		@Array(length = 5) private float[] embedding;
 
 		public WithVector() {}
 
-		public WithVector(String country, String description, float[] embedding) {
+		public WithVector(String country, String description, String distance, float[] embedding) {
 			this.country = country;
 			this.description = description;
 			this.embedding = embedding;
+			this.distance = distance;
 		}
 
 		public Integer getId() {
@@ -273,9 +286,22 @@ abstract class AbstractVectorIntegrationTests {
 			this.embedding = embedding;
 		}
 
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public String getDistance() {
+			return distance;
+		}
+
+		public void setDistance(String distance) {
+			this.distance = distance;
+		}
+
 		@Override
 		public String toString() {
-			return "WithVector{" + "country='" + country + '\'' + ", description='" + description + '\'' + '}';
+			return "WithVector{" + "id=" + id + ", country='" + country + '\'' + ", description='" + description + '\''
+					+ ", distance='" + distance + '\'' + ", embedding=" + Arrays.toString(embedding) + '}';
 		}
 	}
 
@@ -327,6 +353,9 @@ abstract class AbstractVectorIntegrationTests {
 				Range<Similarity> distance);
 
 		SearchResults<WithVector> searchTop5ByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+
+		SearchResults<WithVector> searchTop5ByCountryAndEmbeddingWithinOrderByDistance(String country, Vector embedding,
+				Score distance);
 
 		SearchResults<WithDescription> searchInterfaceProjectionByCountryAndEmbeddingWithin(String country,
 				Vector embedding, Score distance);

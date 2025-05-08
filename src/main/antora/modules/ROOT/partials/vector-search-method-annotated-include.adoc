@@ -11,7 +11,7 @@ interface CommentRepository extends Repository<Comment, String> {
       WHERE c.country = ?1
         AND cosine_distance(c.embedding, :embedding) <= :distance
       ORDER BY distance asc""")
-  SearchResults<WithVector> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
+  SearchResults<Comment> searchAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding,
       Score distance);
 
   @Query("""
@@ -19,7 +19,7 @@ interface CommentRepository extends Repository<Comment, String> {
       WHERE c.country = ?1
         AND cosine_distance(c.embedding, :embedding) <= :distance
       ORDER BY cosine_distance(c.embedding, :embedding) asc""")
-  List<WithVector> findAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
+  List<Comment> findAnnotatedByCountryAndEmbeddingWithin(String country, Vector embedding, Score distance);
 }
 ----
 ====

@@ -34,8 +34,6 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 
 	EmptyIntrospectedQuery() {}
 
-
-
 	@Override
 	public boolean hasParameterBindings() {
 		return false;
@@ -61,6 +59,7 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public <T> T doWithEnhancer(Function<QueryEnhancer, T> function) {
 		return null;
 	}
