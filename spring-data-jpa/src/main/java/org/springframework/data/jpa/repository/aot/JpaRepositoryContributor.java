@@ -36,20 +36,18 @@ import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
+import org.springframework.data.repository.aot.generate.AotRepositoryClassBuilder;
 import org.springframework.data.repository.aot.generate.AotRepositoryConstructorBuilder;
-import org.springframework.data.repository.aot.generate.AotRepositoryFragmentMetadata;
 import org.springframework.data.repository.aot.generate.MethodContributor;
 import org.springframework.data.repository.aot.generate.QueryMetadata;
 import org.springframework.data.repository.aot.generate.RepositoryContributor;
 import org.springframework.data.repository.config.AotRepositoryContext;
-import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
-import org.springframework.javapoet.TypeSpec;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -88,9 +86,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	}
 
 	@Override
-	protected void customizeClass(RepositoryInformation information, AotRepositoryFragmentMetadata metadata,
-			TypeSpec.Builder builder) {
-		builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class));
+	protected void customizeClass(AotRepositoryClassBuilder classBuilder) {
+		classBuilder.customize(builder -> builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class)));
 	}
 
 	@Override
@@ -102,16 +99,15 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		constructorBuilder.addParameter("context", RepositoryFactoryBeanSupport.FragmentCreationContext.class);
 
 		// TODO: Pick up the configured QueryEnhancerSelector
-		constructorBuilder.customize((repositoryInformation, builder) -> {
+		constructorBuilder.customize(builder -> {
 			builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
 		});
 	}
 
 	@Override
-	protected @Nullable MethodContributor<? extends QueryMethod> contributeQueryMethod(Method method,
-			RepositoryInformation repositoryInformation) {
+	protected @Nullable MethodContributor<? extends QueryMethod> contributeQueryMethod(Method method) {
 
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, repositoryInformation, getProjectionFactory(),
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, getRepositoryInformation(), getProjectionFactory(),
 				persistenceProvider);
 
 		// meh!
@@ -124,7 +120,6 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 			MethodContributor.QueryMethodMetadataContributorBuilder<JpaQueryMethod> builder = MethodContributor
 					.forQueryMethod(queryMethod);
-
 
 			if (procedure != null) {
 
@@ -150,7 +145,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		MergedAnnotation<Query> query = MergedAnnotations.from(method).get(Query.class);
 
-		AotQueries aotQueries = queriesFactory.createQueries(repositoryInformation, query, selector, queryMethod,
+		AotQueries aotQueries = queriesFactory.createQueries(getRepositoryInformation(), query, selector, queryMethod,
 				returnedType);
 
 		// no KeysetScrolling for now.
@@ -167,7 +162,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		if (queryMethod.isModifyingQuery()) {
 
-			TypeInformation<?> returnType = repositoryInformation.getReturnType(method);
+			TypeInformation<?> returnType = getRepositoryInformation().getReturnType(method);
 
 			boolean returnsCount = JpaCodeBlocks.QueryExecutionBlockBuilder.returnsModifying(returnType.getType());
 
@@ -182,26 +177,26 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		return MethodContributor.forQueryMethod(queryMethod).withMetadata(aotQueries.toMetadata(queryMethod.isPageQuery()))
 				.contribute(context -> {
 
-			CodeBlock.Builder body = CodeBlock.builder();
+					CodeBlock.Builder body = CodeBlock.builder();
 
-			MergedAnnotation<NativeQuery> nativeQuery = context.getAnnotation(NativeQuery.class);
-			MergedAnnotation<QueryHints> queryHints = context.getAnnotation(QueryHints.class);
-			MergedAnnotation<EntityGraph> entityGraph = context.getAnnotation(EntityGraph.class);
-			MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
+					MergedAnnotation<NativeQuery> nativeQuery = context.getAnnotation(NativeQuery.class);
+					MergedAnnotation<QueryHints> queryHints = context.getAnnotation(QueryHints.class);
+					MergedAnnotation<EntityGraph> entityGraph = context.getAnnotation(EntityGraph.class);
+					MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
 
-			AotEntityGraph aotEntityGraph = entityGraphLookup.findEntityGraph(entityGraph, repositoryInformation,
-					returnedType, queryMethod);
+					AotEntityGraph aotEntityGraph = entityGraphLookup.findEntityGraph(entityGraph, getRepositoryInformation(),
+							returnedType, queryMethod);
 
-			body.add(JpaCodeBlocks.queryBuilder(context, queryMethod).filter(aotQueries)
-					.queryReturnType(QueriesFactory.getQueryReturnType(aotQueries.result(), returnedType, context))
-					.nativeQuery(nativeQuery).queryHints(queryHints).entityGraph(aotEntityGraph)
-					.queryRewriter(query.isPresent() ? query.getClass("queryRewriter") : null).build());
+					body.add(JpaCodeBlocks.queryBuilder(context, queryMethod).filter(aotQueries)
+							.queryReturnType(QueriesFactory.getQueryReturnType(aotQueries.result(), returnedType, context))
+							.nativeQuery(nativeQuery).queryHints(queryHints).entityGraph(aotEntityGraph)
+							.queryRewriter(query.isPresent() ? query.getClass("queryRewriter") : null).build());
 
-			body.add(
-					JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result()).build());
+					body.add(JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result())
+							.build());
 
-			return body.build();
-		});
+					return body.build();
+				});
 	}
 
 	record StoredProcedureMetadata(String procedure) implements QueryMetadata {

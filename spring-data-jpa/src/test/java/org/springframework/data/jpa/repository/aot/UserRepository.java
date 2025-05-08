@@ -104,8 +104,9 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query("select u from User u where u.lastname like ?1%")
 	List<User> findAnnotatedQueryByLastname(String lastname, Limit limit, Sort sort);
 
+	// nasty parameter names
 	@Query("select u from User u where u.lastname like ?1%")
-	List<User> findAnnotatedQueryByLastname(String lastname, Pageable pageable);
+	List<User> findAnnotatedQueryByLastname(String query, Pageable queryString);
 
 	@Query("select u from User u where u.lastname like ?1%")
 	Page<User> findAnnotatedQueryPageOfUsersByLastname(String lastname, Pageable pageable);
