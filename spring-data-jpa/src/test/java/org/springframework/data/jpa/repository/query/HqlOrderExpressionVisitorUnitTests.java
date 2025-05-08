@@ -15,7 +15,10 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,11 +30,11 @@ import jakarta.persistence.criteria.Selection;
 
 import java.util.Locale;
 
+import org.hibernate.query.sqm.tree.SqmRenderContext;
 import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -125,26 +128,26 @@ class HqlOrderExpressionVisitorUnitTests {
 
 		// JDBC
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts '2024-01-01 12:34:56'}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01T12:34:56");
+				.startsWithIgnoringCase("order by u.createdAt + '2024-01-01T12:34:56'");
 
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts '2012-01-03 09:00:00.000000001'}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 2012-01-03T09:00:00.000000001");
+				.startsWithIgnoringCase("order by u.createdAt + '2012-01-03T09:00:00.000000001'");
 
 		// Hibernate NPE
-		assertThatNullPointerException().isThrownBy(() -> renderOrderBy(JpaSort.unsafe("createdAt + {t '12:34:56'}"), "u"));
+		assertThatIllegalArgumentException().isThrownBy(() -> renderOrderBy(JpaSort.unsafe("createdAt + {t '12:34:56'}"), "u"));
 
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {d '2024-01-01'}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01");
+				.startsWithIgnoringCase("order by u.createdAt + '2024-01-01'");
 
 		// JPQL
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts 2024-01-01 12:34:56}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01T12:34:56");
+				.startsWithIgnoringCase("order by u.createdAt + '2024-01-01T12:34:56'");
 
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {t 12:34:56}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 12:34:56");
+				.startsWithIgnoringCase("order by u.createdAt + '12:34:56'");
 
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {d 2024-01-01}"), "u"))
-				.startsWithIgnoringCase("order by u.createdAt + 2024-01-01");
+				.startsWithIgnoringCase("order by u.createdAt + '2024-01-01'");
 	}
 
 	@Test // GH-3172
@@ -262,7 +265,7 @@ class HqlOrderExpressionVisitorUnitTests {
 		SqmSelectStatement s = (SqmSelectStatement) q;
 
 		StringBuilder builder = new StringBuilder();
-		s.appendHqlString(builder);
+		s.appendHqlString(builder, SqmRenderContext.simpleContext());
 
 		return builder.toString();
 	}
