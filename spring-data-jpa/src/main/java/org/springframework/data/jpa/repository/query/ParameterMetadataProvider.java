@@ -120,7 +120,7 @@ public class ParameterMetadataProvider {
 		this.templates = templates;
 	}
 
-	public JpaParameters getParameters() {
+	JpaParameters getParameters() {
 		return this.jpaParameters;
 	}
 
@@ -216,6 +216,10 @@ public class ParameterMetadataProvider {
 		return binding;
 	}
 
+	/**
+	 * @return the scoring function if available {@link ScoringFunction#unspecified()} by default.
+	 * @since 4.0
+	 */
 	ScoringFunction getScoringFunction() {
 
 		if (accessor != null) {
@@ -225,6 +229,12 @@ public class ParameterMetadataProvider {
 		return ScoringFunction.unspecified();
 	}
 
+	/**
+	 *
+	 * @return the vector binding identifier.
+	 * @throws IllegalStateException if parameters do not cotain
+	 * @since 4.0
+	 */
 	ParameterBinding getVectorBinding() {
 
 		if (!getParameters().hasVectorParameter()) {

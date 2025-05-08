@@ -15,8 +15,9 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlCount;
+import static org.springframework.data.jpa.repository.query.JSqlParserUtils.getJSqlLower;
+import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
 
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
@@ -52,7 +53,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Predicates;
 import org.springframework.util.Assert;
@@ -356,6 +356,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	private String applySorting(@Nullable Select selectStatement, Sort sort, @Nullable String alias) {
 
+		Assert.notNull(selectStatement, "SelectStatement must not be null");
+
 		if (selectStatement instanceof SetOperationList setOperationList) {
 			return applySortingToSetOperationList(setOperationList, sort);
 		}
@@ -381,6 +383,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
+	@SuppressWarnings("NullAway")
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (this.parsedType != ParsedType.SELECT) {

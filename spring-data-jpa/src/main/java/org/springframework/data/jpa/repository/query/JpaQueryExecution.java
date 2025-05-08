@@ -295,6 +295,7 @@ public abstract class JpaQueryExecution {
 			return provider.getResultCount(resultQuery, () -> doCount(repositoryQuery, accessor));
 		}
 
+		@SuppressWarnings("NullAway")
 		long doCount(AbstractJpaQuery repositoryQuery, JpaParametersParameterAccessor accessor) {
 
 			List<?> totals = repositoryQuery.createCountQuery(accessor).getResultList();

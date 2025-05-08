@@ -323,10 +323,6 @@ public class ParameterBinding {
 
 			return Collections.singleton(value);
 		}
-
-		public String lower() {
-			return null;
-		}
 	}
 
 	/**
