@@ -2859,6 +2859,17 @@ class UserRepositoryTests {
 				);
 	}
 
+	@Test // GH-3877
+	void delete() {
+
+		flushTestUsers();
+		em.clear();
+
+		long delete = repository.delete(QUser.user.firstname.eq(firstUser.getFirstname()));
+
+		assertThat(delete).isEqualTo(1);
+	}
+
 	@Test // GH-2820
 	void findByFluentPredicateWithProjectionAndPageRequest() {
 

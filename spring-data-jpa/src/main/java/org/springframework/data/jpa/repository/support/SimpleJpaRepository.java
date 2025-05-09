@@ -205,13 +205,18 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(entity, ENTITY_MUST_NOT_BE_NULL);
 
+		doDelete(entityManager, entityInformation, entity);
+	}
+
+	static <T> boolean doDelete(EntityManager entityManager, JpaEntityInformation<T, ?> entityInformation, T entity) {
+
 		if (entityInformation.isNew(entity)) {
-			return;
+			return false;
 		}
 
 		if (entityManager.contains(entity)) {
 			entityManager.remove(entity);
-			return;
+			return true;
 		}
 
 		Class<?> type = ProxyUtils.getUserClass(entity);
@@ -220,7 +225,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		T existing = (T) entityManager.find(type, entityInformation.getId(entity));
 		if (existing != null) {
 			entityManager.remove(entityManager.merge(entity));
+
+			return true;
 		}
+
+		return false;
 	}
 
 	@Override

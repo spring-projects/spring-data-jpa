@@ -263,6 +263,33 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		return createQuery(predicate).fetchCount();
 	}
 
+	/**
+	 * Delete entities by the given {@link Predicate} by loading and removing these.
+	 * <p>
+	 * This method is useful for a small amount of entities. For large amounts of entities, consider using batch deletes
+	 * by declaring a delete query yourself.
+	 *
+	 * @param predicate the {@link Predicate} to delete entities by, must not be {@literal null}.
+	 * @return number of deleted entities.
+	 * @since 4.0
+	 */
+	public long delete(Predicate predicate) {
+
+		Assert.notNull(predicate, PREDICATE_MUST_NOT_BE_NULL);
+
+		List<T> results = (List<T>) createQuery(predicate).fetch();
+
+		int deleted = 0;
+
+		for (T entity : results) {
+			if (SimpleJpaRepository.doDelete(entityManager, entityInformation, entity)) {
+				deleted++;
+			}
+		}
+
+		return deleted;
+	}
+
 	@Override
 	public boolean exists(Predicate predicate) {
 		return createQuery(predicate).select(Expressions.ONE).fetchFirst() != null;
