@@ -551,6 +551,17 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		assertThat(users).allMatch(u -> u.getRoles().isEmpty());
 	}
 
+	@Test // GH-3877
+	void deleteShouldDeleteUsers() {
+
+		long deleted = predicateExecutor.delete(user.dateOfBirth.isNull());
+
+		assertThat(deleted).isEqualTo(3);
+		em.flush();
+
+		assertThat(predicateExecutor.findAll(user.dateOfBirth.isNull())).isEmpty();
+	}
+
 	private interface UserProjectionInterfaceBased {
 
 		String getFirstname();

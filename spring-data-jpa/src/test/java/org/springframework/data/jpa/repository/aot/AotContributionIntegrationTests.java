@@ -60,7 +60,7 @@ class AotContributionIntegrationTests {
 		String json = isr.getContentAsString(StandardCharsets.UTF_8);
 
 		assertThatJson(json).inPath("$.methods[?(@.name == 'findBy')].fragment").isArray().first().isObject()
-				.containsEntry("interface", "org.springframework.data.querydsl.QuerydslPredicateExecutor")
+				.containsEntry("interface", "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor")
 				.containsEntry("fragment", "org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor");
 
 		assertThatJson(json).inPath("$.methods[?(@.name == 'existsById')].fragment").isArray().first().isObject()
