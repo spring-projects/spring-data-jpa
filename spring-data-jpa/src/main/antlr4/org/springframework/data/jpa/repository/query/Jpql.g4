@@ -307,7 +307,6 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
-    | cast_function
     | entity_type_expression
     ;
 
@@ -398,13 +397,15 @@ all_or_any_expression
     ;
 
 comparison_expression
-    : string_expression comparison_operator (string_expression | all_or_any_expression)
-    | boolean_expression op=(EQUAL | NOT_EQUAL) (boolean_expression | all_or_any_expression)
-    | enum_expression op=(EQUAL | NOT_EQUAL) (enum_expression | all_or_any_expression)
-    | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)
-    | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)
-    | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression)
-    | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression
+    : string_expression comparison_operator (string_expression | all_or_any_expression)         #StringComparison
+    | boolean_expression op=(EQUAL | NOT_EQUAL) (boolean_expression | all_or_any_expression)    #BooleanComparison
+    | boolean_expression                                                                        #DirectBooleanCheck
+    | enum_expression op=(EQUAL | NOT_EQUAL) (enum_expression | all_or_any_expression)          #EnumComparison
+    | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)     #DatetimeComparison
+    | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)      #EntityComparison
+    | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression) #ArithmeticComparison
+    | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression                      #EntityTypeComparison
+    | string_expression REGEXP string_literal                                                   #RegexpComparison
     ;
 
 comparison_operator
@@ -438,7 +439,8 @@ arithmetic_primary
     | functions_returning_numerics
     | aggregate_expression
     | case_expression
-    | cast_function
+    | arithmetic_cast_function
+    | type_cast_function
     | function_invocation
     | '(' subquery ')'
     ;
@@ -451,6 +453,8 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
+    | string_cast_function
+    | type_cast_function
     | '(' subquery ')'
     | string_expression '||' string_expression
     ;
@@ -548,8 +552,16 @@ trim_specification
     | BOTH
     ;
 
-cast_function
-    : CAST '(' single_valued_path_expression (identification_variable)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+arithmetic_cast_function
+    : CAST '(' string_expression (AS)? f=(INTEGER|LONG|FLOAT|DOUBLE) ')'
+    ;
+
+type_cast_function
+    : CAST '(' scalar_expression (AS)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    ;
+
+string_cast_function
+    : CAST '(' scalar_expression (AS)? STRING ')'
     ;
 
 function_invocation
@@ -784,6 +796,7 @@ reserved_word
        |BOTH
        |BY
        |CASE
+       |CAST
        |CEILING
        |COALESCE
        |CONCAT

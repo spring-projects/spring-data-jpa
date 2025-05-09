@@ -25,12 +25,12 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Greg Turnquist
  */
-public class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
 
-		assumeThat(query.isNative()).isFalse();
+		assumeThat(query.isNative()).describedAs("HQL (non-native) only").isFalse();
 
 		return JpaQueryEnhancer.forHql(query.getQueryString());
 	}

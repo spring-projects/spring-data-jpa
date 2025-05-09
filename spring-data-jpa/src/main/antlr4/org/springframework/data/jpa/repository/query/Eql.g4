@@ -314,7 +314,6 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
-    | cast_function
     | entity_type_expression
     ;
 
@@ -447,7 +446,8 @@ arithmetic_primary
     | functions_returning_numerics
     | aggregate_expression
     | case_expression
-    | cast_function
+    | arithmetic_cast_function
+    | type_cast_function
     | function_invocation
     | '(' subquery ')'
     ;
@@ -460,6 +460,8 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
+    | string_cast_function
+    | type_cast_function
     | '(' subquery ')'
     | string_expression '||' string_expression
     ;
@@ -557,8 +559,16 @@ trim_specification
     | BOTH
     ;
 
-cast_function
-    : CAST '(' single_valued_path_expression (identification_variable)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+arithmetic_cast_function
+    : CAST '(' string_expression (AS)? f=(INTEGER|LONG|FLOAT|DOUBLE) ')'
+    ;
+
+type_cast_function
+    : CAST '(' scalar_expression (AS)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    ;
+
+string_cast_function
+    : CAST '(' scalar_expression (AS)? STRING ')'
     ;
 
 function_invocation
