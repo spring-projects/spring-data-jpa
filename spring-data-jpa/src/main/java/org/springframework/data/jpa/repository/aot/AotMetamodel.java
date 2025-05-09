@@ -47,7 +47,7 @@ class AotMetamodel implements Metamodel {
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
 
 	public AotMetamodel(Set<Class<?>> managedTypes) {
-		this("dynamic-tests", managedTypes);
+		this("AotMetamodel", managedTypes);
 	}
 
 	private AotMetamodel(String persistenceUnit, Set<Class<?>> managedTypes) {
