@@ -4,6 +4,7 @@ prerelease: ${antora-component.prerelease}
 asciidoc:
   attributes:
     version: ${project.version}
+    copyright-year: ${current.year}
     springversionshort: ${spring.short}
     springversion: ${spring}
     attribute-missing: 'warn'

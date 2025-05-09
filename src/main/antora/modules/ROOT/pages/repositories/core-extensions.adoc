@@ -38,20 +38,20 @@ Maven::
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
-            <annotationProcessorPaths>
-                <!-- Explicit opt-in required via annotationProcessors or
+                <annotationProcessorPaths>
+                    <!-- Explicit opt-in required via annotationProcessors or
                         annotationProcessorPaths on Java 22+, see https://bugs.openjdk.org/browse/JDK-8306819 -->
-                <annotationProcessorPath>
-                    <groupId>com.querydsl</groupId>
-                    <artifactId>querydsl-apt</artifactId>
-                    <version>${querydslVersion}</version>
-                    <classifier>jakarta</classifier>
-                </annotationProcessorPath>
-                <annotationProcessorPath>
-                    <groupId>jakarta.persistence</groupId>
-                    <artifactId>jakarta.persistence-api</artifactId>
-                </annotationProcessorPath>
-              </annotationProcessorPaths>
+                    <annotationProcessorPath>
+                        <groupId>com.querydsl</groupId>
+                        <artifactId>querydsl-apt</artifactId>
+                        <version>${querydslVersion}</version>
+                        <classifier>jakarta</classifier>
+                    </annotationProcessorPath>
+                    <annotationProcessorPath>
+                        <groupId>jakarta.persistence</groupId>
+                        <artifactId>jakarta.persistence-api</artifactId>
+                    </annotationProcessorPath>
+                </annotationProcessorPaths>
 
                 <!-- Recommended: Some IDE's might require this configuration to include generated sources for IDE usage -->
                 <generatedTestSourcesDirectory>target/generated-test-sources</generatedTestSourcesDirectory>
@@ -78,13 +78,8 @@ dependencies {
 }
 ----
 ====
-======
 
-Or if you use an OpenFeign fork:
-
-[tabs]
-======
-Maven::
+Maven (OpenFeign)::
 +
 [source,xml,indent=0,subs="verbatim,quotes",role="primary"]
 ----
@@ -116,46 +111,16 @@ Maven::
                         <artifactId>jakarta.persistence-api</artifactId>
                     </annotationProcessorPath>
                 </annotationProcessorPaths>
+                <!-- Recommended: Some IDE's might require this configuration to include generated sources for IDE usage -->
+                <generatedTestSourcesDirectory>target/generated-test-sources</generatedTestSourcesDirectory>
+                <generatedSourcesDirectory>target/generated-sources</generatedSourcesDirectory>
             </configuration>
-        </plugin>
-    
-        <!-- Recommended: Some IDE's might require this configuration to include generated sources for IDE usage -->
-        <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.6.0</version>
-            <executions>
-                <execution>
-                    <id>add-source</id>
-                    <phase>generate-sources</phase>
-                    <goals>
-                        <goal>add-source</goal>
-                    </goals>
-                    <configuration>
-                        <sources>
-                            <source>target/generated-sources</source>
-                        </sources>
-                    </configuration>
-                </execution>
-                <execution>
-                    <id>add-test-source</id>
-                    <phase>generate-test-sources</phase>
-                    <goals>
-                        <goal>add-test-source</goal>
-                    </goals>
-                    <configuration>
-                        <sources>
-                            <source>target/generated-test-sources</source>
-                        </sources>
-                    </configuration>
-                </execution>
-            </executions>
         </plugin>
     </plugins>
 </build>
 ----
 
-Gradle::
+Gradle (OpenFeign)::
 +
 ====
 [source,groovy,indent=0,subs="verbatim,quotes",role="secondary"]
