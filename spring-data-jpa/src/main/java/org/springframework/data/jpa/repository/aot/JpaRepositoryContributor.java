@@ -20,6 +20,7 @@ import jakarta.persistence.EntityManagerFactory;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
@@ -71,7 +72,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		super(repositoryContext);
 
-		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes());
+		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes().stream()
+				.filter(it -> !it.getName().startsWith("jakarta.persistence")).collect(Collectors.toSet()));
 
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(amm.getEntityManagerFactory());
 		this.queriesFactory = new QueriesFactory(amm.getEntityManagerFactory(), amm);
