@@ -985,8 +985,6 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.case_expression());
 		} else if (ctx.entity_type_expression() != null) {
 			return visit(ctx.entity_type_expression());
-		} else if (ctx.cast_function() != null) {
-			return (visit(ctx.cast_function()));
 		}
 
 		return QueryTokenStream.empty();
@@ -1336,7 +1334,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendInline(visit(ctx.string_expression(0)));
-		builder.append(visit(ctx.comparison_operator()));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.string_expression(1) != null) {
 			builder.append(visit(ctx.string_expression(1)));
@@ -1392,7 +1390,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendInline(visit(ctx.datetime_expression(0)));
-		builder.append(QueryTokens.ventilated(ctx.comparison_operator().op));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.datetime_expression(1) != null) {
 			builder.append(visit(ctx.datetime_expression(1)));
@@ -1425,8 +1423,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.arithmetic_expression(0)));
-		builder.append(visit(ctx.comparison_operator()));
+		builder.appendInline(visit(ctx.arithmetic_expression(0)));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.arithmetic_expression(1) != null) {
 			builder.append(visit(ctx.arithmetic_expression(1)));
@@ -1469,19 +1467,17 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitArithmetic_expression(JpqlParser.Arithmetic_expressionContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
 		if (ctx.arithmetic_expression() != null) {
 
+			QueryRendererBuilder builder = QueryRenderer.builder();
 			builder.append(visit(ctx.arithmetic_expression()));
-			builder.append(QueryTokens.expression(ctx.op));
+			builder.append(QueryTokens.ventilated(ctx.op));
 			builder.append(visit(ctx.arithmetic_term()));
+			return builder;
 
 		} else {
-			builder.append(visit(ctx.arithmetic_term()));
+			return visit(ctx.arithmetic_term());
 		}
-
-		return builder;
 	}
 
 	@Override

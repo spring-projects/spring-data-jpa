@@ -307,7 +307,6 @@ scalar_expression
     | datetime_expression
     | boolean_expression
     | case_expression
-    | cast_function
     | entity_type_expression
     ;
 
@@ -454,7 +453,6 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
-    | string_expression op='||' string_expression
     | string_cast_function
     | type_cast_function
     | '(' subquery ')'
@@ -950,7 +948,6 @@ FETCH                       : F E T C H;
 FIRST                       : F I R S T;
 FLOAT                       : F L O A T;
 FLOOR                       : F L O O R;
-FLOAT                       : F L O A T;
 FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
 GROUP                       : G R O U P;
@@ -961,7 +958,6 @@ INNER                       : I N N E R;
 INTEGER                     : I N T E G E R;
 INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
-INTEGER                     : I N T E G E R;
 JOIN                        : J O I N;
 KEY                         : K E Y;
 LAST                        : L A S T;
@@ -1002,7 +998,6 @@ SOME                        : S O M E;
 SQRT                        : S Q R T;
 STRING                      : S T R I N G;
 SUBSTRING                   : S U B S T R I N G;
-STRING                      : S T R I N G;
 SUM                         : S U M;
 THEN                        : T H E N;
 TIME                        : T I M E;

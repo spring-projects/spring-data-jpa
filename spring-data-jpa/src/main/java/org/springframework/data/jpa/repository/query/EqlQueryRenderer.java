@@ -1010,8 +1010,6 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.case_expression());
 		} else if (ctx.entity_type_expression() != null) {
 			return visit(ctx.entity_type_expression());
-		} else if (ctx.cast_function() != null) {
-			return (visit(ctx.cast_function()));
 		}
 
 		return QueryTokenStream.empty();
@@ -1363,8 +1361,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.appendExpression(visit(ctx.string_expression(0)));
-		builder.appendExpression(visit(ctx.comparison_operator()));
+		builder.appendInline(visit(ctx.string_expression(0)));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.string_expression(1) != null) {
 			builder.appendExpression(visit(ctx.string_expression(1)));
@@ -1420,7 +1418,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendInline(visit(ctx.datetime_expression(0)));
-		builder.append(QueryTokens.ventilated(ctx.comparison_operator().op));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.datetime_expression(1) != null) {
 			builder.appendExpression(visit(ctx.datetime_expression(1)));
@@ -1453,8 +1451,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.appendExpression(visit(ctx.arithmetic_expression(0)));
-		builder.appendExpression(visit(ctx.comparison_operator()));
+		builder.appendInline(visit(ctx.arithmetic_expression(0)));
+		builder.appendInline(visit(ctx.comparison_operator()));
 
 		if (ctx.arithmetic_expression(1) != null) {
 			builder.appendExpression(visit(ctx.arithmetic_expression(1)));
@@ -1491,7 +1489,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitComparison_operator(EqlParser.Comparison_operatorContext ctx) {
-		return QueryTokenStream.ofToken(ctx.op);
+		return QueryTokenStream.from(QueryTokens.ventilated(ctx.op));
 	}
 
 	@Override
@@ -2005,7 +2003,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		if (ctx.AS() != null) {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
-		builder.appendInline(QueryTokenStream.concat(ctx.identification_variable(), this::visit, TOKEN_SPACE));
+		builder.appendInline(visit(ctx.identification_variable()));
 
 		if (!CollectionUtils.isEmpty(ctx.numeric_literal())) {
 
