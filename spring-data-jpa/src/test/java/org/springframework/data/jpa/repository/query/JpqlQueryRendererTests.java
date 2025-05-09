@@ -291,7 +291,7 @@ class JpqlQueryRendererTests {
 		assertQuery("""
 				SELECT b.name, b.ISBN
 				FROM Order o JOIN TREAT(o.product AS Book) b
-				    """);
+				""");
 	}
 
 	@Test
@@ -300,7 +300,7 @@ class JpqlQueryRendererTests {
 		assertQuery("""
 				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
 				WHERE lp.budget > 1000
-				    """);
+				""");
 	}
 
 	/**
@@ -315,7 +315,7 @@ class JpqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE "cost overrun"
-				    """);
+				""");
 	}
 
 	@Test
@@ -326,7 +326,7 @@ class JpqlQueryRendererTests {
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
 				    OR p.description LIKE 'cost overrun'
-				    """);
+				""");
 	}
 
 	@Test
@@ -336,7 +336,16 @@ class JpqlQueryRendererTests {
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
 				    OR TREAT(e AS Contractor).hours > 100
-				    """);
+				""");
+	}
+
+	@Test // GH-3024, GH-3863
+	void casting() {
+
+		assertQuery("""
+				select cast(i as string) from Item i where cast(i.date as date) <= cast(:currentDateTime as date)
+				""");
+		assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
 	}
 
 	@Test
@@ -400,7 +409,7 @@ class JpqlQueryRendererTests {
 				WHERE emp.salary > ALL (SELECT m.salary
 				FROM Manager m
 				WHERE m.department = emp.department)
-				    """);
+				""");
 	}
 
 	@Test
@@ -412,7 +421,7 @@ class JpqlQueryRendererTests {
 				WHERE EXISTS (SELECT spouseEmp
 				    FROM Employee spouseEmp
 				    WHERE spouseEmp = emp.spouse)
-				    """);
+				""");
 	}
 
 	@Test
@@ -480,7 +489,7 @@ class JpqlQueryRendererTests {
 				         WHEN e.rating = 2 THEN e.salary * 1.05
 				         ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -493,7 +502,7 @@ class JpqlQueryRendererTests {
 				                  WHEN 2 THEN e.salary * 1.05
 				                  ELSE e.salary * 1.01
 				    END
-				    """);
+				""");
 	}
 
 	@Test
@@ -533,7 +542,7 @@ class JpqlQueryRendererTests {
 				SELECT e
 				FROM Employee e
 				WHERE TYPE(e) IN (Exempt, Contractor)
-				 """);
+				""");
 	}
 
 	@Test

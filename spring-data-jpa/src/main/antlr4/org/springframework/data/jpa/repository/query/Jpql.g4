@@ -387,13 +387,15 @@ all_or_any_expression
     ;
 
 comparison_expression
-    : string_expression comparison_operator (string_expression | all_or_any_expression)
-    | boolean_expression op=(EQUAL | NOT_EQUAL) (boolean_expression | all_or_any_expression)
-    | enum_expression op=(EQUAL | NOT_EQUAL) (enum_expression | all_or_any_expression)
-    | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)
-    | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)
-    | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression)
-    | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression
+    : string_expression comparison_operator (string_expression | all_or_any_expression)         #StringComparison
+    | boolean_expression op=(EQUAL | NOT_EQUAL) (boolean_expression | all_or_any_expression)    #BooleanComparison
+    | boolean_expression                                                                        #DirectBooleanCheck
+    | enum_expression op=(EQUAL | NOT_EQUAL) (enum_expression | all_or_any_expression)          #EnumComparison
+    | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)     #DatetimeComparison
+    | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)      #EntityComparison
+    | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression) #ArithmeticComparison
+    | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression                      #EntityTypeComparison
+    | string_expression REGEXP string_literal                                                   #RegexpComparison
     ;
 
 comparison_operator
@@ -427,6 +429,8 @@ arithmetic_primary
     | functions_returning_numerics
     | aggregate_expression
     | case_expression
+    | arithmetic_cast_function
+    | type_cast_function
     | function_invocation
     | '(' subquery ')'
     ;
@@ -439,6 +443,8 @@ string_expression
     | aggregate_expression
     | case_expression
     | function_invocation
+    | string_cast_function
+    | type_cast_function
     | '(' subquery ')'
     ;
 
@@ -532,6 +538,17 @@ trim_specification
     | BOTH
     ;
 
+arithmetic_cast_function
+    : CAST '(' string_expression (AS)? f=(INTEGER|LONG|FLOAT|DOUBLE) ')'
+    ;
+
+type_cast_function
+    : CAST '(' scalar_expression (AS)? identification_variable ('(' numeric_literal (',' numeric_literal)* ')')? ')'
+    ;
+
+string_cast_function
+    : CAST '(' scalar_expression (AS)? STRING ')'
+    ;
 
 function_invocation
     : FUNCTION '(' function_name (',' function_arg)* ')'
@@ -750,6 +767,7 @@ reserved_word
        |BOTH
        |BY
        |CASE
+       |CAST
        |CEILING
        |COALESCE
        |CONCAT
@@ -870,6 +888,7 @@ BETWEEN                     : B E T W E E N;
 BOTH                        : B O T H;
 BY                          : B Y;
 CASE                        : C A S E;
+CAST                        : C A S T;
 CEILING                     : C E I L I N G;
 COALESCE                    : C O A L E S C E;
 CONCAT                      : C O N C A T;
@@ -882,6 +901,7 @@ DATETIME                    : D A T E T I M E ;
 DELETE                      : D E L E T E;
 DESC                        : D E S C;
 DISTINCT                    : D I S T I N C T;
+DOUBLE                      : D O U B L E;
 END                         : E N D;
 ELSE                        : E L S E;
 EMPTY                       : E M P T Y;
@@ -894,6 +914,7 @@ FALSE                       : F A L S E;
 FETCH                       : F E T C H;
 FIRST                       : F I R S T;
 FLOOR                       : F L O O R;
+FLOAT                       : F L O A T;
 FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
 GROUP                       : G R O U P;
@@ -901,7 +922,9 @@ HAVING                      : H A V I N G;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
+INTERSECT                   : I N T E R S E C T;
 IS                          : I S;
+INTEGER                     : I N T E G E R;
 JOIN                        : J O I N;
 KEY                         : K E Y;
 LAST                        : L A S T;
@@ -912,6 +935,7 @@ LIKE                        : L I K E;
 LN                          : L N;
 LOCAL                       : L O C A L;
 LOCATE                      : L O C A T E;
+LONG                        : L O N G;
 LOWER                       : L O W E R;
 MAX                         : M A X;
 MEMBER                      : M E M B E R;
@@ -929,6 +953,7 @@ OR                          : O R;
 ORDER                       : O R D E R;
 OUTER                       : O U T E R;
 POWER                       : P O W E R;
+REGEXP                      : R E G E X P;
 ROUND                       : R O U N D;
 SELECT                      : S E L E C T;
 SET                         : S E T;
@@ -937,6 +962,7 @@ SIZE                        : S I Z E;
 SOME                        : S O M E;
 SQRT                        : S Q R T;
 SUBSTRING                   : S U B S T R I N G;
+STRING                      : S T R I N G;
 SUM                         : S U M;
 THEN                        : T H E N;
 TIME                        : T I M E;
