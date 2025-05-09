@@ -54,7 +54,7 @@ enum QuerydslContributor implements JpaRepositoryFragmentsContributor {
 					resolver, null);
 
 			return RepositoryComposition.RepositoryFragments
-					.of(RepositoryFragment.implemented(QuerydslPredicateExecutor.class, executor));
+					.of(RepositoryFragment.implemented(QuerydslJpaPredicateExecutor.class, executor));
 		}
 
 		return RepositoryComposition.RepositoryFragments.empty();
@@ -65,7 +65,7 @@ enum QuerydslContributor implements JpaRepositoryFragmentsContributor {
 
 		if (isQuerydslRepository(metadata)) {
 			return RepositoryComposition.RepositoryFragments
-					.of(RepositoryFragment.structural(QuerydslPredicateExecutor.class, QuerydslJpaPredicateExecutor.class));
+					.of(RepositoryFragment.structural(QuerydslJpaPredicateExecutor.class, QuerydslJpaPredicateExecutor.class));
 		}
 
 		return RepositoryComposition.RepositoryFragments.empty();

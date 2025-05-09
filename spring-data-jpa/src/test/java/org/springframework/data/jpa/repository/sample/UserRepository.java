@@ -55,6 +55,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.querydsl.core.types.Predicate;
+
 /**
  * Repository interface for {@code User}s.
  *
@@ -782,6 +784,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findWithParameterNameByLastnameStartingWithOrLastnameEndingWith(@Param("l1") String l1,
 			@Param("l2") String l2);
+
+	// surface QuerydslJpaPredicateExecutor.delete(…) method
+	long delete(Predicate predicate);
 
 	@Retention(RetentionPolicy.RUNTIME)
 	@Query("select u, count(r) from User u left outer join u.roles r group by u")
