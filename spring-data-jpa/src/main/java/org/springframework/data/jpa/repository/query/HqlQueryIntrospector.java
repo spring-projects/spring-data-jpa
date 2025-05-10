@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
  * {@link ParsedQueryIntrospector} for HQL queries.
  *
  * @author Mark Paluch
+ * @author oscar.fanchin
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
 class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector<HibernateQueryInformation> {
@@ -40,11 +41,12 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	private boolean projectionProcessed;
 	private boolean hasConstructorExpression = false;
 	private boolean hasCte = false;
+	private boolean hasFromFunction = false;
 
 	@Override
 	public HibernateQueryInformation getParsedQueryInformation() {
 		return new HibernateQueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression, hasCte);
+				hasConstructorExpression, hasCte, hasFromFunction);
 	}
 
 	@Override
@@ -62,6 +64,12 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	public Void visitCte(HqlParser.CteContext ctx) {
 		this.hasCte = true;
 		return super.visitCte(ctx);
+	}
+	
+	@Override
+	public Void visitFunctionCallAsFromSource(HqlParser.FunctionCallAsFromSourceContext ctx) {
+		this.hasFromFunction = true;
+		return super.visitFunctionCallAsFromSource(ctx);
 	}
 
 	@Override
