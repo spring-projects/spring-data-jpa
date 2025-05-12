@@ -2182,7 +2182,16 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitEscape_character(JpqlParser.Escape_characterContext ctx) {
-		return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+
+		if (ctx.CHARACTER() != null) {
+			return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
+		} else if (ctx.character_valued_input_parameter() != null) {
+			return visit(ctx.character_valued_input_parameter());
+		} else if (ctx.string_literal() != null) {
+			return visit(ctx.string_literal());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override
