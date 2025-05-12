@@ -1,0 +1,167 @@
+[[vector-search]]
+= Vector Search
+
+With the rise of Generative AI, Vector databases have gained strong traction in the world of databases.
+These databases enable efficient storage and querying of high-dimensional vectors, making them well-suited for tasks such as semantic search, recommendation systems, and natural language understanding.
+
+Vector search is a technique that retrieves semantically similar data by comparing vector representations (also known as embeddings) rather than relying on traditional exact-match queries.
+This approach enables intelligent, context-aware applications that go beyond keyword-based retrieval.
+
+In the context of Spring Data, vector search opens new possibilities for building intelligent, context-aware applications, particularly in domains like natural language processing, recommendation systems, and generative AI.
+By modelling vector-based querying using familiar repository abstractions, Spring Data allows developers to seamlessly integrate similarity-based vector-capable databases with the simplicity and consistency of the Spring Data programming model.
+
+ifdef::vector-search-intro-include[]
+include::{vector-search-intro-include}[]
+endif::[]
+
+[[vector-search.model]]
+== Vector Model
+
+To support vector search in a type-safe and idiomatic way, Spring Data introduces the following core abstractions:
+
+* <<vector-search.model.vector,`Vector`>>
+* <<vector-search.model.search-result,`SearchResults<T>` and `SearchResult<T>`>>
+* <<vector-search.model.scoring,`Score`, `Similarity` and Scoring Functions>>
+
+[[vector-search.model.vector]]
+=== `Vector`
+
+The `Vector` type represents an n-dimensional numerical embedding, typically produced by embedding models.
+In Spring Data, it is defined as a lightweight wrapper around an array of floating-point numbers, ensuring immutability and consistency.
+This type can be used as an input for search queries or as a property on a domain entity to store the associated vector representation.
+
+====
+[source,java]
+----
+Vector vector = Vector.of(0.23f, 0.11f, 0.77f);
+----
+====
+
+Using `Vector` in your domain model removes the need to work with raw arrays or lists of numbers, providing a more type-safe and expressive way to handle vector data.
+This abstraction also allows for easy integration with various vector databases and libraries.
+It also allows for implementing vendor-specific optimizations such as binary or quantized vectors that do not map to a standard floating point (`float` and `double` as of https://en.wikipedia.org/wiki/IEEE_754[IEEE 754]) representation.
+A domain object can have a vector property, which can be used for similarity searches.
+Consider the following example:
+
+ifdef::vector-search-model-include[]
+include::{vector-search-model-include}[]
+endif::[]
+
+NOTE: Associating a vector with a domain object results in the vector being loaded and stored as part of the entity lifecycle, which may introduce additional overhead on retrieval and persistence operations.
+
+[[vector-search.model.search-result]]
+=== Search Results
+
+The `SearchResult<T>` type encapsulates the results of a vector similarity query.
+It includes both the matched domain object and a relevance score that indicates how closely it matches the query vector.
+This abstraction provides a structured way to handle result ranking and enables developers to easily work with both the data and its contextual relevance.
+
+ifdef::vector-search-repository-include[]
+include::{vector-search-repository-include}[]
+endif::[]
+
+In this example, the `searchByCountryAndEmbeddingNear` method returns a `SearchResults<Comment>` object, which contains a list of `SearchResult<Comment>` instances.
+Each result includes the matched `Comment` entity and its relevance score.
+
+Relevance score is a numerical value that indicates how closely the matched vector aligns with the query vector.
+Depending on whether a score represents distance or similarity a higher score can mean a closer match or a more distant one.
+
+The scoring function used to calculate this score can vary based on the underlying database, index or input parameters.
+
+[[vector-search.model.scoring]]
+=== Score, Similarity, and Scoring Functions
+
+The `Score` type holds a numerical value indicating the relevance of a search result.
+It can be used to rank results based on their similarity to the query vector.
+The `Score` type is typically a floating-point number, and its interpretation (higher is better or lower is better) depends on the specific similarity function used.
+Scores are a by-product of vector search and are not required for a successful search operation.
+Score values are not part of a domain model and therefore represented best as out-of-band data.
+
+Generally, a Score is computed by a `ScoringFunction`.
+The actual scoring function used to calculate this score can depends on the underlying database and can be obtained from a search index or input parameters.
+
+Spring Data support declares constants for commonly used functions such as:
+
+Euclidean Distance:: Calculates the straight-line distance in n-dimensional space involving the square root of the sum of squared differences.
+Cosine Similarity:: Measures the angle between two vectors by calculating the Dot product first and then normalizing its result by dividing by the product of their lengths.
+Dot Product:: Computes the sum of element-wise multiplications.
+
+The choice of similarity function can impact both the performance and semantics of the search and is often determined by the underlying database or index being used.
+Spring Data adopts to the database's native scoring function capabilities and whether the score can be used to limit results.
+
+ifdef::vector-search-scoring-include[]
+include::{vector-search-scoring-include}[]
+endif::[]
+
+[[vector-search.methods]]
+== Vector Search Methods
+
+Vector search methods are defined in repositories using the same conventions as standard Spring Data query methods.
+These methods return `SearchResults<T>` and require a `Vector` parameter to define the query vector.
+The actual implementation depends on the actual internals of the underlying data store and its capabilities around vector search.
+
+NOTE: If you are new to Spring Data repositories, make sure to familiarize yourself with the xref:repositories/core-concepts.adoc[basics of repository definitions and query methods].
+
+Generally, you have the choice of declaring a search method using two approaches:
+
+* Query Derivation
+* Declaring a String-based Query
+
+Vector Search methods must declare a `Vector` parameter to define the query vector.
+
+[[vector-search.method.derivation]]
+=== Derived Search Methods
+
+A derived search method uses the name of the method to derive the query.
+Vector Search supports the following keywords to run a Vector search when declaring a search method:
+
+.Query predicate keywords
+[options="header",cols="1,3"]
+|===============
+|Logical keyword|Keyword expressions
+|`NEAR`|`Near`, `IsNear`
+|`WITHIN`|`Within`, `IsWithin`
+|===============
+
+ifdef::vector-search-method-derived-include[]
+include::{vector-search-method-derived-include}[]
+endif::[]
+
+Derived search methods are typically easier to read and maintain, as they rely on the method name to express the query intent.
+However, a derived search method requires either to declare a `Score`, `Range<Score>` or `ScoreFunction` as second argument to the `Near`/`Within` keyword to limit search results by their score.
+
+[[vector-search.method.string]]
+=== Annotated Search Methods
+
+Annotated methods provide full control over the query semantics and parameters.
+Unlike derived methods, they do not rely on method name conventions.
+
+ifdef::vector-search-method-annotated-include[]
+include::{vector-search-method-annotated-include}[]
+endif::[]
+
+With more control over the actual query, Spring Data can make fewer assumptions about the query and its parameters.
+For example, `Similarity` normalization uses the native score function within the query to normalize the given similarity into a score predicate value and vice versa.
+If an annotated query does not define e.g. the score, then the score value in the returned `SearchResult<T>` will be zero.
+
+[[vector-search.method.sorting]]
+=== Sorting
+
+By default, search results are ordered according to their score.
+You can override sorting by using the `Sort` parameter:
+
+.Using `Sort` in Repository Search Methods
+====
+[source,java]
+----
+interface CommentRepository extends Repository<Comment, String> {
+
+  SearchResults<Comment> searchByEmbeddingNearOrderByCountry(Vector vector, Score score);
+
+  SearchResults<Comment> searchByEmbeddingWithin(Vector vector, Score score, Sort sort);
+}
+----
+====
+
+Please note that custom sorting does not allow expressing the score as a sorting criteria.
+You can only refer to domain properties.

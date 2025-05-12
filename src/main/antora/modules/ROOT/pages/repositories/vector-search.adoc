@@ -1,8 +1,8 @@
-:vector-search-intro-include: data-jpa::partial$vector-search-intro-include.adoc
-:vector-search-model-include: data-jpa::partial$vector-search-model-include.adoc
-:vector-search-repository-include: data-jpa::partial$vector-search-repository-include.adoc
-:vector-search-scoring-include: data-jpa::partial$vector-search-scoring-include.adoc
-:vector-search-method-derived-include: data-jpa::partial$vector-search-method-derived-include.adoc
-:vector-search-method-annotated-include: data-jpa::partial$vector-search-method-annotated-include.adoc
+:vector-search-intro-include: partial$vector-search-intro-include.adoc
+:vector-search-model-include: partial$vector-search-model-include.adoc
+:vector-search-repository-include: partial$vector-search-repository-include.adoc
+:vector-search-scoring-include: partial$vector-search-scoring-include.adoc
+:vector-search-method-derived-include: partial$vector-search-method-derived-include.adoc
+:vector-search-method-annotated-include: partial$vector-search-method-annotated-include.adoc
 
-include::{commons}@data-commons::page$repositories/vector-search.adoc[]
+include::partial$vector-search.adoc[]

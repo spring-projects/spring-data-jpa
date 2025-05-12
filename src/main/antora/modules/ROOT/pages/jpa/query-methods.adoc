@@ -428,7 +428,7 @@ This is a lighter variant than paging because it does not require the total resu
 3. <<repositories.scrolling.keyset,Keyset-baset scrolling>>.
 This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of offset-based result retrieval by leveraging database indexes].
 
-Read more on <<repositories.scrolling.guidance,which method to use best>> for your particular arrangement.
+Read more on xref:repositories/query-methods-details.adoc#repositories.scrolling.guidance[which method to use best] for your particular arrangement.
 
 You can use the Scroll API with query methods, xref:repositories/query-by-example.adoc[Query-by-Example], and xref:repositories/core-extensions.adoc#core.extensions.querydsl[Querydsl].
 
