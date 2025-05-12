@@ -2225,7 +2225,16 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<List<JpaQueryParsingToken>> {
 
 	@Override
 	public List<JpaQueryParsingToken> visitEscape_character(JpqlParser.Escape_characterContext ctx) {
-		return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
+
+		if (ctx.CHARACTER() != null) {
+			return List.of(new JpaQueryParsingToken(ctx.CHARACTER()));
+		} else if (ctx.character_valued_input_parameter() != null) {
+			return visit(ctx.character_valued_input_parameter());
+		} else if (ctx.string_literal() != null) {
+			return visit(ctx.string_literal());
+		}
+
+		return List.of();
 	}
 
 	@Override
