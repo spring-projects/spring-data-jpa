@@ -1676,6 +1676,20 @@ class HqlQueryRendererTests {
 		});
 	}
 
+	@Test // GH-3882
+	void shouldSupportLimitOffset() {
+
+		assertQuery("SELECT si from StockItem si order by si.id LIMIT 10 OFFSET 10 FETCH FIRST 10 ROWS ONLY");
+		assertQuery("SELECT si from StockItem si order by si.id LIMIT ? OFFSET ? FETCH FIRST ? ROWS ONLY");
+		assertQuery("SELECT si from StockItem si order by si.id LIMIT :l OFFSET :o");
+		assertQuery("SELECT si from StockItem si LIMIT :l OFFSET :o");
+		assertQuery("SELECT si from StockItem si order by si.id LIMIT :l");
+		assertQuery("SELECT si from StockItem si order by si.id OFFSET 1");
+		assertQuery("SELECT si from StockItem si LIMIT 1");
+		assertQuery("SELECT si from StockItem si OFFSET 1");
+		assertQuery("SELECT si from StockItem si FETCH FIRST 1 ROWS ONLY");
+	}
+
 	@Test // GH-2964
 	void roundFunctionShouldWorkLikeAnyOtherFunction() {
 

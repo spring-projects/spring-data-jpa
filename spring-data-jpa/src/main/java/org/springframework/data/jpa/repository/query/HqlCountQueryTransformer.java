@@ -61,8 +61,16 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			builder.appendExpression(nested);
 		}
 
-		if (ctx.queryOrder() != null) {
-			builder.append(visit(ctx.queryOrder()));
+		if (ctx.limitClause() != null) {
+			builder.appendExpression(visit(ctx.limitClause()));
+		}
+
+		if (ctx.offsetClause() != null) {
+			builder.appendExpression(visit(ctx.offsetClause()));
+		}
+
+		if (ctx.fetchClause() != null) {
+			builder.appendExpression(visit(ctx.fetchClause()));
 		}
 
 		return builder;
@@ -231,26 +239,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		builder.append(visit(ctx.selectExpression()));
 
 		// do not append variables to skip AS field aliasing
-
-		return builder;
-	}
-
-	@Override
-	public QueryRendererBuilder visitQueryOrder(HqlParser.QueryOrderContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		if (ctx.limitClause() != null) {
-			builder.appendExpression(visit(ctx.limitClause()));
-		}
-
-		if (ctx.offsetClause() != null) {
-			builder.appendExpression(visit(ctx.offsetClause()));
-		}
-
-		if (ctx.fetchClause() != null) {
-			builder.appendExpression(visit(ctx.fetchClause()));
-		}
 
 		return builder;
 	}

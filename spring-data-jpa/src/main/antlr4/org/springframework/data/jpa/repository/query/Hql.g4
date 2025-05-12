@@ -85,7 +85,7 @@ cteAttributes
     ;
 
 orderedQuery
-    : (query | '(' queryExpression ')') queryOrder?
+    : (query | '(' queryExpression ')') queryOrder?  limitClause? offsetClause? fetchClause?
     ;
 
 query
@@ -94,7 +94,7 @@ query
     ;
 
 queryOrder
-    : orderByClause limitClause? offsetClause? fetchClause?
+    : orderByClause
     ;
 
 fromClause
