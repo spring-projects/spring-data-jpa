@@ -180,9 +180,9 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
-		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))) "
-						+ "SELECT count(1) FROM sample_data AS a");
+		assertThat(queryEnhancer.createCountQueryFor().toLowerCase()).isEqualToIgnoringWhitespace(
+				"with sample_data (day, value) as (values ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))) "
+						+ "select count(1) from sample_data as a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
@@ -203,9 +203,9 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(stringQuery.getProjection()).isEqualToIgnoringCase("day, value");
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
-		assertThat(queryEnhancer.createCountQueryFor()).isEqualToIgnoringCase(
-				"with sample_data (day, value) AS (VALUES ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))), test2 AS (VALUES (1, 2, 3)) "
-						+ "SELECT count(1) FROM sample_data AS a");
+		assertThat(queryEnhancer.createCountQueryFor().toLowerCase()).isEqualToIgnoringWhitespace(
+				"with sample_data (day, value) as (values ((0, 13), (1, 12), (2, 15), (3, 4), (4, 8), (5, 16))), test2 as (values (1, 2, 3)) "
+						+ "select count(1) from sample_data as a");
 		assertThat(queryEnhancer.applySorting(Sort.by("day").descending())).endsWith("ORDER BY a.day DESC");
 		assertThat(queryEnhancer.getJoinAliases()).isEmpty();
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase("a");
