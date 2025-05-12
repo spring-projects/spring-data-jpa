@@ -688,7 +688,8 @@ entity_type_literal
 
 escape_character
     : CHARACTER
-    | character_valued_input_parameter //
+    | string_literal
+    | character_valued_input_parameter
     ;
 
 numeric_literal

@@ -1056,6 +1056,14 @@ class EqlQueryRendererTests {
 		assertQuery(query);
 	}
 
+	@Test // GH-3873
+	void escapeClauseShouldWork() {
+		assertQuery("select t.name from SomeDbo t where t.name LIKE :name escape '\\\\'");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE '\\\\'");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE ?1");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE :param");
+	}
+
 	@ParameterizedTest // GH-3451
 	@MethodSource("reservedWords")
 	void entityNameWithPackageContainingReservedWord(String reservedWord) {

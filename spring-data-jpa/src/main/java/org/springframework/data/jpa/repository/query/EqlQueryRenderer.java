@@ -2309,7 +2309,16 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitEscape_character(EqlParser.Escape_characterContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.token(ctx.CHARACTER()));
+
+		if (ctx.CHARACTER() != null) {
+			return QueryRendererBuilder.from(QueryTokens.token(ctx.CHARACTER()));
+		} else if (ctx.character_valued_input_parameter() != null) {
+			return visit(ctx.character_valued_input_parameter());
+		} else if (ctx.string_literal() != null) {
+			return visit(ctx.string_literal());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override

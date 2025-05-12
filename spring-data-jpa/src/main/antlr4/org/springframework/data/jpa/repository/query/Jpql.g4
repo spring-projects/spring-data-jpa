@@ -674,7 +674,8 @@ entity_type_literal
 
 escape_character
     : CHARACTER
-    | character_valued_input_parameter //
+    | string_literal
+    | character_valued_input_parameter
     ;
 
 numeric_literal
@@ -982,7 +983,7 @@ NOT_EQUAL                   : '<>' | '!=' ;
 
 CHARACTER                   : '\'' (~ ('\'' | '\\')) '\'' ;
 IDENTIFICATION_VARIABLE     : ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '$' | '_') ('a' .. 'z' | 'A' .. 'Z' | '\u0080' .. '\ufffe' | '0' .. '9' | '$' | '_')* ;
-STRINGLITERAL               : '\'' (~ ('\'' | '\\'))* '\'' ;
+STRINGLITERAL               : '\'' (~ ('\'' | '\\')|'\\')* '\'' ;
 JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;

@@ -1801,6 +1801,9 @@ class HqlQueryRendererTests {
 	@Test // GH-3040
 	void escapeClauseShouldWork() {
 		assertQuery("select t.name from SomeDbo t where t.name LIKE :name escape '\\\\'");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE '\\\\'");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE ?1");
+		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE :param");
 	}
 
 	@Test // GH-3062, GH-3056
