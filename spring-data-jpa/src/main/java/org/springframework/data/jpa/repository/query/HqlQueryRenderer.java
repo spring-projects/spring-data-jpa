@@ -239,6 +239,18 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.append(visit(ctx.queryOrder()));
 		}
 
+		if (ctx.limitClause() != null) {
+			builder.appendExpression(visit(ctx.limitClause()));
+		}
+
+		if (ctx.offsetClause() != null) {
+			builder.appendExpression(visit(ctx.offsetClause()));
+		}
+
+		if (ctx.fetchClause() != null) {
+			builder.appendExpression(visit(ctx.fetchClause()));
+		}
+
 		return builder;
 	}
 
@@ -298,26 +310,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitQueryOrder(HqlParser.QueryOrderContext ctx) {
-
-		if (ctx.limitClause() == null && ctx.offsetClause() == null && ctx.fetchClause() == null) {
-			return visit(ctx.orderByClause());
-		}
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.appendExpression(visit(ctx.orderByClause()));
-
-		if (ctx.limitClause() != null) {
-			builder.appendExpression(visit(ctx.limitClause()));
-		}
-		if (ctx.offsetClause() != null) {
-			builder.appendExpression(visit(ctx.offsetClause()));
-		}
-		if (ctx.fetchClause() != null) {
-			builder.appendExpression(visit(ctx.fetchClause()));
-		}
-
-		return builder;
+		return visit(ctx.orderByClause());
 	}
 
 	@Override

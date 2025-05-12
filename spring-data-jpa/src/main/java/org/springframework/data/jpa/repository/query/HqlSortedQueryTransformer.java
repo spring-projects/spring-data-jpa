@@ -162,6 +162,18 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 			}
 		}
 
+		if (ctx.limitClause() != null) {
+			builder.appendExpression(visit(ctx.limitClause()));
+		}
+
+		if (ctx.offsetClause() != null) {
+			builder.appendExpression(visit(ctx.offsetClause()));
+		}
+
+		if (ctx.fetchClause() != null) {
+			builder.appendExpression(visit(ctx.fetchClause()));
+		}
+
 		return builder;
 	}
 
