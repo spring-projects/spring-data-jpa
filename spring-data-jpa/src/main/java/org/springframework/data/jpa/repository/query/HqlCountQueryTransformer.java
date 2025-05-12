@@ -17,9 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
-import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
 
