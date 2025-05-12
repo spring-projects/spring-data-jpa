@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,7 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Yannick Brandt
- * @author oscar.fanchin
+ * @author Oscar Fanchin
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -608,8 +608,8 @@ class HqlQueryRendererTests {
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (SELECT spouseEmp
-				    FROM Employee spouseEmp
-				        WHERE spouseEmp = emp.spouse)
+				 FROM Employee spouseEmp
+				  WHERE spouseEmp = emp.spouse)
 				""");
 	}
 
@@ -620,14 +620,14 @@ class HqlQueryRendererTests {
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EVERY (SELECT spouseEmp
-				    FROM Employee spouseEmp) > 1
+				 FROM Employee spouseEmp) > 1
 				""");
 
 		assertQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE ALL (SELECT spouseEmp
-				    FROM Employee spouseEmp) > 1
+				 FROM Employee spouseEmp) > 1
 				""");
 
 		assertQuery("""
@@ -656,14 +656,14 @@ class HqlQueryRendererTests {
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE ANY (SELECT spouseEmp
-				    FROM Employee spouseEmp) > 1
+				 FROM Employee spouseEmp) > 1
 				""");
 
 		assertQuery("""
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE SOME (SELECT spouseEmp
-				    FROM Employee spouseEmp) > 1
+				 FROM Employee spouseEmp) > 1
 				""");
 
 		assertQuery("""
@@ -772,7 +772,7 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT s.name, COUNT(p)
 				FROM Suppliers s LEFT JOIN s.products p
-				    ON p.status = 'inStock'
+				 ON p.status = 'inStock'
 				GROUP BY s.name
 				""");
 	}
@@ -854,15 +854,15 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
-				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
-				    OR p.description LIKE "cost overrun"
+				 OR TREAT(p AS SmallProject).name LIKE 'Persist%'
+				 OR p.description LIKE "cost overrun"
 				""");
 
 		assertQuery("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
-				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
-				    OR p.description LIKE 'cost overrun'
+				 OR TREAT(p AS SmallProject).name LIKE 'Persist%'
+				 OR p.description LIKE 'cost overrun'
 				""");
 	}
 
@@ -872,7 +872,7 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				SELECT e FROM Employee e
 				WHERE TREAT(e AS Exempt).vacationDays > 10
-				    OR TREAT(e AS Contractor).hours > 100
+				 OR TREAT(e AS Contractor).hours > 100
 				""");
 	}
 
@@ -883,8 +883,8 @@ class HqlQueryRendererTests {
 				SELECT emp
 				FROM Employee emp
 				WHERE emp.salary > ALL (SELECT m.salary
-				    FROM Manager m
-				    WHERE m.department = emp.department)
+				 FROM Manager m
+				 WHERE m.department = emp.department)
 				""");
 	}
 
@@ -895,8 +895,8 @@ class HqlQueryRendererTests {
 				SELECT DISTINCT emp
 				FROM Employee emp
 				WHERE EXISTS (SELECT spouseEmp
-				    FROM Employee spouseEmp
-				    WHERE spouseEmp = emp.spouse)
+				 FROM Employee spouseEmp
+				 WHERE spouseEmp = emp.spouse)
 				""");
 	}
 
@@ -970,9 +970,9 @@ class HqlQueryRendererTests {
 				UPDATE Employee e
 				SET e.salary =
 					CASE WHEN e.rating = 1 THEN e.salary * 1.1
-				         WHEN e.rating = 2 THEN e.salary * 1.05
-				         ELSE e.salary * 1.01
-				    END
+				WHEN e.rating = 2 THEN e.salary * 1.05
+				ELSE e.salary * 1.01
+				 END
 				""");
 	}
 
@@ -982,10 +982,10 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				UPDATE Employee e
 				SET e.salary =
-				    CASE e.rating WHEN 1 THEN e.salary * 1.1
-				                  WHEN 2 THEN e.salary * 1.05
-				                  ELSE e.salary * 1.01
-				    END
+				 CASE e.rating WHEN 1 THEN e.salary * 1.1
+				WHEN 2 THEN e.salary * 1.05
+				ELSE e.salary * 1.01
+				 END
 				""");
 	}
 
@@ -994,11 +994,11 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT e.name,
-				    CASE TYPE(e) WHEN Exempt THEN 'Exempt'
-				                 WHEN Contractor THEN 'Contractor'
-				                 WHEN Intern THEN 'Intern'
-				                 ELSE 'NonExempt'
-				    END
+				 CASE TYPE(e) WHEN Exempt THEN 'Exempt'
+				  WHEN Contractor THEN 'Contractor'
+				  WHEN Intern THEN 'Intern'
+				  ELSE 'NonExempt'
+				 END
 				FROM Employee e
 				WHERE e.dept.name = 'Engineering'
 				""");
@@ -1009,12 +1009,12 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT e.name,
-				       f.name,
-				       CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
-				                   WHEN f.annualMiles > 25000 THEN 'Gold '
-				                   ELSE ''
-				              END,
-				       'Frequent Flyer')
+				 f.name,
+				 CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
+				 WHEN f.annualMiles > 25000 THEN 'Gold '
+				 ELSE ''
+				  END,
+				 'Frequent Flyer')
 				FROM Employee e JOIN e.frequentFlierPlan f
 				""");
 	}
@@ -1104,8 +1104,8 @@ class HqlQueryRendererTests {
 				SELECT c
 				FROM Customer c
 				WHERE EXISTS (SELECT c2
-				    FROM Customer c2
-				        WHERE c2.orders %s c.orders)
+				 FROM Customer c2
+				  WHERE c2.orders %s c.orders)
 				""".formatted(distinctFrom));
 	}
 
@@ -1814,12 +1814,12 @@ class HqlQueryRendererTests {
 				"from Person pr " + //
 				"left join pr.phones ph " + //
 				"where ph is null " + //
-				"   or ph.type = :phoneType");
+				"or ph.type = :phoneType");
 		assertQuery("select distinct pr " + //
 				"from Person pr " + //
 				"left outer join pr.phones ph " + //
 				"where ph is null " + //
-				"   or ph.type = :phoneType");
+				"or ph.type = :phoneType");
 		assertQuery("select pr.name, ph.number " + //
 				"from Person pr " + //
 				"left join pr.phones ph with ph.type = :phoneType ");
@@ -1843,8 +1843,7 @@ class HqlQueryRendererTests {
 				"(select c.duration as duration " + //
 				"  from p.calls c" + //
 				"  order by c.duration desc" + //
-				"  limit 1 " + //
-				"  ) longest " + //
+				"  limit 1) longest " + //
 				"where p.number = :phoneNumber");
 		assertQuery("select ph " + //
 				"from Phone ph " + //
@@ -2208,7 +2207,7 @@ class HqlQueryRendererTests {
 				SELECT b
 				FROM MyEntity b
 				WHERE b.status = :status
-				      AND utl_raw.cast_to_varchar2((nlssort(lower(b.name), 'nls_sort=binary_ai'))) LIKE lower(:name)
+				AND utl_raw.cast_to_varchar2((nlssort(lower(b.name), 'nls_sort=binary_ai'))) LIKE lower(:name)
 				ORDER BY utl_raw.cast_to_varchar2((nlssort(lower(b.name), 'nls_sort=binary_ai'))) ASC
 				""");
 
@@ -2377,17 +2376,17 @@ class HqlQueryRendererTests {
 		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function (SRF) support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void fromSRFWithAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue ) d
+				from some_function(:date, :integerValue) d
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date ) d
+				from some_function(:date) d
 				""");
 
 		assertQuery("""
@@ -2397,21 +2396,21 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue , :longValue ) d
+				from some_function(:date, :integerValue, :longValue) d
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void fromSRFWithoutAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue )
+				from some_function(:date, :integerValue)
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date )
+				from some_function(:date)
 				""");
 
 		assertQuery("""
@@ -2421,21 +2420,21 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue , :longValue )
+				from some_function(:date, :integerValue, :longValue)
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinEntityToSRFWithFunctionAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from EntityClass e join some_function(:date , :integerValue ) d on (e.id = d.idFunction)
+				from EntityClass e join some_function(:date, :integerValue) d on (e.id = d.idFunction)
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from EntityClass e join some_function(:date ) d on (e.id = d.idFunction)
+				from EntityClass e join some_function(:date) d on (e.id = d.idFunction)
 				""");
 
 		assertQuery("""
@@ -2443,24 +2442,23 @@ class HqlQueryRendererTests {
 					from EntityClass e join some_function() d on (e.id = d.idFunction)
 				""");
 
-		assertQuery(
-				"""
-							select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-							from EntityClass e join some_function(:date , :integerValue , :longValue ) d on (e.id = d.idFunction)
-						""");
+		assertQuery("""
+				select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+				from EntityClass e join some_function(:date, :integerValue, :longValue) d on (e.id = d.idFunction)
+				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinEntityToSRFWithoutFunctionAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from EntityClass e join some_function(:date , :integerValue ) on (e.id = idFunction)
+				from EntityClass e join some_function(:date, :integerValue) on (e.id = idFunction)
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from EntityClass e join some_function(:date ) on (e.id = idFunction)
+				from EntityClass e join some_function(:date) on (e.id = idFunction)
 				""");
 
 		assertQuery("""
@@ -2470,21 +2468,21 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from EntityClass e join some_function(:date , :integerValue , :longValue ) on (e.id = idFunction)
+				from EntityClass e join some_function(:date, :integerValue, :longValue) on (e.id = idFunction)
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinSRFToEntityWithoutFunctionWithAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue ) d join EntityClass e on (e.id = d.idFunction)
+				from some_function(:date, :integerValue) d join EntityClass e on (e.id = d.idFunction)
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date ) d join EntityClass e on (e.id = idFunction)
+				from some_function(:date) d join EntityClass e on (e.id = idFunction)
 				""");
 
 		assertQuery("""
@@ -2493,22 +2491,22 @@ class HqlQueryRendererTests {
 				""");
 
 		assertQuery("""
-			    	select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-			    	from some_function(:date , :integerValue , :longValue ) d join EntityClass e on (e.id = d.idFunction)
+				select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+				from some_function(:date, :integerValue, :longValue) d join EntityClass e on (e.id = d.idFunction)
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinSRFToEntityWithoutFunctionWithoutAlias() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue ) join EntityClass e on (e.id = idFunction)
+				from some_function(:date, :integerValue) join EntityClass e on (e.id = idFunction)
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date ) join EntityClass e on (e.id = idFunction)
+				from some_function(:date) join EntityClass e on (e.id = idFunction)
 				""");
 
 		assertQuery("""
@@ -2518,23 +2516,23 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
-					from some_function(:date , :integerValue , :longValue ) join EntityClass e on (e.id = idFunction)
+				from some_function(:date, :integerValue, :longValue) join EntityClass e on (e.id = idFunction)
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void selectSRFIntoSubquery() {
+
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
 					from (select x.idFunction idFunction, x.nameFunction nameFunction
-					from some_function(:date , :integerValue ) x) d
+				from some_function(:date, :integerValue) x) d
 				""");
 
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
 					from (select x.idFunction idFunction, x.nameFunction nameFunction
-					from some_function(:date ) x) d
+				from some_function(:date) x) d
 				""");
 
 		assertQuery("""
@@ -2546,82 +2544,82 @@ class HqlQueryRendererTests {
 		assertQuery("""
 					select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
 					from (select x.idFunction idFunction, x.nameFunction nameFunction
-					from some_function(:date , :integerValue , :longValue ) x) d
+				from some_function(:date, :integerValue, :longValue) x) d
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinEntityToSRFIntoSubquery() {
+
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date , :integerValue ) x ) d on (k.id = d.idFunction)
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date, :integerValue) x) d on (k.id = d.idFunction)
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date ) x ) d on (k.id = d.idFunction)
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date) x) d on (k.id = d.idFunction)
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function() x ) d on (k.id = d.idFunction)
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function() x) d on (k.id = d.idFunction)
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   inner join (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date , :integerValue , :longValue ) x ) d on (k.id = d.idFunction)
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				inner join (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date, :integerValue, :longValue) x) d on (k.id = d.idFunction)
 				""");
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinLateralEntityToSRF() {
+
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date , :integerValue ) x where x.idFunction = k.id ) d
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date, :integerValue) x where x.idFunction = k.id) d
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date ) x where x.idFunction = k.id ) d
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date) x where x.idFunction = k.id) d
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function() x where x.idFunction = k.id ) d
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function() x where x.idFunction = k.id) d
 				""");
 
 		assertQuery("""
-				   select new com.example.dto.SampleDto(k.id, d.nameFunction)
-				   from EntityClass k
-				   join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
-				   from some_function(:date , :integerValue , :longValue ) x where x.idFunction = k.id ) d
+				select new com.example.dto.SampleDto(k.id, d.nameFunction)
+				from EntityClass k
+				join lateral (select x.idFunction idFunction, x.nameFunction nameFunction
+				from some_function(:date, :integerValue, :longValue) x where x.idFunction = k.id) d
 				""");
 
 	}
 
-	@Test // GH-3864 - Added support for Set Return function support H7 parsing and
-			// rendering
+	@Test // GH-3864
 	void joinTwoFunctions() {
+
 		assertQuery("""
-				   select new com.example.dto.SampleDto(d.idFunction, d.nameFunction) 
-				   from some_function(:date , :integerValue ) d 
-				   inner join some_function_single_param(:date ) k on (d.idFunction = k.idFunctionSP)
+				select new com.example.dto.SampleDto(d.idFunction, d.nameFunction)
+				from some_function(:date, :integerValue) d
+				inner join some_function_single_param(:date) k on (d.idFunction = k.idFunctionSP)
 				""");
 
 	}

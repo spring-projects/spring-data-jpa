@@ -21,15 +21,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
 
 /**
  * {@link ParsedQueryIntrospector} for HQL queries.
  *
  * @author Mark Paluch
- * @author oscar.fanchin
+ * @author Oscar Fanchin
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
 class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector<HibernateQueryInformation> {
@@ -52,9 +52,9 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		if (!projectionProcessed) {
-			projection = captureSelectItems(ctx.selectionList().selection(), renderer);
-			projectionProcessed = true;
+		if (!this.projectionProcessed) {
+			this.projection = captureSelectItems(ctx.selectionList().selection(), renderer);
+			this.projectionProcessed = true;
 		}
 
 		return super.visitSelectClause(ctx);
@@ -65,21 +65,36 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 		this.hasCte = true;
 		return super.visitCte(ctx);
 	}
-	
+
 	@Override
-	public Void visitFunctionCallAsFromSource(HqlParser.FunctionCallAsFromSourceContext ctx) {
-		this.hasFromFunction = true;
-		return super.visitFunctionCallAsFromSource(ctx);
+	public Void visitRootEntity(HqlParser.RootEntityContext ctx) {
+
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
+		}
+
+		return super.visitRootEntity(ctx);
 	}
 
 	@Override
-	public Void visitFromRoot(HqlParser.FromRootContext ctx) {
+	public Void visitRootSubquery(HqlParser.RootSubqueryContext ctx) {
 
-		if (primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
-			primaryFromAlias = capturePrimaryAlias(ctx.variable());
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
 		}
 
-		return super.visitFromRoot(ctx);
+		return super.visitRootSubquery(ctx);
+	}
+
+	@Override
+	public Void visitRootFunction(HqlParser.RootFunctionContext ctx) {
+
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
+			this.hasFromFunction = true;
+		}
+
+		return super.visitRootFunction(ctx);
 	}
 
 	@Override

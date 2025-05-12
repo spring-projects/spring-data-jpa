@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
  * Hibernate-specific query details capturing common table expression details.
  *
  * @author Mark Paluch
- * @author oscar.fanchin
+ * @author Oscar Fanchin
  * @since 3.5
  */
 class HibernateQueryInformation extends QueryInformation {

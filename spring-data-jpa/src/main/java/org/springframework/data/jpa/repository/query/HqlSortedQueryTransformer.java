@@ -32,7 +32,7 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
- * @author oscar.fanchin
+ * @author Oscar Fanchin
  * @since 3.1
  */
 @SuppressWarnings("ConstantValue")

@@ -65,24 +65,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitFunctionCallAsFromSource(HqlParser.FunctionCallAsFromSourceContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(visit(ctx.identifier()));
-
-		builder.append(TOKEN_OPEN_PAREN);
-
-		if (!ctx.expression().isEmpty()) {
-			builder.append(QueryTokenStream.concatExpressions(ctx.expression(), this::visit, TOKEN_COMMA));
-		}
-
-		builder.append(TOKEN_CLOSE_PAREN);
-
-		return builder;
-	}
-
-	@Override
 	public QueryTokenStream visitQl_statement(HqlParser.Ql_statementContext ctx) {
 
 		if (ctx.selectStatement() != null) {
@@ -369,44 +351,74 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitFromRoot(HqlParser.FromRootContext ctx) {
+	public QueryTokenStream visitRootEntity(HqlParser.RootEntityContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.entityName() != null) {
+		builder.appendExpression(visit(ctx.entityName()));
 
-			builder.appendExpression(visit(ctx.entityName()));
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
-
-		} else if (ctx.subquery() != null) {
-
-			if (ctx.LATERAL() != null) {
-				builder.append(QueryTokens.expression(ctx.LATERAL()));
-			}
-
-			QueryRendererBuilder nested = QueryRenderer.builder();
-
-			nested.append(TOKEN_OPEN_PAREN);
-			nested.appendInline(visit(ctx.subquery()));
-			nested.append(TOKEN_CLOSE_PAREN);
-
-			builder.appendExpression(nested);
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
-
-		} else if (ctx.functionCallAsFromSource() != null) {
-
-			builder.appendExpression(visit(ctx.functionCallAsFromSource()));
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
+		if (ctx.variable() != null) {
+			builder.appendExpression(visit(ctx.variable()));
 		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitRootSubquery(HqlParser.RootSubqueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.LATERAL() != null) {
+			builder.append(QueryTokens.expression(ctx.LATERAL()));
+		}
+
+		QueryRendererBuilder nested = QueryRenderer.builder();
+
+		nested.append(TOKEN_OPEN_PAREN);
+		nested.appendInline(visit(ctx.subquery()));
+		nested.append(TOKEN_CLOSE_PAREN);
+
+		builder.appendExpression(nested);
+
+		if (ctx.variable() != null) {
+			builder.appendExpression(visit(ctx.variable()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitRootFunction(HqlParser.RootFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.setReturningFunction()));
+
+		if (ctx.variable() != null) {
+			builder.appendExpression(visit(ctx.variable()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitSetReturningFunction(HqlParser.SetReturningFunctionContext ctx) {
+		return visit(ctx.simpleSetReturningFunction());
+	}
+
+	@Override
+	public QueryTokenStream visitSimpleSetReturningFunction(HqlParser.SimpleSetReturningFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(visit(ctx.identifier()));
+
+		builder.append(TOKEN_OPEN_PAREN);
+		if (ctx.genericFunctionArguments() != null) {
+			builder.append(visit(ctx.genericFunctionArguments()));
+		}
+		builder.append(TOKEN_CLOSE_PAREN);
 
 		return builder;
 	}
@@ -459,7 +471,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		}
 
 		builder.append(TOKEN_OPEN_PAREN);
-		builder.append(visit(ctx.subquery()));
+		builder.appendInline(visit(ctx.subquery()));
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.variable() != null) {
@@ -474,7 +486,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.functionCallAsJoinTarget()));
+		builder.append(visit(ctx.setReturningFunction()));
 
 		if (ctx.variable() != null) {
 			builder.appendExpression(visit(ctx.variable()));
@@ -482,24 +494,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		return builder;
 
-	}
-
-	@Override
-	public QueryTokenStream visitFunctionCallAsJoinTarget(HqlParser.FunctionCallAsJoinTargetContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(visit(ctx.identifier()));
-
-		builder.append(TOKEN_OPEN_PAREN);
-
-		if (!ctx.expression().isEmpty()) {
-			builder.append(QueryTokenStream.concatExpressions(ctx.expression(), this::visit, TOKEN_COMMA));
-		}
-
-		builder.append(TOKEN_CLOSE_PAREN);
-
-		return builder;
 	}
 
 	@Override

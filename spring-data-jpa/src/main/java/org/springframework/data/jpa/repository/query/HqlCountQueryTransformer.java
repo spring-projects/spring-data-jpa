@@ -30,7 +30,7 @@ import org.springframework.data.jpa.repository.query.QueryTransformers.CountSele
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
- * @author oscar.fanchin
+ * @author Oscar Fanchin
  * @since 3.1
  */
 @SuppressWarnings("ConstantValue")
@@ -113,7 +113,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			}
 		}
 
-
 		if (ctx.whereClause() != null) {
 			builder.appendExpression(visit(ctx.whereClause()));
 		}
@@ -129,48 +128,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		if (ctx.selectClause() != null) {
 			builder.appendExpression(visit(ctx.selectClause()));
 		}
-
-		return builder;
-	}
-
-	@Override
-	public QueryRendererBuilder visitFromRoot(HqlParser.FromRootContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		if (ctx.entityName() != null) {
-
-			builder.appendExpression(visit(ctx.entityName()));
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
-		} else if (ctx.subquery() != null) {
-
-			if (ctx.LATERAL() != null) {
-				builder.append(QueryTokens.expression(ctx.LATERAL()));
-			}
-
-			QueryRendererBuilder nested = QueryRenderer.builder();
-
-			nested.append(TOKEN_OPEN_PAREN);
-			nested.appendInline(visit(ctx.subquery()));
-			nested.append(TOKEN_CLOSE_PAREN);
-
-			builder.appendExpression(nested);
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
-		} else if (ctx.functionCallAsFromSource() != null) {
-
-			builder.appendExpression(visit(ctx.functionCallAsFromSource()));
-
-			if (ctx.variable() != null) {
-				builder.appendExpression(visit(ctx.variable()));
-			}
-		}
-
 
 		return builder;
 	}
@@ -192,6 +149,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 		return builder;
 	}
+
 
 	@Override
 	public QueryTokenStream visitSelectClause(HqlParser.SelectClauseContext ctx) {
