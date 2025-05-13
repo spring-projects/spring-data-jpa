@@ -17,10 +17,11 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.Metamodel;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
@@ -49,6 +50,7 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
+import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -64,29 +66,41 @@ import org.springframework.util.StringUtils;
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
 
+	private final Metamodel metamodel;
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
+		this(repositoryContext, new AotMetamodel(repositoryContext));
+	}
 
-		super(repositoryContext);
+	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceUnitInfo unitInfo) {
+		this(repositoryContext, new AotMetamodel(unitInfo));
+	}
 
-		AotMetamodel amm = new AotMetamodel(repositoryContext.getResolvedTypes().stream()
-				.filter(it -> !it.getName().startsWith("jakarta.persistence")).collect(Collectors.toSet()));
-
-		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(amm.getEntityManagerFactory());
-		this.queriesFactory = new QueriesFactory(amm.getEntityManagerFactory(), amm);
-		this.entityGraphLookup = new EntityGraphLookup(amm.getEntityManagerFactory());
+	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceManagedTypes managedTypes) {
+		this(repositoryContext, new AotMetamodel(managedTypes));
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
 
 		super(repositoryContext);
 
+		this.metamodel = entityManagerFactory.getMetamodel();
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
 		this.queriesFactory = new QueriesFactory(entityManagerFactory);
 		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
+	}
+
+	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, AotMetamodel metamodel) {
+
+		super(repositoryContext);
+
+		this.metamodel = metamodel;
+		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(metamodel.getEntityManagerFactory());
+		this.queriesFactory = new QueriesFactory(metamodel.getEntityManagerFactory(), metamodel);
+		this.entityGraphLookup = new EntityGraphLookup(metamodel.getEntityManagerFactory());
 	}
 
 	@Override
@@ -201,6 +215,10 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 					return body.build();
 				});
+	}
+
+	public Metamodel getMetamodel() {
+		return metamodel;
 	}
 
 	record StoredProcedureMetadata(String procedure) implements QueryMetadata {

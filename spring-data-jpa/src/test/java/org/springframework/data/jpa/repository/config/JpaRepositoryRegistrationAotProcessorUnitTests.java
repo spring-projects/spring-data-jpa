@@ -18,24 +18,39 @@ package org.springframework.data.jpa.repository.config;
 import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
 import java.lang.annotation.Annotation;
+import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.aot.generate.InMemoryGeneratedFiles;
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.data.aot.AotContext;
+import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.config.AotRepositoryInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
 import org.springframework.javapoet.ClassName;
+import org.springframework.mock.env.MockPropertySource;
+import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 
 /**
  * @author Christoph Strobl
@@ -49,7 +64,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 				new InMemoryGeneratedFiles());
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(new DummyAotRepositoryContext() {
+				.contribute(new DummyAotRepositoryContext(null) {
 					@Override
 					public Set<Class<?>> getResolvedTypes() {
 						return Collections.singleton(Person.class);
@@ -66,7 +81,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 				new InMemoryGeneratedFiles());
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(new DummyAotRepositoryContext() {
+				.contribute(new DummyAotRepositoryContext(null) {
 
 					@Override
 					public Set<MergedAnnotation<Annotation>> getResolvedAnnotations() {
@@ -79,9 +94,56 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		assertThat(RuntimeHintsPredicates.reflection().onType(Entity.class)).rejects(ctx.getRuntimeHints());
 	}
 
-	static class Person {}
+	@Test // GH-3838
+	void repositoryProcessorShouldConsiderPersistenceManagedTypes() {
+
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.registerBean(PersistenceManagedTypes.class, () -> {
+
+			return new PersistenceManagedTypes() {
+				@Override
+				public List<String> getManagedClassNames() {
+					return List.of(Person.class.getName());
+				}
+
+				@Override
+				public List<String> getManagedPackages() {
+					return List.of();
+				}
+
+				@Override
+				public @Nullable URL getPersistenceUnitRootUrl() {
+					return null;
+				}
+			};
+		});
+
+		context.getEnvironment().getPropertySources()
+				.addFirst(new MockPropertySource().withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "true"));
+
+		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(new DummyAotRepositoryContext(context), ctx);
+
+		assertThat(contributor.getMetamodel().managedType(Person.class)).isNotNull();
+	}
+
+	@Entity
+	static class Person {
+		@Id Long id;
+	}
+
+	interface PersonRepository extends Repository<Person, Long> {}
 
 	static class DummyAotRepositoryContext implements AotRepositoryContext {
+
+		private final @Nullable AbstractApplicationContext applicationContext;
+
+		DummyAotRepositoryContext(@Nullable AbstractApplicationContext applicationContext) {
+			this.applicationContext = applicationContext;
+		}
 
 		@Override
 		public String getBeanName() {
@@ -105,7 +167,8 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 
 		@Override
 		public RepositoryInformation getRepositoryInformation() {
-			return null;
+			return new AotRepositoryInformation(AbstractRepositoryMetadata.getMetadata(PersonRepository.class),
+					SimpleJpaRepository.class, List.of());
 		}
 
 		@Override
@@ -120,12 +183,12 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 
 		@Override
 		public ConfigurableListableBeanFactory getBeanFactory() {
-			return null;
+			return applicationContext != null ? applicationContext.getBeanFactory() : null;
 		}
 
 		@Override
 		public Environment getEnvironment() {
-			return new StandardEnvironment();
+			return applicationContext == null ? new StandardEnvironment() : applicationContext.getEnvironment();
 		}
 
 		@Override

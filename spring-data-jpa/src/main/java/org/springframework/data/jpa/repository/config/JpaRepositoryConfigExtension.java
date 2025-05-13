@@ -22,6 +22,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceUnit;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -35,8 +36,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.aot.generate.GenerationContext;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -46,6 +50,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -57,13 +62,14 @@ import org.springframework.data.jpa.repository.support.EntityManagerBeanDefiniti
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
-import org.springframework.data.repository.aot.generate.RepositoryContributor;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.AotRepositoryContext;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryRegistrationAotProcessor;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
+import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
+import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -90,6 +96,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
 	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
+	private static final Logger log = LoggerFactory.getLogger(JpaRepositoryConfigExtension.class);
 
 	private final Map<Object, String> entityManagerRefs = new LinkedHashMap<>();
 
@@ -327,28 +334,60 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		String GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
 
-		protected @Nullable RepositoryContributor contribute(AotRepositoryContext repositoryContext,
+		protected @Nullable JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
 				GenerationContext generationContext) {
 
+			Environment environment = repositoryContext.getEnvironment();
+
 			boolean enabled = Boolean.parseBoolean(
-					repositoryContext.getEnvironment().getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
+					environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
 			if (!enabled) {
 				return null;
 			}
 
+			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
+
 			boolean useEntityManager = Boolean.parseBoolean(
-					repositoryContext.getEnvironment().getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
+					environment.getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
 
 			if (useEntityManager) {
 
-				ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
-				EntityManagerFactory emf = beanFactory.getBeanProvider(EntityManagerFactory.class).getIfAvailable();
+				ObjectProvider<PersistenceUnitManager> unitManagerProvider = beanFactory
+						.getBeanProvider(PersistenceUnitManager.class);
+				PersistenceUnitManager unitManager = unitManagerProvider.getIfAvailable();
 
-				if (emf != null) {
-					return new JpaRepositoryContributor(repositoryContext, emf);
+				if (unitManager != null) {
+
+					log.debug("Using PersistenceUnitManager for AOT repository generation");
+					return new JpaRepositoryContributor(repositoryContext, unitManager.obtainDefaultPersistenceUnitInfo());
 				}
+
+				log.debug("Using EntityManager for AOT repository generation");
+
+				EntityManagerFactory emf = beanFactory.getBean(EntityManagerFactory.class);
+				return new JpaRepositoryContributor(repositoryContext, emf);
 			}
 
+			ObjectProvider<PersistenceManagedTypes> managedTypesProvider = beanFactory
+					.getBeanProvider(PersistenceManagedTypes.class);
+			PersistenceManagedTypes managedTypes = managedTypesProvider.getIfAvailable();
+
+			if (managedTypes != null) {
+
+				log.debug("Using PersistenceManagedTypes for AOT repository generation");
+				return new JpaRepositoryContributor(repositoryContext, managedTypes);
+			}
+
+			ObjectProvider<PersistenceUnitInfo> infoProvider = beanFactory.getBeanProvider(PersistenceUnitInfo.class);
+			PersistenceUnitInfo unitInfo = infoProvider.getIfAvailable();
+
+			if (unitInfo != null) {
+
+				log.debug("Using PersistenceUnitInfo for AOT repository generation");
+				return new JpaRepositoryContributor(repositoryContext, unitInfo);
+			}
+
+			log.debug("Using scanned types for AOT repository generation");
 			return new JpaRepositoryContributor(repositoryContext);
 		}
 	}

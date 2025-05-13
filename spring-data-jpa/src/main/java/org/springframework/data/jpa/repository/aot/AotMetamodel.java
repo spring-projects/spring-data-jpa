@@ -22,85 +22,51 @@ import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.spi.ClassTransformer;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
+import java.net.URL;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
+import org.hibernate.cfg.JdbcSettings;
+import org.hibernate.dialect.H2Dialect;
+import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.repository.config.AotRepositoryContext;
 import org.springframework.data.util.Lazy;
 import org.springframework.instrument.classloading.SimpleThrowawayClassLoader;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
+import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 
 /**
+ * AOT metamodel implementation that uses Hibernate to build the metamodel.
+ *
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 4.0
  */
 class AotMetamodel implements Metamodel {
 
-	private final String persistenceUnit;
-	private final Set<Class<?>> managedTypes;
-	private final Lazy<EntityManagerFactory> entityManagerFactory = Lazy.of(this::init);
-	private final Lazy<Metamodel> metamodel = Lazy.of(() -> entityManagerFactory.get().getMetamodel());
-	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
+	private final Lazy<EntityManagerFactory> entityManagerFactory;
+	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
 
-	public AotMetamodel(Set<Class<?>> managedTypes) {
-		this("AotMetamodel", managedTypes);
+	public AotMetamodel(AotRepositoryContext repositoryContext) {
+		this(repositoryContext.getResolvedTypes().stream().map(Class::getName)
+				.filter(name -> !name.startsWith("jakarta.persistence")).toList(), null);
 	}
 
-	private AotMetamodel(String persistenceUnit, Set<Class<?>> managedTypes) {
-		this.persistenceUnit = persistenceUnit;
-		this.managedTypes = managedTypes;
+	public AotMetamodel(PersistenceManagedTypes managedTypes) {
+		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl());
 	}
 
-	public static AotMetamodel hibernateModel(Class<?>... types) {
-		return new AotMetamodel(Set.of(types));
-	}
-
-	public static AotMetamodel hibernateModel(String persistenceUnit, Class<?>... types) {
-		return new AotMetamodel(persistenceUnit, Set.of(types));
-	}
-
-	public <X> EntityType<X> entity(Class<X> cls) {
-		return metamodel.get().entity(cls);
-	}
-
-	@Override
-	public EntityType<?> entity(String s) {
-		return metamodel.get().entity(s);
-	}
-
-	public <X> ManagedType<X> managedType(Class<X> cls) {
-		return metamodel.get().managedType(cls);
-	}
-
-	public <X> EmbeddableType<X> embeddable(Class<X> cls) {
-		return metamodel.get().embeddable(cls);
-	}
-
-	public Set<ManagedType<?>> getManagedTypes() {
-		return metamodel.get().getManagedTypes();
-	}
-
-	public Set<EntityType<?>> getEntities() {
-		return metamodel.get().getEntities();
-	}
-
-	public Set<EmbeddableType<?>> getEmbeddables() {
-		return metamodel.get().getEmbeddables();
-	}
-
-	public EntityManager entityManager() {
-		return entityManager.get();
-	}
-
-	public EntityManagerFactory getEntityManagerFactory() {
-		return entityManagerFactory.get();
-	}
-
-	EntityManagerFactory init() {
+	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl) {
 
 		MutablePersistenceUnitInfo persistenceUnitInfo = new MutablePersistenceUnitInfo() {
 			@Override
@@ -113,19 +79,82 @@ class AotMetamodel implements Metamodel {
 				// just ignore it
 			}
 		};
+		persistenceUnitInfo.setPersistenceUnitName("AotMetaModel");
 
-		persistenceUnitInfo.setPersistenceUnitName(persistenceUnit);
-		this.managedTypes.stream().map(Class::getName).forEach(persistenceUnitInfo::addManagedClassName);
+		this.entityManagerFactory = init(() -> {
 
-		persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
+			managedTypes.stream().forEach(persistenceUnitInfo::addManagedClassName);
 
-		return new EntityManagerFactoryBuilderImpl(new PersistenceUnitInfoDescriptor(persistenceUnitInfo) {
-			@Override
-			public List<String> getManagedClassNames() {
-				return persistenceUnitInfo.getManagedClassNames();
-			}
-		}, Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect", "hibernate.boot.allow_jdbc_metadata_access",
-				"false")).build();
+			persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
+
+			return new PersistenceUnitInfoDescriptor(persistenceUnitInfo) {
+
+				@Override
+				public List<String> getManagedClassNames() {
+					return persistenceUnitInfo.getManagedClassNames();
+				}
+
+				@Override
+				public URL getPersistenceUnitRootUrl() {
+					return persistenceUnitRootUrl;
+				}
+
+			};
+		});
+	}
+
+	public AotMetamodel(PersistenceUnitInfo unitInfo) {
+		this.entityManagerFactory = init(() -> new PersistenceUnitInfoDescriptor(unitInfo));
+	}
+
+	static Lazy<EntityManagerFactory> init(Supplier<PersistenceUnitInfoDescriptor> unitInfo) {
+
+		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(),
+				Map.of(JdbcSettings.DIALECT, H2Dialect.class.getName(), //
+						JdbcSettings.ALLOW_METADATA_ON_BOOT, "false", //
+						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl()))
+				.build());
+	}
+
+	private Metamodel getMetamodel() {
+		return getEntityManagerFactory().getMetamodel();
+	}
+
+	public <X> EntityType<X> entity(Class<X> cls) {
+		return getMetamodel().entity(cls);
+	}
+
+	@Override
+	public EntityType<?> entity(String s) {
+		return getMetamodel().entity(s);
+	}
+
+	public <X> ManagedType<X> managedType(Class<X> cls) {
+		return getMetamodel().managedType(cls);
+	}
+
+	public <X> EmbeddableType<X> embeddable(Class<X> cls) {
+		return getMetamodel().embeddable(cls);
+	}
+
+	public Set<ManagedType<?>> getManagedTypes() {
+		return getMetamodel().getManagedTypes();
+	}
+
+	public Set<EntityType<?>> getEntities() {
+		return getMetamodel().getEntities();
+	}
+
+	public Set<EmbeddableType<?>> getEmbeddables() {
+		return getMetamodel().getEmbeddables();
+	}
+
+	public EntityManager entityManager() {
+		return entityManager.get();
+	}
+
+	public EntityManagerFactory getEntityManagerFactory() {
+		return entityManagerFactory.get();
 	}
 
 }
