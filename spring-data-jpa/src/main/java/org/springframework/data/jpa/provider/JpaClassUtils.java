@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.provider;
 
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.lang.Nullable;
@@ -30,6 +30,7 @@ import org.springframework.util.ClassUtils;
  * @author Jens Schauder
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Ariel Morelli Andres, Atlassian US, Inc
  */
 abstract class JpaClassUtils {
 
@@ -39,19 +40,15 @@ abstract class JpaClassUtils {
 	private JpaClassUtils() {}
 
 	/**
-	 * Returns whether the given {@link EntityManager} is of the given type.
+	 * Returns whether the given {@link EntityManagerFactory} is of the given type.
 	 *
-	 * @param em must not be {@literal null}.
-	 * @param type the fully qualified expected {@link EntityManager} type, must not be {@literal null} or empty.
-	 * @return whether the given {@code EntityManager} is of the given type.
+	 * @param factory must not be {@literal null}.
+	 * @param type the fully qualified expected {@link EntityManagerFactory} type, must not be {@literal null} or empty.
+	 * @return whether the given {@code EntityManagerFactory} is of the given type.
 	 */
-	public static boolean isEntityManagerOfType(EntityManager em, String type) {
+	public static boolean isEntityManagerFactoryOfType(EntityManagerFactory factory, String type) {
 
-		EntityManager entityManagerToUse = em.getDelegate() instanceof EntityManager delegate //
-				? delegate //
-				: em;
-
-		return isOfType(entityManagerToUse, type, entityManagerToUse.getClass().getClassLoader());
+		return isOfType(factory, type, factory.getClass().getClassLoader());
 	}
 
 	public static boolean isMetamodelOfType(Metamodel metamodel, String type) {
