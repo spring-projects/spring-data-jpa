@@ -21,9 +21,11 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 
 import jakarta.persistence.EntityManager;
 
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Map;
 
+import jakarta.persistence.EntityManagerFactory;
 import org.assertj.core.api.Assumptions;
 import org.hibernate.Version;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Ariel Morelli Andres, Atlassian US, Inc
  */
 class PersistenceProviderUnitTests {
 
@@ -61,7 +64,7 @@ class PersistenceProviderUnitTests {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockEntityManagerWithProviderFactoryInterface(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE);
 
 		assertThat(fromEntityManager(em)).isEqualTo(ECLIPSELINK);
 	}
@@ -69,7 +72,7 @@ class PersistenceProviderUnitTests {
 	@Test
 	void fallbackToGenericJpaForUnknownPersistenceProvider() throws Exception {
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
+		EntityManager em = mockEntityManagerWithProviderFactoryInterface("foo.bar.unknown.jpa.JpaEntityManager");
 
 		assertThat(fromEntityManager(em)).isEqualTo(GENERIC_JPA);
 	}
@@ -81,33 +84,37 @@ class PersistenceProviderUnitTests {
 
 		shadowingClassLoader.excludePackage("org.hibernate");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
+		EntityManager em = mockEntityManagerWithProviderFactoryInterface(HIBERNATE_ENTITY_MANAGER_FACTORY_INTERFACE);
 
 		assertThat(fromEntityManager(em)).isEqualTo(HIBERNATE);
 	}
 
-	@Test // DATAJPA-1379
-	void detectsProviderFromProxiedEntityManager() throws Exception {
+	@Test
+	void detectsProviderFromProxiedEntityManagerFactory() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
-
+		EntityManager em = mockEntityManagerWithProviderFactoryInterface(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE);
+		EntityManagerFactory proxiedFactory = (EntityManagerFactory) Proxy.newProxyInstance(getClass().getClassLoader(),
+				em.getEntityManagerFactory().getClass().getInterfaces(), (proxy, method, args) -> switch (method.getName()) {
+					case "unwrap" -> args[0] == null ? em.getEntityManagerFactory() : this;
+					default -> method.invoke(em.getEntityManagerFactory(), args);
+				});
 		EntityManager emProxy = Mockito.mock(EntityManager.class);
-		Mockito.when(emProxy.getDelegate()).thenReturn(em);
+		Mockito.when(emProxy.getEntityManagerFactory()).thenReturn(proxiedFactory);
 
 		assertThat(fromEntityManager(emProxy)).isEqualTo(ECLIPSELINK);
 	}
 
-	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
+	private EntityManager mockEntityManagerWithProviderFactoryInterface(String factoryInterfaceName)
+			throws ClassNotFoundException {
 
-		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
-				EntityManager.class);
+		Class<?> providerSpecificEntityManagerFactoryInterface = InterfaceGenerator.generate(factoryInterfaceName,
+				shadowingClassLoader, EntityManagerFactory.class);
 
-		EntityManager em = (EntityManager) Mockito.mock(providerSpecificEntityManagerInterface);
-		Mockito.when(em.getDelegate()).thenReturn(em); // delegate is used to determine the classloader of the provider
-																										// specific interface, therefore we return the proxied
-																										// EntityManager.
+		EntityManagerFactory factory = (EntityManagerFactory) Mockito.mock(providerSpecificEntityManagerFactoryInterface);
+		EntityManager em = Mockito.mock(EntityManager.class);
+		Mockito.when(em.getEntityManagerFactory()).thenReturn(factory);
 
 		return em;
 	}
