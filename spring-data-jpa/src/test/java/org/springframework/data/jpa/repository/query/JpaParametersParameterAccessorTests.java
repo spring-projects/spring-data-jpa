@@ -51,6 +51,7 @@ class JpaParametersParameterAccessorTests {
 	}
 
 	@Test // GH-2370
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void createsHibernateParametersParameterAccessor() throws Exception {
 
 		Method withNativeQuery = SampleRepository.class.getMethod("withNativeQuery", Integer.class);
@@ -63,18 +64,17 @@ class JpaParametersParameterAccessorTests {
 		ArgumentCaptor<TypedParameterValue<?>> captor = ArgumentCaptor.forClass(TypedParameterValue.class);
 		verify(query).setParameter(eq(1), captor.capture());
 		TypedParameterValue<?> captorValue = captor.getValue();
-		assertThat(captorValue.getType().getBindableJavaType()).isEqualTo(Integer.class);
+		assertThat(captorValue.type().getJavaType()).isEqualTo(Integer.class);
 		assertThat(captorValue.getValue()).isNull();
 	}
 
 	private void bind(JpaParameters parameters, JpaParametersParameterAccessor accessor) {
 
-		ParameterBinderFactory.createBinder(parameters, true)
-				.bind( //
-						QueryParameterSetter.BindableQuery.from(query), //
-						accessor, //
-						QueryParameterSetter.ErrorHandling.LENIENT //
-				);
+		ParameterBinderFactory.createBinder(parameters, true).bind( //
+				QueryParameterSetter.BindableQuery.from(query), //
+				accessor, //
+				QueryParameterSetter.ErrorHandling.LENIENT //
+		);
 	}
 
 	interface SampleRepository {
