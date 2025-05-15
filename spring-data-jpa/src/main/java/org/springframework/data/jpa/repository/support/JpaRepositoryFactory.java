@@ -38,6 +38,7 @@ import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.EntityPathResolver;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
+import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.QueryCreationListener;
@@ -260,14 +261,18 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		JpaQueryConfiguration queryConfiguration = new JpaQueryConfiguration(queryRewriterProvider, queryEnhancerSelector,
 				new CachingValueExpressionDelegate(valueExpressionDelegate), escapeCharacter);
 
-		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key,
-				queryConfiguration));
+		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, queryConfiguration));
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
 		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
+	}
+
+	@Override
+	public EntityInformation<?, ?> getEntityInformation(RepositoryMetadata metadata) {
+		return JpaEntityInformationSupport.getEntityInformation(metadata.getDomainType(), entityManager);
 	}
 
 	@Override
