@@ -69,7 +69,6 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryRegistrationAotProcessor;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
-import org.springframework.orm.jpa.persistenceunit.PersistenceUnitManager;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -339,38 +338,34 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			Environment environment = repositoryContext.getEnvironment();
 
-			boolean enabled = Boolean.parseBoolean(
-					environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
+			boolean enabled = Boolean
+					.parseBoolean(environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
 			if (!enabled) {
 				return null;
 			}
 
 			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
 
-			boolean useEntityManager = Boolean.parseBoolean(
-					environment.getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
+			boolean useEntityManager = Boolean
+					.parseBoolean(environment.getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
 
 			if (useEntityManager) {
 
-				ObjectProvider<PersistenceUnitManager> unitManagerProvider = beanFactory
-						.getBeanProvider(PersistenceUnitManager.class);
-				PersistenceUnitManager unitManager = unitManagerProvider.getIfAvailable();
+				Optional<String> entityManagerFactoryRef = repositoryContext.getConfigurationSource()
+						.getAttribute("entityManagerFactoryRef");
 
-				if (unitManager != null) {
+				log.debug(
+						"Using EntityManager '%s' for AOT repository generation".formatted(entityManagerFactoryRef.orElse("")));
 
-					log.debug("Using PersistenceUnitManager for AOT repository generation");
-					return new JpaRepositoryContributor(repositoryContext, unitManager.obtainDefaultPersistenceUnitInfo());
-				}
-
-				log.debug("Using EntityManager for AOT repository generation");
-
-				EntityManagerFactory emf = beanFactory.getBean(EntityManagerFactory.class);
+				EntityManagerFactory emf = entityManagerFactoryRef
+						.map(it -> beanFactory.getBean(it, EntityManagerFactory.class))
+						.orElseGet(() -> beanFactory.getBean(EntityManagerFactory.class));
 				return new JpaRepositoryContributor(repositoryContext, emf);
 			}
 
 			ObjectProvider<PersistenceManagedTypes> managedTypesProvider = beanFactory
 					.getBeanProvider(PersistenceManagedTypes.class);
-			PersistenceManagedTypes managedTypes = managedTypesProvider.getIfAvailable();
+			PersistenceManagedTypes managedTypes = managedTypesProvider.getIfUnique();
 
 			if (managedTypes != null) {
 
@@ -379,7 +374,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			}
 
 			ObjectProvider<PersistenceUnitInfo> infoProvider = beanFactory.getBeanProvider(PersistenceUnitInfo.class);
-			PersistenceUnitInfo unitInfo = infoProvider.getIfAvailable();
+			PersistenceUnitInfo unitInfo = infoProvider.getIfUnique();
 
 			if (unitInfo != null) {
 

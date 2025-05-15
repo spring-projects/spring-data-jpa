@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.config;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -46,6 +47,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.config.AotRepositoryContext;
 import org.springframework.data.repository.config.AotRepositoryInformation;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
 import org.springframework.javapoet.ClassName;
@@ -153,6 +155,11 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		@Override
 		public String getModuleName() {
 			return "JPA";
+		}
+
+		@Override
+		public RepositoryConfigurationSource getConfigurationSource() {
+			return mock(RepositoryConfigurationSource.class);
 		}
 
 		@Override

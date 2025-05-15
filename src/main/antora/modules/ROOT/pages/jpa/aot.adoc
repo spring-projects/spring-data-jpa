@@ -53,6 +53,12 @@ For instance, profiles that have been enabled at build-time are automatically en
 Also, the Spring Data module implementing a repository is fixed.
 Changing the implementation requires AOT re-processing.
 
+NOTE: AOT processing avoids database access.
+Therefore, it initializes an in-memory Hibernate instance for metadata collection.
+Types for the Hibernate configuration are determined by our AOT metadata collector.
+We prefer using a `PersistentEntityTypes` bean if available and fall back to `PersistenceUnitInfo` or our own discovered types.
+If our type scanning is not sufficient for your arrangement, you can enable direct `EntityManagerFactory` usage by configuring the `spring.aot.jpa.repositories.use-entitymanager=true` property.
+
 === Eligible Methods
 
 AOT repositories filter methods that are eligible for AOT processing.
@@ -69,7 +75,6 @@ These are typically all query methods that are not backed by an xref:repositorie
 * Value Expressions (Those require a bit of reflective information.
 Mind that using Value Expressions requires expression parsing and contextual information to evaluate the expression)
 
-
 **Limitations**
 
 * Requires Hibernate for AOT processing.
@@ -79,8 +84,7 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 
 **Excluded methods**
 
-* `CrudRepository` and other base interface methods
-* Querydsl and Query by Example methods
+* `CrudRepository`, Querydsl, Query by Example, and other base interface methods as their implementation is provided by the base class respective fragments
 * Methods whose implementation would be overly complex
 ** Methods accepting `ScrollPosition` (e.g. `Keyset` pagination)
 ** Stored procedure query methods annotated with `@Procedure`

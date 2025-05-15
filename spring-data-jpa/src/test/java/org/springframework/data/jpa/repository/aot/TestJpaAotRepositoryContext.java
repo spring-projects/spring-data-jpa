@@ -32,6 +32,7 @@ import org.springframework.core.test.tools.ClassFile;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.lang.Nullable;
@@ -45,9 +46,12 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 
 	private final StubRepositoryInformation repositoryInformation;
 	private final Class<T> repositoryInterface;
+	private final RepositoryConfigurationSource configurationSource;
 
-	public TestJpaAotRepositoryContext(Class<T> repositoryInterface, @Nullable RepositoryComposition composition) {
+	public TestJpaAotRepositoryContext(Class<T> repositoryInterface, @Nullable RepositoryComposition composition,
+			RepositoryConfigurationSource configurationSource) {
 		this.repositoryInterface = repositoryInterface;
+		this.configurationSource = configurationSource;
 		this.repositoryInformation = new StubRepositoryInformation(repositoryInterface, composition);
 	}
 
@@ -83,6 +87,11 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	@Override
 	public String getModuleName() {
 		return "JPA";
+	}
+
+	@Override
+	public RepositoryConfigurationSource getConfigurationSource() {
+		return configurationSource;
 	}
 
 	@Override

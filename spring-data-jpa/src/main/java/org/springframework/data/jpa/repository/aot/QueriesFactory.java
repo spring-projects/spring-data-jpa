@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -37,6 +38,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -53,14 +55,21 @@ class QueriesFactory {
 
 	private final EntityManagerFactory entityManagerFactory;
 	private final Metamodel metamodel;
+	private final EscapeCharacter escapeCharacter;
+	private final JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
 
-	public QueriesFactory(EntityManagerFactory entityManagerFactory) {
-		this(entityManagerFactory, entityManagerFactory.getMetamodel());
+	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory) {
+		this(configurationSource, entityManagerFactory, entityManagerFactory.getMetamodel());
 	}
 
-	public QueriesFactory(EntityManagerFactory entityManagerFactory, Metamodel metamodel) {
+	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
+			Metamodel metamodel) {
+
 		this.metamodel = metamodel;
 		this.entityManagerFactory = entityManagerFactory;
+
+		Optional<Character> escapeCharacter = configurationSource.getAttribute("escapeCharacter", Character.class);
+		this.escapeCharacter = escapeCharacter.map(EscapeCharacter::of).orElse(EscapeCharacter.DEFAULT);
 	}
 
 	/**
@@ -77,8 +86,7 @@ class QueriesFactory {
 			QueryEnhancerSelector selector, JpaQueryMethod queryMethod, ReturnedType returnedType) {
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("value"))) {
-			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query,
-					queryMethod);
+			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query, queryMethod);
 		}
 
 		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryMethod.getNamedQueryName());
@@ -201,9 +209,6 @@ class QueriesFactory {
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		PartTree partTree = new PartTree(queryMethod.getName(), repositoryInformation.getDomainType());
-		// TODO make configurable
-		JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
-
 		AotQuery aotQuery = createQuery(partTree, returnedType, queryMethod.getParameters(), templates);
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("countQuery"))) {
@@ -222,8 +227,7 @@ class QueriesFactory {
 	private AotQuery createQuery(PartTree partTree, ReturnedType returnedType, JpaParameters parameters,
 			JpqlQueryTemplates templates) {
 
-		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, EscapeCharacter.DEFAULT,
-				templates);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
 		JpaQueryCreator queryCreator = new JpaQueryCreator(partTree, false, returnedType, metadataProvider, templates,
 				metamodel);
 
@@ -234,8 +238,7 @@ class QueriesFactory {
 	private AotQuery createCountQuery(PartTree partTree, ReturnedType returnedType, JpaParameters parameters,
 			JpqlQueryTemplates templates) {
 
-		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, EscapeCharacter.DEFAULT,
-				templates);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
 		JpaQueryCreator queryCreator = new JpaCountQueryCreator(partTree, returnedType, metadataProvider, templates,
 				metamodel);
 

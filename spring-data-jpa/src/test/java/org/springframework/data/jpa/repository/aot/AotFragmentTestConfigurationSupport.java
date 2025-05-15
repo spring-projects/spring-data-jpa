@@ -21,6 +21,8 @@ import jakarta.persistence.EntityManagerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import org.mockito.Mockito;
+
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -29,11 +31,18 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -56,8 +65,15 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 	private final TestJpaAotRepositoryContext<?> repositoryContext;
 
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface) {
+		this(repositoryInterface, SampleConfig.class);
+	}
+
+	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface, Class<?> configClass) {
 		this.repositoryInterface = repositoryInterface;
-		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, null);
+		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, null,
+				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(configClass),
+						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
+						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
 	}
 
 	@Override

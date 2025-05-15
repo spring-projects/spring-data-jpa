@@ -22,9 +22,11 @@ import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
@@ -70,6 +72,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
+	private final AotRepositoryContext context;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
 		this(repositoryContext, new AotMetamodel(repositoryContext));
@@ -87,9 +90,10 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		super(repositoryContext);
 
+		this.context = repositoryContext;
 		this.metamodel = entityManagerFactory.getMetamodel();
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
-		this.queriesFactory = new QueriesFactory(entityManagerFactory);
+		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory);
 		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
 	}
 
@@ -97,9 +101,11 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		super(repositoryContext);
 
+		this.context = repositoryContext;
 		this.metamodel = metamodel;
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(metamodel.getEntityManagerFactory());
-		this.queriesFactory = new QueriesFactory(metamodel.getEntityManagerFactory(), metamodel);
+		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(),
+				metamodel.getEntityManagerFactory(), metamodel);
 		this.entityGraphLookup = new EntityGraphLookup(metamodel.getEntityManagerFactory());
 	}
 
@@ -111,15 +117,25 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	@Override
 	protected void customizeConstructor(AotRepositoryConstructorBuilder constructorBuilder) {
 
-		// TODO: BeanFactoryQueryRewriterProvider if there is a method using QueryRewriters.
-
 		constructorBuilder.addParameter("entityManager", EntityManager.class);
 		constructorBuilder.addParameter("context", RepositoryFactoryBeanSupport.FragmentCreationContext.class);
 
-		// TODO: Pick up the configured QueryEnhancerSelector
+		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelector = getQueryEnhancerSelectorClass();
+
 		constructorBuilder.customize(builder -> {
-			builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
+
+			if (queryEnhancerSelector.isPresent()) {
+				builder.addStatement("super(new T$(), context)", queryEnhancerSelector.get());
+			} else {
+				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
+			}
 		});
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private Optional<Class<QueryEnhancerSelector>> getQueryEnhancerSelectorClass() {
+		return (Optional) context.getConfigurationSource().getAttribute("queryEnhancerSelector", Class.class)
+				.filter(it -> !it.equals(QueryEnhancerSelector.DefaultQueryEnhancerSelector.class));
 	}
 
 	@Override
@@ -128,8 +144,9 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, getRepositoryInformation(), getProjectionFactory(),
 				persistenceProvider);
 
-		// meh!
-		QueryEnhancerSelector selector = QueryEnhancerSelector.DEFAULT_SELECTOR;
+		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelectorClass = getQueryEnhancerSelectorClass();
+		QueryEnhancerSelector selector = queryEnhancerSelectorClass.map(BeanUtils::instantiateClass)
+				.orElse(QueryEnhancerSelector.DEFAULT_SELECTOR);
 
 		// no stored procedures for now.
 		if (queryMethod.isProcedureQuery()) {
@@ -183,7 +200,6 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			TypeInformation<?> returnType = getRepositoryInformation().getReturnType(method);
 
 			boolean returnsCount = JpaCodeBlocks.QueryExecutionBlockBuilder.returnsModifying(returnType.getType());
-
 			boolean isVoid = ClassUtils.isVoidType(returnType.getType());
 
 			if (!returnsCount && !isVoid) {

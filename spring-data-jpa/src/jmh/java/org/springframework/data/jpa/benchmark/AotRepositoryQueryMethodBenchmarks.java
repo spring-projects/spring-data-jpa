@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.junit.platform.commons.annotation.Testable;
+import org.mockito.Mockito;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -37,16 +38,24 @@ import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.aot.test.generate.TestGenerationContext;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
+import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.benchmark.model.Person;
 import org.springframework.data.jpa.benchmark.model.Profile;
 import org.springframework.data.jpa.benchmark.repository.PersonRepository;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.aot.TestJpaAotRepositoryContext;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
@@ -74,7 +83,10 @@ public class AotRepositoryQueryMethodBenchmarks {
 
 		public static Class<?> aot;
 		public static TestJpaAotRepositoryContext<PersonRepository> repositoryContext = new TestJpaAotRepositoryContext<>(
-				PersonRepository.class, null);
+				PersonRepository.class, null,
+				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(SampleConfig.class),
+						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
+						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
 
 		EntityManager entityManager;
 		RepositoryComposition.RepositoryFragments fragments;

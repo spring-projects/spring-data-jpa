@@ -58,8 +58,16 @@ class AotMetamodel implements Metamodel {
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
 
 	public AotMetamodel(AotRepositoryContext repositoryContext) {
-		this(repositoryContext.getResolvedTypes().stream().map(Class::getName)
-				.filter(name -> !name.startsWith("jakarta.persistence")).toList(), null);
+		this(repositoryContext.getResolvedTypes().stream().filter(AotMetamodel::isJakartaAnnotated).map(Class::getName)
+				.toList(), null);
+	}
+
+	private static boolean isJakartaAnnotated(Class<?> cls) {
+
+		return cls.isAnnotationPresent(jakarta.persistence.Entity.class)
+				|| cls.isAnnotationPresent(jakarta.persistence.Embeddable.class)
+				|| cls.isAnnotationPresent(jakarta.persistence.MappedSuperclass.class)
+				|| cls.isAnnotationPresent(jakarta.persistence.Converter.class);
 	}
 
 	public AotMetamodel(PersistenceManagedTypes managedTypes) {
