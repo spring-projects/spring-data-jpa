@@ -25,6 +25,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * TCK Tests for {@link JSqlParserQueryEnhancer}.
@@ -49,6 +51,19 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		String sql = enhancer.applySorting(Sort.by("foo", "bar"));
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e ORDER BY e.foo ASC, e.bar ASC");
+	}
+
+	@Test // GH-3886
+	void shouldApplySortingWithNullsPrecedence() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.of("SELECT e FROM Employee e", true));
+
+		String sql = enhancer.rewrite(new DefaultQueryRewriteInformation(
+				Sort.by(Sort.Order.asc("foo").with(Sort.NullHandling.NULLS_LAST),
+						Sort.Order.desc("bar").with(Sort.NullHandling.NULLS_FIRST)),
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
+
+		assertThat(sql).isEqualTo("SELECT e FROM Employee e ORDER BY e.foo ASC NULLS LAST, e.bar DESC NULLS FIRST");
 	}
 
 	@Test // GH-3707

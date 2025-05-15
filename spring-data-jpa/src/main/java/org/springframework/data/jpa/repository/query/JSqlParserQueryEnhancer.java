@@ -501,6 +501,15 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 				: property;
 		Expression orderExpression = order.isIgnoreCase() ? getJSqlLower(reference) : new Column(reference);
 		orderByElement.setExpression(orderExpression);
+
+		switch (order.getNullHandling()) {
+			case NULLS_FIRST -> orderByElement.setNullOrdering(OrderByElement.NullOrdering.NULLS_FIRST);
+			case NULLS_LAST -> orderByElement.setNullOrdering(OrderByElement.NullOrdering.NULLS_LAST);
+			default -> {
+				// do nothing
+			}
+		}
+
 		return orderByElement;
 	}
 
