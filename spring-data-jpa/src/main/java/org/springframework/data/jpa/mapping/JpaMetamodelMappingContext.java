@@ -168,25 +168,26 @@ public class JpaMetamodelMappingContext
 		 */
 		@Nullable
 		private Metamodel getMetamodelFor(Class<?> type) {
-
-			for (Metamodel model : metamodels) {
-
-				try {
+			Metamodel currentModel = null;
+			try {
+				for (Metamodel model : metamodels) {
+					currentModel = model;
 					model.managedType(type);
 					return model;
-				} catch (IllegalArgumentException o_O) {
-
-					// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
-					// returns for entities, embeddables and managed superclasses.
-
-					for (ManagedType<?> managedType : model.getManagedTypes()) {
+				}
+			} catch (IllegalArgumentException o_O) {
+				
+				// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
+				// returns for entities, embeddables and managed superclasses.
+				
+				if (currentModel != null) {
+					for (ManagedType<?> managedType : currentModel.getManagedTypes()) {
 						if (type.equals(managedType.getJavaType())) {
-							return model;
+							return currentModel;
 						}
 					}
 				}
 			}
-
 			return null;
 		}
 	}
