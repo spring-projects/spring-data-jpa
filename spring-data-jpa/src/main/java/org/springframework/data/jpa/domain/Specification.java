@@ -47,6 +47,7 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * Negates the given {@link Specification}.
 	 *
+	 * @apiNote with 4.0, this method will no longer accept {@literal null} specifications.
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
@@ -58,19 +59,20 @@ public interface Specification<T> extends Serializable {
 				? (root, query, builder) -> null //
 				: (root, query, builder) -> {
 
-			Predicate predicate = spec.toPredicate(root, query, builder);
+					Predicate predicate = spec.toPredicate(root, query, builder);
 					return predicate != null ? builder.not(predicate) : builder.disjunction();
-		};
+				};
 	}
 
 	/**
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 *
+	 * @apiNote with 4.0, this method will no longer accept {@literal null} specifications.
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
-	 * @deprecated since 3.5.
+	 * @deprecated since 3.5, to be removed with 4.0 as we no longer want to support {@literal null} specifications.
 	 */
 	@Deprecated(since = "3.5.0", forRemoval = true)
 	static <T> Specification<T> where(@Nullable Specification<T> spec) {
@@ -80,6 +82,7 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * ANDs the given {@link Specification} to the current one.
 	 *
+	 * @apiNote with 4.0, this method will no longer accept {@literal null} specifications.
 	 * @param other can be {@literal null}.
 	 * @return The conjunction of the specifications
 	 * @since 2.0
@@ -91,6 +94,7 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * ORs the given specification to the current one.
 	 *
+	 * @apiNote with 4.0, this method will no longer accept {@literal null} specifications.
 	 * @param other can be {@literal null}.
 	 * @return The disjunction of the specifications
 	 * @since 2.0
@@ -104,7 +108,9 @@ public interface Specification<T> extends Serializable {
 	 * {@link Root} and {@link CriteriaQuery}.
 	 *
 	 * @param root must not be {@literal null}.
-	 * @param query can be {@literal null} to allow overrides that accept {@link jakarta.persistence.criteria.CriteriaDelete} which is an {@link jakarta.persistence.criteria.AbstractQuery} but no {@link CriteriaQuery}.
+	 * @param query can be {@literal null} to allow overrides that accept
+	 *          {@link jakarta.persistence.criteria.CriteriaDelete} which is an
+	 *          {@link jakarta.persistence.criteria.AbstractQuery} but no {@link CriteriaQuery}.
 	 * @param criteriaBuilder must not be {@literal null}.
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
