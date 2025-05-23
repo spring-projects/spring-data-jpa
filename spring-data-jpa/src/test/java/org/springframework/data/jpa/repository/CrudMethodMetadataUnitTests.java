@@ -23,6 +23,7 @@ import java.util.Map;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -47,6 +48,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -54,6 +56,7 @@ class CrudMethodMetadataUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock PersistenceUnitUtil persistenceUnitUtil;
 	@Mock CriteriaBuilder builder;
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
@@ -72,6 +75,7 @@ class CrudMethodMetadataUnitTests {
 		when(em.getDelegate()).thenReturn(em);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override

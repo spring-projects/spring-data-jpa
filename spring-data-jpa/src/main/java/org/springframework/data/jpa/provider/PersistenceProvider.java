@@ -18,13 +18,6 @@ package org.springframework.data.jpa.provider;
 import static org.springframework.data.jpa.provider.JpaClassUtils.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Query;
-import jakarta.persistence.metamodel.IdentifiableType;
-import jakarta.persistence.metamodel.Metamodel;
-import jakarta.persistence.metamodel.SingularAttribute;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -40,12 +33,18 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Query;
+import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -56,6 +55,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -316,7 +316,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	}
 
 	/**
-	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
+	 * Determines the {@link PersistenceProvider} from the given {@link EntityManagerFactory}. If no special one can be
 	 * determined {@link #GENERIC_JPA} will be returned.
 	 *
 	 * @param emf must not be {@literal null}.
@@ -324,7 +324,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	public static PersistenceProvider fromEntityManagerFactory(EntityManagerFactory emf) {
 
-		Assert.notNull(emf, "EntityManager must not be null");
+		Assert.notNull(emf, "EntityManagerFactory must not be null");
 
 		Class<?> entityManagerType = emf.getPersistenceUnitUtil().getClass();
 		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
