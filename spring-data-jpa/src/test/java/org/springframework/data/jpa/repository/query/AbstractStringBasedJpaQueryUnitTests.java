@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
@@ -52,6 +53,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Ariel Morelli Andres
  */
 class AbstractStringBasedJpaQueryUnitTests {
 
@@ -137,10 +139,12 @@ class AbstractStringBasedJpaQueryUnitTests {
 				public EntityManager get() {
 
 					EntityManager em = Mockito.mock(EntityManager.class);
+					EntityManagerFactory emf = Mockito.mock(EntityManagerFactory.class);
 
 					Metamodel meta = mock(Metamodel.class);
 					when(em.getMetamodel()).thenReturn(meta);
 					when(em.getDelegate()).thenReturn(new Object()); // some generic jpa
+					when(em.getEntityManagerFactory()).thenReturn(emf);
 
 					return em;
 				}

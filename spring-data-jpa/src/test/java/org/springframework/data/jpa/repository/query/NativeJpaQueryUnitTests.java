@@ -71,11 +71,9 @@ class NativeJpaQueryUnitTests {
 				queryExtractor);
 
 		NativeJpaQuery query = new NativeJpaQuery(queryMethod, em, queryMethod.getRequiredDeclaredQuery(),
-				queryMethod.getDeclaredCountQuery(),
-				new JpaQueryConfiguration(QueryRewriterProvider.simple(), QueryEnhancerSelector.DEFAULT_SELECTOR,
-						ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT));
-		QueryProvider sql = query.getSortedQuery(Sort.by("foo", "bar"),
-				queryMethod.getResultProcessor().getReturnedType());
+				queryMethod.getDeclaredCountQuery(), new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+						QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT));
+		QueryProvider sql = query.getSortedQuery(Sort.by("foo", "bar"), queryMethod.getResultProcessor().getReturnedType());
 
 		assertThat(sql.getQueryString()).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}

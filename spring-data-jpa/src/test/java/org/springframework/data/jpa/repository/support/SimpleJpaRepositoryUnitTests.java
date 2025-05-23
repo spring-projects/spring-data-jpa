@@ -31,7 +31,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +43,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.User;
@@ -61,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -85,6 +84,9 @@ class SimpleJpaRepositoryUnitTests {
 	void setUp() {
 
 		when(em.getDelegate()).thenReturn(em);
+		when(em.getEntityManagerFactory()).thenReturn(entityManagerFactory);
+
+		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 
 		when(information.getJavaType()).thenReturn(User.class);
 		when(em.getCriteriaBuilder()).thenReturn(builder);

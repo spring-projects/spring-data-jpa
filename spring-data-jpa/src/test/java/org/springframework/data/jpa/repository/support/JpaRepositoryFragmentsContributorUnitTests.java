@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import java.util.Iterator;
 
@@ -40,6 +41,7 @@ import com.querydsl.core.types.EntityPath;
  * Unit tests for {@link JpaRepositoryFragmentsContributor}.
  *
  * @author Mark Paluch
+ * @author Ariel Morelli Andres
  */
 class JpaRepositoryFragmentsContributorUnitTests {
 
@@ -53,7 +55,9 @@ class JpaRepositoryFragmentsContributorUnitTests {
 		when(entityPathResolver.createPath(any())).thenReturn((EntityPath) QCustomer.customer);
 
 		EntityManager entityManager = mock(EntityManager.class);
+		EntityManagerFactory emf = mock(EntityManagerFactory.class);
 		when(entityManager.getDelegate()).thenReturn(entityManager);
+		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
 
 		RepositoryComposition.RepositoryFragments fragments = contributor.contribute(
 				AbstractRepositoryMetadata.getMetadata(QuerydslUserRepository.class),
