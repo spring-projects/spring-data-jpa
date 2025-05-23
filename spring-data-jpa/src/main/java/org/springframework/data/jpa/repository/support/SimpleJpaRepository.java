@@ -104,6 +104,7 @@ import org.springframework.util.Assert;
  * @author Diego Krupitza
  * @author Seol-JY
  * @author Joshua Chen
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @Repository
 @Transactional(readOnly = true)
@@ -138,7 +139,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		this.entityInformation = entityInformation;
 		this.entityManager = entityManager;
-		this.provider = PersistenceProvider.fromEntityManager(entityManager);
+		this.provider = PersistenceProvider.fromEntityManagerFactory(entityManager.getEntityManagerFactory());
 		this.projectionFactory = new SpelAwareProxyProjectionFactory();
 	}
 

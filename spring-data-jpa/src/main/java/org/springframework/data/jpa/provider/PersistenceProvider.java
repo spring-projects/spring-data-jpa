@@ -56,6 +56,7 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -316,7 +317,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	}
 
 	/**
-	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
+	 * Determines the {@link PersistenceProvider} from the given {@link EntityManagerFactory}. If no special one can be
 	 * determined {@link #GENERIC_JPA} will be returned.
 	 *
 	 * @param emf must not be {@literal null}.
@@ -324,7 +325,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 */
 	public static PersistenceProvider fromEntityManagerFactory(EntityManagerFactory emf) {
 
-		Assert.notNull(emf, "EntityManager must not be null");
+		Assert.notNull(emf, "EntityManagerFactory must not be null");
 
 		Class<?> entityManagerType = emf.getPersistenceUnitUtil().getClass();
 		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);

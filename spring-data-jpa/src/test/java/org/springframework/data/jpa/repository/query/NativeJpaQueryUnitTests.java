@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
@@ -44,12 +45,14 @@ import org.springframework.util.ReflectionUtils;
  * Unit tests for {@link NativeJpaQuery}.
  *
  * @author Mark Paluch
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @MockitoSettings(strictness = Strictness.LENIENT)
 class NativeJpaQueryUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock PersistenceUnitUtil puu;
 	@Mock Metamodel metamodel;
 
 	@BeforeEach
@@ -58,6 +61,7 @@ class NativeJpaQueryUnitTests {
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
+		when(emf.getPersistenceUnitUtil()).thenReturn(puu);
 	}
 
 	@Test // GH-3546
@@ -71,11 +75,9 @@ class NativeJpaQueryUnitTests {
 				queryExtractor);
 
 		NativeJpaQuery query = new NativeJpaQuery(queryMethod, em, queryMethod.getRequiredDeclaredQuery(),
-				queryMethod.getDeclaredCountQuery(),
-				new JpaQueryConfiguration(QueryRewriterProvider.simple(), QueryEnhancerSelector.DEFAULT_SELECTOR,
-						ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT));
-		QueryProvider sql = query.getSortedQuery(Sort.by("foo", "bar"),
-				queryMethod.getResultProcessor().getReturnedType());
+				queryMethod.getDeclaredCountQuery(), new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+						QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT));
+		QueryProvider sql = query.getSortedQuery(Sort.by("foo", "bar"), queryMethod.getResultProcessor().getReturnedType());
 
 		assertThat(sql.getQueryString()).isEqualTo("SELECT e FROM Employee e order by e.foo asc, e.bar asc");
 	}

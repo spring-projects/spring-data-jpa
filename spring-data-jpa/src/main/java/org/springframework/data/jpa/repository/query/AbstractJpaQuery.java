@@ -70,6 +70,7 @@ import org.springframework.util.ClassUtils;
  * @author Wonchul Heo
  * @author Julia Lee
  * @author Yanming Zhou
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 public abstract class AbstractJpaQuery implements RepositoryQuery {
 
@@ -95,7 +96,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		this.method = method;
 		this.em = em;
 		this.metamodel = JpaMetamodel.of(em.getMetamodel());
-		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.provider = PersistenceProvider.fromEntityManagerFactory(em.getEntityManagerFactory());
 		this.execution = Lazy.of(() -> {
 
 			if (method.isStreamQuery()) {

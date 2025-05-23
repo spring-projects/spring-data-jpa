@@ -40,7 +40,6 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
 import com.querydsl.jpa.impl.JPAQuery;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Helper instance to ease access to Querydsl JPA query API.
@@ -51,6 +50,7 @@ import org.jspecify.annotations.Nullable;
  * @author Christoph Strobl
  * @author Marcus Voltolim
  * @author Donghun Shin
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 public class Querydsl {
 
@@ -70,7 +70,7 @@ public class Querydsl {
 		Assert.notNull(builder, "PathBuilder must not be null");
 
 		this.em = em;
-		this.provider = PersistenceProvider.fromEntityManager(em);
+		this.provider = PersistenceProvider.fromEntityManagerFactory(em.getEntityManagerFactory());
 		this.builder = builder;
 	}
 
@@ -87,7 +87,8 @@ public class Querydsl {
 	 * Obtains the {@link JPQLTemplates} for the configured {@link EntityManager}. Can return {@literal null} to use the
 	 * default templates.
 	 *
-	 * @return the {@link JPQLTemplates} for the configured {@link EntityManager}, {@link JPQLTemplates#DEFAULT} by default.
+	 * @return the {@link JPQLTemplates} for the configured {@link EntityManager}, {@link JPQLTemplates#DEFAULT} by
+	 *         default.
 	 * @since 3.5
 	 */
 	public JPQLTemplates getTemplates() {

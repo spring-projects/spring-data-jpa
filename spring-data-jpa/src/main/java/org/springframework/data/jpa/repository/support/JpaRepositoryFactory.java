@@ -67,6 +67,7 @@ import com.querydsl.core.types.EntityPath;
  * @author Réda Housni Alaoui
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
@@ -91,7 +92,8 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 		Assert.notNull(entityManager, "EntityManager must not be null");
 
 		this.entityManager = entityManager;
-		PersistenceProvider extractor = PersistenceProvider.fromEntityManager(entityManager);
+		PersistenceProvider extractor = PersistenceProvider
+				.fromEntityManagerFactory(entityManager.getEntityManagerFactory());
 		this.crudMethodMetadataPostProcessor = new CrudMethodMetadataPostProcessor();
 		this.entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 		this.queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
