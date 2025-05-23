@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
@@ -58,6 +59,7 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
  * @author Jens Schauder
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -68,6 +70,7 @@ class JpaQueryLookupStrategyUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock PersistenceUnitUtil puu;
 	@Mock QueryExtractor extractor;
 	@Mock NamedQueries namedQueries;
 	@Mock Metamodel metamodel;
@@ -81,6 +84,7 @@ class JpaQueryLookupStrategyUnitTests {
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.getPersistenceUnitUtil()).thenReturn(puu);
 		when(em.getDelegate()).thenReturn(em);
 		queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 	}

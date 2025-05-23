@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.metamodel.Metamodel;
 
@@ -36,7 +37,6 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.provider.QueryExtractor;
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -51,6 +51,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Erik Pellizzon
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -63,6 +64,7 @@ class NamedQueryUnitTests {
 	@Mock QueryExtractor extractor;
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock PersistenceUnitUtil puu;
 	@Mock Metamodel metamodel;
 
 	private ProjectionFactory projectionFactory = new SpelAwareProxyProjectionFactory();
@@ -84,6 +86,7 @@ class NamedQueryUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.getPersistenceUnitUtil()).thenReturn(puu);
 	}
 
 	@Test

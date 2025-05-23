@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.metamodel.Metamodel;
@@ -69,6 +70,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Erik Pellizzon
  * @author Christoph Strobl
  * @author Danny van den Elshout
+ * @author Ariel Morelli Andres (Atlassian US, Inc.)
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -83,6 +85,7 @@ class SimpleJpaQueryUnitTests {
 
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
+	@Mock PersistenceUnitUtil puu;
 	@Mock QueryExtractor extractor;
 	@Mock jakarta.persistence.Query query;
 	@Mock TypedQuery<Long> typedQuery;
@@ -102,6 +105,7 @@ class SimpleJpaQueryUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
 		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.getPersistenceUnitUtil()).thenReturn(puu);
 		when(metadata.getRepositoryInterface()).thenReturn((Class) SampleRepository.class);
 		when(metadata.getDomainType()).thenReturn((Class) User.class);
 		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
