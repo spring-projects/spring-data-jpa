@@ -107,7 +107,7 @@ class PredicateSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		PredicateSpecification<Object> transferredSpecification = (PredicateSpecification<Object>) deserialize(
 				serialize(specification));
 
@@ -123,7 +123,7 @@ class PredicateSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		PredicateSpecification<Object> transferredSpecification = (PredicateSpecification<Object>) deserialize(
 				serialize(specification));
 
