@@ -109,7 +109,7 @@ class DeleteSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		DeleteSpecification<Object> transferredSpecification = (DeleteSpecification<Object>) deserialize(
 				serialize(specification));
 
@@ -125,7 +125,7 @@ class DeleteSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({"unchecked", "deprecation"})
 		DeleteSpecification<Object> transferredSpecification = (DeleteSpecification<Object>) deserialize(
 				serialize(specification));
 

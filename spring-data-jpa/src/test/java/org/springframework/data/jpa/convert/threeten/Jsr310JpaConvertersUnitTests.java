@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 class Jsr310JpaConvertersUnitTests {
 
-	static Iterable<? extends Object> data() {
+	static Iterable<?> data() {
 
 		return Arrays.asList(new Jsr310JpaConverters.InstantConverter(), //
 				new Jsr310JpaConverters.LocalDateConverter(), //
