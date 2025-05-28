@@ -252,6 +252,14 @@ class HqlQueryTransformerTests {
 	}
 
 	@Test // GH-3902
+	void createsCountQueryForQueriesWithoutVariableWithSubSelectsSelectQuery() {
+
+		assertCountQuery(
+				"select u, (select foo from bar b) from User left outer join u.roles r where r in (select r from Role r)",
+				"select count(*) from User left outer join u.roles r where r in (select r from Role r)");
+	}
+
+	@Test // GH-3902
 	void createsCountQueryForQueriesWithSubSelects() {
 
 		assertCountQuery("from User u left outer join u.roles r where r in (select r from Role r) select u ",
@@ -268,7 +276,7 @@ class HqlQueryTransformerTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test // GH-2260
+	@Test // GH-2260, GH-3902
 	void detectsAliasCorrectly() {
 
 		assertThat(alias(QUERY)).isEqualTo("u");
@@ -288,6 +296,11 @@ class HqlQueryTransformerTests {
 		assertThat(alias(
 				"SELECT e FROM DbEvent e WHERE TREAT(modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom"))
 				.isEqualTo("e");
+		assertThat(alias("select u, (select u2 from User u2) from User u")).isEqualTo("u");
+		assertThat(alias("select firstname from User JOIN (select u2 from User u2) u2")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User b")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User UNION select lastname from User b"))
+				.isNull();
 	}
 
 	@Test // GH-2557
@@ -304,12 +317,12 @@ class HqlQueryTransformerTests {
 				""").rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
 				.isEqualToIgnoringWhitespace("""
-				select u
-				from user u
-				where exists (select u2
-				from user u2
-				)
-				 order by u.age desc""");
+						select u
+						from user u
+						where exists (select u2
+						from user u2
+						)
+						 order by u.age desc""");
 	}
 
 	@Test // GH-2563

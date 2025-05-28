@@ -59,7 +59,8 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRange_variable_declaration(EqlParser.Range_variable_declarationContext ctx) {
 
-		if (primaryFromAlias == null && ctx.identification_variable() != null) {
+		if (primaryFromAlias == null && ctx.identification_variable() != null && !EqlQueryRenderer.isSubquery(ctx)
+				&& !EqlQueryRenderer.isSetQuery(ctx)) {
 			primaryFromAlias = ctx.identification_variable().getText();
 		}
 

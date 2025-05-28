@@ -38,7 +38,7 @@ import org.springframework.util.ObjectUtils;
 class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	/**
-	 * Is this select clause a {@literal subquery}?
+	 * Is this AST tree a {@literal subquery}?
 	 *
 	 * @return boolean
 	 */
@@ -57,6 +57,23 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		} else {
 			return ctx.getParent() != null && isSubquery(ctx.getParent());
 		}
+	}
+
+	/**
+	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSetQuery(ParserRuleContext ctx) {
+
+		if (ctx instanceof HqlParser.OrderedQueryContext
+				&& ctx.getParent() instanceof HqlParser.QueryExpressionContext qec) {
+			if (qec.orderedQuery().indexOf(ctx) != 0) {
+				return true;
+			}
+		}
+
+		return ctx.getParent() != null && isSetQuery(ctx.getParent());
 	}
 
 	@Override

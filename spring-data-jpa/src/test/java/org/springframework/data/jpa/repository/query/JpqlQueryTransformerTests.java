@@ -83,13 +83,11 @@ class JpqlQueryTransformerTests {
 
 		assertThat(createQueryFor(original, Sort.unsorted())).isEqualTo(original);
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
 	}
 
 	@Test
@@ -222,6 +220,14 @@ class JpqlQueryTransformerTests {
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role r)");
 	}
 
+	@Test // GH-3902
+	void createsCountQueryForQueriesWithoutVariableWithSubSelectsSelectQuery() {
+
+		assertCountQuery(
+				"select name, (select foo from bar b) from User left outer join u.roles r where r in (select r from Role r)",
+				"select count(name) from User left outer join u.roles r where r in (select r from Role r)");
+	}
+
 	@Test
 	void createsCountQueryForAliasesCorrectly() {
 		assertCountQuery("select u from User as u", "select count(u) from User as u");
@@ -232,7 +238,7 @@ class JpqlQueryTransformerTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test // GH-2260
+	@Test // GH-2260, GH-3902
 	void detectsAliasCorrectly() {
 
 		assertThat(alias(QUERY)).isEqualTo("u");
@@ -249,6 +255,11 @@ class JpqlQueryTransformerTests {
 		assertThat(alias(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
 				.isEqualTo("u");
+		assertThat(alias("select u, (select u2 from User u2) from User u")).isEqualTo("u");
+		assertThat(alias("select firstname from User where not exists (select u2 from User u2)")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User b")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User UNION select lastname from User b"))
+				.isNull();
 	}
 
 	@Test // GH-2557
@@ -265,12 +276,12 @@ class JpqlQueryTransformerTests {
 				""").rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
 				.isEqualToIgnoringWhitespace("""
-				select u
-				from user u
-				where exists (select u2
-				from user u2
-				)
-				 order by u.age desc""");
+						select u
+						from user u
+						where exists (select u2
+						from user u2
+						)
+						 order by u.age desc""");
 	}
 
 	@Test // GH-2563
@@ -840,7 +851,8 @@ class JpqlQueryTransformerTests {
 		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
 		String target = createQueryFor(source, Sort.by("Type").ascending());
 
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+		assertThat(target).isEqualTo(
+				"SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {

@@ -20,6 +20,7 @@ import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.springframework.data.jpa.repository.query.JpqlParser.NullsPrecedenceContext;
@@ -35,10 +36,43 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
 class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
+
+	/**
+	 * Is this AST tree a {@literal subquery}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSubquery(ParserRuleContext ctx) {
+
+		if (ctx instanceof JpqlParser.SubqueryContext) {
+			return true;
+		} else if (ctx instanceof JpqlParser.Update_statementContext) {
+			return false;
+		} else if (ctx instanceof JpqlParser.Delete_statementContext) {
+			return false;
+		} else {
+			return ctx.getParent() != null && isSubquery(ctx.getParent());
+		}
+	}
+
+	/**
+	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSetQuery(ParserRuleContext ctx) {
+
+		if (ctx instanceof JpqlParser.Set_fuctionContext) {
+			return true;
+		}
+
+		return ctx.getParent() != null && isSetQuery(ctx.getParent());
+	}
 
 	@Override
 	public QueryTokenStream visitStart(JpqlParser.StartContext ctx) {

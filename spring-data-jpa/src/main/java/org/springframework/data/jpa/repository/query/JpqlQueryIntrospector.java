@@ -59,7 +59,8 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	@Override
 	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
-		if (primaryFromAlias == null && ctx.identification_variable() != null) {
+		if (primaryFromAlias == null && ctx.identification_variable() != null && !JpqlQueryRenderer.isSubquery(ctx)
+				&& !JpqlQueryRenderer.isSetQuery(ctx)) {
 			primaryFromAlias = ctx.identification_variable().getText();
 		}
 
