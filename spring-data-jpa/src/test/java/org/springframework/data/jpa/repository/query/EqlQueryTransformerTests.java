@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * {@link JpaQueryEnhancer.EqlQueryParser}.
  *
  * @author Greg Turnquist
+ * @author Mark Paluch
  */
 class EqlQueryTransformerTests {
 
@@ -82,13 +83,11 @@ class EqlQueryTransformerTests {
 
 		assertThat(createQueryFor(original, Sort.unsorted())).isEqualTo(original);
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
 	}
 
 	@Test
@@ -104,6 +103,32 @@ class EqlQueryTransformerTests {
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3902
+	void applyCountToFromQuery() {
+
+		// given
+		var original = "FROM Employee e where e.name = :name";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test // GH-3902
+	void applyCountToFromQueryWithoutIdentificationVariable() {
+
+		// given
+		var original = "FROM Employee where name = :name";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(__) FROM Employee AS __ where name = :name");
+	}
+
 	@Test
 	void applyCountToMoreComplexQuery() {
 
@@ -115,6 +140,12 @@ class EqlQueryTransformerTests {
 
 		// then
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test // GH-3902
+	void usesPrimaryAliasOfMultiselectForCountQuery() {
+		assertCountQuery("SELECT e.foo, e.bar FROM Employee e where e.name = :name ORDER BY e.modified_date",
+				"SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
 	@Test
@@ -143,8 +174,14 @@ class EqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select e from Employee e join e.manager m");
 	}
 
-	@Test
+	@Test // GH-3902
 	void createsCountQueryCorrectly() {
+
+		assertCountQuery("SELECT id FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT p.id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id, name FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT id, name FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -183,6 +220,14 @@ class EqlQueryTransformerTests {
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role r)");
 	}
 
+	@Test // GH-3902
+	void createsCountQueryForQueriesWithoutVariableWithSubSelectsSelectQuery() {
+
+		assertCountQuery(
+				"select name, (select foo from bar b) from User left outer join u.roles r where r in (select r from Role r)",
+				"select count(name) from User left outer join u.roles r where r in (select r from Role r)");
+	}
+
 	@Test
 	void createsCountQueryForAliasesCorrectly() {
 		assertCountQuery("select u from User as u", "select count(u) from User as u");
@@ -193,7 +238,7 @@ class EqlQueryTransformerTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test // GH-2260
+	@Test // GH-2260, GH-3902
 	void detectsAliasCorrectly() {
 
 		assertThat(alias(QUERY)).isEqualTo("u");
@@ -210,6 +255,11 @@ class EqlQueryTransformerTests {
 		assertThat(alias(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
 				.isEqualTo("u");
+		assertThat(alias("select u, (select u2 from User u2) from User u")).isEqualTo("u");
+		assertThat(alias("select firstname from User where not exists (select u2 from User u2)")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User b")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User UNION select lastname from User b"))
+				.isNull();
 	}
 
 	@Test // GH-2557
@@ -226,12 +276,12 @@ class EqlQueryTransformerTests {
 				""").rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
 				.isEqualToIgnoringWhitespace("""
-				select u
-				from user u
-				where exists (select u2
-				from user u2
-				)
-				 order by u.age desc""");
+						select u
+						from user u
+						where exists (select u2
+						from user u2
+						)
+						 order by u.age desc""");
 	}
 
 	@Test // GH-2563
@@ -643,20 +693,6 @@ class EqlQueryTransformerTests {
 				"SELECT count(DISTINCT entity1) FROM Entity1 entity1 LEFT JOIN entity1.entity2 entity2 ON entity1.key = entity2.key where entity1.id = 1799");
 	}
 
-	@Test // GH-3269
-	void createsCountQueryUsingAliasCorrectly() {
-
-		assertCountQuery("select distinct 1 as x from Employee e", "select count(distinct 1) from Employee e");
-		assertCountQuery("SELECT DISTINCT abc AS x FROM T t", "SELECT count(DISTINCT abc) FROM T t");
-		assertCountQuery("select distinct a as x, b as y from Employee e", "select count(distinct a, b) from Employee e");
-		assertCountQuery("select distinct sum(amount) as x from Employee e GROUP BY n",
-				"select count(distinct sum(amount)) from Employee e GROUP BY n");
-		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee e GROUP BY n",
-				"select count(distinct a, b, sum(amount), d) from Employee e GROUP BY n");
-		assertCountQuery("select distinct a, count(b) as c from Employee e GROUP BY n",
-				"select count(distinct a, count(b)) from Employee e GROUP BY n");
-	}
-
 	@Test // GH-2393
 	void createCountQueryStartsWithWhitespace() {
 
@@ -696,6 +732,36 @@ class EqlQueryTransformerTests {
 		assertThat(
 				createCountQueryFor("SELECT us FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)"))
 				.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
+	}
+
+	@Test // GH-3269
+	void createsCountQueryUsingAliasCorrectly() {
+
+		assertCountQuery("select distinct 1 as x from Employee e", "select count(distinct 1) from Employee e");
+		assertCountQuery("SELECT DISTINCT abc AS x FROM T t", "SELECT count(DISTINCT abc) FROM T t");
+		assertCountQuery("select distinct a as x, b as y from Employee e", "select count(distinct a, b) from Employee e");
+		assertCountQuery("select distinct sum(amount) as x from Employee e GROUP BY n",
+				"select count(distinct sum(amount)) from Employee e GROUP BY n");
+		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee e GROUP BY n",
+				"select count(distinct a, b, sum(amount), d) from Employee e GROUP BY n");
+		assertCountQuery("select distinct a, count(b) as c from Employee e GROUP BY n",
+				"select count(distinct a, count(b)) from Employee e GROUP BY n");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryFromMultiselectWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity, that.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
 	}
 
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045

@@ -83,13 +83,11 @@ class JpqlQueryTransformerTests {
 
 		assertThat(createQueryFor(original, Sort.unsorted())).isEqualTo(original);
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsLast()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS LAST");
 
-		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst())))
-			.startsWith(original)
-			.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
+		assertThat(createQueryFor(original, Sort.by(Order.desc("lastName").nullsFirst()))).startsWith(original)
+				.endsWithIgnoringCase("e.lastName DESC NULLS FIRST");
 	}
 
 	@Test
@@ -105,6 +103,32 @@ class JpqlQueryTransformerTests {
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3902
+	void applyCountToFromQuery() {
+
+		// given
+		var original = "FROM Employee e where e.name = :name";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test // GH-3902
+	void applyCountToFromQueryWithoutIdentificationVariable() {
+
+		// given
+		var original = "FROM Employee where name = :name";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(__) FROM Employee AS __ where name = :name");
+	}
+
 	@Test
 	void applyCountToMoreComplexQuery() {
 
@@ -116,6 +140,12 @@ class JpqlQueryTransformerTests {
 
 		// then
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
+	@Test // GH-3902
+	void usesPrimaryAliasOfMultiselectForCountQuery() {
+		assertCountQuery("SELECT e.foo, e.bar FROM Employee e where e.name = :name ORDER BY e.modified_date",
+				"SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
 	@Test
@@ -144,8 +174,14 @@ class JpqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select e from Employee e join e.manager m");
 	}
 
-	@Test
+	@Test // GH-3902
 	void createsCountQueryCorrectly() {
+
+		assertCountQuery("SELECT id FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT p.id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id, name FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT id, name FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -184,6 +220,14 @@ class JpqlQueryTransformerTests {
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role r)");
 	}
 
+	@Test // GH-3902
+	void createsCountQueryForQueriesWithoutVariableWithSubSelectsSelectQuery() {
+
+		assertCountQuery(
+				"select name, (select foo from bar b) from User left outer join u.roles r where r in (select r from Role r)",
+				"select count(name) from User left outer join u.roles r where r in (select r from Role r)");
+	}
+
 	@Test
 	void createsCountQueryForAliasesCorrectly() {
 		assertCountQuery("select u from User as u", "select count(u) from User as u");
@@ -194,7 +238,7 @@ class JpqlQueryTransformerTests {
 		assertCountQuery(SIMPLE_QUERY, COUNT_QUERY);
 	}
 
-	@Test // GH-2260
+	@Test // GH-2260, GH-3902
 	void detectsAliasCorrectly() {
 
 		assertThat(alias(QUERY)).isEqualTo("u");
@@ -211,13 +255,17 @@ class JpqlQueryTransformerTests {
 		assertThat(alias(
 				"select u from User u where not exists (select u2 from User u2 where not exists (select u3 from User u3))"))
 				.isEqualTo("u");
+		assertThat(alias("select u, (select u2 from User u2) from User u")).isEqualTo("u");
+		assertThat(alias("select firstname from User where not exists (select u2 from User u2)")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User b")).isNull();
+		assertThat(alias("select firstname from User UNION select lastname from User UNION select lastname from User b"))
+				.isNull();
 	}
 
 	@Test // GH-2557
 	void applySortingAccountsForNewlinesInSubselect() {
 
 		Sort sort = Sort.by(Sort.Order.desc("age"));
-
 
 		assertThat(newParser("""
 				select u
@@ -228,12 +276,12 @@ class JpqlQueryTransformerTests {
 				""").rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()))))
 				.isEqualToIgnoringWhitespace("""
-				select u
-				from user u
-				where exists (select u2
-				from user u2
-				)
-				 order by u.age desc""");
+						select u
+						from user u
+						where exists (select u2
+						from user u2
+						)
+						 order by u.age desc""");
 	}
 
 	@Test // GH-2563
@@ -490,9 +538,6 @@ class JpqlQueryTransformerTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select user from User user
 				 where user.age = 18
@@ -568,10 +613,6 @@ class JpqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		//
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select
 				distinct
@@ -595,7 +636,6 @@ class JpqlQueryTransformerTests {
 				.isThrownBy(() -> alias("select * from User group\nby name"));
 		assertThatExceptionOfType(BadJpqlGrammarException.class)
 				.isThrownBy(() -> alias("select * from User order\nby name"));
-
 		assertThat(alias("select u from User u group\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User u order\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User\nu\norder \n by name")).isEqualTo("u");
@@ -706,6 +746,22 @@ class JpqlQueryTransformerTests {
 				"select count(distinct a, count(b)) from Employee e GROUP BY n");
 	}
 
+	@Test // GH-3902
+	void createsCountQueryWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryFromMultiselectWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity, that.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045
 	void orderByShouldWorkWithSubSelectStatements() {
 
@@ -795,7 +851,8 @@ class JpqlQueryTransformerTests {
 		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
 		String target = createQueryFor(source, Sort.by("Type").ascending());
 
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+		assertThat(target).isEqualTo(
+				"SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {

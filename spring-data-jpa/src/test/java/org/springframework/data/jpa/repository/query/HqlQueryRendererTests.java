@@ -2621,7 +2621,36 @@ class HqlQueryRendererTests {
 				from some_function(:date, :integerValue) d
 				inner join some_function_single_param(:date) k on (d.idFunction = k.idFunctionSP)
 				""");
+	}
 
+	@Test // GH-3902
+	void queryWithoutSelectShouldWork() {
+
+		assertQuery("from Person p");
+		assertQuery("from Person p WHERE p.name = 'John' ORDER BY p.name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutSelectAndIdentificationVariableShouldWork() {
+
+		assertQuery("from Person");
+		assertQuery("from Person WHERE name = 'John' ORDER BY name");
+		assertQuery("from Person JOIN department WHERE name = 'John' ORDER BY name");
+		assertQuery(
+				"from Person JOIN (select phone.number as n, phone.person as pp from Phone phone) WHERE name = 'John' ORDER BY name");
+		assertQuery("from Person JOIN (select number, person from Phone) WHERE name = 'John' ORDER BY name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutIdentificationVariableShouldWork() {
+
+		assertQuery("SELECT name, lastname from Person");
+		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
+		assertQuery("SELECT name, lastname from Person JOIN department");
+		assertQuery(
+				"SELECT name, lastname from Person JOIN (select phone.number as n, phone.person as pp from Phone phone) WHERE name = 'John' ORDER BY name");
+		assertQuery(
+				"SELECT name, lastname from Person JOIN (select number, person from Phone) WHERE name = 'John' ORDER BY name");
 	}
 
 }

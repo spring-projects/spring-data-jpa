@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
+import org.springframework.util.StringUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed EQL query into a
@@ -43,12 +44,55 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 	}
 
 	@Override
-	public QueryTokenStream visitSelect_statement(EqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelectQuery(EqlParser.SelectQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.select_clause()));
 		builder.appendExpression(visit(ctx.from_clause()));
+
+		if (ctx.where_clause() != null) {
+			builder.appendExpression(visit(ctx.where_clause()));
+		}
+		if (ctx.groupby_clause() != null) {
+			builder.appendExpression(visit(ctx.groupby_clause()));
+		}
+		if (ctx.having_clause() != null) {
+			builder.appendExpression(visit(ctx.having_clause()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFromQuery(EqlParser.FromQueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		QueryRendererBuilder countBuilder = QueryRenderer.builder();
+		countBuilder.append(TOKEN_SELECT_COUNT);
+
+		if (countProjection != null) {
+			countBuilder.append(QueryTokens.token(countProjection));
+		} else {
+			if (primaryFromAlias == null) {
+				countBuilder.append(TOKEN_DOUBLE_UNDERSCORE);
+			} else {
+				countBuilder.append(QueryTokens.token(primaryFromAlias));
+			}
+		}
+
+		countBuilder.append(TOKEN_CLOSE_PAREN);
+
+		builder.appendExpression(countBuilder);
+
+		if (ctx.from_clause() != null) {
+			builder.appendExpression(visit(ctx.from_clause()));
+			if (primaryFromAlias == null) {
+				builder.append(TOKEN_AS);
+				builder.append(TOKEN_DOUBLE_UNDERSCORE);
+			}
+		}
 
 		if (ctx.where_clause() != null) {
 			builder.appendExpression(visit(ctx.where_clause()));
@@ -78,14 +122,21 @@ class EqlCountQueryTransformer extends EqlQueryRenderer {
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 				nested.append(getDistinctCountSelection(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA)));
-			} else {
+			} else if (StringUtils.hasText(primaryFromAlias)) {
 				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				if (ctx.select_item().isEmpty()) {
+					// cannot happen as per grammar, but you never know…
+					nested.append(QueryTokens.token("1"));
+				} else {
+					nested.append(visit(ctx.select_item().get(0)));
+				}
 			}
 		} else {
-			builder.append(QueryTokens.token(countProjection));
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
+			nested.append(QueryTokens.token(countProjection));
 		}
 
 		builder.appendInline(nested);
