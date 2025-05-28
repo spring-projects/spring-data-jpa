@@ -1284,9 +1284,24 @@ class JpqlQueryRendererTests {
 		assertQuery("select e from Employee e where e.firstName != :name");
 	}
 
+	@Test
+	void regexShouldWork() {
+		assertQuery("select e from Employee e where e.lastName REGEXP '^Dr\\.*'");
+	}
+
 	@Test // GH-3092
 	void dateAndFromShouldBeValidNames() {
 		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
+	}
+
+	@Test
+	void betweenStrings() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date NOT BETWEEN 'a' AND 'b'");
+	}
+
+	@Test
+	void betweenDates() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
 	}
 
 	@Test // GH-3092
