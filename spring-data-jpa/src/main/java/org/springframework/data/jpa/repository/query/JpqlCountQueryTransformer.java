@@ -125,13 +125,18 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 			} else if (StringUtils.hasText(primaryFromAlias)) {
 				nested.append(QueryTokens.token(primaryFromAlias));
 			} else {
-				throw new IllegalStateException("No primary alias present");
+				if (ctx.select_item().isEmpty()) {
+					// cannot happen as per grammar, but you never know…
+					nested.append(QueryTokens.token("1"));
+				} else {
+					nested.append(visit(ctx.select_item().get(0)));
+				}
 			}
 		} else {
-			builder.append(QueryTokens.token(countProjection));
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
+			nested.append(QueryTokens.token(countProjection));
 		}
 
 		builder.appendInline(nested);

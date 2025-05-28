@@ -152,6 +152,12 @@ class HqlQueryTransformerTests {
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3902
+	void usesAsteriskAliasOfMultiselectForCountQuery() {
+		assertCountQuery("SELECT e.foo, e.bar FROM Employee e where e.name = :name ORDER BY e.modified_date",
+				"SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
 	@Test
 	void applyCountToAlreadySortedQuery() {
 
@@ -199,9 +205,9 @@ class HqlQueryTransformerTests {
 	@Test
 	void createsCountQueryCorrectly() {
 
-		assertCountQuery("SELECT id FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT id FROM Person", "SELECT count(*) FROM Person");
 		assertCountQuery("SELECT p.id FROM Person p", "SELECT count(p) FROM Person p");
-		assertCountQuery("SELECT id FROM Person p", "SELECT count(id) FROM Person p");
+		assertCountQuery("SELECT id FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery("SELECT id, name FROM Person", "SELECT count(*) FROM Person");
 		assertCountQuery("SELECT id, name FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery(QUERY, COUNT_QUERY);
@@ -245,7 +251,7 @@ class HqlQueryTransformerTests {
 				"select count(u) from User u left outer join u.roles r where r in (select r from Role r)");
 	}
 
-	@Test
+	@Test // GH-3902
 	void createsCountQueryForQueriesWithSubSelects() {
 
 		assertCountQuery("from User u left outer join u.roles r where r in (select r from Role r) select u ",
@@ -847,6 +853,38 @@ class HqlQueryTransformerTests {
 				.isEqualTo("SELECT count(us) FROM users_statuses us WHERE (user_created_at BETWEEN :fromDate AND :toDate)");
 	}
 
+	@Test // GH-3269, GH-3689
+	void createsCountQueryUsingAliasCorrectly() {
+
+		assertCountQuery("select distinct 1 as x from Employee", "select count(distinct 1) from Employee");
+		assertCountQuery("SELECT DISTINCT abc AS x FROM T", "SELECT count(DISTINCT abc) FROM T");
+		assertCountQuery("select distinct a as x, b as y from Employee", "select count(distinct a, b) from Employee");
+		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n",
+				"select count(distinct sum(amount)) from Employee GROUP BY n");
+		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n",
+				"select count(distinct a, b, sum(amount), d) from Employee GROUP BY n");
+		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n",
+				"select count(distinct a, count(b)) from Employee GROUP BY n");
+		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee",
+				"select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(*) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryFromMultiselectWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity, that.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(*) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045
 	void orderByShouldWorkWithSubSelectStatements() {
 
@@ -1131,22 +1169,6 @@ class HqlQueryTransformerTests {
 						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
 	}
 
-	@Test // GH-3269, GH-3689
-	void createsCountQueryUsingAliasCorrectly() {
-
-		assertCountQuery("select distinct 1 as x from Employee", "select count(distinct 1) from Employee");
-		assertCountQuery("SELECT DISTINCT abc AS x FROM T", "SELECT count(DISTINCT abc) FROM T");
-		assertCountQuery("select distinct a as x, b as y from Employee", "select count(distinct a, b) from Employee");
-		assertCountQuery("select distinct sum(amount) as x from Employee GROUP BY n",
-				"select count(distinct sum(amount)) from Employee GROUP BY n");
-		assertCountQuery("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n",
-				"select count(distinct a, b, sum(amount), d) from Employee GROUP BY n");
-		assertCountQuery("select distinct a, count(b) as c from Employee GROUP BY n",
-				"select count(distinct a, count(b)) from Employee GROUP BY n");
-		assertCountQuery("select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee",
-				"select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
-	}
-
 	@Test // GH-3864
 	void testCountFromFunctionWithAlias() {
 
@@ -1161,7 +1183,7 @@ class HqlQueryTransformerTests {
 	}
 
 	@Test // GH-3864
-	void testCountFromFunctionNoAlias() {
+	void testCountFromMultiselectFunctionNoAlias() {
 
 		// given
 		var original = "select id, value from some_function(:date, :integerValue)";

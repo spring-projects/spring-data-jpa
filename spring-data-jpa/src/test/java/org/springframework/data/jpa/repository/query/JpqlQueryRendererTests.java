@@ -1456,6 +1456,7 @@ class JpqlQueryRendererTests {
 
 		assertQuery("SELECT name, lastname from Person");
 		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
+		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
 		assertQuery("SELECT name, lastname from Person JOIN department");
 	}
 

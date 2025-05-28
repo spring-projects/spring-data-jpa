@@ -144,6 +144,12 @@ class JpqlQueryTransformerTests {
 		assertThat(results).isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3902
+	void usesPrimaryAliasOfMultiselectForCountQuery() {
+		assertCountQuery("SELECT e.foo, e.bar FROM Employee e where e.name = :name ORDER BY e.modified_date",
+				"SELECT count(e) FROM Employee e where e.name = :name");
+	}
+
 	@Test
 	void applyCountToAlreadySortedQuery() {
 
@@ -170,8 +176,14 @@ class JpqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select e from Employee e join e.manager m");
 	}
 
-	@Test
+	@Test // GH-3902
 	void createsCountQueryCorrectly() {
+
+		assertCountQuery("SELECT id FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT p.id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id FROM Person p", "SELECT count(p) FROM Person p");
+		assertCountQuery("SELECT id, name FROM Person", "SELECT count(id) FROM Person");
+		assertCountQuery("SELECT id, name FROM Person p", "SELECT count(p) FROM Person p");
 		assertCountQuery(QUERY, COUNT_QUERY);
 	}
 
@@ -515,9 +527,6 @@ class JpqlQueryTransformerTests {
 	@Test // DATAJPA-1500
 	void createCountQuerySupportsWhitespaceCharacters() {
 
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select user from User user
 				 where user.age = 18
@@ -593,10 +602,6 @@ class JpqlQueryTransformerTests {
 	@Test
 	void createCountQuerySupportsLineBreakRightAfterDistinct() {
 
-		//
-		//
-		//
-		//
 		assertThat(createCountQueryFor("""
 				select
 				distinct
@@ -620,7 +625,6 @@ class JpqlQueryTransformerTests {
 				.isThrownBy(() -> alias("select * from User group\nby name"));
 		assertThatExceptionOfType(BadJpqlGrammarException.class)
 				.isThrownBy(() -> alias("select * from User order\nby name"));
-
 		assertThat(alias("select u from User u group\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User u order\nby name")).isEqualTo("u");
 		assertThat(alias("select u from User\nu\norder \n by name")).isEqualTo("u");
@@ -729,6 +733,22 @@ class JpqlQueryTransformerTests {
 				"select count(distinct a, b, sum(amount), d) from Employee e GROUP BY n");
 		assertCountQuery("select distinct a, count(b) as c from Employee e GROUP BY n",
 				"select count(distinct a, count(b)) from Employee e GROUP BY n");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryFromMultiselectWithoutAlias() {
+
+		assertCountQuery(
+				"SELECT this.quantity, that.quantity FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'",
+				"SELECT count(this.quantity) FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'");
 	}
 
 	@Test // GH-2496, GH-2522, GH-2537, GH-2045
