@@ -109,11 +109,31 @@ class JpqlQueryRendererTests {
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address");
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address a ORDER BY a.city");
 		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address AS a ORDER BY a.city");
+		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address ORDER BY city");
 	}
 
 	@Test
 	void leftJoin() {
 		assertQuery("SELECT e FROM Employee e LEFT JOIN e.address a ORDER BY a.city");
+	}
+
+	@Test // GH-3902
+	void fromCollection() {
+
+		assertQuery("SELECT e FROM Employee e, IN(e.projects) AS p");
+		assertQuery("SELECT e FROM Employee e, IN(e.projects) p");
+		assertQuery("SELECT e FROM Employee e, IN(e.projects)");
+
+		assertQuery("FROM Employee e, IN(e.projects)");
+	}
+
+	@Test // GH-3902
+	void fromSubquery() {
+
+		assertQuery("SELECT e FROM Employee e, (SELECT p FROM Project p) AS sub");
+		assertQuery("SELECT e FROM Employee e, (SELECT p FROM Project p) sub");
+		assertQuery("SELECT e FROM Employee e, (SELECT p FROM Project p)");
+		assertQuery("FROM Employee e, (SELECT p FROM Project p) sub");
 	}
 
 	@Test // GH-3277
@@ -167,11 +187,6 @@ class JpqlQueryRendererTests {
 				SELECT e FROM Employee e
 				EXCEPT SELECT e FROM Employee e WHERE e.salary > e.manager.salary
 				""");
-	}
-
-	@Test
-	void whereClause() {
-		// TBD
 	}
 
 	@Test
@@ -1284,9 +1299,24 @@ class JpqlQueryRendererTests {
 		assertQuery("select e from Employee e where e.firstName != :name");
 	}
 
+	@Test
+	void regexShouldWork() {
+		assertQuery("select e from Employee e where e.lastName REGEXP '^Dr\\.*'");
+	}
+
 	@Test // GH-3092
 	void dateAndFromShouldBeValidNames() {
 		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
+	}
+
+	@Test
+	void betweenStrings() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date NOT BETWEEN 'a' AND 'b'");
+	}
+
+	@Test
+	void betweenDates() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
 	}
 
 	@Test // GH-3092
@@ -1440,7 +1470,6 @@ class JpqlQueryRendererTests {
 	void queryWithoutIdentificationVariableShouldWork() {
 
 		assertQuery("SELECT name, lastname from Person");
-		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
 		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
 		assertQuery("SELECT name, lastname from Person JOIN department");
 	}

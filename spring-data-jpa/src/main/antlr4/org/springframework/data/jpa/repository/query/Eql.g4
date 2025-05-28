@@ -72,7 +72,7 @@ from_clause
 identificationVariableDeclarationOrCollectionMemberDeclaration
     : identification_variable_declaration
     | collection_member_declaration
-    | '(' subquery ')' identification_variable
+    | '(' subquery ')' (AS? identification_variable)?
     ;
 
 identification_variable_declaration
@@ -80,15 +80,15 @@ identification_variable_declaration
     ;
 
 range_variable_declaration
-    : (entity_name|function_invocation) AS? identification_variable?
+    : (entity_name|function_invocation) (AS? identification_variable)?
     ;
 
 join
-    : join_spec join_association_path_expression AS? identification_variable? join_condition?
+    : join_spec join_association_path_expression (AS? identification_variable)? join_condition?
     ;
 
 fetch_join
-    : join_spec FETCH join_association_path_expression AS? identification_variable? join_condition?
+    : join_spec FETCH join_association_path_expression (AS? identification_variable)? join_condition?
     ;
 
 join_spec
@@ -115,7 +115,7 @@ join_single_valued_path_expression
     ;
 
 collection_member_declaration
-    : IN '(' collection_valued_path_expression ')' AS? identification_variable
+    : IN '(' collection_valued_path_expression ')' (AS? identification_variable)?
     ;
 
 qualified_identification_variable
@@ -271,7 +271,7 @@ subquery_from_clause
 
 subselect_identification_variable_declaration
     : identification_variable_declaration
-    | derived_path_expression AS? identification_variable (join)*
+    | derived_path_expression (AS? identification_variable)? (join)*
     | derived_collection_member_declaration
     ;
 
