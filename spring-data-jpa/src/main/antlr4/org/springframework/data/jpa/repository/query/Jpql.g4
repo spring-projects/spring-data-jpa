@@ -43,7 +43,8 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)? # SelectQuery
+    | from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?               # FromQuery
     ;
 
 setOperator
@@ -72,6 +73,7 @@ from_clause
 identificationVariableDeclarationOrCollectionMemberDeclaration
     : identification_variable_declaration
     | collection_member_declaration
+    | '(' subquery ')' identification_variable
     ;
 
 identification_variable_declaration
@@ -79,11 +81,11 @@ identification_variable_declaration
     ;
 
 range_variable_declaration
-    : entity_name AS? identification_variable
+    : entity_name AS? identification_variable?
     ;
 
 join
-    : join_spec join_association_path_expression AS? identification_variable (join_condition)?
+    : join_spec join_association_path_expression AS? identification_variable? (join_condition)?
     ;
 
 fetch_join
@@ -106,11 +108,11 @@ join_association_path_expression
     ;
 
 join_collection_valued_path_expression
-    : identification_variable '.' (single_valued_embeddable_object_field '.')* collection_valued_field
+    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* collection_valued_field
     ;
 
 join_single_valued_path_expression
-    : identification_variable '.' (single_valued_embeddable_object_field '.')* single_valued_object_field
+    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* single_valued_object_field
     ;
 
 collection_member_declaration
@@ -244,9 +246,15 @@ orderby_clause
     : ORDER BY orderby_item (',' orderby_item)*
     ;
 
-// TODO Error in spec BNF, correctly shown elsewhere in spec.
 orderby_item
-    : (state_field_path_expression | general_identification_variable | result_variable ) (ASC | DESC)? nullsPrecedence?
+    : orderby_expression (ASC | DESC)? nullsPrecedence?
+    ;
+
+orderby_expression
+    : state_field_path_expression
+    | general_identification_variable
+    | string_expression
+    | scalar_expression
     ;
 
 nullsPrecedence

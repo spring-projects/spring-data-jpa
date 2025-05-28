@@ -1170,4 +1170,27 @@ class EqlQueryRendererTests {
 		assertQuery("select f from FooEntity f where f.size IN :sizes");
 	}
 
+	@Test // GH-3902
+	void queryWithoutSelectShouldWork() {
+
+		assertQuery("from Person p");
+		assertQuery("from Person p WHERE p.name = 'John' ORDER BY p.name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutSelectAndIdentificationVariableShouldWork() {
+
+		assertQuery("from Person");
+		assertQuery("from Person WHERE name = 'John' ORDER BY name");
+		assertQuery("from Person JOIN department WHERE name = 'John' ORDER BY name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutIdentificationVariableShouldWork() {
+
+		assertQuery("SELECT name, lastname from Person");
+		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
+		assertQuery("SELECT name, lastname from Person JOIN department");
+	}
+
 }

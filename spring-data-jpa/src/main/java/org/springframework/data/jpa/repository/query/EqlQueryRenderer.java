@@ -56,11 +56,41 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitSelect_statement(EqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelectQuery(EqlParser.SelectQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.select_clause()));
+		builder.appendExpression(visit(ctx.from_clause()));
+
+		if (ctx.where_clause() != null) {
+			builder.appendExpression(visit(ctx.where_clause()));
+		}
+
+		if (ctx.groupby_clause() != null) {
+			builder.appendExpression(visit(ctx.groupby_clause()));
+		}
+
+		if (ctx.having_clause() != null) {
+			builder.appendExpression(visit(ctx.having_clause()));
+		}
+
+		if (ctx.orderby_clause() != null) {
+			builder.appendExpression(visit(ctx.orderby_clause()));
+		}
+
+		if (ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFromQuery(EqlParser.FromQueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
 		builder.appendExpression(visit(ctx.from_clause()));
 
 		if (ctx.where_clause() != null) {
@@ -149,7 +179,9 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 			QueryRendererBuilder builder = QueryRenderer.builder();
 			builder.appendExpression(nested);
-			builder.appendExpression(visit(ctx.identification_variable()));
+			if (ctx.identification_variable() != null) {
+				builder.appendExpression(visit(ctx.identification_variable()));
+			}
 
 			return builder;
 		} else {
@@ -185,7 +217,9 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}
@@ -309,6 +343,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			EqlParser.Join_collection_valued_path_expressionContext ctx) {
 
 		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
+
 		if (ctx.identification_variable() != null) {
 			items.add(ctx.identification_variable());
 		}
@@ -348,7 +383,9 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}
@@ -823,22 +860,11 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.state_field_path_expression() != null) {
-			builder.appendExpression(visit(ctx.state_field_path_expression()));
-		} else if (ctx.general_identification_variable() != null) {
-			builder.appendExpression(visit(ctx.general_identification_variable()));
-		} else if (ctx.result_variable() != null) {
-			builder.appendExpression(visit(ctx.result_variable()));
-		} else if (ctx.string_expression() != null) {
-			builder.appendExpression(visit(ctx.string_expression()));
-		} else if (ctx.scalar_expression() != null) {
-			builder.appendExpression(visit(ctx.scalar_expression()));
-		}
+		builder.appendExpression(visit(ctx.orderby_expression()));
 
 		if (ctx.ASC() != null) {
 			builder.append(QueryTokens.expression(ctx.ASC()));
-		}
-		if (ctx.DESC() != null) {
+		} else if (ctx.DESC() != null) {
 			builder.append(QueryTokens.expression(ctx.DESC()));
 		}
 
@@ -847,6 +873,22 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOrderby_expression(EqlParser.Orderby_expressionContext ctx) {
+
+		if (ctx.state_field_path_expression() != null) {
+			return visit(ctx.state_field_path_expression());
+		} else if (ctx.general_identification_variable() != null) {
+			return visit(ctx.general_identification_variable());
+		} else if (ctx.string_expression() != null) {
+			return visit(ctx.string_expression());
+		} else if (ctx.scalar_expression() != null) {
+			return visit(ctx.scalar_expression());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override

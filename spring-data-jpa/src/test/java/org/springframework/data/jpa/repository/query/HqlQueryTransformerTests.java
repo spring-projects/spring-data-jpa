@@ -109,6 +109,19 @@ class HqlQueryTransformerTests {
 		assertThat(results).isEqualTo("select count(e) FROM Employee e where e.name = :name");
 	}
 
+	@Test // GH-3902
+	void applyCountToFromQueryWithoutIdentificationVariable() {
+
+		// given
+		var original = "FROM Employee where name = :name";
+
+		// when
+		var results = createCountQueryFor(original);
+
+		// then
+		assertThat(results).isEqualTo("select count(__) FROM Employee AS __ where name = :name");
+	}
+
 	@Test // GH-3536
 	void shouldCreateCountQueryForDistinctCount() {
 

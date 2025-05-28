@@ -44,7 +44,7 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
-	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelectQuery(JpqlParser.SelectQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -60,8 +60,48 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 		if (ctx.having_clause() != null) {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
-		if (ctx.set_fuction() != null) {
-			builder.appendExpression(visit(ctx.set_fuction()));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFromQuery(JpqlParser.FromQueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		QueryRendererBuilder countBuilder = QueryRenderer.builder();
+		countBuilder.append(TOKEN_SELECT_COUNT);
+
+		if (countProjection != null) {
+			countBuilder.append(QueryTokens.token(countProjection));
+		} else {
+			if (primaryFromAlias == null) {
+				countBuilder.append(TOKEN_DOUBLE_UNDERSCORE);
+			} else {
+				countBuilder.append(QueryTokens.token(primaryFromAlias));
+			}
+		}
+
+		countBuilder.append(TOKEN_CLOSE_PAREN);
+
+		builder.appendExpression(countBuilder);
+
+		if (ctx.from_clause() != null) {
+			builder.appendExpression(visit(ctx.from_clause()));
+			if (primaryFromAlias == null) {
+				builder.append(TOKEN_AS);
+				builder.append(TOKEN_DOUBLE_UNDERSCORE);
+			}
+		}
+
+		if (ctx.where_clause() != null) {
+			builder.appendExpression(visit(ctx.where_clause()));
+		}
+		if (ctx.groupby_clause() != null) {
+			builder.appendExpression(visit(ctx.groupby_clause()));
+		}
+		if (ctx.having_clause() != null) {
+			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
 		return builder;
