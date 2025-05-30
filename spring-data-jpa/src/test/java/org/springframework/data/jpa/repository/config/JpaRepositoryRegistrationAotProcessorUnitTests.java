@@ -30,6 +30,7 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
 import org.springframework.aot.generate.GenerationContext;
@@ -56,6 +57,7 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 
 /**
  * @author Christoph Strobl
+ * @author Hyunsang Han
  */
 class JpaRepositoryRegistrationAotProcessorUnitTests {
 
@@ -130,6 +132,104 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 				.contribute(new DummyAotRepositoryContext(context), ctx);
 
 		assertThat(contributor.getMetamodel().managedType(Person.class)).isNotNull();
+	}
+
+	@Test // GH-3899
+	void repositoryProcessorShouldEnableAotRepositoriesByDefaultWhenAotIsEnabled() {
+
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+
+		GenericApplicationContext context = new GenericApplicationContext();
+		
+		System.setProperty(AotDetector.AOT_ENABLED, "true");
+		
+		try {
+			JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+					.contribute(new DummyAotRepositoryContext(context) {
+						@Override
+						public Set<Class<?>> getResolvedTypes() {
+							return Collections.singleton(Person.class);
+						}
+					}, ctx);
+
+			assertThat(contributor).isNotNull();
+		} finally {
+			System.clearProperty(AotDetector.AOT_ENABLED);
+		}
+	}
+
+	@Test // GH-3899
+	void repositoryProcessorShouldNotEnableAotRepositoriesByDefaultWhenAotIsDisabled() {
+
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+
+		GenericApplicationContext context = new GenericApplicationContext();
+
+		System.clearProperty(AotDetector.AOT_ENABLED);
+		
+		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(new DummyAotRepositoryContext(context) {
+					@Override
+					public Set<Class<?>> getResolvedTypes() {
+						return Collections.singleton(Person.class);
+					}
+				}, ctx);
+
+		assertThat(contributor).isNull();
+	}
+
+	@Test // GH-3899
+	void repositoryProcessorShouldRespectExplicitRepositoryEnabledProperty() {
+
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+
+		GenericApplicationContext context = new GenericApplicationContext();
+		
+		System.setProperty(AotDetector.AOT_ENABLED, "true");
+
+		try {
+			MockPropertySource propertySource = new MockPropertySource()
+					.withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false");
+			context.getEnvironment().getPropertySources().addFirst(propertySource);
+
+			JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+					.contribute(new DummyAotRepositoryContext(context) {
+						@Override
+						public Set<Class<?>> getResolvedTypes() {
+							return Collections.singleton(Person.class);
+						}
+					}, ctx);
+
+			assertThat(contributor).isNull();
+		} finally {
+			System.clearProperty(AotDetector.AOT_ENABLED);
+		}
+	}
+
+	@Test // GH-3899
+	void repositoryProcessorShouldEnableWhenExplicitlySetToTrue() {
+
+		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+
+		GenericApplicationContext context = new GenericApplicationContext();
+
+		MockPropertySource propertySource = new MockPropertySource()
+				.withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "true");
+		context.getEnvironment().getPropertySources().addFirst(propertySource);
+
+		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(new DummyAotRepositoryContext(context) {
+					@Override
+					public Set<Class<?>> getResolvedTypes() {
+						return Collections.singleton(Person.class);
+					}
+				}, ctx);
+
+		assertThat(contributor).isNotNull();
 	}
 
 	@Entity
