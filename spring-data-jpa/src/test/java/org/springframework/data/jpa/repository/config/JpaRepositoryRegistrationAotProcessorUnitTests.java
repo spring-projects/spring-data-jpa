@@ -30,6 +30,9 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
+import org.junitpioneer.jupiter.ClearSystemProperty;
+import org.junitpioneer.jupiter.SetSystemProperty;
+import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
 import org.springframework.aot.generate.GenerationContext;
@@ -56,14 +59,14 @@ import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 
 /**
  * @author Christoph Strobl
+ * @author Hyunsang Han
  */
 class JpaRepositoryRegistrationAotProcessorUnitTests {
 
 	@Test // GH-2628
 	void aotProcessorMustNotRegisterDomainTypes() {
 
-		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
-				new InMemoryGeneratedFiles());
+		GenerationContext ctx = createGenerationContext();
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
 				.contribute(new DummyAotRepositoryContext(null) {
@@ -79,8 +82,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	@Test // GH-2628
 	void aotProcessorMustNotRegisterAnnotations() {
 
-		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
-				new InMemoryGeneratedFiles());
+		GenerationContext ctx = createGenerationContext();
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
 				.contribute(new DummyAotRepositoryContext(null) {
@@ -99,8 +101,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	@Test // GH-3838
 	void repositoryProcessorShouldConsiderPersistenceManagedTypes() {
 
-		GenerationContext ctx = new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
-				new InMemoryGeneratedFiles());
+		GenerationContext ctx = createGenerationContext();
 
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBean(PersistenceManagedTypes.class, () -> {
@@ -126,10 +127,81 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		context.getEnvironment().getPropertySources()
 				.addFirst(new MockPropertySource().withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "true"));
 
-		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(new DummyAotRepositoryContext(context), ctx);
+		JpaRepositoryContributor contributor = createContributor(new DummyAotRepositoryContext(context), ctx);
 
 		assertThat(contributor.getMetamodel().managedType(Person.class)).isNotNull();
+	}
+
+	@Test // GH-3899
+	@SetSystemProperty(key = AotDetector.AOT_ENABLED, value = "true")
+	void repositoryProcessorShouldEnableAotRepositoriesByDefaultWhenAotIsEnabled() {
+
+		GenerationContext ctx = createGenerationContext();
+		GenericApplicationContext context = createApplicationContext();
+
+		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
+
+		assertThat(contributor).isNotNull();
+	}
+
+	@Test // GH-3899
+	@ClearSystemProperty(key = AotDetector.AOT_ENABLED)
+	void repositoryProcessorShouldNotEnableAotRepositoriesByDefaultWhenAotIsDisabled() {
+
+		GenerationContext ctx = createGenerationContext();
+		GenericApplicationContext context = createApplicationContext();
+
+		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
+
+		assertThat(contributor).isNull();
+	}
+
+	@Test // GH-3899
+	@SetSystemProperty(key = AotDetector.AOT_ENABLED, value = "true")
+	@SetSystemProperty(key = AotContext.GENERATED_REPOSITORIES_ENABLED, value = "false")
+	void repositoryProcessorShouldRespectExplicitRepositoryEnabledProperty() {
+
+		GenerationContext ctx = createGenerationContext();
+		GenericApplicationContext context = createApplicationContext();
+
+		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
+
+		assertThat(contributor).isNull();
+	}
+
+	@Test // GH-3899
+	@SetSystemProperty(key = AotContext.GENERATED_REPOSITORIES_ENABLED, value = "true")
+	void repositoryProcessorShouldEnableWhenExplicitlySetToTrue() {
+
+		GenerationContext ctx = createGenerationContext();
+		GenericApplicationContext context = createApplicationContext();
+
+		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
+
+		assertThat(contributor).isNotNull();
+	}
+
+	private GenerationContext createGenerationContext() {
+		return new DefaultGenerationContext(new ClassNameGenerator(ClassName.OBJECT),
+				new InMemoryGeneratedFiles());
+	}
+
+	private GenericApplicationContext createApplicationContext() {
+		return new GenericApplicationContext();
+	}
+
+	private JpaRepositoryContributor createContributor(AotRepositoryContext repositoryContext, GenerationContext ctx) {
+		return new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(repositoryContext, ctx);
+	}
+
+	private JpaRepositoryContributor createContributorWithPersonTypes(GenericApplicationContext context, GenerationContext ctx) {
+		return createContributor(new DummyAotRepositoryContext(context) {
+			@Override
+			public Set<Class<?>> getResolvedTypes() {
+				return Collections.singleton(Person.class);
+			}
+		}, ctx);
 	}
 
 	@Entity
