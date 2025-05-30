@@ -39,6 +39,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
@@ -87,6 +88,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Hyunsang Han
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -338,8 +340,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			Environment environment = repositoryContext.getEnvironment();
 
+			String enabledByDefault = AotDetector.useGeneratedArtifacts() ? "true" : "false";
+
 			boolean enabled = Boolean
-					.parseBoolean(environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "false"));
+					.parseBoolean(environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, enabledByDefault));
 			if (!enabled) {
 				return null;
 			}
