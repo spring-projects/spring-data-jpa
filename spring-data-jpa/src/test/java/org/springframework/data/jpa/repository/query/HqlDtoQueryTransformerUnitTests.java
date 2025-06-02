@@ -15,101 +15,27 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.lang.reflect.Method;
-
-import org.junit.jupiter.api.Test;
+import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.QueryMethod;
 
 /**
  * Unit tests for {@link DtoProjectionTransformerDelegate}.
  *
  * @author Mark Paluch
  */
-class HqlDtoQueryTransformerUnitTests {
+class HqlDtoQueryTransformerUnitTests extends AbstractDtoQueryTransformerUnitTests<JpaQueryEnhancer.HqlQueryParser> {
 
-	JpaQueryMethod method = getMethod("dtoProjection");
-
-	@Test // GH-3076
-	void shouldTranslateSingleProjectionToDto() {
-
-		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser.parseQuery("SELECT p from Person p");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar) from Person p");
+	@Override
+	JpaQueryEnhancer.HqlQueryParser parse(String query) {
+		return JpaQueryEnhancer.HqlQueryParser.parseQuery(query);
 	}
 
-	@Test // GH-3076
-	void shouldRewriteQueriesWithSubselect() {
-
-		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
-				.parseQuery("select u from User u left outer join u.roles r where r in (select r from Role r)");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"select new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(u.foo, u.bar) from User u left outer join u.roles r where r in (select r from Role r)");
-	}
-
-	@Test // GH-3076
-	void shouldNotTranslateConstructorExpressionQuery() {
-
-		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
-				.parseQuery("SELECT NEW String(p) from Person p");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo("SELECT NEW String(p) from Person p");
-	}
-
-	@Test
-	void shouldTranslatePropertySelectionToDto() {
-
-		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser
-				.parseQuery("SELECT p.foo, p.bar, sum(p.age) from Person p");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.HqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar, sum(p.age)) from Person p");
-	}
-
-	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) {
-
-		try {
-			Method method = MyRepo.class.getMethod(name, parameterTypes);
-			PersistenceProvider persistenceProvider = PersistenceProvider.HIBERNATE;
-
-			return new JpaQueryMethod(method, new DefaultRepositoryMetadata(MyRepo.class),
-					new SpelAwareProxyProjectionFactory(), persistenceProvider);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private HqlSortedQueryTransformer getTransformer(JpaQueryEnhancer.HqlQueryParser parser) {
+	@Override
+	ParseTreeVisitor<QueryTokenStream> getTransformer(JpaQueryEnhancer.HqlQueryParser parser, QueryMethod method) {
 		return new HqlSortedQueryTransformer(Sort.unsorted(), parser.getQueryInformation(),
 				method.getResultProcessor().getReturnedType());
 	}
 
-	interface MyRepo extends Repository<Person, String> {
-
-		MyRecord dtoProjection();
-	}
-
-	record Person(String id) {
-
-	}
-
-	record MyRecord(String foo, String bar) {
-
-	}
 }
