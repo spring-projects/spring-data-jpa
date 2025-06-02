@@ -144,13 +144,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param processor
 	 * @return
 	 */
-	private ReturnedType getReturnedType(ResultProcessor processor) {
+	ReturnedType getReturnedType(ResultProcessor processor) {
 
 		ReturnedType returnedType = processor.getReturnedType();
 		Class<?> returnedJavaType = processor.getReturnedType().getReturnedType();
 
-		if (query.isDefaultProjection() || !returnedType.isProjecting() || returnedJavaType.isInterface()
-				|| query.isNativeQuery()) {
+		if (!returnedType.isProjecting() || returnedJavaType.isInterface() || query.isNativeQuery()) {
 			return returnedType;
 		}
 
@@ -160,11 +159,15 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return returnedType;
 		}
 
-		if ((known != null && !known) || returnedJavaType.isArray()) {
+		if ((known != null && !known) || returnedJavaType.isArray() || getMetamodel().isJpaManaged(returnedJavaType)) {
 			if (known == null) {
 				knownProjections.put(returnedJavaType, false);
 			}
 			return new NonProjectingReturnedType(returnedType);
+		}
+
+		if (query.isDefaultProjection()) {
+			return returnedType;
 		}
 
 		String alias = query.getAlias();
