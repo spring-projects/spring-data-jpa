@@ -42,7 +42,7 @@ class DtoProjectionTransformerDelegate {
 	public QueryTokenStream transformSelectionList(QueryTokenStream selectionList) {
 
 		if (!returnedType.isProjecting() || returnedType.getReturnedType().isInterface()
-				|| selectionList.stream().anyMatch(it -> it.equals(TOKEN_NEW))) {
+				|| !returnedType.needsCustomConstruction() || selectionList.stream().anyMatch(it -> it.equals(TOKEN_NEW))) {
 			return selectionList;
 		}
 
