@@ -22,12 +22,14 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.NativeQuery;
@@ -50,9 +53,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
+import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.AbstractRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.TypeInformation;
 
@@ -86,7 +92,7 @@ class SimpleJpaQueryUnitTests {
 	@Mock QueryExtractor extractor;
 	@Mock jakarta.persistence.Query query;
 	@Mock TypedQuery<Long> typedQuery;
-	@Mock RepositoryMetadata metadata;
+	RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
 	@Mock Metamodel metamodel;
 
@@ -102,12 +108,8 @@ class SimpleJpaQueryUnitTests {
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
 		when(emf.createEntityManager()).thenReturn(em);
-		when(metadata.getRepositoryInterface()).thenReturn((Class) SampleRepository.class);
-		when(metadata.getDomainType()).thenReturn((Class) User.class);
-		when(metadata.getDomainTypeInformation()).thenReturn((TypeInformation) TypeInformation.of(User.class));
-		when(metadata.getReturnedDomainClass(Mockito.any(Method.class))).thenReturn((Class) User.class);
-		when(metadata.getReturnType(Mockito.any(Method.class)))
-				.thenAnswer(invocation -> TypeInformation.fromReturnTypeOf(invocation.getArgument(0)));
+
+		metadata = AbstractRepositoryMetadata.getMetadata(SampleRepository.class);
 
 		Method setUp = UserRepository.class.getMethod("findByLastname", String.class);
 		method = new JpaQueryMethod(setUp, metadata, factory, extractor);
@@ -157,7 +159,6 @@ class SimpleJpaQueryUnitTests {
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
 		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
-		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
@@ -176,7 +177,6 @@ class SimpleJpaQueryUnitTests {
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
 		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
-		when(metadata.getReturnedDomainClass(method)).thenReturn((Class) User.class);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
@@ -264,6 +264,67 @@ class SimpleJpaQueryUnitTests {
 		verify(em, times(2)).createQuery(anyString());
 	}
 
+	@Test // GH-3895
+	void doesNotRewriteQueryReturningEntity() throws Exception {
+
+		EntityType<?> entityType = mock(EntityType.class);
+		when(entityType.getJavaType()).thenReturn((Class) UnrelatedType.class);
+		when(metamodel.getManagedTypes()).thenReturn(Set.of(entityType));
+
+		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
+				SampleRepository.class.getMethod("selectWithJoin"));
+
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
+				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
+		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+
+		assertThat(queryString).startsWith("SELECT cd FROM CampaignDeal cd");
+	}
+
+	@Test // GH-3895
+	void rewriteQueryReturningDto() throws Exception {
+
+		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
+				SampleRepository.class.getMethod("selectWithJoin"));
+
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
+				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
+		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+
+		assertThat(queryString).startsWith(
+				"SELECT new org.springframework.data.jpa.repository.query.SimpleJpaQueryUnitTests$UnrelatedType(cd.name)");
+	}
+
+	@Test // GH-3895
+	void doesNotRewriteQueryForUnknownProperty() throws Exception {
+
+		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
+				SampleRepository.class.getMethod("projectWithUnknownPaths"));
+
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
+				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
+		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+
+		assertThat(queryString).startsWith("select u.unknown from User u");
+	}
+
+	@Test // GH-3895
+	void doesNotRewriteQueryForJoinPath() throws Exception {
+
+		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
+				SampleRepository.class.getMethod("projectWithJoinPaths"));
+
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
+				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
+		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+
+		assertThat(queryString).startsWith("select r.name from User u LEFT JOIN FETCH u.roles r");
+	}
+
 	@Test // DATAJPA-1307
 	void jdbcStyleParametersOnlyAllowedInNativeQueries() throws Exception {
 
@@ -311,7 +372,7 @@ class SimpleJpaQueryUnitTests {
 				countQueryString == null ? null : countQueryString.orElse(queryMethod.getDeclaredCountQuery()));
 	}
 
-	interface SampleRepository {
+	interface SampleRepository extends Repository<User, Long> {
 
 		@Query(value = "SELECT u FROM User u WHERE u.lastname = ?1", nativeQuery = true)
 		List<User> findNativeByLastname(String lastname);
@@ -337,6 +398,20 @@ class SimpleJpaQueryUnitTests {
 		@Query("select u from User u")
 		Collection<UserProjection> projectWithExplicitQuery();
 
+		@Query("""
+				SELECT cd FROM CampaignDeal cd
+				LEFT JOIN FETCH cd.dealLibrary d
+				LEFT JOIN FETCH d.publisher p
+				WHERE cd.campaignId = :campaignId
+				""")
+		Collection<UnrelatedType> selectWithJoin();
+
+		@Query("select u.unknown from User u")
+		Collection<UnrelatedType> projectWithUnknownPaths();
+
+		@Query("select r.name from User u LEFT JOIN FETCH u.roles r")
+		Collection<UnrelatedType> projectWithJoinPaths();
+
 		@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
 		List<User> findAllWithExpressionInCountQuery(Pageable pageable);
 
@@ -350,4 +425,10 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	interface UserProjection {}
+
+	static class UnrelatedType {
+
+		public UnrelatedType(String name) {}
+
+	}
 }
