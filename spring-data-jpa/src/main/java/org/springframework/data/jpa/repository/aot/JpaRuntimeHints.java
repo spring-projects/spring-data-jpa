@@ -21,9 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.aot.hint.ExecutableMode;
-
 import org.jspecify.annotations.Nullable;
+import org.springframework.aot.hint.ExecutableMode;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -84,7 +83,7 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 		// make sure annotations on the fields are visible and allow reflection on protected methods
 		hints.reflection().registerTypes(
 				List.of(TypeReference.of(AbstractPersistable.class), TypeReference.of(AbstractAuditable.class)),
-				hint -> hint.withMembers(MemberCategory.DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS));
+				hint -> hint.withMembers(MemberCategory.ACCESS_DECLARED_FIELDS, MemberCategory.INVOKE_DECLARED_METHODS));
 
 		if (QuerydslUtils.QUERY_DSL_PRESENT) {
 
@@ -94,9 +93,8 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 		}
 
 		// streaming results requires reflective access to jakarta.persistence.Query#getResultAsStream
-		hints.reflection().registerType(jakarta.persistence.Query.class, MemberCategory.INTROSPECT_PUBLIC_METHODS);
-		hints.reflection().registerType(jakarta.persistence.Query.class, hint ->
-				hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE));
+		hints.reflection().registerType(jakarta.persistence.Query.class,
+				hint -> hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE));
 
 		hints.reflection().registerType(NamedEntityGraph.class,
 				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
