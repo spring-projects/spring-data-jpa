@@ -34,6 +34,7 @@ import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProces
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector.DefaultQueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -68,6 +69,11 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 					hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
 							MemberCategory.INVOKE_DECLARED_METHODS));
 		}
+
+		// via JpaRepositoryFactoryBean creating the bean if not defined
+		hints.reflection().registerType(TypeReference.of(DefaultQueryEnhancerSelector.class),
+				hint -> hint.withMembers(MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+						MemberCategory.INVOKE_PUBLIC_METHODS));
 
 		hints.reflection().registerType(TypeReference.of(SimpleJpaRepository.class),
 				hint -> hint.withMembers(MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS));
