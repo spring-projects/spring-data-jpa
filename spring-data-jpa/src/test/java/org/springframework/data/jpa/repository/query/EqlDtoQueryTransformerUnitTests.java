@@ -15,102 +15,26 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.lang.reflect.Method;
-
-import org.junit.jupiter.api.Test;
+import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.provider.PersistenceProvider;
-import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
-import org.springframework.data.repository.Repository;
-import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.QueryMethod;
 
 /**
  * Unit tests for {@link DtoProjectionTransformerDelegate}.
  *
  * @author Mark Paluch
  */
-class EqlDtoQueryTransformerUnitTests {
+class EqlDtoQueryTransformerUnitTests extends AbstractDtoQueryTransformerUnitTests<JpaQueryEnhancer.EqlQueryParser> {
 
-	JpaQueryMethod method = getMethod("dtoProjection");
-
-	@Test // GH-3076
-	void shouldTranslateSingleProjectionToDto() {
-
-		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser.parseQuery("SELECT p from Person p");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.EqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar) from Person p");
+	@Override
+	JpaQueryEnhancer.EqlQueryParser parse(String query) {
+		return JpaQueryEnhancer.EqlQueryParser.parseQuery(query);
 	}
 
-	@Test // GH-3076
-	void shouldRewriteQueriesWithSubselect() {
-
-		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser
-				.parseQuery("select u from User u left outer join u.roles r where r in (select r from Role r)");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"select new org.springframework.data.jpa.repository.query.EqlDtoQueryTransformerUnitTests$MyRecord(u.foo, u.bar) from User u left outer join u.roles r where r in (select r from Role r)");
-	}
-
-	@Test // GH-3076
-	void shouldNotTranslateConstructorExpressionQuery() {
-
-		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser
-				.parseQuery("SELECT NEW Foo(p) from Person p");
-
-		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo("SELECT NEW Foo(p) from Person p");
-	}
-
-	@Test
-	void shouldTranslatePropertySelectionToDto() {
-
-		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser
-				.parseQuery("SELECT p.foo, p.bar, sum(p.age) from Person p");
-
-		EqlSortedQueryTransformer transformer = getTransformer(parser);
-		QueryTokenStream visit = transformer.visit(parser.getContext());
-
-		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.EqlDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar, sum(p.age)) from Person p");
-	}
-
-	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) {
-
-		try {
-			Method method = MyRepo.class.getMethod(name, parameterTypes);
-			PersistenceProvider persistenceProvider = PersistenceProvider.HIBERNATE;
-
-			return new JpaQueryMethod(method, new DefaultRepositoryMetadata(MyRepo.class),
-					new SpelAwareProxyProjectionFactory(), persistenceProvider);
-		} catch (NoSuchMethodException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private EqlSortedQueryTransformer getTransformer(JpaQueryEnhancer.EqlQueryParser parser) {
+	@Override
+	ParseTreeVisitor<QueryTokenStream> getTransformer(JpaQueryEnhancer.EqlQueryParser parser, QueryMethod method) {
 		return new EqlSortedQueryTransformer(Sort.unsorted(), parser.getQueryInformation(),
 				method.getResultProcessor().getReturnedType());
-	}
-
-	interface MyRepo extends Repository<Person, String> {
-
-		MyRecord dtoProjection();
-	}
-
-	record Person(String id) {
-
-	}
-
-	record MyRecord(String foo, String bar) {
-
 	}
 }
