@@ -885,7 +885,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.appendExpression(visit(ctx.variable()));
 		}
 
-		return builder;
+		return builder.toInline();
 	}
 
 	@Override

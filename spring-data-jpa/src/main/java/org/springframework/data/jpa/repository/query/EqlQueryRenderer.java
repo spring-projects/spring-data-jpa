@@ -612,6 +612,15 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitSelect_clause(EqlParser.Select_clauseContext ctx) {
 
+		QueryRendererBuilder builder = prepareSelectClause(ctx);
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
+
+		return builder;
+	}
+
+	QueryRendererBuilder prepareSelectClause(EqlParser.Select_clauseContext ctx) {
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.SELECT()));
@@ -619,8 +628,6 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		if (ctx.DISTINCT() != null) {
 			builder.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
-
-		builder.appendExpression(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
 
 		return builder;
 	}

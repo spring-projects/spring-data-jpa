@@ -19,9 +19,9 @@ import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.List;
 
-import org.springframework.data.domain.Sort;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.util.Assert;
@@ -72,7 +72,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 			builder.appendExpression(visit(ctx.having_clause()));
 		}
 
-		if(ctx.set_fuction() != null) {
+		if (ctx.set_fuction() != null) {
 			builder.appendExpression(visit(ctx.set_fuction()));
 		} else {
 			doVisitOrderBy(builder, ctx);
@@ -88,17 +88,53 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 			return super.visitSelect_clause(ctx);
 		}
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder builder = prepareSelectClause(ctx);
 
-		builder.append(QueryTokens.expression(ctx.SELECT()));
+		QueryTokenStream selectItems = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
 
-		if (ctx.DISTINCT() != null) {
-			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		if (dtoDelegate != null && dtoDelegate.canRewrite()) {
+			builder.append(dtoDelegate.getRewrittenSelectionList());
+		} else {
+			builder.append(selectItems);
 		}
 
-		QueryTokenStream tokenStream = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
+		return builder;
+	}
 
-		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
+	@Override
+	public QueryTokenStream visitSelect_item(JpqlParser.Select_itemContext ctx) {
+
+		QueryTokenStream tokens = super.visitSelect_item(ctx);
+
+		if (ctx.result_variable() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(ctx.result_variable().getText());
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public QueryTokenStream visitSelect_expression(JpqlParser.Select_expressionContext ctx) {
+
+		QueryTokenStream selectItem = super.visitSelect_expression(ctx);
+
+		if (dtoDelegate != null && dtoDelegate.applyRewriting() && ctx.constructor_expression() == null) {
+			dtoDelegate.appendSelectItem(selectItem);
+		}
+
+		return selectItem;
+	}
+
+	@Override
+	public QueryTokenStream visitJoin(JpqlParser.JoinContext ctx) {
+
+		QueryTokenStream tokens = super.visitJoin(ctx);
+
+		if (ctx.identification_variable() != null) {
+			transformerSupport.registerAlias(ctx.identification_variable().getText());
+		}
+
+		return tokens;
 	}
 
 	private void doVisitOrderBy(QueryRendererBuilder builder, JpqlParser.Select_statementContext ctx) {
@@ -127,29 +163,4 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 			}
 		}
 	}
-
-	@Override
-	public QueryTokenStream visitSelect_item(JpqlParser.Select_itemContext ctx) {
-
-		QueryTokenStream tokens = super.visitSelect_item(ctx);
-
-		if (ctx.result_variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getRequiredLast());
-		}
-
-		return tokens;
-	}
-
-	@Override
-	public QueryTokenStream visitJoin(JpqlParser.JoinContext ctx) {
-
-		QueryTokenStream tokens = super.visitJoin(ctx);
-
-		if (!tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getRequiredLast());
-		}
-
-		return tokens;
-	}
-
 }

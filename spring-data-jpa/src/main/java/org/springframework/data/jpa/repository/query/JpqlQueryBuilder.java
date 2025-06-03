@@ -945,7 +945,8 @@ public final class JpqlQueryBuilder {
 		 */
 		public String getAlias(Origin source) {
 
-			return aliases.computeIfAbsent(source, it -> JpqlQueryBuilder.getAlias(source.getName(), s -> !aliases.containsValue(s), () -> "join_" + (counter++)));
+			return aliases.computeIfAbsent(source, it -> JpqlQueryBuilder.getAlias(source.getName(),
+					s -> !aliases.containsValue(s), () -> "join_" + (counter++)));
 		}
 
 		/**

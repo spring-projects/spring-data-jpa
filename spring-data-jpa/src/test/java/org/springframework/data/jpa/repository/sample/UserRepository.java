@@ -718,8 +718,17 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u from User u")
 	List<UserExcerpt> findRecordProjection();
 
-	@Query("select u.firstname, LOWER(u.lastname) from User u")
+	@Query("select u.firstname as fn, LOWER(u.lastname) as lastname from User u")
 	List<UserExcerpt> findRecordProjectionWithFunctions();
+
+	@Query("select u.firstname from User u")
+	List<String> findStringProjection();
+
+	@Query("select u.firstname, LOWER(u.lastname) from User u")
+	List<Object[]> findObjectArrayProjectionWithFunctions();
+
+	@Query("select u.address from User u")
+	List<AddressDto> findAddressProjection();
 
 	@Query("select u from User u")
 	<T> List<T> findRecordProjection(Class<T> projectionType);
@@ -805,6 +814,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	record UserExcerpt(String firstname, String lastname) {
 
+	}
+
+	record AddressDto(String country, String city) {
+		public AddressDto(Address address) {
+			this(address != null ? address.getCountry() : null, address != null ? address.getCity() : null);
+		}
 	}
 
 	record UserRoleCountDtoProjection(User user, Long roleCount) {

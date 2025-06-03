@@ -22,9 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.springframework.util.CompositeIterator;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.util.CompositeIterator;
 
 /**
  * Abstraction to encapsulate query expressions and render a query.
@@ -622,6 +622,9 @@ abstract class QueryRenderer implements QueryTokenStream {
 			return current;
 		}
 
+		public QueryRenderer toInline() {
+			return new InlineRenderer(current);
+		}
 	}
 
 	private static class InlineRenderer extends QueryRenderer {

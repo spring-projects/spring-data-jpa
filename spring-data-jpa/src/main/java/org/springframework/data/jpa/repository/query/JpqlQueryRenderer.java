@@ -594,6 +594,15 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
+		QueryRendererBuilder builder = prepareSelectClause(ctx);
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
+
+		return builder;
+	}
+
+	QueryRendererBuilder prepareSelectClause(JpqlParser.Select_clauseContext ctx) {
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.SELECT()));
@@ -601,8 +610,6 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		if (ctx.DISTINCT() != null) {
 			builder.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
-
-		builder.append(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
 
 		return builder;
 	}
@@ -2219,7 +2226,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		} else if (ctx.type_literal() != null) {
 			return visit(ctx.type_literal());
 		} else if (ctx.f != null) {
-			return QueryTokenStream.ofToken(ctx.f);
+			return QueryRenderer.from(QueryTokens.expression(ctx.f));
 		} else {
 			return QueryTokenStream.empty();
 		}

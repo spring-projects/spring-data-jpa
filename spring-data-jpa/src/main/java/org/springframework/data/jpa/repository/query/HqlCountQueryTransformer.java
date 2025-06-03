@@ -107,7 +107,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 		if (ctx.fromClause() != null) {
 			builder.appendExpression(visit(ctx.fromClause()));
-			if(primaryFromAlias == null) {
+			if (primaryFromAlias == null) {
 				builder.append(TOKEN_AS);
 				builder.append(TOKEN_DOUBLE_UNDERSCORE);
 			}
@@ -149,7 +149,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 
 		return builder;
 	}
-
 
 	@Override
 	public QueryTokenStream visitSelectClause(HqlParser.SelectClauseContext ctx) {
