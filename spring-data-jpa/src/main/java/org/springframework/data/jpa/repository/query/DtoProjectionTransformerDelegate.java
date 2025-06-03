@@ -17,6 +17,11 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
+
 import org.springframework.data.repository.query.ReturnedType;
 
 /**
@@ -25,7 +30,8 @@ import org.springframework.data.repository.query.ReturnedType;
  * Query rewriting from a plain property/object selection towards constructor expression only works if either:
  * <ul>
  * <li>The query selects its primary alias ({@code SELECT p FROM Person p})</li>
- * <li>The query specifies a property list ({@code SELECT p.foo, p.bar FROM Person p})</li>
+ * <li>The query specifies a property list ({@code SELECT p.foo, p.bar FROM Person p},
+ * {@code SELECT COUNT(p.foo), p.bar AS bar FROM Person p})</li>
  * </ul>
  *
  * @author Mark Paluch
@@ -34,42 +40,94 @@ import org.springframework.data.repository.query.ReturnedType;
 class DtoProjectionTransformerDelegate {
 
 	private final ReturnedType returnedType;
+	private final boolean applyRewriting;
+	private final List<QueryTokenStream> selectItems = new ArrayList<>();
 
 	public DtoProjectionTransformerDelegate(ReturnedType returnedType) {
 		this.returnedType = returnedType;
+		this.applyRewriting = returnedType.isProjecting() && !returnedType.getReturnedType().isInterface()
+				&& returnedType.needsCustomConstruction();
 	}
 
-	public QueryTokenStream transformSelectionList(QueryTokenStream selectionList) {
-
-		if (!returnedType.isProjecting() || returnedType.getReturnedType().isInterface()
-				|| !returnedType.needsCustomConstruction() || selectionList.stream().anyMatch(it -> it.equals(TOKEN_NEW))) {
-			return selectionList;
-		}
-
-		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(QueryTokens.TOKEN_NEW);
-		builder.append(QueryTokens.token(returnedType.getReturnedType().getName()));
-		builder.append(QueryTokens.TOKEN_OPEN_PAREN);
-
-		// assume the selection points to the document
-		if (selectionList.size() == 1) {
-
-			builder.appendInline(QueryTokenStream.concat(returnedType.getInputProperties(), property -> {
-
-				QueryRenderer.QueryRendererBuilder prop = QueryRenderer.builder();
-				prop.append(QueryTokens.token(selectionList.getFirst().value()));
-				prop.append(QueryTokens.TOKEN_DOT);
-				prop.append(QueryTokens.token(property));
-
-				return prop.build();
-			}, QueryTokens.TOKEN_COMMA));
-
-		} else {
-			builder.appendInline(selectionList);
-		}
-
-		builder.append(QueryTokens.TOKEN_CLOSE_PAREN);
-
-		return builder.build();
+	public boolean applyRewriting() {
+		return applyRewriting;
 	}
+
+	public boolean canRewrite() {
+		return applyRewriting() && !selectItems.isEmpty();
+	}
+
+	public void appendSelectItem(QueryTokenStream selectItem) {
+
+		if (applyRewriting()) {
+			selectItems.add(new DetachedStream(selectItem));
+		}
+	}
+
+	public QueryTokenStream getRewrittenSelectionList() {
+
+		if (canRewrite()) {
+
+			QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+			builder.append(QueryTokens.TOKEN_NEW);
+			builder.append(QueryTokens.token(returnedType.getReturnedType().getName()));
+			builder.append(QueryTokens.TOKEN_OPEN_PAREN);
+
+			if (selectItems.size() == 1 && selectItems.get(0).size() == 1) {
+
+				builder.appendInline(QueryTokenStream.concat(returnedType.getInputProperties(), property -> {
+
+					QueryRenderer.QueryRendererBuilder prop = QueryRenderer.builder();
+					prop.appendInline(selectItems.get(0));
+					prop.append(QueryTokens.TOKEN_DOT);
+					prop.append(QueryTokens.token(property));
+
+					return prop.build();
+				}, QueryTokens.TOKEN_COMMA));
+			} else {
+				builder.append(QueryTokenStream.concat(selectItems, Function.identity(), TOKEN_COMMA));
+			}
+
+			builder.append(TOKEN_CLOSE_PAREN);
+
+			return builder.build();
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	private static class DetachedStream extends QueryRenderer {
+
+		private final QueryTokenStream delegate;
+
+		private DetachedStream(QueryTokenStream delegate) {
+			this.delegate = delegate;
+		}
+
+		@Override
+		public boolean isExpression() {
+			return delegate.isExpression();
+		}
+
+		@Override
+		public int size() {
+			return delegate.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return delegate.isEmpty();
+		}
+
+		@Override
+		public Iterator<QueryToken> iterator() {
+			return delegate.iterator();
+		}
+
+		@Override
+		public String render() {
+			return delegate instanceof QueryRenderer ? ((QueryRenderer) delegate).render() : delegate.toString();
+		}
+	}
+
 }

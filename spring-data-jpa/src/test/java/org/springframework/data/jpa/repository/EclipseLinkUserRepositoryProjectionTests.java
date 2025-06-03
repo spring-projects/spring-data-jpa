@@ -19,21 +19,14 @@ import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Ignores some test cases using IN queries as long as we wait for fix for
- * https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477.
- *
  * @author Oliver Gierke
  * @author Greg Turnquist
  */
 @ContextConfiguration("classpath:eclipselink-h2.xml")
-class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
+class EclipseLinkUserRepositoryProjectionTests extends UserRepositoryProjectionTests {
 
 	@Disabled
 	@Override
-	void executesNotInQueryCorrectly() {}
-
-	@Disabled
-	@Override
-	void executesInKeywordForPageCorrectly() {}
+	void rawMapProjectionWithEntityAndAggregatedValue() {}
 
 }

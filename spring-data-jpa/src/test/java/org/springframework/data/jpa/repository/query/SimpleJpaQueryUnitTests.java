@@ -273,10 +273,7 @@ class SimpleJpaQueryUnitTests {
 		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
 				SampleRepository.class.getMethod("selectWithJoin"));
 
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
-				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
-		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+		String queryString = createQuery(jpaQuery);
 
 		assertThat(queryString).startsWith("SELECT cd FROM CampaignDeal cd");
 	}
@@ -287,41 +284,34 @@ class SimpleJpaQueryUnitTests {
 		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
 				SampleRepository.class.getMethod("selectWithJoin"));
 
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
-				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
-		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+		String queryString = createQuery(jpaQuery);
 
 		assertThat(queryString).startsWith(
 				"SELECT new org.springframework.data.jpa.repository.query.SimpleJpaQueryUnitTests$UnrelatedType(cd.name)");
 	}
 
 	@Test // GH-3895
-	void doesNotRewriteQueryForUnknownProperty() throws Exception {
+	void rewritesQueryForUnknownProperty() throws Exception {
 
 		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
 				SampleRepository.class.getMethod("projectWithUnknownPaths"));
 
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
-				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
-		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+		String queryString = createQuery(jpaQuery);
 
-		assertThat(queryString).startsWith("select u.unknown from User u");
+		assertThat(queryString).startsWith(
+				"select new org.springframework.data.jpa.repository.query.SimpleJpaQueryUnitTests$UnrelatedType(u.unknown)");
 	}
 
 	@Test // GH-3895
-	void doesNotRewriteQueryForJoinPath() throws Exception {
+	void rewritesQueryForJoinPath() throws Exception {
 
 		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
 				SampleRepository.class.getMethod("projectWithJoinPaths"));
 
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
-				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
-		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
-		String queryString = jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
+		String queryString = createQuery(jpaQuery);
 
-		assertThat(queryString).startsWith("select r.name from User u LEFT JOIN FETCH u.roles r");
+		assertThat(queryString).startsWith(
+				"select new org.springframework.data.jpa.repository.query.SimpleJpaQueryUnitTests$UnrelatedType(r.name) from User u LEFT JOIN FETCH u.roles r");
 	}
 
 	@Test // DATAJPA-1307
@@ -369,6 +359,13 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(),
 				countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
+	}
+
+	private String createQuery(AbstractStringBasedJpaQuery jpaQuery) {
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(
+				jpaQuery.getQueryMethod().getParameters(), new Object[0]);
+		ResultProcessor processor = jpaQuery.getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
+		return jpaQuery.getSortedQueryString(Sort.unsorted(), jpaQuery.getReturnedType(processor));
 	}
 
 	interface SampleRepository extends Repository<User, Long> {
