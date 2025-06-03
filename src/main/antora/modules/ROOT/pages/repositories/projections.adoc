@@ -32,9 +32,12 @@ Support for string-based queries covers both, JPQL queries(`@Query`) and native 
 
 ==== JPQL Queries
 
-When using <<projections.dtos,Class-based projections>> with JPQL, you must use *constructor expressions* in your JPQL query, e.g. `SELECT new com.example.NamesOnly(u.firstname, u.lastname) from User u`.
+JPA's mechanism to return <<projections.dtos,Class-based projections>> using JPQL is *constructor expressions*.
+Therefore, your query must define a constructor expression such as `SELECT new com.example.NamesOnly(u.firstname, u.lastname) from User u`.
 (Note the usage of a FQDN for the DTO type!) This JPQL expression can be used in `@Query` annotations as well where you define any named queries.
-As a workaround you may use named queries with `ResultSetMapping` or the Hibernate-specific javadoc:{hibernatejavadocurl}org.hibernate.query.ResultListTransformer[]
+As a workaround you may use named queries with `ResultSetMapping` or the Hibernate-specific javadoc:{hibernatejavadocurl}org.hibernate.query.ResultListTransformer[].
+
+Spring Data JPA can aid with rewriting your query to a constructor expression if your query selects the primary entity or a list of select items.
 
 ===== DTO Projection JPQL Query Rewriting
 
