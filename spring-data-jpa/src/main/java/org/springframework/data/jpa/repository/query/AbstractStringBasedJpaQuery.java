@@ -37,7 +37,6 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentLruCache;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link String} based JPA queries.
@@ -71,7 +70,6 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
 	 * @param queryString must not be {@literal null}.
-	 * @param countQuery can be {@literal null} if not defined.
 	 * @param queryConfiguration must not be {@literal null}.
 	 */
 	AbstractStringBasedJpaQuery(JpaQueryMethod method, EntityManager em, String queryString,

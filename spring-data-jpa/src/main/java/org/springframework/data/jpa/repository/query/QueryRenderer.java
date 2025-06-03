@@ -175,6 +175,10 @@ abstract class QueryRenderer implements QueryTokenStream {
 			return EmptyQueryRenderer.INSTANCE;
 		}
 
+		if (!(tokenStream instanceof QueryRenderer)) {
+			tokenStream = QueryRenderer.from(tokenStream);
+		}
+
 		if (tokenStream.isExpression()) {
 			return (QueryRenderer) tokenStream;
 		}
@@ -190,6 +194,10 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		if (tokenStream.isEmpty()) {
 			return EmptyQueryRenderer.INSTANCE;
+		}
+
+		if (!(tokenStream instanceof QueryRenderer)) {
+			tokenStream = QueryRenderer.from(tokenStream);
 		}
 
 		if (!tokenStream.isExpression()) {
@@ -322,6 +330,12 @@ abstract class QueryRenderer implements QueryTokenStream {
 		@Override
 		public boolean isExpression() {
 			return !nested.isEmpty() && nested.get(nested.size() - 1).isExpression();
+		}
+
+		public Stream<QueryRenderer> renderers() {
+			return nested.stream()
+					.flatMap(renderer -> renderer instanceof CompositeRenderer ? ((CompositeRenderer) renderer).renderers()
+							: Stream.of(renderer));
 		}
 	}
 
