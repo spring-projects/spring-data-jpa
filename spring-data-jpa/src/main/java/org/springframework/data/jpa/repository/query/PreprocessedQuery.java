@@ -176,7 +176,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 		INSTANCE;
 
 		private static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
-		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![#\\w]))";
+		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![\\&\\|#\\w]))";
 		// .....................................................................^ not followed by a hash or a letter.
 		// .................................................................^ zero or more digits.
 		// .............................................................^ start with a question mark.
@@ -264,7 +264,9 @@ public final class PreprocessedQuery implements DeclaredQuery {
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
 
 				String match = matcher.group(0);
-				if (JDBC_STYLE_PARAM.matcher(match).find()) {
+				Matcher jdbcStyleMatcher = JDBC_STYLE_PARAM.matcher(match);
+
+				if (jdbcStyleMatcher.find()) {
 					jdbcStyle = true;
 				}
 
