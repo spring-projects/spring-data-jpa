@@ -143,11 +143,10 @@ class StringQuery implements DeclaredQuery {
 						for (ParameterBinding binding : bindings) {
 
 							Predicate<ParameterBinding> identifier = binding::bindsTo;
-				Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
+							Predicate<ParameterBinding> notCompatible = Predicate.not(binding::isCompatibleWith);
 
-				// replace incompatible bindings
-				if ( derivedBindings.removeIf(
-									it -> identifier.test(it) && notCompatible.test(it))) {
+							// replace incompatible bindings
+							if (derivedBindings.removeIf(it -> identifier.test(it) && notCompatible.test(it))) {
 								derivedBindings.add(binding);
 							}
 						}
@@ -206,7 +205,7 @@ class StringQuery implements DeclaredQuery {
 		INSTANCE;
 
 		private static final String EXPRESSION_PARAMETER_PREFIX = "__$synthetic$__";
-		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![#\\w]))";
+		public static final String POSITIONAL_OR_INDEXED_PARAMETER = "\\?(\\d*+(?![\\&\\|#\\w]))";
 		// .....................................................................^ not followed by a hash or a letter.
 		// .................................................................^ zero or more digits.
 		// .............................................................^ start with a question mark.
@@ -295,7 +294,9 @@ class StringQuery implements DeclaredQuery {
 				Integer parameterIndex = getParameterIndex(parameterIndexString);
 
 				String match = matcher.group(0);
-				if (JDBC_STYLE_PARAM.matcher(match).find()) {
+				Matcher jdbcStyleMatcher = JDBC_STYLE_PARAM.matcher(match);
+
+				if (jdbcStyleMatcher.find()) {
 					queryMeta.usesJdbcStyleParameters = true;
 				}
 
