@@ -236,6 +236,21 @@ class StringQueryUnitTests {
 		assertThat(bindings).hasSize(3);
 	}
 
+	@Test // GH-3907
+	void rewritesPositionalLikeToUniqueParametersIfNecessaryUsingPostgresJsonbOperator() {
+
+		StringQuery query = new StringQuery(
+				"select '[\"x\", \"c\"]'::jsonb ?| '[\"x\", \"c\"]'::jsonb from User u where u.firstname like %?1 or u.firstname like ?1% or u.firstname = ?1",
+				true);
+
+		assertThat(query.hasParameterBindings()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo(
+				"select '[\"x\", \"c\"]'::jsonb ?| '[\"x\", \"c\"]'::jsonb from User u where u.firstname like ?1 or u.firstname like ?2 or u.firstname = ?3");
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(3);
+	}
+
 	@Test // GH-3041
 	void reusesNamedLikeBindingsWherePossible() {
 
@@ -538,7 +553,6 @@ class StringQueryUnitTests {
 
 		assertThat(bindings).hasSize(1);
 		assertPositionalBinding(ParameterBinding.class, 1, bindings.get(0));
-
 	}
 
 	@Test // DATAJPA-473
@@ -632,6 +646,19 @@ class StringQueryUnitTests {
 
 		assertThat(queryString)
 				.isEqualTo("select a from A a where a.b LIKE :__$synthetic$__1 and a.c LIKE :__$synthetic$__2");
+	}
+
+	@Test // GH-3907
+	void considersOnlyDedicatedPositionalBindMarkersAsSuch() {
+
+		StringQuery query = new StringQuery(
+				"select '[\"x\", \"c\"]'::jsonb ?| array[?1]::text[] FROM foo WHERE foo BETWEEN ?1 and ?2", true);
+
+		assertThat(query.getParameterBindings()).hasSize(2);
+
+		query = new StringQuery("select '[\"x\", \"c\"]'::jsonb ?& array[:foo]::text[] FROM foo WHERE foo = :bar", true);
+
+		assertThat(query.getParameterBindings()).hasSize(2);
 	}
 
 	@Test // DATAJPA-712, GH-3619
