@@ -24,6 +24,7 @@ import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Constructor;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -474,7 +475,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		 *
 		 * @author Jens Schauder
 		 */
-		private static class TupleBackedMap implements Map<String, Object> {
+		private static class TupleBackedMap extends AbstractMap<String, Object> implements Map<String, Object> {
 
 			private static final String UNMODIFIABLE_MESSAGE = "A TupleBackedMap cannot be modified";
 

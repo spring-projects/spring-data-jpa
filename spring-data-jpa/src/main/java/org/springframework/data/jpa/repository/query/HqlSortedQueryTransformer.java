@@ -91,11 +91,23 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		QueryTokenStream tokenStream = super.visitSelectionList(ctx);
 
-		if (dtoDelegate != null && !isSubquery(ctx)) {
-			return dtoDelegate.transformSelectionList(tokenStream);
+		if (dtoDelegate != null && dtoDelegate.canRewrite() && !isSubquery(ctx)) {
+			return dtoDelegate.getRewrittenSelectionList();
 		}
 
 		return tokenStream;
+	}
+
+	@Override
+	public QueryTokenStream visitSelectExpression(HqlParser.SelectExpressionContext ctx) {
+
+		QueryTokenStream selectItem = super.visitSelectExpression(ctx);
+
+		if (dtoDelegate != null && dtoDelegate.applyRewriting() && ctx.instantiation() == null && !isSubquery(ctx)) {
+			dtoDelegate.appendSelectItem(QueryRenderer.expression(selectItem));
+		}
+
+		return selectItem;
 	}
 
 	@Override

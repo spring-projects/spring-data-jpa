@@ -27,8 +27,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -166,52 +164,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return new NonProjectingReturnedType(returnedType);
 		}
 
-		if (query.isDefaultProjection()) {
-			return returnedType;
-		}
-
-		String alias = query.getAlias();
-		String projection = query.getProjection();
-
-		// we can handle single-column and no function projections here only
-		if (StringUtils.hasText(projection) && (projection.indexOf(',') != -1 || projection.indexOf('(') != -1)) {
-			return returnedType;
-		}
-
-		if (StringUtils.hasText(alias) && StringUtils.hasText(projection)) {
-			alias = alias.trim();
-			projection = projection.trim();
-			if (projection.startsWith(alias + ".")) {
-				projection = projection.substring(alias.length() + 1);
-			}
-		}
-
-		if (StringUtils.hasText(projection)) {
-
-			int space = projection.indexOf(' ');
-
-			if (space != -1) {
-				projection = projection.substring(0, space);
-			}
-
-			Class<?> propertyType;
-
-			try {
-				PropertyPath from = PropertyPath.from(projection, getQueryMethod().getEntityInformation().getJavaType());
-				propertyType = from.getLeafType();
-			} catch (PropertyReferenceException ignored) {
-				propertyType = null;
-			}
-
-			if (propertyType == null
-					|| (returnedJavaType.isAssignableFrom(propertyType) || propertyType.isAssignableFrom(returnedJavaType))) {
-				knownProjections.put(returnedJavaType, false);
-				return new NonProjectingReturnedType(returnedType);
-			} else {
-				knownProjections.put(returnedJavaType, true);
-			}
-		}
-
+		knownProjections.put(returnedJavaType, true);
 		return returnedType;
 	}
 

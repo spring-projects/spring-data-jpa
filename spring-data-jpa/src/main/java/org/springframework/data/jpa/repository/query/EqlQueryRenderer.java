@@ -292,8 +292,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitJoin_association_path_expression(
-			EqlParser.Join_association_path_expressionContext ctx) {
+	public QueryTokenStream visitJoin_association_path_expression(EqlParser.Join_association_path_expressionContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -451,8 +450,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitGeneral_identification_variable(
-			EqlParser.General_identification_variableContext ctx) {
+	public QueryTokenStream visitGeneral_identification_variable(EqlParser.General_identification_variableContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -641,6 +639,15 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitSelect_clause(EqlParser.Select_clauseContext ctx) {
 
+		QueryRendererBuilder builder = prepareSelectClause(ctx);
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
+
+		return builder;
+	}
+
+	QueryRendererBuilder prepareSelectClause(EqlParser.Select_clauseContext ctx) {
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.SELECT()));
@@ -648,8 +655,6 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		if (ctx.DISTINCT() != null) {
 			builder.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
-
-		builder.appendExpression(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA));
 
 		return builder;
 	}
@@ -2448,8 +2453,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitCharacter_valued_input_parameter(
-			EqlParser.Character_valued_input_parameterContext ctx) {
+	public QueryTokenStream visitCharacter_valued_input_parameter(EqlParser.Character_valued_input_parameterContext ctx) {
 
 		if (ctx.CHARACTER() != null) {
 			return QueryRendererBuilder.from(QueryTokens.expression(ctx.CHARACTER()));

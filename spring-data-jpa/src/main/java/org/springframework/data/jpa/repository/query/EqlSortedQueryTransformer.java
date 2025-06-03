@@ -91,17 +91,53 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 			return super.visitSelect_clause(ctx);
 		}
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
+		QueryRendererBuilder builder = prepareSelectClause(ctx);
 
-		builder.append(QueryTokens.expression(ctx.SELECT()));
+		QueryTokenStream selectItems = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
 
-		if (ctx.DISTINCT() != null) {
-			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		if (dtoDelegate != null && dtoDelegate.canRewrite()) {
+			builder.append(dtoDelegate.getRewrittenSelectionList());
+		} else {
+			builder.append(selectItems);
 		}
 
-		QueryTokenStream tokenStream = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
+		return builder;
+	}
 
-		return builder.append(dtoDelegate.transformSelectionList(tokenStream));
+	@Override
+	public QueryTokenStream visitSelect_item(EqlParser.Select_itemContext ctx) {
+
+		QueryTokenStream tokens = super.visitSelect_item(ctx);
+
+		if (ctx.result_variable() != null && !tokens.isEmpty()) {
+			transformerSupport.registerAlias(ctx.result_variable().getText());
+		}
+
+		return tokens;
+	}
+
+	@Override
+	public QueryTokenStream visitSelect_expression(EqlParser.Select_expressionContext ctx) {
+
+		QueryTokenStream selectItem = super.visitSelect_expression(ctx);
+
+		if (dtoDelegate != null && dtoDelegate.applyRewriting() && ctx.constructor_expression() == null) {
+			dtoDelegate.appendSelectItem(selectItem);
+		}
+
+		return selectItem;
+	}
+
+	@Override
+	public QueryTokenStream visitJoin(EqlParser.JoinContext ctx) {
+
+		QueryTokenStream tokens = super.visitJoin(ctx);
+
+		if (ctx.identification_variable() != null) {
+			transformerSupport.registerAlias(ctx.identification_variable().getText());
+		}
+
+		return tokens;
 	}
 
 	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx, Sort sort) {
@@ -129,30 +165,6 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 				builder.append(sortBy);
 			}
 		}
-	}
-
-	@Override
-	public QueryTokenStream visitSelect_item(EqlParser.Select_itemContext ctx) {
-
-		QueryTokenStream tokens = super.visitSelect_item(ctx);
-
-		if (ctx.result_variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
-		}
-
-		return tokens;
-	}
-
-	@Override
-	public QueryTokenStream visitJoin(EqlParser.JoinContext ctx) {
-
-		QueryTokenStream tokens = super.visitJoin(ctx);
-
-		if (!tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
-		}
-
-		return tokens;
 	}
 
 }
