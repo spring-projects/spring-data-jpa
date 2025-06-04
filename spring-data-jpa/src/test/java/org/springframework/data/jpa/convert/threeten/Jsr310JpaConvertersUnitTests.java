@@ -17,9 +17,9 @@ package org.springframework.data.jpa.convert.threeten;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Arrays;
-
 import jakarta.persistence.AttributeConverter;
+
+import java.util.Arrays;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -39,7 +39,6 @@ class Jsr310JpaConvertersUnitTests {
 				new Jsr310JpaConverters.LocalTimeConverter(), //
 				new Jsr310JpaConverters.ZoneIdConverter());
 	}
-
 
 	@ParameterizedTest
 	@MethodSource("data")
