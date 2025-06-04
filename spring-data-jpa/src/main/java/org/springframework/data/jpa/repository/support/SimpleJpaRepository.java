@@ -37,9 +37,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -817,11 +819,18 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			}
 
 			List<Selection<?>> selections = new ArrayList<>();
-
+			Set<String> topLevelProperties = new HashSet<>();
 			for (String property : requiredSelection) {
 
-				PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
-				selections.add(QueryUtils.toExpressionRecursively(root, path, true).alias(property));
+				int separator = property.indexOf('.');
+				String topLevelProperty = separator == -1 ? property : property.substring(0, separator);
+
+				if (!topLevelProperties.add(topLevelProperty)) {
+					continue;
+				}
+
+				PropertyPath path = PropertyPath.from(topLevelProperty, returnedType.getDomainType());
+				selections.add(QueryUtils.toExpressionRecursively(root, path, true).alias(topLevelProperty));
 			}
 
 			Class<?> typeToRead = returnedType.getReturnedType();
