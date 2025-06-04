@@ -26,7 +26,6 @@ import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -44,23 +43,15 @@ import org.mockito.quality.Strictness;
  * @author Mark Paluch
  * @author Daniel Shuy
  */
-@SuppressWarnings("removal")
+@SuppressWarnings({ "unchecked", "deprecation" })
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SpecificationUnitTests {
 
-	private Specification<Object> spec;
 	@Mock(serializable = true) Root<Object> root;
 	@Mock(serializable = true) CriteriaQuery<?> query;
 	@Mock(serializable = true) CriteriaBuilder builder;
-
 	@Mock(serializable = true) Predicate predicate;
-
-	@BeforeEach
-	void setUp() {
-
-		spec = (root, query, cb) -> predicate;
-	}
 
 	@Test // GH-1943
 	void emptyAllOfReturnsEmptySpecification() {
@@ -88,7 +79,6 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({ "unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
@@ -103,7 +93,6 @@ class SpecificationUnitTests {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({ "unchecked", "deprecation"})
 		Specification<Object> transferredSpecification = (Specification<Object>) deserialize(serialize(specification));
 
 		assertThat(transferredSpecification).isNotNull();
@@ -116,7 +105,6 @@ class SpecificationUnitTests {
 		Predicate secondPredicate = mock(Predicate.class);
 
 		Specification<Object> first = ((root1, query1, criteriaBuilder) -> firstPredicate);
-
 		Specification<Object> second = ((root1, query1, criteriaBuilder) -> secondPredicate);
 
 		first.and(second).toPredicate(root, query, builder);

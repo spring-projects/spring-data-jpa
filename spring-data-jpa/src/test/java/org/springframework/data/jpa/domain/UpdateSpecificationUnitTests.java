@@ -39,7 +39,7 @@ import org.mockito.quality.Strictness;
  *
  * @author Mark Paluch
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "unchecked", "deprecation" })
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UpdateSpecificationUnitTests implements Serializable {
@@ -109,7 +109,6 @@ class UpdateSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({"unchecked", "deprecation"})
 		UpdateSpecification<Object> transferredSpecification = (UpdateSpecification<Object>) deserialize(
 				serialize(specification));
 
@@ -125,7 +124,6 @@ class UpdateSpecificationUnitTests implements Serializable {
 
 		assertThat(specification).isNotNull();
 
-		@SuppressWarnings({"unchecked", "deprecation"})
 		UpdateSpecification<Object> transferredSpecification = (UpdateSpecification<Object>) deserialize(
 				serialize(specification));
 
