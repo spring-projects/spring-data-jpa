@@ -25,11 +25,14 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.LongSupplier;
+import java.util.stream.Stream;
 
 import org.eclipse.persistence.config.QueryHints;
 import org.eclipse.persistence.jpa.JpaQuery;
@@ -38,6 +41,8 @@ import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
 
+import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -54,22 +59,15 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
- * @author Ariel Morelli Andres (Atlassian US, Inc.)
+ * @author Ariel Morelli Andres
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
 	/**
 	 * Hibernate persistence provider.
-	 * <p>
-	 * Since Hibernate 4.3 the location of the HibernateEntityManager moved to the org.hibernate.jpa package. In order to
-	 * support both locations we interpret both classnames as a Hibernate {@code PersistenceProvider}.
-	 *
-	 * @see <a href="https://github.com/spring-projects/spring-data-jpa/issues/846">DATAJPA-444</a>
 	 */
-	HIBERNATE(//
-			Collections.singletonList(HIBERNATE_ENTITY_MANAGER_FACTORY_INTERFACE), //
-			Collections.singletonList(HIBERNATE_ENTITY_MANAGER_INTERFACE), //
-			Collections.singletonList(HIBERNATE_JPA_METAMODEL_TYPE)) {
+	HIBERNATE(List.of(HIBERNATE_ENTITY_MANAGER_FACTORY_INTERFACE), //
+			List.of(HIBERNATE_JPA_METAMODEL_TYPE)) {
 
 		@Override
 		public String extractQueryString(Query query) {
@@ -117,9 +115,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	/**
 	 * EclipseLink persistence provider.
 	 */
-	ECLIPSELINK(List.of(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE1, ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE2),
-			Collections.singleton(ECLIPSELINK_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
+	ECLIPSELINK(List.of(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE), List.of(ECLIPSELINK_JPA_METAMODEL_TYPE)) {
 
 		@Override
 		public String extractQueryString(Query query) {
@@ -157,8 +153,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	/**
 	 * Unknown special provider. Use standard JPA.
 	 */
-	GENERIC_JPA(Collections.singleton(GENERIC_JPA_ENTITY_MANAGER_INTERFACE),
-			Collections.singleton(GENERIC_JPA_ENTITY_MANAGER_INTERFACE), Collections.emptySet()) {
+	GENERIC_JPA(List.of(GENERIC_JPA_ENTITY_MANAGER_FACTORY_INTERFACE), Collections.emptySet()) {
 
 		@Nullable
 		@Override
@@ -205,8 +200,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	private static final ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
-	private final Iterable<String> entityManagerFactoryClassNames;
-	private final Iterable<String> entityManagerClassNames;
+	final Iterable<String> entityManagerFactoryClassNames;
 	private final Iterable<String> metamodelClassNames;
 
 	private final boolean present;
@@ -216,37 +210,15 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 *
 	 * @param entityManagerFactoryClassNames the names of the provider specific
 	 *          {@link jakarta.persistence.EntityManagerFactory} implementations. Must not be {@literal null} or empty.
-	 * @param entityManagerClassNames the names of the provider specific {@link EntityManager} implementations. Must not
-	 *          be {@literal null} or empty.
-	 * @param metamodelClassNames must not be {@literal null}.
+	 * @param metamodelClassNames the names of the provider specific {@link Metamodel} implementations. Must not be
+	 *          {@literal null} or empty.
 	 */
-	PersistenceProvider(Iterable<String> entityManagerFactoryClassNames, Iterable<String> entityManagerClassNames,
-			Iterable<String> metamodelClassNames) {
+	PersistenceProvider(Collection<String> entityManagerFactoryClassNames, Collection<String> metamodelClassNames) {
 
 		this.entityManagerFactoryClassNames = entityManagerFactoryClassNames;
-		this.entityManagerClassNames = entityManagerClassNames;
 		this.metamodelClassNames = metamodelClassNames;
-
-		boolean present = false;
-		for (String emfClassName : entityManagerFactoryClassNames) {
-
-			if (ClassUtils.isPresent(emfClassName, PersistenceProvider.class.getClassLoader())) {
-				present = true;
-				break;
-			}
-		}
-
-		if (!present) {
-			for (String entityManagerClassName : entityManagerClassNames) {
-
-				if (ClassUtils.isPresent(entityManagerClassName, PersistenceProvider.class.getClassLoader())) {
-					present = true;
-					break;
-				}
-			}
-		}
-
-		this.present = present;
+		this.present = Stream.concat(entityManagerFactoryClassNames.stream(), metamodelClassNames.stream())
+				.anyMatch(it -> ClassUtils.isPresent(it, PersistenceProvider.class.getClassLoader()));
 	}
 
 	/**
@@ -262,32 +234,23 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	}
 
 	/**
-	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager}. If no special one can be
+	 * Determines the {@link PersistenceProvider} from the given {@link EntityManager} by introspecting
+	 * {@link EntityManagerFactory} via {@link EntityManager#getEntityManagerFactory()}. If no special one can be
 	 * determined {@link #GENERIC_JPA} will be returned.
+	 * <p>
+	 * This method avoids {@link EntityManager} initialization when using
+	 * {@link org.springframework.orm.jpa.SharedEntityManagerCreator} by accessing
+	 * {@link EntityManager#getEntityManagerFactory()}.
 	 *
 	 * @param em must not be {@literal null}.
 	 * @return will never be {@literal null}.
+	 * @see org.springframework.orm.jpa.SharedEntityManagerCreator
 	 */
 	public static PersistenceProvider fromEntityManager(EntityManager em) {
 
 		Assert.notNull(em, "EntityManager must not be null");
 
-		Class<?> entityManagerType = em.getDelegate().getClass();
-		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
-
-		if (cachedProvider != null) {
-			return cachedProvider;
-		}
-
-		for (PersistenceProvider provider : ALL) {
-			for (String entityManagerClassName : provider.entityManagerClassNames) {
-				if (isEntityManagerOfType(em, entityManagerClassName)) {
-					return cacheAndReturn(entityManagerType, provider);
-				}
-			}
-		}
-
-		return cacheAndReturn(entityManagerType, GENERIC_JPA);
+		return fromEntityManagerFactory(em.getEntityManagerFactory());
 	}
 
 	/**
@@ -296,12 +259,24 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 *
 	 * @param emf must not be {@literal null}.
 	 * @return will never be {@literal null}.
+	 * @since 3.5.1
 	 */
 	public static PersistenceProvider fromEntityManagerFactory(EntityManagerFactory emf) {
 
 		Assert.notNull(emf, "EntityManagerFactory must not be null");
 
-		Class<?> entityManagerType = emf.getPersistenceUnitUtil().getClass();
+		EntityManagerFactory unwrapped = emf;
+
+		while (Proxy.isProxyClass(unwrapped.getClass()) || AopUtils.isAopProxy(unwrapped)) {
+
+			if (Proxy.isProxyClass(unwrapped.getClass())) {
+				unwrapped = unwrapped.unwrap(null);
+			} else if (AopUtils.isAopProxy(unwrapped)) {
+				unwrapped = (EntityManagerFactory) AopProxyUtils.getSingletonTarget(unwrapped);
+			}
+		}
+
+		Class<?> entityManagerType = unwrapped.getClass();
 		PersistenceProvider cachedProvider = CACHE.get(entityManagerType);
 
 		if (cachedProvider != null) {
@@ -310,8 +285,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		for (PersistenceProvider provider : ALL) {
 			for (String emfClassName : provider.entityManagerFactoryClassNames) {
-				if (isOfType(emf.getPersistenceUnitUtil(), emfClassName,
-						emf.getPersistenceUnitUtil().getClass().getClassLoader())) {
+				if (isOfType(unwrapped, emfClassName, unwrapped.getClass().getClassLoader())) {
 					return cacheAndReturn(entityManagerType, provider);
 				}
 			}
@@ -408,16 +382,14 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		String GENERIC_JPA_ENTITY_MANAGER_FACTORY_INTERFACE = "jakarta.persistence.EntityManagerFactory";
 		String GENERIC_JPA_ENTITY_MANAGER_INTERFACE = "jakarta.persistence.EntityManager";
 
-		String ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE1 = "org.eclipse.persistence.internal.jpa.EntityManagerFactoryDelegate";
-		String ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE2 = "org.eclipse.persistence.internal.jpa.EntityManagerFactoryImpl";
+		String ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManagerFactory";
 		String ECLIPSELINK_ENTITY_MANAGER_INTERFACE = "org.eclipse.persistence.jpa.JpaEntityManager";
+		String ECLIPSELINK_JPA_METAMODEL_TYPE = "org.eclipse.persistence.internal.jpa.metamodel.MetamodelImpl";
 
 		// needed as Spring only exposes that interface via the EM proxy
-		String HIBERNATE_ENTITY_MANAGER_FACTORY_INTERFACE = "org.hibernate.jpa.internal.PersistenceUnitUtilImpl";
-		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.engine.spi.SessionImplementor";
-
+		String HIBERNATE_ENTITY_MANAGER_FACTORY_INTERFACE = "org.hibernate.SessionFactory";
+		String HIBERNATE_ENTITY_MANAGER_INTERFACE = "org.hibernate.Session";
 		String HIBERNATE_JPA_METAMODEL_TYPE = "org.hibernate.metamodel.model.domain.JpaMetamodel";
-		String ECLIPSELINK_JPA_METAMODEL_TYPE = "org.eclipse.persistence.internal.jpa.metamodel.MetamodelImpl";
 
 	}
 

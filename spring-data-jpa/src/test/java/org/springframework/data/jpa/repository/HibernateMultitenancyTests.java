@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package org.springframework.data.jpa.repository;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
+import jakarta.persistence.EntityManager;
+
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -36,16 +39,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager;
-
 /**
  * Tests for repositories that use multi-tenancy. This tests verifies that repositories can be created an injected
- * despite not having a tenant available at creation time
+ * despite not having a tenant available at creation time.
  *
- * @author Ariel Morelli Andres (Atlassian US, Inc.)
+ * @author Ariel Morelli Andres
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration()
+@ContextConfiguration
 class HibernateMultitenancyTests {
 
 	@Autowired RoleRepository roleRepository;
@@ -56,19 +57,23 @@ class HibernateMultitenancyTests {
 		HibernateCurrentTenantIdentifierResolver.removeTenantIdentifier();
 	}
 
-	@Test
+	@Test // GH-3425
 	void testPersistenceProviderFromFactoryWithoutTenant() {
-		PersistenceProvider provider = PersistenceProvider.fromEntityManagerFactory(em.getEntityManagerFactory());
+
+		PersistenceProvider provider = PersistenceProvider.fromEntityManager(em);
+
 		assumeThat(provider).isEqualTo(PersistenceProvider.HIBERNATE);
 	}
 
-	@Test
+	@Test // GH-3425
 	void testRepositoryWithTenant() {
+
 		HibernateCurrentTenantIdentifierResolver.setTenantIdentifier("tenant-id");
+
 		assertThatNoException().isThrownBy(() -> roleRepository.findAll());
 	}
 
-	@Test
+	@Test // GH-3425
 	void testRepositoryWithoutTenantFails() {
 		assertThatThrownBy(() -> roleRepository.findAll()).isInstanceOf(RuntimeException.class);
 	}
@@ -80,9 +85,10 @@ class HibernateMultitenancyTests {
 		return roleRepository.findAll();
 	}
 
-	@ImportResource({ "classpath:multitenancy-test.xml" })
+	@ImportResource("classpath:multitenancy-test.xml")
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = HibernateRepositoryTests.class, considerNestedRepositories = true,
 			includeFilters = @ComponentScan.Filter(classes = { RoleRepository.class }, type = FilterType.ASSIGNABLE_TYPE))
 	static class TestConfig {}
+
 }

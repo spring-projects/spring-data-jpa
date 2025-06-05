@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,21 @@ package org.springframework.data.jpa.repository;
 import java.util.Optional;
 
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
-import org.jspecify.annotations.Nullable;
 
 /**
- * {@code CurrentTenantIdentifierResolver} instance for testing
+ * {@code CurrentTenantIdentifierResolver} instance for testing.
  *
- * @author Ariel Morelli Andres (Atlassian US, Inc.)
+ * @author Ariel Morelli Andres
  */
 public class HibernateCurrentTenantIdentifierResolver implements CurrentTenantIdentifierResolver<String> {
-	private static final ThreadLocal<@Nullable String> CURRENT_TENANT_IDENTIFIER = new ThreadLocal<>();
 
-	public static void setTenantIdentifier(String tenantIdentifier) {
+	private static final ThreadLocal<String> CURRENT_TENANT_IDENTIFIER = new ThreadLocal<>();
+
+	static void setTenantIdentifier(String tenantIdentifier) {
 		CURRENT_TENANT_IDENTIFIER.set(tenantIdentifier);
 	}
 
-	public static void removeTenantIdentifier() {
+	static void removeTenantIdentifier() {
 		CURRENT_TENANT_IDENTIFIER.remove();
 	}
 
@@ -46,4 +46,5 @@ public class HibernateCurrentTenantIdentifierResolver implements CurrentTenantId
 	public boolean validateExistingCurrentSessions() {
 		return true;
 	}
+
 }

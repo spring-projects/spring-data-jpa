@@ -58,7 +58,7 @@ abstract class JpaClassUtils {
 		return isOfType(metamodel, type, metamodel.getClass().getClassLoader());
 	}
 
-	private static boolean isOfType(Object source, String typeName, @Nullable ClassLoader classLoader) {
+	static boolean isOfType(Object source, String typeName, @Nullable ClassLoader classLoader) {
 
 		Assert.notNull(source, "Source instance must not be null");
 		Assert.hasText(typeName, "Target type name must not be null or empty");
