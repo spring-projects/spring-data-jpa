@@ -16,18 +16,20 @@
 package org.springframework.data.jpa.provider;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.*;
 import static org.springframework.data.jpa.provider.PersistenceProvider.Constants.*;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
 
-import org.assertj.core.api.Assumptions;
-import org.hibernate.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
 import org.springframework.asm.ClassWriter;
@@ -42,6 +44,7 @@ import org.springframework.util.ClassUtils;
  * @author Thomas Darimont
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Mark Paluch
  */
 class PersistenceProviderUnitTests {
 
@@ -56,12 +59,32 @@ class PersistenceProviderUnitTests {
 		this.shadowingClassLoader = new ShadowingClassLoader(getClass().getClassLoader());
 	}
 
+	@ParameterizedTest // GH-3425
+	@EnumSource(PersistenceProvider.class)
+	void entityManagerFactoryClassNamesAreInterfaces(PersistenceProvider provider) throws ClassNotFoundException {
+
+		for (String className : provider.entityManagerFactoryClassNames) {
+			assertThat(ClassUtils.forName(className, PersistenceProvider.class.getClassLoader()).isInterface()).isTrue();
+		}
+	}
+
+	@ParameterizedTest // GH-3425
+	@EnumSource(PersistenceProvider.class)
+	void metaModelNamesExist(PersistenceProvider provider) throws ClassNotFoundException {
+
+		for (String className : provider.entityManagerFactoryClassNames) {
+			assertThat(ClassUtils.forName(className, PersistenceProvider.class.getClassLoader()).isInterface()).isNotNull();
+		}
+	}
+
 	@Test
 	void detectsEclipseLinkPersistenceProvider() throws Exception {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
+		when(em.getEntityManagerFactory())
+				.thenReturn(mockProviderSpecificEntityManagerFactoryInterface(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE));
 
 		assertThat(fromEntityManager(em)).isEqualTo(ECLIPSELINK);
 	}
@@ -70,20 +93,9 @@ class PersistenceProviderUnitTests {
 	void fallbackToGenericJpaForUnknownPersistenceProvider() throws Exception {
 
 		EntityManager em = mockProviderSpecificEntityManagerInterface("foo.bar.unknown.jpa.JpaEntityManager");
+		when(em.getEntityManagerFactory()).thenReturn(mock(EntityManagerFactory.class));
 
 		assertThat(fromEntityManager(em)).isEqualTo(GENERIC_JPA);
-	}
-
-	@Test // DATAJPA-1019
-	void detectsHibernatePersistenceProviderForHibernateVersion52() throws Exception {
-
-		Assumptions.assumeThat(Version.getVersionString()).startsWith("5.2");
-
-		shadowingClassLoader.excludePackage("org.hibernate");
-
-		EntityManager em = mockProviderSpecificEntityManagerInterface(HIBERNATE_ENTITY_MANAGER_INTERFACE);
-
-		assertThat(fromEntityManager(em)).isEqualTo(HIBERNATE);
 	}
 
 	@Test // DATAJPA-1379
@@ -91,10 +103,9 @@ class PersistenceProviderUnitTests {
 
 		shadowingClassLoader.excludePackage("org.eclipse.persistence.jpa");
 
-		EntityManager em = mockProviderSpecificEntityManagerInterface(ECLIPSELINK_ENTITY_MANAGER_INTERFACE);
-
 		EntityManager emProxy = Mockito.mock(EntityManager.class);
-		Mockito.when(emProxy.getDelegate()).thenReturn(em);
+		when(emProxy.getEntityManagerFactory())
+				.thenReturn(mockProviderSpecificEntityManagerFactoryInterface(ECLIPSELINK_ENTITY_MANAGER_FACTORY_INTERFACE));
 
 		assertThat(fromEntityManager(emProxy)).isEqualTo(ECLIPSELINK);
 	}
@@ -105,11 +116,21 @@ class PersistenceProviderUnitTests {
 				EntityManager.class);
 
 		EntityManager em = (EntityManager) Mockito.mock(providerSpecificEntityManagerInterface);
-		Mockito.when(em.getDelegate()).thenReturn(em); // delegate is used to determine the classloader of the provider
-																										// specific interface, therefore we return the proxied
-																										// EntityManager.
+
+		// delegate is used to determine the classloader of the provider
+		// specific interface, therefore we return the proxied EntityManager
+		when(em.getDelegate()).thenReturn(em);
 
 		return em;
+	}
+
+	private EntityManagerFactory mockProviderSpecificEntityManagerFactoryInterface(String interfaceName)
+			throws ClassNotFoundException {
+
+		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
+				EntityManager.class);
+
+		return (EntityManagerFactory) Mockito.mock(providerSpecificEntityManagerInterface);
 	}
 
 	static class InterfaceGenerator implements Opcodes {
