@@ -37,6 +37,7 @@
 		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 		<jsqlparser>5.2</jsqlparser>
+		<junit-pioneer>2.3.0</junit-pioneer>
 		<mysql-connector-java>9.2.0</mysql-connector-java>
 		<postgresql>42.7.5</postgresql>
 		<oracle>23.8.0.25.04</oracle>
@@ -182,6 +183,12 @@
 				<version>${testcontainers}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.junit-pioneer</groupId>
+				<artifactId>junit-pioneer</artifactId>
+				<version>${junit-pioneer}</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
