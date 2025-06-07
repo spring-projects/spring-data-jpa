@@ -74,7 +74,7 @@ NOTE: `In` and `NotIn` also take any subclass of `Collection` as a parameter as 
 ====
 `DISTINCT` can be tricky and not always producing the results you expect.
 For example, `select distinct u from User u` will produce a complete different result than `select distinct u.lastname from User u`.
-In the first case, since you are including `User.id`, nothing will duplicated, hence you'll get the whole table, and it would be of `User` objects.
+In the first case, since you are including `User.id`, nothing will be duplicated, hence you'll get the whole table, and it would be of `User` objects.
 
 However, that latter query would narrow the focus to just `User.lastname` and find all unique last names for that table.
 This would also yield a `List<String>` result set instead of a `List<User>` result set.
@@ -83,7 +83,7 @@ This would also yield a `List<String>` result set instead of a `List<User>` resu
 `countDistinctByLastname(String lastname)` can also produce unexpected results.
 Spring Data JPA will derive `select count(distinct u.id) from User u where u.lastname = ?1`.
 Again, since `u.id` won't hit any duplicates, this query will count up all the users that had the binding last name.
-Which would the same as `countByLastname(String lastname)`!
+Which would be the same as `countByLastname(String lastname)`!
 
 What is the point of this query anyway? To find the number of people with a given last name? To find the number of _distinct_ people with that binding last name?
 To find the number of _distinct last names_? (That last one is an entirely different query!)
@@ -425,7 +425,7 @@ You have multiple options to consume large query results:
 You have learned in the previous chapter about `Pageable` and `PageRequest`.
 2. <<repositories.scrolling.offset,Offset-based scrolling>>.
 This is a lighter variant than paging because it does not require the total result count.
-3. <<repositories.scrolling.keyset,Keyset-baset scrolling>>.
+3. <<repositories.scrolling.keyset,Keyset-based scrolling>>.
 This method avoids https://use-the-index-luke.com/no-offset[the shortcomings of offset-based result retrieval by leveraging database indexes].
 
 Read more on xref:repositories/query-methods-details.adoc#repositories.scrolling.guidance[which method to use best] for your particular arrangement.
