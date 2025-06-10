@@ -51,6 +51,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Erik Pellizzon
  * @author Pranav HS
  * @author Eduard Dudar
+ * @author Mark Paluch
  */
 class QueryUtilsUnitTests {
 
@@ -130,13 +131,13 @@ class QueryUtilsUnitTests {
 				.isEqualTo("u");
 		assertThat(detectAlias(
 				"from Foo f left join f.bar b with type(b) = BarChild where (f.id = (select max(f.id) from Foo f2 where type(f2) = FooChild) or 1 <> 1) and 1=1"))
-						.isEqualTo("f");
+				.isEqualTo("f");
 		assertThat(detectAlias(
 				"(from Foo f max(f) ((((select * from Foo f2 (from Foo f3) max(*)) (from Foo f4)) max(f5)) (f6)) (from Foo f7))"))
-						.isEqualTo("f");
+				.isEqualTo("f");
 		assertThat(detectAlias(
 				"SELECT e FROM DbEvent e WHERE (CAST(:modifiedFrom AS date) IS NULL OR e.modificationDate >= :modifiedFrom)"))
-						.isEqualTo("e");
+				.isEqualTo("e");
 		assertThat(detectAlias("from User u where (cast(:effective as date) is null) OR :effective >= u.createdAt"))
 				.isEqualTo("u");
 		assertThat(detectAlias("from User u where (cast(:effectiveDate as date) is null) OR :effectiveDate >= u.createdAt"))
@@ -145,7 +146,7 @@ class QueryUtilsUnitTests {
 				.isEqualTo("u");
 		assertThat(
 				detectAlias("from User u where (cast(:e1f2f3ectiveFrom as date) is null) OR :effectiveFrom >= u.createdAt"))
-						.isEqualTo("u");
+				.isEqualTo("u");
 	}
 
 	@Test // GH-2260
@@ -175,13 +176,13 @@ class QueryUtilsUnitTests {
 				.isEqualTo("(select u from User u where not exists )");
 		assertThat(normalizeWhitespace(
 				removeSubqueries("select u from User u where not exists (from User u2 where not exists (from User u3))")))
-						.isEqualTo("select u from User u where not exists");
+				.isEqualTo("select u from User u where not exists");
 		assertThat(normalizeWhitespace(
 				removeSubqueries("select u from User u where not exists ((from User u2 where not exists (from User u3)))")))
-						.isEqualTo("select u from User u where not exists ( )");
+				.isEqualTo("select u from User u where not exists ( )");
 		assertThat(normalizeWhitespace(
 				removeSubqueries("(select u from User u where not exists ((from User u2 where not exists (from User u3))))")))
-						.isEqualTo("(select u from User u where not exists ( ))");
+				.isEqualTo("(select u from User u where not exists ( ))");
 	}
 
 	@Test // GH-2581
@@ -543,6 +544,32 @@ class QueryUtilsUnitTests {
 		assertThat(applySorting(query, sort, "m")).endsWith("order by avgPrice asc");
 	}
 
+	@Test // GH-3911
+	void discoversFunctionAliasesCorrectly() {
+
+		assertThat(getFunctionAliases("SELECT COUNT(1) a alias1,2 s alias2")).isEmpty();
+		assertThat(getFunctionAliases("SELECT COUNT(1) as alias1,2 as alias2")).containsExactly("alias1");
+		assertThat(getFunctionAliases("SELECT COUNT(1) as alias1,COUNT(2) as alias2")).contains("alias1", "alias2");
+		assertThat(getFunctionAliases("SELECT COUNT(1) as alias1, 2 as alias2")).containsExactly("alias1");
+		assertThat(getFunctionAliases("SELECT COUNT(1) as alias1, COUNT(2) as alias2")).contains("alias1", "alias2");
+		assertThat(getFunctionAliases("COUNT(1) as alias1,COUNT(2) as alias2")).contains("alias1", "alias2");
+		assertThat(getFunctionAliases("COUNT(1) as alias1,COUNT(2) as alias2")).contains("alias1", "alias2");
+		assertThat(getFunctionAliases("1 as alias1, COUNT(2) as alias2")).containsExactly("alias2");
+		assertThat(getFunctionAliases("1 as alias1, COUNT(2) as alias2")).containsExactly("alias2");
+		assertThat(getFunctionAliases("COUNT(1) as alias1,2 as alias2")).containsExactly("alias1");
+		assertThat(getFunctionAliases("COUNT(1) as alias1, 2 as alias2")).containsExactly("alias1");
+	}
+
+	@Test // GH-3911
+	void discoversFieldAliasesCorrectly() {
+
+		assertThat(getFieldAliases("SELECT 1 a alias1,2 s alias2")).isEmpty();
+		assertThat(getFieldAliases("SELECT 1 as alias1,2 as alias2")).contains("alias1", "alias2");
+		assertThat(getFieldAliases("SELECT 1 as alias1,2 as alias2")).contains("alias1", "alias2");
+		assertThat(getFieldAliases("1 as alias1,2 as alias2")).contains("alias1", "alias2");
+		assertThat(getFieldAliases("1 as alias1, 2 as alias2")).contains("alias1", "alias2");
+	}
+
 	@Test // DATAJPA-1000
 	void discoversCorrectAliasForJoinFetch() {
 
@@ -564,7 +591,7 @@ class QueryUtilsUnitTests {
 
 		assertThat(
 				QueryUtils.getFunctionAliases("select new MyDto(sum(case when myEntity.prop3=0 then 1 else 0 end) as myAlias")) //
-						.contains("myAlias");
+				.contains("myAlias");
 	}
 
 	@Test // DATAJPA-1506
@@ -784,18 +811,19 @@ class QueryUtilsUnitTests {
 		// order by in over clause + at the end
 		assertThat(
 				QueryUtils.applySorting("select dense_rank() over (order by lastname) from user u order by u.lastname", sort))
-						.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
+				.isEqualTo("select dense_rank() over (order by lastname) from user u order by u.lastname, u.age desc");
 
 		// partition by + order by in over clause
-		assertThat(QueryUtils.applySorting(
-				"select dense_rank() over (partition by active, age order by lastname) from user u", sort)).isEqualTo(
+		assertThat(QueryUtils
+				.applySorting("select dense_rank() over (partition by active, age order by lastname) from user u", sort))
+				.isEqualTo(
 						"select dense_rank() over (partition by active, age order by lastname) from user u order by u.age desc");
 
 		// partition by + order by in over clause + order by at the end
 		assertThat(QueryUtils.applySorting(
 				"select dense_rank() over (partition by active, age order by lastname) from user u order by active", sort))
-						.isEqualTo(
-								"select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
+				.isEqualTo(
+						"select dense_rank() over (partition by active, age order by lastname) from user u order by active, u.age desc");
 
 		// partition by + order by in over clause + frame clause
 		assertThat(QueryUtils.applySorting(
@@ -812,8 +840,7 @@ class QueryUtilsUnitTests {
 		// order by in subselect (select expression)
 		assertThat(
 				QueryUtils.applySorting("select lastname, (select i.id from item i order by i.id limit 1) from user u", sort))
-						.isEqualTo(
-								"select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
+				.isEqualTo("select lastname, (select i.id from item i order by i.id limit 1) from user u order by u.age desc");
 
 		// order by in subselect (select expression) + at the end
 		assertThat(QueryUtils.applySorting(
@@ -949,7 +976,7 @@ class QueryUtilsUnitTests {
 
 	@Test // GH-3324
 	void createCountQueryForSimpleQuery() {
-		assertCountQuery("select * from User","select count(*) from User");
-		assertCountQuery("select * from User u","select count(u) from User u");
+		assertCountQuery("select * from User", "select count(*) from User");
+		assertCountQuery("select * from User u", "select count(u) from User u");
 	}
 }
