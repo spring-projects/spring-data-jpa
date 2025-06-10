@@ -23,8 +23,10 @@ import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
  * {@code CurrentTenantIdentifierResolver} instance for testing.
  *
  * @author Ariel Morelli Andres
+ * @author Mark Paluch
  */
-public class HibernateCurrentTenantIdentifierResolver implements CurrentTenantIdentifierResolver<String> {
+@SuppressWarnings("rawtypes") // Hibernate 6.2 does not specify a generic parameter
+public class HibernateCurrentTenantIdentifierResolver implements CurrentTenantIdentifierResolver {
 
 	private static final ThreadLocal<String> CURRENT_TENANT_IDENTIFIER = new ThreadLocal<>();
 
