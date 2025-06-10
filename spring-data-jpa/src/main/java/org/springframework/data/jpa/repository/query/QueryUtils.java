@@ -195,17 +195,15 @@ public abstract class QueryUtils {
 		// any function call including parameters within the brackets
 		builder.append("\\w+\\s*\\([\\w\\.,\\s'=:;\\\\?]+\\)");
 		// the potential alias
-		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))");
+		builder.append("\\s+(?:as|AS)+\\s+([\\w\\.]+)");
 
 		FUNCTION_PATTERN = compile(builder.toString());
 
 		builder = new StringBuilder();
-		builder.append("\\s+"); // at least one space
 		builder.append("[^\\s\\(\\)]+"); // No white char no bracket
-		builder.append("\\s+[as|AS]+\\s+(([\\w\\.]+))"); // the potential alias
+		builder.append("\\s+(?:as)+\\s+([\\w\\.]+)"); // the potential alias
 
 		FIELD_ALIAS_PATTERN = compile(builder.toString());
-
 	}
 
 	/**
@@ -391,7 +389,7 @@ public abstract class QueryUtils {
 	 * @param query a {@literal String} containing a query. Must not be {@literal null}.
 	 * @return a {@literal Set} containing all found aliases. Guaranteed to be not {@literal null}.
 	 */
-	private static Set<String> getFieldAliases(String query) {
+	static Set<String> getFieldAliases(String query) {
 
 		Set<String> result = new HashSet<>();
 		Matcher matcher = FIELD_ALIAS_PATTERN.matcher(query);
