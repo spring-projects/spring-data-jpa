@@ -38,7 +38,7 @@
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 		<jsqlparser>5.2</jsqlparser>
 		<mysql-connector-java>9.2.0</mysql-connector-java>
-		<postgresql>42.7.5</postgresql>
+		<postgresql>42.7.7</postgresql>
 		<oracle>23.8.0.25.04</oracle>
 		<springdata.commons>4.0.0-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
