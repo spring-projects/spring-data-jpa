@@ -195,15 +195,15 @@ public abstract class QueryUtils {
 		// any function call including parameters within the brackets
 		builder.append("\\w+\\s*\\([\\w\\.,\\s'=:;\\\\?]+\\)");
 		// the potential alias
-		builder.append("\\s+(?:as|AS)+\\s+([\\w\\.]+)");
+		builder.append("\\s+(?:as)+\\s+([\\w\\.]+)");
 
-		FUNCTION_PATTERN = compile(builder.toString());
+		FUNCTION_PATTERN = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
 		builder.append("[^\\s\\(\\)]+"); // No white char no bracket
 		builder.append("\\s+(?:as)+\\s+([\\w\\.]+)"); // the potential alias
 
-		FIELD_ALIAS_PATTERN = compile(builder.toString());
+		FIELD_ALIAS_PATTERN = compile(builder.toString(), CASE_INSENSITIVE);
 	}
 
 	/**
