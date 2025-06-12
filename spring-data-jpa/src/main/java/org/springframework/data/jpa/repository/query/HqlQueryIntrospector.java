@@ -69,7 +69,8 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootEntity(HqlParser.RootEntityContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+				&& !HqlQueryRenderer.isSetQuery(ctx)) {
 			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
 		}
 
@@ -79,7 +80,8 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootSubquery(HqlParser.RootSubqueryContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+				&& !HqlQueryRenderer.isSetQuery(ctx)) {
 			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
 		}
 
@@ -89,7 +91,8 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootFunction(HqlParser.RootFunctionContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)) {
+		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+				&& !HqlQueryRenderer.isSetQuery(ctx)) {
 			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
 			this.hasFromFunction = true;
 		}

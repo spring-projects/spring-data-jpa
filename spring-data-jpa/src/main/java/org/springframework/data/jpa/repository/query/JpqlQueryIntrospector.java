@@ -46,16 +46,6 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	}
 
 	@Override
-	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
-
-		if (primaryFromAlias == null) {
-			primaryFromAlias = capturePrimaryAlias(ctx);
-		}
-
-		return super.visitRange_variable_declaration(ctx);
-	}
-
-	@Override
 	public Void visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
 		if (!projectionProcessed) {
@@ -67,16 +57,21 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	}
 
 	@Override
+	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
+
+		if (primaryFromAlias == null && ctx.identification_variable() != null && !JpqlQueryRenderer.isSubquery(ctx)
+				&& !JpqlQueryRenderer.isSetQuery(ctx)) {
+			primaryFromAlias = ctx.identification_variable().getText();
+		}
+
+		return super.visitRange_variable_declaration(ctx);
+	}
+
+	@Override
 	public Void visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
 
 		hasConstructorExpression = true;
-
 		return super.visitConstructor_expression(ctx);
-	}
-
-	private static String capturePrimaryAlias(JpqlParser.Range_variable_declarationContext ctx) {
-		return ctx.identification_variable() != null ? ctx.identification_variable().getText()
-				: ctx.entity_name().getText();
 	}
 
 	private static List<QueryToken> captureSelectItems(List<JpqlParser.Select_itemContext> selections,
