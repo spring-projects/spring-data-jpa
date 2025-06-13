@@ -480,6 +480,22 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	void executesJoinedEntitySpecificationCorrectly() {
+
+		firstUser.setManager(secondUser);
+		flushTestUsers();
+
+		assertThat(repository.findOne(
+				withManager(
+						allOf(
+								userHasFirstname(secondUser.getFirstname()),
+								userHasLastname(secondUser.getLastname())
+						)
+				))).contains(firstUser);
+	}
+
+
+	@Test
 	void returnsNullIfNoEntityFoundForSingleEntitySpecification() {
 
 		flushTestUsers();
