@@ -17,10 +17,7 @@ package org.springframework.data.jpa.domain;
 
 import java.io.Serializable;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 
 import org.springframework.lang.Nullable;
 
@@ -43,6 +40,20 @@ class SpecificationComposition {
 	static <T> Specification<T> composed(@Nullable Specification<T> lhs, @Nullable Specification<T> rhs,
 			Combiner combiner) {
 
+		if (lhs instanceof NestableSpecification nlhs && rhs instanceof NestableSpecification nrhs) {
+			return (NestableSpecification<T>)(from, query, builder) -> {
+
+				Predicate thisPredicate = SpecificationComposition.toPredicate(nlhs, from, query, builder);
+				Predicate otherPredicate = toPredicate(nrhs, from, query, builder);
+
+				if (thisPredicate == null) {
+					return otherPredicate;
+				}
+
+				return otherPredicate == null ? thisPredicate : combiner.combine(builder, thisPredicate, otherPredicate);
+			};
+		}
+
 		return (root, query, builder) -> {
 
 			Predicate thisPredicate = toPredicate(lhs, root, query, builder);
@@ -60,5 +71,11 @@ class SpecificationComposition {
 	private static <T> Predicate toPredicate(@Nullable Specification<T> specification, Root<T> root, @Nullable CriteriaQuery<?> query,
 			CriteriaBuilder builder) {
 		return specification == null ? null : specification.toPredicate(root, query, builder);
+	}
+
+	@Nullable
+	private static <T> Predicate toPredicate(@Nullable NestableSpecification<T> specification, From<T,T> from, @Nullable CriteriaQuery<?> query,
+											 CriteriaBuilder builder) {
+		return specification == null ? null : specification.toPredicate(from, query, builder);
 	}
 }
