@@ -121,6 +121,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final EntityManager entityManager;
 	private final PersistenceProvider provider;
 
+	private final String deleteAllQueryString;
+	private final String countQueryString;
+
 	private @Nullable CrudMethodMetadata metadata;
 	private ProjectionFactory projectionFactory;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
@@ -140,6 +143,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.entityManager = entityManager;
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 		this.projectionFactory = new SpelAwareProxyProjectionFactory();
+
+		this.deleteAllQueryString = getDeleteAllQueryString();
+		this.countQueryString = getCountQueryString();
 	}
 
 	/**
@@ -309,7 +315,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch() {
 
-		Query query = entityManager.createQuery(getDeleteAllQueryString());
+		Query query = entityManager.createQuery(deleteAllQueryString);
 
 		applyQueryHints(query);
 
@@ -630,7 +636,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public long count() {
 
-		TypedQuery<Long> query = entityManager.createQuery(getCountQueryString(), Long.class);
+		TypedQuery<Long> query = entityManager.createQuery(countQueryString, Long.class);
 
 		applyQueryHintsForCount(query);
 
