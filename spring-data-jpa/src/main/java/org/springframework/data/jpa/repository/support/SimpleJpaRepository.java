@@ -104,6 +104,7 @@ import org.springframework.util.Assert;
  * @author Diego Krupitza
  * @author Seol-JY
  * @author Joshua Chen
+ * @author Dockerel
  */
 @Repository
 @Transactional(readOnly = true)
