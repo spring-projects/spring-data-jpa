@@ -15,6 +15,10 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import org.springframework.data.jpa.domain.JoinSpecification;
+import org.springframework.data.jpa.domain.NestableSpecification;
 import org.springframework.data.jpa.domain.Specification;
 
 /**
@@ -25,38 +29,48 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class UserSpecifications {
 
-	public static Specification<User> userHasFirstname(final String firstname) {
+	public static NestableSpecification<User> userHasFirstname(final String firstname) {
 
 		return simplePropertySpec("firstname", firstname);
 	}
 
-	public static Specification<User> userHasLastname(final String lastname) {
+	public static NestableSpecification<User> userHasLastname(final String lastname) {
 
 		return simplePropertySpec("lastname", lastname);
 	}
 
-	public static Specification<User> userHasFirstnameLike(final String expression) {
+	public static NestableSpecification<User> userHasFirstnameLike(final String expression) {
 
-		return (root, query, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
+		return (from, query, cb) -> cb.like(from.get("firstname").as(String.class), String.format("%%%s%%", expression));
 	}
 
-	public static Specification<User> userHasAgeLess(final Integer age) {
+	public static NestableSpecification<User> userHasAgeLess(final Integer age) {
 
-		return (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
+		return (from, query, cb) -> cb.lessThan(from.get("age").as(Integer.class), age);
 	}
 
-	public static Specification<User> userHasLastnameLikeWithSort(final String expression) {
+	public static NestableSpecification<User> userHasLastnameLikeWithSort(final String expression) {
 
-		return (root, query, cb) -> {
+		return (from, query, cb) -> {
 
-			query.orderBy(cb.asc(root.get("firstname")));
+			query.orderBy(cb.asc(from.get("firstname")));
 
-			return cb.like(root.get("lastname").as(String.class), String.format("%%%s%%", expression));
+			return cb.like(from.get("lastname").as(String.class), String.format("%%%s%%", expression));
 		};
 	}
 
-	private static <T> Specification<T> simplePropertySpec(final String property, final Object value) {
+	private static <T> NestableSpecification<T> simplePropertySpec(final String property, final Object value) {
 
-		return (root, query, builder) -> builder.equal(root.get(property), value);
+		return (from, query, builder) -> builder.equal(from.get(property), value);
+	}
+
+	public static NestableSpecification<User> withManager(Specification<User> specification) {
+
+		return new JoinSpecification<>(specification) {
+			@Override
+			protected Join<User, User> join(From<User, User> from) {
+				return from.join("manager");
+			}
+		};
 	}
 }

@@ -15,10 +15,7 @@
  */
 package org.springframework.data.jpa.domain;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -55,13 +52,21 @@ public interface Specification<T> extends Serializable {
 	 */
 	static <T> Specification<T> not(@Nullable Specification<T> spec) {
 
-		return spec == null //
-				? (root, query, builder) -> null //
-				: (root, query, builder) -> {
+		if (spec == null) {
+			return (root, query, builder) -> null;
+		}
 
-					Predicate predicate = spec.toPredicate(root, query, builder);
-					return predicate != null ? builder.not(predicate) : builder.disjunction();
-				};
+		if (spec instanceof NestableSpecification nestable) {
+			return (NestableSpecification<T>) (from, query, builder) -> {
+				Predicate predicate = nestable.toPredicate(from, query, builder);
+				return predicate != null ? builder.not(predicate) : builder.disjunction();
+			};
+		} else {
+			return (root, query, builder) -> {
+				Predicate predicate = spec.toPredicate(root, query, builder);
+				return predicate != null ? builder.not(predicate) : builder.disjunction();
+			};
+		}
 	}
 
 	/**
@@ -76,7 +81,7 @@ public interface Specification<T> extends Serializable {
 	 */
 	@Deprecated(since = "3.5.0", forRemoval = true)
 	static <T> Specification<T> where(@Nullable Specification<T> spec) {
-		return spec == null ? (root, query, builder) -> null : spec;
+		return spec == null ? (NestableSpecification<T>)(from, query, builder) -> null : spec;
 	}
 
 	/**
