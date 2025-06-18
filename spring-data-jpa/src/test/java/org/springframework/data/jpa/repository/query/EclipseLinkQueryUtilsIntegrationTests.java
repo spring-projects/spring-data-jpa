@@ -22,6 +22,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.jpa.domain.sample.User;
@@ -63,4 +64,25 @@ class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 		assertThat(from.getJoins()).hasSize(1);
 	}
 
+
+	@Test // GH-3349
+	@Disabled
+	@Override
+	void doesNotCreateJoinForRelationshipSimpleId() {
+		//eclipse link produces join for path.get(relationship)
+	}
+
+	@Test // GH-3349
+	@Disabled
+	@Override
+	void doesNotCreateJoinForRelationshipEmbeddedId() {
+		//eclipse link produces join for path.get(relationship)
+	}
+
+	@Test // GH-3349
+	@Disabled
+	@Override
+	void doesNotCreateJoinForRelationshipIdClass() {
+		//eclipse link produces join for path.get(relationship)
+	}
 }

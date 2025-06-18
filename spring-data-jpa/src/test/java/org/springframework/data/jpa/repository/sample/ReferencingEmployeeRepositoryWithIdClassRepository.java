@@ -15,33 +15,20 @@
  */
 package org.springframework.data.jpa.repository.sample;
 
-import java.util.List;
-
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
-import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
+import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
-import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.Predicate;
+import java.util.List;
 
 /**
  * Demonstrates the support for composite primary keys with {@code @IdClass}.
  *
- * @author Thomas Darimont
- * @author Mark Paluch
+ * @author Jakub Soltys
  */
 @Lazy
-public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExampleEmployee, IdClassExampleEmployeePK>,
-		QuerydslPredicateExecutor<IdClassExampleEmployee> {
+public interface ReferencingEmployeeRepositoryWithIdClassRepository extends JpaRepository<ReferencingIdClassExampleEmployee, Long> {
 
-	@Override
-	List<IdClassExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
-
-	// DATAJPA-920
-	boolean existsByName(String name);
-
-	List<IdClassExampleEmployee> findAllByDepartment_DepartmentId(long departmentId);
-	List<IdClassExampleEmployee> findAllByEmpId(long empId);
+	List<ReferencingIdClassExampleEmployee> findByEmployee_EmpId(Long employeeId);
+	List<ReferencingIdClassExampleEmployee> findByEmployee_Department_DepartmentId(Long departementId);
 }
