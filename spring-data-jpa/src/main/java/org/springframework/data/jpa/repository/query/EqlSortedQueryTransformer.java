@@ -54,7 +54,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 	}
 
 	@Override
-	public QueryTokenStream visitSelect_statement(EqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelectQuery(EqlParser.SelectQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -76,7 +76,35 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		if (ctx.set_fuction() != null) {
 			builder.appendExpression(visit(ctx.set_fuction()));
 		} else {
-			doVisitOrderBy(builder, ctx);
+			doVisitOrderBy(builder, ctx.orderby_clause());
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFromQuery(EqlParser.FromQueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.from_clause()));
+
+		if (ctx.where_clause() != null) {
+			builder.appendExpression(visit(ctx.where_clause()));
+		}
+
+		if (ctx.groupby_clause() != null) {
+			builder.appendExpression(visit(ctx.groupby_clause()));
+		}
+
+		if (ctx.having_clause() != null) {
+			builder.appendExpression(visit(ctx.having_clause()));
+		}
+
+		if (ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		} else {
+			doVisitOrderBy(builder, ctx.orderby_clause());
 		}
 
 		return builder;
@@ -138,10 +166,10 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 		return tokens;
 	}
 
-	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Select_statementContext ctx) {
+	private void doVisitOrderBy(QueryRendererBuilder builder, EqlParser.Orderby_clauseContext ctx) {
 
-		if (ctx.orderby_clause() != null) {
-			QueryTokenStream existingOrder = visit(ctx.orderby_clause());
+		if (ctx != null) {
+			QueryTokenStream existingOrder = visit(ctx);
 			if (sort.isSorted()) {
 				builder.appendInline(existingOrder);
 			} else {
@@ -153,7 +181,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 
 			List<QueryToken> sortBy = transformerSupport.orderBy(primaryFromAlias, sort);
 
-			if (ctx.orderby_clause() != null) {
+			if (ctx != null) {
 
 				QueryRendererBuilder extension = QueryRenderer.builder().append(TOKEN_COMMA).append(sortBy);
 
