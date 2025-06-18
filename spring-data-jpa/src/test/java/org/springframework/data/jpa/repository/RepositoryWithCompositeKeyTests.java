@@ -39,6 +39,8 @@ import org.springframework.data.jpa.domain.sample.QEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.QIdClassExampleEmployee;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithEmbeddedId;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithIdClass;
+import org.springframework.data.jpa.repository.sample.ReferencingEmployeeRepositoryWithEmbeddedIdRepository;
+import org.springframework.data.jpa.repository.sample.ReferencingEmployeeRepositoryWithIdClassRepository;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -61,6 +63,10 @@ class RepositoryWithCompositeKeyTests {
 
 	@Autowired EmployeeRepositoryWithIdClass employeeRepositoryWithIdClass;
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
+	@Autowired
+	ReferencingEmployeeRepositoryWithEmbeddedIdRepository referencingEmployeeRepositoryWithEmbeddedIdRepository;
+	@Autowired
+	ReferencingEmployeeRepositoryWithIdClassRepository referencingEmployeeRepositoryWithIdClassRepository;
 	@Autowired EntityManager em;
 
 	/**
@@ -359,5 +365,149 @@ class RepositoryWithCompositeKeyTests {
 
 		assertThat(employeeRepositoryWithIdClass.existsByName(emp1.getName())).isTrue();
 		assertThat(employeeRepositoryWithIdClass.existsByName("Walter")).isFalse();
+	}
+
+	@Test // GH-3349
+	void findByRelationshipPartialEmbeddedId() {
+
+		EmbeddedIdExampleDepartment dep1 = new EmbeddedIdExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		EmbeddedIdExampleDepartment dep2 = new EmbeddedIdExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		EmbeddedIdExampleEmployee emp1 = new EmbeddedIdExampleEmployee();
+		emp1.setEmployeePk(new EmbeddedIdExampleEmployeePK(1L, 1L));
+		emp1.setDepartment(dep1);
+		emp1 = employeeRepositoryWithEmbeddedId.save(emp1);
+
+		EmbeddedIdExampleEmployee emp2 = new EmbeddedIdExampleEmployee();
+		emp2.setEmployeePk(new EmbeddedIdExampleEmployeePK(1L, 2L));
+		emp2.setDepartment(dep2);
+		emp2 = employeeRepositoryWithEmbeddedId.save(emp2);
+
+		ReferencingEmbeddedIdExampleEmployee refEmp1 = new ReferencingEmbeddedIdExampleEmployee();
+		refEmp1.setId(1L);
+		refEmp1.setEmployee(emp1);
+		refEmp1 = referencingEmployeeRepositoryWithEmbeddedIdRepository.save(refEmp1);
+
+		ReferencingEmbeddedIdExampleEmployee refEmp2 = new ReferencingEmbeddedIdExampleEmployee();
+		refEmp2.setId(2L);
+		refEmp2.setEmployee(emp2);
+		refEmp2 = referencingEmployeeRepositoryWithEmbeddedIdRepository.save(refEmp2);
+
+		List<ReferencingEmbeddedIdExampleEmployee> result = referencingEmployeeRepositoryWithEmbeddedIdRepository.findByEmployee_EmployeePk_employeeId(1L);
+
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(2);
+		assertThat(result).containsOnly(refEmp1, refEmp2);
+
+		List<ReferencingEmbeddedIdExampleEmployee> result2 = referencingEmployeeRepositoryWithEmbeddedIdRepository.findByEmployee_EmployeePk_DepartmentId(2L);
+
+		assertThat(result2).isNotNull();
+		assertThat(result2).hasSize(1);
+		assertThat(result2).containsOnly(refEmp2);
+	}
+
+	@Test // GH-3349
+	void findByRelationshipPartialIdClass() {
+
+		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(1L);
+		emp1.setDepartment(dep1);
+		emp1 = employeeRepositoryWithIdClass.save(emp1);
+
+		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
+		emp2.setEmpId(1L);
+		emp2.setDepartment(dep2);
+		emp2 = employeeRepositoryWithIdClass.save(emp2);
+
+		ReferencingIdClassExampleEmployee refEmp1 = new ReferencingIdClassExampleEmployee();
+		refEmp1.setId(1L);
+		refEmp1.setEmployee(emp1);
+		refEmp1 = referencingEmployeeRepositoryWithIdClassRepository.save(refEmp1);
+
+		ReferencingIdClassExampleEmployee refEmp2 = new ReferencingIdClassExampleEmployee();
+		refEmp2.setId(2L);
+		refEmp2.setEmployee(emp2);
+		refEmp2 = referencingEmployeeRepositoryWithIdClassRepository.save(refEmp2);
+
+		List<ReferencingIdClassExampleEmployee> result = referencingEmployeeRepositoryWithIdClassRepository.findByEmployee_EmpId(1L);
+
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(2);
+		assertThat(result).containsOnly(refEmp1, refEmp2);
+
+		List<ReferencingIdClassExampleEmployee> result2 = referencingEmployeeRepositoryWithIdClassRepository.findByEmployee_Department_DepartmentId(2L);
+
+		assertThat(result2).isNotNull();
+		assertThat(result2).hasSize(1);
+		assertThat(result2).containsOnly(refEmp2);
+	}
+
+	@Test
+	void findByPartialRelationshipIdClass() {
+
+		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(1L);
+		emp1.setDepartment(dep1);
+		emp1 = employeeRepositoryWithIdClass.save(emp1);
+
+		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
+		emp2.setEmpId(1L);
+		emp2.setDepartment(dep2);
+		employeeRepositoryWithIdClass.save(emp2);
+
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAllByDepartment_DepartmentId(1L);
+
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(1);
+		assertThat(result).containsOnly(emp1);
+	}
+
+	@Test
+	void findByPartialDirectIdClass() {
+
+		IdClassExampleDepartment dep1 = new IdClassExampleDepartment();
+		dep1.setDepartmentId(1L);
+		dep1.setName("Dep1");
+
+		IdClassExampleDepartment dep2 = new IdClassExampleDepartment();
+		dep2.setDepartmentId(2L);
+		dep2.setName("Dep2");
+
+		IdClassExampleEmployee emp1 = new IdClassExampleEmployee();
+		emp1.setEmpId(1L);
+		emp1.setDepartment(dep1);
+		emp1 = employeeRepositoryWithIdClass.save(emp1);
+
+		IdClassExampleEmployee emp2 = new IdClassExampleEmployee();
+		emp2.setEmpId(1L);
+		emp2.setDepartment(dep2);
+		emp2 = employeeRepositoryWithIdClass.save(emp2);
+
+		List<IdClassExampleEmployee> result = employeeRepositoryWithIdClass.findAllByEmpId(1L);
+
+		assertThat(result).isNotNull();
+		assertThat(result).hasSize(2);
+		assertThat(result).containsOnly(emp1, emp2);
 	}
 }
