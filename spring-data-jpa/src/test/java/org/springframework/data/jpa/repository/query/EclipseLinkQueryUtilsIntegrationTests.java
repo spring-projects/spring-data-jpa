@@ -63,4 +63,22 @@ class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 		assertThat(from.getJoins()).hasSize(1);
 	}
 
+
+	@Test // GH-3349
+	@Override
+	void doesNotCreateJoinForRelationshipSimpleId() {
+		//eclipse link produces join for path.get(relationship)
+	}
+
+	@Test // GH-3349
+	@Override
+	void doesNotCreateJoinForRelationshipEmbeddedId() {
+		//eclipse link produces join for path.get(relationship)
+	}
+
+	@Test // GH-3349
+	@Override
+	void doesNotCreateJoinForRelationshipIdClass() {
+		//eclipse link produces join for path.get(relationship)
+	}
 }
