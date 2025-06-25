@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 import org.eclipse.persistence.config.QueryHints;
@@ -270,7 +269,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		while (Proxy.isProxyClass(unwrapped.getClass()) || AopUtils.isAopProxy(unwrapped)) {
 
 			if (Proxy.isProxyClass(unwrapped.getClass())) {
-				unwrapped = unwrapped.unwrap(null);
+
+				Class<EntityManagerFactory> unwrapTo = Proxy.getInvocationHandler(unwrapped).getClass().getName()
+						.contains("org.springframework.orm.jpa.") ? null : EntityManagerFactory.class;
+				unwrapped = unwrapped.unwrap(unwrapTo);
 			} else if (AopUtils.isAopProxy(unwrapped)) {
 				unwrapped = (EntityManagerFactory) AopProxyUtils.getSingletonTarget(unwrapped);
 			}

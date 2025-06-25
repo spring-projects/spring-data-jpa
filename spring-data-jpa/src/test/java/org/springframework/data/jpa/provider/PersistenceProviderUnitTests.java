@@ -22,7 +22,9 @@ import static org.springframework.data.jpa.provider.PersistenceProvider.Constant
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceException;
 
+import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ import org.mockito.Mockito;
 import org.springframework.asm.ClassWriter;
 import org.springframework.asm.Opcodes;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
+import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.util.ClassUtils;
 
@@ -110,6 +113,25 @@ class PersistenceProviderUnitTests {
 		assertThat(fromEntityManager(emProxy)).isEqualTo(ECLIPSELINK);
 	}
 
+	@Test // GH-3923
+	void detectsEntityManagerFromProxiedEntityManagerFactory() throws Exception {
+
+		EntityManagerFactory emf = mockProviderSpecificEntityManagerFactoryInterface(
+				"foo.bar.unknown.jpa.JpaEntityManager");
+		when(emf.unwrap(null)).thenThrow(new NullPointerException());
+		when(emf.unwrap(EntityManagerFactory.class)).thenReturn(emf);
+
+		MyEntityManagerFactoryBean factoryBean = new MyEntityManagerFactoryBean(EntityManagerFactory.class, emf);
+		EntityManagerFactory springProxy = factoryBean.createEntityManagerFactoryProxy(emf);
+
+		Object externalProxy = Proxy.newProxyInstance(getClass().getClassLoader(),
+				new Class[] { EntityManagerFactory.class }, (proxy, method, args) -> method.invoke(emf, args));
+
+		assertThat(PersistenceProvider.fromEntityManagerFactory(springProxy)).isEqualTo(GENERIC_JPA);
+		assertThat(PersistenceProvider.fromEntityManagerFactory((EntityManagerFactory) externalProxy))
+				.isEqualTo(GENERIC_JPA);
+	}
+
 	private EntityManager mockProviderSpecificEntityManagerInterface(String interfaceName) throws ClassNotFoundException {
 
 		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
@@ -128,7 +150,7 @@ class PersistenceProviderUnitTests {
 			throws ClassNotFoundException {
 
 		Class<?> providerSpecificEntityManagerInterface = InterfaceGenerator.generate(interfaceName, shadowingClassLoader,
-				EntityManager.class);
+				EntityManagerFactory.class);
 
 		return (EntityManagerFactory) Mockito.mock(providerSpecificEntityManagerInterface);
 	}
@@ -179,6 +201,26 @@ class PersistenceProviderUnitTests {
 					.map(Class::getName) //
 					.map(ClassUtils::convertClassNameToResourcePath) //
 					.toArray(String[]::new);
+		}
+	}
+
+	static class MyEntityManagerFactoryBean extends AbstractEntityManagerFactoryBean {
+
+		public MyEntityManagerFactoryBean(Class<? extends EntityManagerFactory> entityManagerFactoryInterface,
+				EntityManagerFactory entityManagerFactory) {
+			setEntityManagerFactoryInterface(entityManagerFactoryInterface);
+			ReflectionTestUtils.setField(this, "nativeEntityManagerFactory", entityManagerFactory);
+
+		}
+
+		@Override
+		protected EntityManagerFactory createNativeEntityManagerFactory() throws PersistenceException {
+			return null;
+		}
+
+		@Override
+		protected EntityManagerFactory createEntityManagerFactoryProxy(EntityManagerFactory emf) {
+			return super.createEntityManagerFactoryProxy(emf);
 		}
 	}
 }
