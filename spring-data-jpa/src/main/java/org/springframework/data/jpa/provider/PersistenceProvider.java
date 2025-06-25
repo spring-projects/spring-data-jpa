@@ -405,6 +405,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	 * @param resultQuery the query that has returned {@link Query#getResultList()}
 	 * @param countSupplier fallback supplier to provide the count if the query does not provide it.
 	 * @return the result count.
+	 * @since 4.0
 	 */
 	public long getResultCount(Query resultQuery, LongSupplier countSupplier) {
 		return countSupplier.getAsLong();
