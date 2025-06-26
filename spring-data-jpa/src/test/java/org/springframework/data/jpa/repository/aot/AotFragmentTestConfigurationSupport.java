@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -28,12 +27,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
@@ -46,7 +47,7 @@ import org.springframework.data.repository.config.AnnotationRepositoryConfigurat
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.orm.jpa.SharedEntityManagerCreator;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -76,6 +77,16 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
 	}
 
+	// TODO: Remove once Cannot convert value of type 'jdk.proxy2.$Proxy129 implementing
+	// org.hibernate.SessionFactory,org.springframework.orm.jpa.EntityManagerFactoryInfo' to required type
+	// 'jakarta.persistence.EntityManager' for property 'entityManager': no matching editors or conversion strategy found
+	// is fixed.
+	@Bean
+	@Primary
+	EntityManager entityManager(LocalContainerEntityManagerFactoryBean factoryBean) throws Exception {
+		return factoryBean.getObject(EntityManager.class);
+	}
+
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
@@ -85,7 +96,7 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 		AbstractBeanDefinition aotGeneratedRepository = BeanDefinitionBuilder
 				.genericBeanDefinition(repositoryInterface.getName() + "Impl__Aot")
-				.addConstructorArgReference("jpaSharedEM_entityManagerFactory")
+				.addConstructorArgValue(new RuntimeBeanReference(EntityManager.class))
 				.addConstructorArgValue(getCreationContext(repositoryContext)).getBeanDefinition();
 
 		TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
@@ -123,11 +134,6 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 					return null;
 				});
-	}
-
-	@Bean("jpaSharedEM_entityManagerFactory")
-	EntityManager sharedEntityManagerCreator(EntityManagerFactory emf) {
-		return SharedEntityManagerCreator.createSharedEntityManager(emf);
 	}
 
 	private RepositoryFactoryBeanSupport.FragmentCreationContext getCreationContext(

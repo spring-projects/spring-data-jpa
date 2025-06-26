@@ -17,9 +17,10 @@ package org.springframework.data.jpa.repository.support;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.Collections;
-
 import jakarta.persistence.EntityManager;
+
+import java.util.Collections;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,7 @@ class DefaultJpaContextUnitTests {
 
 	@Test // DATAJPA-669
 	void rejectsNullEntityManagers() {
-		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaContext(null));
+		assertThatIllegalArgumentException().isThrownBy(() -> new DefaultJpaContext((Set<EntityManager>) null));
 	}
 
 	@Test // DATAJPA-669

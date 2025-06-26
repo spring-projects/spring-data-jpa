@@ -38,6 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Réda Housni Alaoui
+ * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
@@ -61,7 +62,7 @@ class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 		@Autowired @Qualifier("entityManagerFactory") EntityManagerFactory emf;
 
 		@Bean
-		public static EntityManagerBeanDefinitionRegistrarPostProcessor processor() {
+		static EntityManagerBeanDefinitionRegistrarPostProcessor postProcessor() {
 			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
 		}
 

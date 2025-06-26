@@ -37,8 +37,6 @@
 	<!-- Adds transparent exception translation to the DAOs -->
 	<bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
 
-	<bean class="org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor" />
-
 	<bean class="org.springframework.data.jpa.repository.GreetingsFrom" name="greetingsFrom" />
 
 </beans>

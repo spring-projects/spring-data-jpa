@@ -43,11 +43,13 @@ import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.env.Environment;
@@ -58,7 +60,6 @@ import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
-import org.springframework.data.jpa.repository.support.EntityManagerBeanDefinitionRegistrarPostProcessor;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
@@ -68,9 +69,11 @@ import org.springframework.data.repository.config.RepositoryConfigurationExtensi
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryRegistrationAotProcessor;
 import org.springframework.data.repository.config.XmlRepositoryConfigurationSource;
+import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -192,10 +195,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		Object source = config.getSource();
 
-		registerLazyIfNotAlreadyRegistered(
-				() -> new RootBeanDefinition(EntityManagerBeanDefinitionRegistrarPostProcessor.class), registry,
-				EM_BEAN_DEFINITION_REGISTRAR_POST_PROCESSOR_BEAN_NAME, source);
-
 		registerLazyIfNotAlreadyRegistered(() -> new RootBeanDefinition(JpaMetamodelMappingContextFactoryBean.class),
 				registry, JPA_MAPPING_CONTEXT_BEAN_NAME, source);
 
@@ -230,10 +229,21 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}, registry, JpaEvaluationContextExtension.class.getName(), source);
 	}
 
-	private String registerSharedEntityMangerIfNotAlreadyRegistered(BeanDefinitionRegistry registry,
+	private void registerSharedEntityMangerIfNotAlreadyRegistered(BeanDefinitionRegistry registry,
 			RepositoryConfigurationSource config) {
 
 		String entityManagerBeanRef = getEntityManagerBeanRef(config);
+		String sharedEntityManagerBeanRef = lookupSharedEntityManagerBeanRef(entityManagerBeanRef, registry);
+
+		// TODO: Remove once Cannot convert value of type 'jdk.proxy2.$Proxy129 implementing
+		// org.hibernate.SessionFactory,org.springframework.orm.jpa.EntityManagerFactoryInfo' to required type
+		// 'jakarta.persistence.EntityManager' for property 'entityManager': no matching editors or conversion strategy
+		// found is fixed.
+		/*if (sharedEntityManagerBeanRef != null) {
+			entityManagerRefs.put(config, sharedEntityManagerBeanRef);
+			return;
+		} */
+
 		String entityManagerBeanName = "jpaSharedEM_" + entityManagerBeanRef;
 
 		if (!registry.containsBeanDefinition(entityManagerBeanName)) {
@@ -247,7 +257,39 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		}
 
 		entityManagerRefs.put(config, entityManagerBeanName);
-		return entityManagerBeanName;
+	}
+
+	private @Nullable String lookupSharedEntityManagerBeanRef(String entityManagerBeanRef,
+			BeanDefinitionRegistry registry) {
+
+		if (!registry.containsBeanDefinition(entityManagerBeanRef)) {
+			return null;
+		}
+
+		BeanDefinitionRegistry introspect = registry;
+
+		if (introspect instanceof ConfigurableApplicationContext cac
+				&& cac.getBeanFactory() instanceof BeanDefinitionRegistry br) {
+			introspect = br;
+		}
+
+		if (!(introspect instanceof ConfigurableBeanFactory cbf)) {
+			return null;
+		}
+
+		BeanDefinition beanDefinition = cbf.getMergedBeanDefinition(entityManagerBeanRef);
+
+		if (ObjectUtils.isEmpty(beanDefinition.getBeanClassName())) {
+			return null;
+		}
+
+		Class<?> beanClass = org.springframework.data.util.ClassUtils.loadIfPresent(beanDefinition.getBeanClassName(),
+				getClass().getClassLoader());
+
+		// AbstractEntityManagerFactoryBean is able to create a SharedEntityManager
+		return beanClass != null && AbstractEntityManagerFactoryBean.class.isAssignableFrom(beanClass)
+				? entityManagerBeanRef
+				: null;
 	}
 
 	@Override

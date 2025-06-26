@@ -62,11 +62,6 @@ class QuerydslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
-		static EntityManagerBeanDefinitionRegistrarPostProcessor entityManagerBeanDefinitionRegistrarPostProcessor() {
-			return new EntityManagerBeanDefinitionRegistrarPostProcessor();
-		}
-
-		@Bean
 		public ReconfiguringUserRepositoryImpl reconfiguringUserRepositoryImpl() {
 			return new ReconfiguringUserRepositoryImpl();
 		}

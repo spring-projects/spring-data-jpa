@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -96,20 +97,37 @@ public final class BeanDefinitionUtils {
 	 */
 	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
 			ConfigurableListableBeanFactory beanFactory) {
+		return getEntityManagerFactoryBeanDefinitions(beanFactory, (beanName, beanDefinition) -> true);
+	}
+
+	/**
+	 * Returns {@link EntityManagerFactoryBeanDefinition} instances for all {@link BeanDefinition} registered in the given
+	 * {@link ConfigurableListableBeanFactory} hierarchy.
+	 *
+	 * @param beanFactory must not be {@literal null}.
+	 * @param beanDefinitionBiPredicate predicate to determine whether a {@link EntityManagerFactory} bean should be
+	 *          decorated with a {@code SharedEntityManager} bean definition.
+	 * @return
+	 * @since 4.0
+	 */
+	public static Collection<EntityManagerFactoryBeanDefinition> getEntityManagerFactoryBeanDefinitions(
+			ConfigurableListableBeanFactory beanFactory, BiPredicate<String, BeanDefinition> beanDefinitionBiPredicate) {
 
 		Set<EntityManagerFactoryBeanDefinition> definitions = new HashSet<>();
 
 		for (Class<?> type : EMF_TYPES) {
 
 			for (String name : beanFactory.getBeanNamesForType(type, true, false)) {
-				registerEntityManagerFactoryBeanDefinition(transformedBeanName(name), beanFactory, definitions);
+				registerEntityManagerFactoryBeanDefinition(transformedBeanName(name), beanFactory, definitions,
+						beanDefinitionBiPredicate);
 			}
 		}
 
 		BeanFactory parentBeanFactory = beanFactory.getParentBeanFactory();
 
 		if (parentBeanFactory instanceof ConfigurableListableBeanFactory parentConfigurableListableBeanFactory) {
-			definitions.addAll(getEntityManagerFactoryBeanDefinitions(parentConfigurableListableBeanFactory));
+			definitions.addAll(
+					getEntityManagerFactoryBeanDefinitions(parentConfigurableListableBeanFactory, beanDefinitionBiPredicate));
 		}
 
 		return definitions;
@@ -122,9 +140,11 @@ public final class BeanDefinitionUtils {
 	 * @param name
 	 * @param beanFactory
 	 * @param definitions
+	 * @param decoratorPredicate
 	 */
 	private static void registerEntityManagerFactoryBeanDefinition(String name,
-			ConfigurableListableBeanFactory beanFactory, Collection<EntityManagerFactoryBeanDefinition> definitions) {
+			ConfigurableListableBeanFactory beanFactory, Collection<EntityManagerFactoryBeanDefinition> definitions,
+			BiPredicate<String, BeanDefinition> decoratorPredicate) {
 
 		BeanDefinition definition = beanFactory.getBeanDefinition(name);
 
@@ -139,7 +159,9 @@ public final class BeanDefinitionUtils {
 			return;
 		}
 
-		definitions.add(new EntityManagerFactoryBeanDefinition(name, beanFactory));
+		if (decoratorPredicate.test(name, definition)) {
+			definitions.add(new EntityManagerFactoryBeanDefinition(name, beanFactory));
+		}
 	}
 
 	/**

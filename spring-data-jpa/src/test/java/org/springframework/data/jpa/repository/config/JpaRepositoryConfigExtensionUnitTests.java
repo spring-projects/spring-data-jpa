@@ -30,8 +30,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.RootBeanDefinition;
@@ -147,20 +147,6 @@ class JpaRepositoryConfigExtensionUnitTests {
 
 		assertThat(new JpaRepositoryConfigExtension().getRepositoryAotProcessor())
 				.isEqualTo(JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor.class);
-	}
-
-	@Test // GH-2730
-	void shouldNotRegisterEntityManagerAsSynthetic() {
-
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-
-		RepositoryConfigurationExtension extension = new JpaRepositoryConfigExtension();
-		extension.registerBeansForRoot(factory, configSource);
-
-		AbstractBeanDefinition bd = (AbstractBeanDefinition) factory.getBeanDefinition("jpaSharedEM_"
-				+ configSource.getAttribute("entityManagerFactoryRef").orElse("entityManagerFactory"));
-
-		assertThat(bd.isSynthetic()).isEqualTo(false);
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

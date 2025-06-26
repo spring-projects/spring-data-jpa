@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import java.util.List;
-import java.util.Set;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.metamodel.ManagedType;
 
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
@@ -36,6 +38,25 @@ import org.springframework.util.MultiValueMap;
 public class DefaultJpaContext implements JpaContext {
 
 	private final MultiValueMap<Class<?>, EntityManager> entityManagers;
+
+	/**
+	 * Creates a new {@link DefaultJpaContext} for the given {@link Set} of {@link EntityManager}s.
+	 *
+	 * @param entityManagers must not be {@literal null}.
+	 */
+	@Autowired
+	public DefaultJpaContext(ObjectProvider<EntityManager> entityManagers) {
+
+		Assert.notNull(entityManagers, "EntityManagerFactories must not be null");
+
+		this.entityManagers = new LinkedMultiValueMap<>();
+
+		for (EntityManager em : entityManagers) {
+			for (ManagedType<?> managedType : em.getMetamodel().getManagedTypes()) {
+				this.entityManagers.add(managedType.getJavaType(), em);
+			}
+		}
+	}
 
 	/**
 	 * Creates a new {@link DefaultJpaContext} for the given {@link Set} of {@link EntityManager}s.

@@ -20,6 +20,8 @@ import static org.springframework.data.jpa.util.BeanDefinitionUtils.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
+import java.util.function.BiPredicate;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,8 +46,30 @@ import org.springframework.orm.jpa.SharedEntityManagerCreator;
  * @author Réda Housni Alaoui
  * @author Mark Paluch
  * @author Donghun Shin
+ * @deprecated since 4.0, in favor of using either {@link org.springframework.orm.jpa.AbstractEntityManagerFactoryBean}
+ *             that provides a shared {@link EntityManager} or using {@link SharedEntityManagerCreator} directly in your
+ *             configuration.
  */
+@Deprecated(since = "4.0")
 public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFactoryPostProcessor, Ordered {
+
+	private final BiPredicate<String, BeanDefinition> decoratorPredicate;
+
+	public EntityManagerBeanDefinitionRegistrarPostProcessor() {
+		this((beanName, beanDefinition) -> true);
+	}
+
+	/**
+	 * Creates a new {@code EntityManagerBeanDefinitionRegistrarPostProcessor} allowing to filter which
+	 * {@link EntityManagerFactory} beans should be decorated with a {@code SharedEntityManagerCreator}.
+	 *
+	 * @param decoratorPredicate the predicate to determine whether a given named {@link BeanDefinition} should be
+	 *          decorated with a {@code SharedEntityManagerCreator}.
+	 * @since 4.0
+	 */
+	public EntityManagerBeanDefinitionRegistrarPostProcessor(BiPredicate<String, BeanDefinition> decoratorPredicate) {
+		this.decoratorPredicate = decoratorPredicate;
+	}
 
 	@Override
 	public int getOrder() {
@@ -55,7 +79,8 @@ public class EntityManagerBeanDefinitionRegistrarPostProcessor implements BeanFa
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
-		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory)) {
+		for (EntityManagerFactoryBeanDefinition definition : getEntityManagerFactoryBeanDefinitions(beanFactory,
+				decoratorPredicate)) {
 
 			BeanFactory definitionFactory = definition.getBeanFactory();
 
