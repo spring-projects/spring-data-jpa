@@ -212,6 +212,13 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.jboss.logging</groupId>
+			<artifactId>jboss-logging</artifactId>
+			<version>3.6.1.Final</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>${hibernate.groupId}.orm</groupId>
 			<artifactId>hibernate-vector</artifactId>
 			<version>${hibernate}</version>
