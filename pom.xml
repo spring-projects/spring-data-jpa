@@ -193,92 +193,9 @@
 			<version>${spring}</version>
 			<scope>provided</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jboss.logging</groupId>
-			<artifactId>jboss-logging</artifactId>
-			<version>3.6.1.Final</version>
-		</dependency>
 	</dependencies>
 
 	<build>
-		<plugins>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<dependencies>
-					<dependency>
-						<groupId>org.springframework</groupId>
-						<artifactId>spring-instrument</artifactId>
-						<version>${spring}</version>
-						<scope>runtime</scope>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<!-- override the default-test execution and exclude everything -->
-						<id>default-test</id>
-						<configuration>
-							<excludes>
-								<exclude>**/*</exclude>
-							</excludes>
-						</configuration>
-					</execution>
-					<execution>
-						<id>unit-test</id>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<phase>test</phase>
-						<configuration>
-							<includes>
-								<include>**/*UnitTests.java</include>
-							</includes>
-						</configuration>
-					</execution>
-					<execution>
-						<id>integration-test</id>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<phase>test</phase>
-						<configuration>
-							<includes>
-								<include>**/*IntegrationTests.java</include>
-								<include>**/*Tests.java</include>
-							</includes>
-							<excludes>
-								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/EclipseLink*</exclude>
-								<exclude>**/MySql*</exclude>
-								<exclude>**/Postgres*</exclude>
-							</excludes>
-							<argLine>
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
-							</argLine>
-						</configuration>
-					</execution>
-					<execution>
-						<id>eclipselink-test</id>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<phase>test</phase>
-						<configuration>
-							<includes>
-								<include>**/EclipseLink*Tests.java</include>
-							</includes>
-							<argLine>
-								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
-							</argLine>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-		</plugins>
-
 		<pluginManagement>
 			<plugins>
 				<plugin>
