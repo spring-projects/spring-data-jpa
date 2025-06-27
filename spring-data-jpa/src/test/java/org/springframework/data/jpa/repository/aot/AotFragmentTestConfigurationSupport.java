@@ -32,9 +32,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
@@ -47,7 +45,6 @@ import org.springframework.data.repository.config.AnnotationRepositoryConfigurat
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -75,16 +72,6 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(configClass),
 						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
 						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
-	}
-
-	// TODO: Remove once Cannot convert value of type 'jdk.proxy2.$Proxy129 implementing
-	// org.hibernate.SessionFactory,org.springframework.orm.jpa.EntityManagerFactoryInfo' to required type
-	// 'jakarta.persistence.EntityManager' for property 'entityManager': no matching editors or conversion strategy found
-	// is fixed.
-	@Bean
-	@Primary
-	EntityManager entityManager(LocalContainerEntityManagerFactoryBean factoryBean) throws Exception {
-		return factoryBean.getObject(EntityManager.class);
 	}
 
 	@Override

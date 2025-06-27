@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.config;
 import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceContext;
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -138,7 +140,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		Optional<String> transactionManagerRef = source.getAttribute("transactionManagerRef");
 		builder.addPropertyValue("transactionManager", transactionManagerRef.orElse(DEFAULT_TRANSACTION_MANAGER_BEAN_NAME));
 		if (entityManagerRefs.containsKey(source)) {
-			builder.addPropertyReference("entityManager", entityManagerRefs.get(source));
+			builder.addPropertyValue("entityManager",
+					new RuntimeBeanReference(entityManagerRefs.get(source), EntityManager.class));
 		}
 		builder.addPropertyValue(ESCAPE_CHARACTER_PROPERTY, getEscapeCharacter(source).orElse('\\'));
 		builder.addPropertyReference("mappingContext", JPA_MAPPING_CONTEXT_BEAN_NAME);
@@ -235,14 +238,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		String entityManagerBeanRef = getEntityManagerBeanRef(config);
 		String sharedEntityManagerBeanRef = lookupSharedEntityManagerBeanRef(entityManagerBeanRef, registry);
 
-		// TODO: Remove once Cannot convert value of type 'jdk.proxy2.$Proxy129 implementing
-		// org.hibernate.SessionFactory,org.springframework.orm.jpa.EntityManagerFactoryInfo' to required type
-		// 'jakarta.persistence.EntityManager' for property 'entityManager': no matching editors or conversion strategy
-		// found is fixed.
-		/*if (sharedEntityManagerBeanRef != null) {
+		if (sharedEntityManagerBeanRef != null) {
 			entityManagerRefs.put(config, sharedEntityManagerBeanRef);
 			return;
-		} */
+		}
 
 		String entityManagerBeanName = "jpaSharedEM_" + entityManagerBeanRef;
 
