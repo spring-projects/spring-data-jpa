@@ -44,7 +44,7 @@ class JpqlQueryRendererTests {
 	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
 
 	/**
-	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
+	 * Parse the query using {@link JpqlParser} then run it through the query-preserving {@link JpqlQueryRenderer}.
 	 */
 	private static String parseWithoutChanges(String query) {
 
@@ -1279,21 +1279,29 @@ class JpqlQueryRendererTests {
 		assertQuery("select te from TestEntity te where te.type = :type");
 	}
 
-	@Test // GH-3496
-	void lateralShouldBeAValidParameter() {
-
-		assertQuery("select e from Employee e where e.lateral = :_lateral");
-		assertQuery("select te from TestEntity te where te.lateral = :lateral");
-	}
-
 	@Test // GH-3061
 	void alternateNotEqualsOperatorShouldWork() {
 		assertQuery("select e from Employee e where e.firstName != :name");
 	}
 
+	@Test
+	void regexShouldWork() {
+		assertQuery("select e from Employee e where e.lastName REGEXP '^Dr\\.*'");
+	}
+
 	@Test // GH-3092
 	void dateAndFromShouldBeValidNames() {
 		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN :from AND :to");
+	}
+
+	@Test
+	void betweenStrings() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date NOT BETWEEN 'a' AND 'b'");
+	}
+
+	@Test
+	void betweenDates() {
+		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
 	}
 
 	@Test // GH-3092
@@ -1410,6 +1418,13 @@ class JpqlQueryRendererTests {
 		assertQuery(source);
 	}
 
+	@Test // GH-3496
+	void lateralShouldBeAValidParameter() {
+
+		assertQuery("select e from Employee e where e.lateral = :_lateral");
+		assertQuery("select te from TestEntity te where te.lateral = :lateral");
+	}
+
 	@Test // GH-3834
 	void reservedWordsShouldWork() {
 
@@ -1417,6 +1432,32 @@ class JpqlQueryRendererTests {
 		assertQuery("select ie.object from ItemExample ie left join ie.object io where io.externalId = :externalId");
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.object = :externalId");
 		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
+		assertQuery("select f from FooEntity f where upper(f.name) IN :names");
+		assertQuery("select f from FooEntity f where f.size IN :sizes");
+	}
+
+	@Test // GH-3902
+	void queryWithoutSelectShouldWork() {
+
+		assertQuery("from Person p");
+		assertQuery("from Person p WHERE p.name = 'John' ORDER BY p.name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutSelectAndIdentificationVariableShouldWork() {
+
+		assertQuery("from Person");
+		assertQuery("from Person WHERE name = 'John' ORDER BY name");
+		assertQuery("from Person JOIN department WHERE name = 'John' ORDER BY name");
+	}
+
+	@Test // GH-3902
+	void queryWithoutIdentificationVariableShouldWork() {
+
+		assertQuery("SELECT name, lastname from Person");
+		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
+		assertQuery("SELECT name, lastname from Person WHERE lastname = 'Doe' ORDER BY name, lastname");
+		assertQuery("SELECT name, lastname from Person JOIN department");
 	}
 
 }
