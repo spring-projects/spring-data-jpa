@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
+import org.springframework.util.StringUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query into a
@@ -164,11 +165,9 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		boolean usesDistinct = ctx.DISTINCT() != null;
 		QueryRendererBuilder nested = QueryRenderer.builder();
 		if (countProjection == null) {
-			QueryTokenStream selection = visit(ctx.selectionList());
 			if (usesDistinct) {
-
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-				nested.append(getDistinctCountSelection(selection));
+				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
 			} else {
 
 				// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
@@ -176,9 +175,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 					nested.append(QueryTokens.token("*"));
 				} else {
 
-					if (selection.size() == 1) {
-						nested.append(selection);
-					} else if (primaryFromAlias != null) {
+					if (StringUtils.hasText(primaryFromAlias)) {
 						nested.append(QueryTokens.token(primaryFromAlias));
 					} else {
 						nested.append(QueryTokens.token("*"));
@@ -186,10 +183,10 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 				}
 			}
 		} else {
-			builder.append(QueryTokens.token(countProjection));
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
+			nested.append(QueryTokens.token(countProjection));
 		}
 
 		builder.appendInline(nested);

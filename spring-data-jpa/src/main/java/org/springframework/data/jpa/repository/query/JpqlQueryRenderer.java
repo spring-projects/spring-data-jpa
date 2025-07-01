@@ -20,6 +20,7 @@ import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.springframework.data.jpa.repository.query.JpqlParser.NullsPrecedenceContext;
@@ -35,10 +36,43 @@ import org.springframework.util.ObjectUtils;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
 class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
+
+	/**
+	 * Is this AST tree a {@literal subquery}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSubquery(ParserRuleContext ctx) {
+
+		if (ctx instanceof JpqlParser.SubqueryContext) {
+			return true;
+		} else if (ctx instanceof JpqlParser.Update_statementContext) {
+			return false;
+		} else if (ctx instanceof JpqlParser.Delete_statementContext) {
+			return false;
+		} else {
+			return ctx.getParent() != null && isSubquery(ctx.getParent());
+		}
+	}
+
+	/**
+	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
+	 *
+	 * @return boolean
+	 */
+	static boolean isSetQuery(ParserRuleContext ctx) {
+
+		if (ctx instanceof JpqlParser.Set_fuctionContext) {
+			return true;
+		}
+
+		return ctx.getParent() != null && isSetQuery(ctx.getParent());
+	}
 
 	@Override
 	public QueryTokenStream visitStart(JpqlParser.StartContext ctx) {
@@ -60,11 +94,41 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitSelect_statement(JpqlParser.Select_statementContext ctx) {
+	public QueryTokenStream visitSelectQuery(JpqlParser.SelectQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.appendExpression(visit(ctx.select_clause()));
+		builder.appendExpression(visit(ctx.from_clause()));
+
+		if (ctx.where_clause() != null) {
+			builder.appendExpression(visit(ctx.where_clause()));
+		}
+
+		if (ctx.groupby_clause() != null) {
+			builder.appendExpression(visit(ctx.groupby_clause()));
+		}
+
+		if (ctx.having_clause() != null) {
+			builder.appendExpression(visit(ctx.having_clause()));
+		}
+
+		if (ctx.orderby_clause() != null) {
+			builder.appendExpression(visit(ctx.orderby_clause()));
+		}
+
+		if (ctx.set_fuction() != null) {
+			builder.appendExpression(visit(ctx.set_fuction()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFromQuery(JpqlParser.FromQueryContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
 		builder.appendExpression(visit(ctx.from_clause()));
 
 		if (ctx.where_clause() != null) {
@@ -173,7 +237,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}
@@ -297,9 +363,12 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitJoin_collection_valued_path_expression(
 			JpqlParser.Join_collection_valued_path_expressionContext ctx) {
 
-		List<ParseTree> items = new ArrayList<>(3 + ctx.single_valued_embeddable_object_field().size());
+		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
 
-		items.add(ctx.identification_variable());
+		if (ctx.identification_variable() != null) {
+			items.add(ctx.identification_variable());
+		}
+
 		items.addAll(ctx.single_valued_embeddable_object_field());
 		items.add(ctx.collection_valued_field());
 
@@ -333,7 +402,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}
@@ -581,6 +652,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		builder.append(QueryTokens.expression(ctx.DELETE()));
 		builder.append(QueryTokens.expression(ctx.FROM()));
 		builder.appendExpression(visit(ctx.entity_name()));
+
 		if (ctx.AS() != null) {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
@@ -801,7 +873,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		builder.append(QueryTokens.expression(ctx.ORDER()));
 		builder.append(QueryTokens.expression(ctx.BY()));
-		builder.appendExpression(QueryTokenStream.concat(ctx.orderby_item(), this::visit, TOKEN_COMMA));
+		builder.append(QueryTokenStream.concat(ctx.orderby_item(), this::visit, TOKEN_COMMA));
 
 		return builder;
 	}
@@ -811,13 +883,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.state_field_path_expression() != null) {
-			builder.appendExpression(visit(ctx.state_field_path_expression()));
-		} else if (ctx.general_identification_variable() != null) {
-			builder.appendExpression(visit(ctx.general_identification_variable()));
-		} else if (ctx.result_variable() != null) {
-			builder.appendExpression(visit(ctx.result_variable()));
-		}
+		builder.appendExpression(visit(ctx.orderby_expression()));
 
 		if (ctx.ASC() != null) {
 			builder.append(QueryTokens.expression(ctx.ASC()));
@@ -826,10 +892,26 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		}
 
 		if (ctx.nullsPrecedence() != null) {
-			builder.append(visit(ctx.nullsPrecedence()));
+			builder.appendExpression(visit(ctx.nullsPrecedence()));
 		}
 
 		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitOrderby_expression(JpqlParser.Orderby_expressionContext ctx) {
+
+		if (ctx.state_field_path_expression() != null) {
+			return visit(ctx.state_field_path_expression());
+		} else if (ctx.general_identification_variable() != null) {
+			return visit(ctx.general_identification_variable());
+		} else if (ctx.string_expression() != null) {
+			return visit(ctx.string_expression());
+		} else if (ctx.scalar_expression() != null) {
+			return visit(ctx.scalar_expression());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override
@@ -1981,9 +2063,11 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		builder.append(QueryTokens.token(ctx.CAST()));
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.appendExpression(visit(ctx.scalar_expression()));
+
 		if (ctx.AS() != null) {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
+
 		builder.appendInline(visit(ctx.identification_variable()));
 
 		if (!CollectionUtils.isEmpty(ctx.numeric_literal())) {

@@ -18,10 +18,9 @@ grammar Eql;
 @header {
 /**
  * Implementation of EclipseLink Query Language (EQL)
- * See:
- * * https://eclipse.dev/eclipselink/documentation/3.0/jpa/extensions/jpql.htm
- * * https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL
  *
+ * @see https://wiki.eclipse.org/EclipseLink/UserGuide/JPA/Basic_JPA_Development/Querying/JPQL
+ * @see https://eclipse.dev/eclipselink/documentation/3.0/jpa/extensions/jpql.htm
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @since 3.2
@@ -43,7 +42,8 @@ ql_statement
     ;
 
 select_statement
-    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?
+    : select_clause from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)? # SelectQuery
+    | from_clause (where_clause)? (groupby_clause)? (having_clause)? (orderby_clause)? (set_fuction)?               # FromQuery
     ;
 
 setOperator
@@ -80,7 +80,7 @@ identification_variable_declaration
     ;
 
 range_variable_declaration
-    : (entity_name|function_invocation) AS? identification_variable
+    : (entity_name|function_invocation) AS? identification_variable?
     ;
 
 join
@@ -246,14 +246,15 @@ orderby_clause
     : ORDER BY orderby_item (',' orderby_item)*
     ;
 
-// TODO Error in spec BNF, correctly shown elsewhere in spec.
 orderby_item
-    : state_field_path_expression (ASC | DESC)? nullsPrecedence?
-    | general_identification_variable (ASC | DESC)? nullsPrecedence?
-    | result_variable (ASC | DESC)? nullsPrecedence?
-    | string_expression (ASC | DESC)? nullsPrecedence?
-    | scalar_expression (ASC | DESC)? nullsPrecedence?
-    |
+    : orderby_expression (ASC | DESC)? nullsPrecedence?
+    ;
+
+orderby_expression
+    : state_field_path_expression
+    | general_identification_variable
+    | string_expression
+    | scalar_expression
     ;
 
 nullsPrecedence
