@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 
@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -113,6 +114,24 @@ class RepositoryWithCompositeKeyTests {
 		assertThat(persistedEmp).isNotNull();
 		assertThat(persistedEmp.getDepartment()).isNotNull();
 		assertThat(persistedEmp.getDepartment().getName()).isEqualTo(dep.getName());
+	}
+
+	@Test // GH-3929
+	void shouldReturnIdentifiers() {
+
+		EmbeddedIdExampleDepartment dep = new EmbeddedIdExampleDepartment();
+		dep.setName("TestDepartment");
+		dep.setDepartmentId(-1L);
+
+		EmbeddedIdExampleEmployee emp = new EmbeddedIdExampleEmployee();
+		emp.setDepartment(dep);
+		emp.setEmployeePk(new EmbeddedIdExampleEmployeePK(1L, 2L));
+
+		emp = employeeRepositoryWithEmbeddedId.save(emp);
+
+		List<EmbeddedIdExampleEmployeePK> identifiers = employeeRepositoryWithEmbeddedId.findIdentifiers();
+
+		assertThat(identifiers).hasSize(1).contains(emp.getEmployeePk());
 	}
 
 	@Test // DATAJPA-472, DATAJPA-912

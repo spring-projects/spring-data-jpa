@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,27 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
 /**
- * @author Oliver Gierke
- * @author Patrice Blanchardie
+ * @author Mark Paluch
  */
-@Entity
-public class Customer {
+public class Country {
 
-	@Id Long id;
+	private final String code;
 
-		String name;
+	// workaround to avoid DTO projections as needsCustomConstruction is false.
+	private Country(Country other) {
+		this.code = other.code;
+	}
+
+	private Country(String code) {
+		this.code = code;
+	}
+
+	public static Country of(String code) {
+		return new Country(code);
+	}
+
+	public String getCode() {
+		return code;
+	}
 }

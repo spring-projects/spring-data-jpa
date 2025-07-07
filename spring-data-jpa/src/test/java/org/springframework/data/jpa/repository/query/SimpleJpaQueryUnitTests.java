@@ -45,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.sample.Country;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.NativeQuery;
@@ -325,6 +326,17 @@ class SimpleJpaQueryUnitTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> createJpaQuery(illegalMethod));
 	}
 
+	@Test // GH-3929
+	void doesNotRewriteQueryForDtoWithMultipleConstructors() throws Exception {
+
+		AbstractStringBasedJpaQuery jpaQuery = (AbstractStringBasedJpaQuery) createJpaQuery(
+				SampleRepository.class.getMethod("justCountries"));
+
+		String queryString = createQuery(jpaQuery);
+
+		assertThat(queryString).startsWith("select u.country from User u");
+	}
+
 	@Test // DATAJPA-1163
 	void resolvesExpressionInCountQuery() throws Exception {
 
@@ -407,6 +419,9 @@ class SimpleJpaQueryUnitTests {
 
 		@Query("select r.name from User u LEFT JOIN FETCH u.roles r")
 		Collection<UnrelatedType> projectWithJoinPaths();
+
+		@Query("select u.country from User u")
+		Collection<Country> justCountries();
 
 		@Query(value = "select u from #{#entityName} u", countQuery = "select count(u.id) from #{#entityName} u")
 		List<User> findAllWithExpressionInCountQuery(Pageable pageable);
