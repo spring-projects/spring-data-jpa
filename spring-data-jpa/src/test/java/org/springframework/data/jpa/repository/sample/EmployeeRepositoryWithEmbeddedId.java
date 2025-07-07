@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 
 import com.querydsl.core.types.OrderSpecifier;
@@ -39,6 +40,9 @@ public interface EmployeeRepositoryWithEmbeddedId
 
 	@Override
 	List<EmbeddedIdExampleEmployee> findAll(Predicate predicate, OrderSpecifier<?>... orders);
+
+	@Query("select e.employeePk from EmbeddedIdExampleEmployee e")
+	List<EmbeddedIdExampleEmployeePK> findIdentifiers();
 
 	// DATAJPA-920
 	boolean existsByName(String name);

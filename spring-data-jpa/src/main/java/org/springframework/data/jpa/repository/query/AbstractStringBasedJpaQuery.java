@@ -157,7 +157,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 	ReturnedType getReturnedType(ResultProcessor processor) {
 
 		ReturnedType returnedType = processor.getReturnedType();
-		Class<?> returnedJavaType = processor.getReturnedType().getReturnedType();
+		Class<?> returnedJavaType = returnedType.getReturnedType();
 
 		if (!returnedType.isProjecting() || returnedJavaType.isInterface() || query.isNative()) {
 			return returnedType;
@@ -169,7 +169,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			return returnedType;
 		}
 
-		if ((known != null && !known) || returnedJavaType.isArray() || getMetamodel().isJpaManaged(returnedJavaType)) {
+		if ((known != null && !known) || returnedJavaType.isArray() || getMetamodel().isJpaManaged(returnedJavaType)
+				|| !returnedType.needsCustomConstruction()) {
 			if (known == null) {
 				knownProjections.put(returnedJavaType, false);
 			}
