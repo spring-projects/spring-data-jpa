@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.function.Supplier;
 
 import org.antlr.v4.runtime.Token;
@@ -81,13 +83,6 @@ class QueryTokens {
 	}
 
 	/**
-	 * Creates a ventilated token that is embedded in spaces.
-	 */
-	static QueryToken ventilated(Token token) {
-		return new SimpleQueryToken(" " + token.getText() + " ");
-	}
-
-	/**
 	 * Creates a {@link QueryToken expression} from an ANTLR {@link TerminalNode}.
 	 */
 	static QueryToken expression(TerminalNode node) {
@@ -116,7 +111,7 @@ class QueryTokens {
 	 * @author Christoph Strobl
 	 * @since 3.1
 	 */
-	static class SimpleQueryToken implements QueryToken {
+	static class SimpleQueryToken implements QueryToken, QueryTokenStream {
 
 		/**
 		 * The text value of the token.
@@ -145,6 +140,26 @@ class QueryTokens {
 		}
 
 		@Override
+		public int size() {
+			return 1;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+
+		@Override
+		public Iterator<QueryToken> iterator() {
+			return Collections.singleton((QueryToken) this).iterator();
+		}
+
+		@Override
+		public boolean isExpression() {
+			return false;
+		}
+
+		@Override
 		public int hashCode() {
 			return value().hashCode();
 		}
@@ -161,8 +176,10 @@ class QueryTokens {
 			super(token);
 		}
 
+		@Override
 		public boolean isExpression() {
 			return true;
 		}
 	}
+
 }

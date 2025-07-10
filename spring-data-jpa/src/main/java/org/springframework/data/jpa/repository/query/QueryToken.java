@@ -22,7 +22,7 @@ package org.springframework.data.jpa.repository.query;
  * @author Christoph Strobl
  * @since 3.4
  */
-interface QueryToken {
+interface QueryToken extends QueryTokenStream {
 
 	/**
 	 * @return the token value (i.e. its content).

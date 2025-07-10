@@ -18,13 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.Tree;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.util.Streamable;
@@ -44,30 +44,6 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	 */
 	static QueryTokenStream empty() {
 		return EmptyQueryTokenStream.INSTANCE;
-	}
-
-	/**
-	 * Creates a QueryTokenStream from a {@link QueryToken}.
-	 * @since 4.0
-	 */
-	static QueryTokenStream from(QueryToken token) {
-		return QueryRenderer.from(Collections.singletonList(token));
-	}
-
-	/**
-	 * Creates an token QueryRenderer from an AST {@link TerminalNode}.
-	 * @since 4.0
-	 */
-	static QueryTokenStream ofToken(TerminalNode node) {
-		return from(QueryTokens.token(node));
-	}
-
-	/**
-	 * Creates an token QueryRenderer from an AST {@link Token}.
-	 * @since 4.0
-	 */
-	static QueryTokenStream ofToken(Token node) {
-		return from(QueryTokens.token(node));
 	}
 
 	/**
@@ -97,25 +73,60 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	}
 
 	/**
-	 * Compose a {@link QueryTokenStream} from a collection of expressions. Expressions are rendered using space
-	 * separators.
+	 * Compose a {@link QueryTokenStream} from a collection of elements. Expressions are rendered using space separators.
 	 *
 	 * @param elements collection of elements.
 	 * @param visitor visitor function converting the element into a {@link QueryTokenStream}.
 	 * @return the composed token stream.
+	 * @since 4.0
 	 */
 	static <T> QueryTokenStream concatExpressions(Collection<T> elements, Function<T, QueryTokenStream> visitor) {
+
+		if (CollectionUtils.isEmpty(elements)) {
+			return QueryTokenStream.empty();
+		}
 
 		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
 
 		for (T child : elements) {
 
-			if (child instanceof Token t) {
-				builder.append(QueryTokens.expression(t));
-			} else if (child instanceof TerminalNode tn) {
+			if (child instanceof TerminalNode tn) {
 				builder.append(QueryTokens.expression(tn));
 			} else {
 				builder.appendExpression(visitor.apply(child));
+			}
+		}
+
+		return builder.build();
+	}
+
+	/**
+	 * Compose a {@link QueryTokenStream} from a collection of expressions from a {@link Tree}. Expressions are rendered
+	 * using space separators.
+	 *
+	 * @param elements collection of elements.
+	 * @param visitor visitor function converting the element into a {@link QueryTokenStream}.
+	 * @return the composed token stream.
+	 * @since 4.0
+	 */
+	static QueryTokenStream concatExpressions(Tree elements, Function<? super ParseTree, QueryTokenStream> visitor) {
+
+		int childCount = elements.getChildCount();
+		if (childCount == 0) {
+			return QueryTokenStream.empty();
+		}
+
+		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+
+		for (int i = 0; i < childCount; i++) {
+
+			Tree child = elements.getChild(i);
+			if (child instanceof TerminalNode tn) {
+				builder.append(QueryTokens.expression(tn));
+			} else if (child instanceof ParseTree pt) {
+				builder.appendExpression(visitor.apply(pt));
+			} else {
+				throw new IllegalArgumentException("Unsupported child type: " + child);
 			}
 		}
 
@@ -168,12 +179,30 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	}
 
 	/**
-	 * Creates a {@link QueryTokenStream} representing a function call. including arguments using parentheses to wrap
-	 * arguments
+	 * Creates a {@link QueryTokenStream} that groups the given {@link QueryTokenStream nested token stream} in
+	 * parentheses ({@code (…)}).
 	 *
-	 * @param functionName
-	 * @param arguments
-	 * @return
+	 * @param nested the nested token stream to wrap in parentheses.
+	 * @return a {@link QueryTokenStream} that groups the given {@link QueryTokenStream nested token stream} in
+	 *         parentheses.
+	 * @since 5.0
+	 */
+	static QueryTokenStream group(QueryTokenStream nested) {
+
+		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(nested);
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder.build();
+	}
+
+	/**
+	 * Creates a {@link QueryTokenStream} representing a function call including arguments wrapped in parentheses.
+	 *
+	 * @param functionName function name.
+	 * @param arguments the arguments of the function call.
+	 * @return a {@link QueryTokenStream} representing a function call.
 	 * @since 5.0
 	 */
 	static QueryTokenStream ofFunction(TerminalNode functionName, QueryTokenStream arguments) {

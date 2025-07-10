@@ -45,13 +45,6 @@ import org.springframework.util.CompositeIterator;
 abstract class QueryRenderer implements QueryTokenStream {
 
 	/**
-	 * Creates a QueryRenderer from a {@link QueryToken}.
-	 */
-	static QueryRenderer from(QueryToken token) {
-		return QueryRenderer.from(Collections.singletonList(token));
-	}
-
-	/**
 	 * Creates a QueryRenderer from a collection of {@link QueryToken}.
 	 */
 	static QueryRenderer from(Collection<? extends QueryToken> tokens) {
@@ -168,6 +161,10 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 	public static QueryRenderer ofExpression(QueryTokenStream tokenStream) {
 
+		if (tokenStream instanceof ExpressionRenderer er) {
+			return er;
+		}
+
 		if (tokenStream instanceof QueryRendererBuilder builder) {
 			tokenStream = builder.current;
 		}
@@ -191,6 +188,10 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		Assert.notNull(tokenStream, "QueryTokenStream must not be null!");
 
+		if (tokenStream instanceof InlineRenderer ilr) {
+			return ilr;
+		}
+
 		if (tokenStream instanceof QueryRendererBuilder builder) {
 			tokenStream = builder.current;
 		}
@@ -201,10 +202,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 
 		if (!(tokenStream instanceof QueryRenderer)) {
 			tokenStream = QueryRenderer.from(tokenStream);
-		}
-
-		if (!tokenStream.isExpression()) {
-			return (QueryRenderer) tokenStream;
 		}
 
 		return new InlineRenderer((QueryRenderer) tokenStream);
@@ -335,11 +332,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 			return !nested.isEmpty() && nested.get(nested.size() - 1).isExpression();
 		}
 
-		public Stream<QueryRenderer> renderers() {
-			return nested.stream()
-					.flatMap(renderer -> renderer instanceof CompositeRenderer ? ((CompositeRenderer) renderer).renderers()
-							: Stream.of(renderer));
-		}
 	}
 
 	/**
@@ -356,17 +348,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 		@Override
 		String render() {
 			return render(tokens);
-		}
-
-		@Override
-		QueryRenderer append(QueryTokenStream tokens) {
-
-			if (tokens instanceof TokenRenderer tr) {
-				this.tokens.addAll(tr.tokens);
-				return this;
-			}
-
-			return super.append(tokens);
 		}
 
 		@Override
@@ -407,29 +388,6 @@ abstract class QueryRenderer implements QueryTokenStream {
 		@Override
 		public boolean isExpression() {
 			return !tokens.isEmpty() && getRequiredLast().isExpression();
-		}
-
-		/**
-		 * Render a list of {@link QueryTokens.SimpleQueryToken}s into a string.
-		 *
-		 * @param tokens
-		 * @return rendered string containing either a query or some subset of that query
-		 */
-		static String render(Object tokens) {
-
-			if (tokens instanceof Collection<?> tpr) {
-				return render(tpr);
-			}
-
-			if (tokens instanceof QueryRendererBuilder qrb) {
-				return qrb.build().render();
-			}
-
-			if (tokens instanceof QueryRenderer qr) {
-				return qr.render();
-			}
-
-			throw new IllegalArgumentException("Unknown token type %s".formatted(tokens));
 		}
 
 	}
@@ -486,43 +444,13 @@ abstract class QueryRenderer implements QueryTokenStream {
 		protected QueryRenderer current = QueryRenderer.empty();
 
 		/**
-		 * Create and initialize a QueryRendererBuilder from a {@link QueryTokens.SimpleQueryToken}.
-		 *
-		 * @param token
-		 * @return
-		 */
-		public static QueryRendererBuilder builder(QueryToken token) {
-			return new QueryRendererBuilder().append(token);
-		}
-
-		/**
-		 * Append a {@link QueryTokens.SimpleQueryToken}.
-		 *
-		 * @param token
-		 * @return {@code this} builder.
-		 */
-		QueryRendererBuilder append(QueryToken token) {
-			return append(QueryRenderer.from(token));
-		}
-
-		/**
-		 * Append a collection of {@link QueryTokens.SimpleQueryToken}.
+		 * Append a collection of {@link QueryToken}s.
 		 *
 		 * @param tokens
 		 * @return {@code this} builder.
 		 */
 		QueryRendererBuilder append(List<? extends QueryToken> tokens) {
 			return append(QueryRenderer.from(tokens));
-		}
-
-		/**
-		 * Append a QueryRendererBuilder as expression.
-		 *
-		 * @param builder
-		 * @return {@code this} builder.
-		 */
-		QueryRendererBuilder appendExpression(QueryRendererBuilder builder) {
-			return appendExpression(builder.current);
 		}
 
 		/**
@@ -557,6 +485,16 @@ abstract class QueryRenderer implements QueryTokenStream {
 			current = current.append(QueryRenderer.inline(stream));
 
 			return this;
+		}
+
+		/**
+		 * Append a QueryRendererBuilder as expression.
+		 *
+		 * @param builder
+		 * @return {@code this} builder.
+		 */
+		QueryRendererBuilder appendExpression(QueryRendererBuilder builder) {
+			return appendExpression(builder.current);
 		}
 
 		/**
