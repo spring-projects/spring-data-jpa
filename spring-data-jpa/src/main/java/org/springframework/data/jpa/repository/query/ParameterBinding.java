@@ -231,8 +231,6 @@ class ParameterBinding {
 		private static final List<Type> SUPPORTED_TYPES = Arrays.asList(Type.CONTAINING, Type.STARTING_WITH,
 				Type.ENDING_WITH, Type.LIKE);
 
-        private static final String PERCENT = "%";
-
 		private final Type type;
 
 		/**
@@ -328,15 +326,11 @@ class ParameterBinding {
 
 			Assert.hasText(expression, "Expression must not be null or empty");
 
-			if (expression.startsWith(PERCENT) && expression.endsWith(PERCENT)) {
-				return Type.CONTAINING;
+			if (expression.startsWith("%")) {
+				return expression.endsWith("%") ? Type.CONTAINING : Type.ENDING_WITH;
 			}
 
-			if (expression.startsWith(PERCENT)) {
-				return Type.ENDING_WITH;
-			}
-
-			if (expression.endsWith(PERCENT)) {
+			if (expression.endsWith("%")) {
 				return Type.STARTING_WITH;
 			}
 
