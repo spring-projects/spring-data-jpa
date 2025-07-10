@@ -73,6 +73,7 @@ import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
 import org.springframework.lang.Nullable;
@@ -103,7 +104,7 @@ import org.springframework.util.Assert;
  * @author Diego Krupitza
  * @author Seol-JY
  * @author Joshua Chen
- * @author Dockerel
+ * @author Giheon Do
  */
 @Repository
 @Transactional(readOnly = true)
@@ -121,8 +122,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	private final EntityManager entityManager;
 	private final PersistenceProvider provider;
 
-	private final String deleteAllQueryString;
-	private final String countQueryString;
+	private final Lazy<String> deleteAllQueryString;
+	private final Lazy<String> countQueryString;
 
 	private @Nullable CrudMethodMetadata metadata;
 	private ProjectionFactory projectionFactory;
@@ -144,8 +145,11 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		this.provider = PersistenceProvider.fromEntityManager(entityManager);
 		this.projectionFactory = new SpelAwareProxyProjectionFactory();
 
-		this.deleteAllQueryString = getDeleteAllQueryString();
-		this.countQueryString = getCountQueryString();
+		this.deleteAllQueryString = Lazy
+				.of(() -> getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName()));
+		this.countQueryString = Lazy
+				.of(() -> getQueryString(String.format(COUNT_QUERY_STRING, provider.getCountQueryPlaceholder(), "%s"),
+						entityInformation.getEntityName()));
 	}
 
 	/**
@@ -186,16 +190,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	protected Class<T> getDomainClass() {
 		return entityInformation.getJavaType();
-	}
-
-	private String getDeleteAllQueryString() {
-		return getQueryString(DELETE_ALL_QUERY_STRING, entityInformation.getEntityName());
-	}
-
-	private String getCountQueryString() {
-
-		String countQuery = String.format(COUNT_QUERY_STRING, provider.getCountQueryPlaceholder(), "%s");
-		return getQueryString(countQuery, entityInformation.getEntityName());
 	}
 
 	@Override
@@ -316,7 +310,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch() {
 
-		Query query = entityManager.createQuery(deleteAllQueryString);
+		Query query = entityManager.createQuery(deleteAllQueryString.get());
 
 		applyQueryHints(query);
 
@@ -638,7 +632,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Override
 	public long count() {
 
-		TypedQuery<Long> query = entityManager.createQuery(countQueryString, Long.class);
+		TypedQuery<Long> query = entityManager.createQuery(countQueryString.get(), Long.class);
 
 		applyQueryHintsForCount(query);
 
