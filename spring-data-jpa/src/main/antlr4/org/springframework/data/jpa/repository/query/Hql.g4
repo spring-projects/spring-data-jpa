@@ -122,9 +122,9 @@ join
     ;
 
 joinTarget
-    : path variable?                        # JoinPath
-    | LATERAL? '(' subquery ')' variable?   # JoinSubquery
-    | setReturningFunction variable?        # JoinFunctionCall
+    : path variable?                                # JoinPath
+    | LATERAL? '(' subquery ')' variable?           # JoinSubquery
+    | LATERAL? setReturningFunction variable?       # JoinFunctionCall
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-update
@@ -757,11 +757,15 @@ function
     | collectionFunctionMisuse                   # CollectionFunctionMisuseInvocation
     | jpaNonstandardFunction                     # JpaNonstandardFunctionInvocation
     | columnFunction                             # ColumnFunctionInvocation
+    | jsonFunction                               # JsonFunctionInvocation
+    | xmlFunction                                # XmlFunctionInvocation
     | genericFunction                            # GenericFunctionInvocation
     ;
 
 setReturningFunction
     : simpleSetReturningFunction
+    | jsonTableFunction
+    | xmlTableFunction
     ;
 
 simpleSetReturningFunction
@@ -1248,6 +1252,175 @@ frameExclusion
     | EXCLUDE NO OTHERS
     ;
 
+// JSON Functions
+
+jsonFunction
+    : jsonArrayFunction
+    | jsonExistsFunction
+    | jsonObjectFunction
+    | jsonQueryFunction
+    | jsonValueFunction
+    | jsonArrayAggFunction
+    | jsonObjectAggFunction
+    ;
+
+/**
+ * The 'json_array(… ABSENT ON NULL)' function
+ */
+jsonArrayFunction
+    : JSON_ARRAY '(' (expressionOrPredicate (',' expressionOrPredicate)* jsonNullClause?)? ')';
+
+/**
+ * The 'json_exists(, PASSING … AS … WITH WRAPPER ERROR|NULL|DEFAULT on ERROR|EMPTY)' function
+ */
+jsonExistsFunction
+    : JSON_EXISTS '(' expression ',' expression jsonPassingClause? jsonExistsOnErrorClause? ')';
+
+jsonExistsOnErrorClause
+    : (ERROR | TRUE | FALSE) ON ERROR
+    ;
+
+/**
+ * The 'json_object( foo, bar, KEY foo VALUE bar, foo:bar ABSENT ON NULL)' function
+ */
+jsonObjectFunction
+    : JSON_OBJECT '(' jsonObjectFunctionEntry? (',' jsonObjectFunctionEntry)* jsonNullClause? ')';
+
+jsonObjectFunctionEntry
+    : (expressionOrPredicate|jsonObjectKeyValueEntry|jsonObjectAssignmentEntry);
+
+jsonObjectKeyValueEntry
+    : KEY? expressionOrPredicate VALUE expressionOrPredicate;
+
+jsonObjectAssignmentEntry
+    : expressionOrPredicate ':' expressionOrPredicate;
+
+/**
+ * The 'json_query(, PASSING … AS … WITH WRAPPER ERROR|NULL|DEFAULT on ERROR|EMPTY)' function
+ */
+jsonQueryFunction
+    : JSON_QUERY '(' expression ',' expression jsonPassingClause? jsonQueryWrapperClause? jsonQueryOnErrorOrEmptyClause? jsonQueryOnErrorOrEmptyClause? ')';
+
+jsonQueryWrapperClause
+    : WITH (CONDITIONAL | UNCONDITIONAL)? ARRAY? WRAPPER
+    | WITHOUT ARRAY? WRAPPER
+    ;
+
+jsonQueryOnErrorOrEmptyClause
+    : (ERROR | NULL | EMPTY (ARRAY | OBJECT)?) ON (ERROR | EMPTY);
+
+/**
+ * The 'json_value(… , PASSING … AS … RETURNING … ERROR|NULL|DEFAULT on ERROR|EMPTY)' function
+ */
+jsonValueFunction
+    : JSON_VALUE '(' expression ',' expression jsonPassingClause? jsonValueReturningClause? jsonValueOnErrorOrEmptyClause? jsonValueOnErrorOrEmptyClause? ')'
+    ;
+
+jsonValueReturningClause
+    : RETURNING castTarget
+    ;
+
+jsonValueOnErrorOrEmptyClause
+    : (ERROR | NULL | DEFAULT expression) ON (ERROR | EMPTY)
+    ;
+
+/**
+ * The 'json_arrayagg( …, ABSENT ON NULL ORDER BY)' function
+ */
+jsonArrayAggFunction
+    : JSON_ARRAYAGG '(' expressionOrPredicate jsonNullClause? orderByClause? ')' filterClause?;
+
+/**
+ * The 'json_objectagg( KEY? …, ABSENT ON NULL ORDER BY WITH|WITHOUT UNIQUE KEYS)' function
+ */
+jsonObjectAggFunction
+    : JSON_OBJECTAGG '(' KEY? expressionOrPredicate (VALUE | ':') expressionOrPredicate jsonNullClause? jsonUniqueKeysClause? ')' filterClause?;
+
+jsonPassingClause
+    : PASSING jsonPassingItem (',' jsonPassingItem)*
+    ;
+
+jsonPassingItem
+    : expressionOrPredicate AS identifier
+    ;
+
+jsonNullClause
+    : (ABSENT | NULL) ON NULL;
+
+jsonUniqueKeysClause
+    : (WITH | WITHOUT) UNIQUE KEYS;
+
+/**
+ * The 'json_table(…, …, PASSING COLUMNS(…) ERROR|NULL ON ERROR)' function
+ */
+jsonTableFunction
+    : JSON_TABLE '(' expression (',' expression)? jsonPassingClause? jsonTableColumnsClause jsonTableErrorClause? ')';
+
+jsonTableErrorClause
+    : (ERROR | NULL) ON ERROR;
+
+jsonTableColumnsClause
+    : COLUMNS '(' jsonTableColumns ')';
+
+jsonTableColumns
+    : jsonTableColumn (',' jsonTableColumn)*;
+
+jsonTableColumn
+    : NESTED PATH? STRING_LITERAL jsonTableColumnsClause                                                                            # JsonTableNestedColumn
+    | identifier JSON jsonQueryWrapperClause? (PATH STRING_LITERAL)? jsonQueryOnErrorOrEmptyClause? jsonQueryOnErrorOrEmptyClause?  # JsonTableQueryColumn
+    | identifier FOR ORDINALITY                                                                                                     # JsonTableOrdinalityColumn
+    | identifier EXISTS (PATH STRING_LITERAL)? jsonExistsOnErrorClause?                                                             # JsonTableExistsColumn
+    | identifier castTarget (PATH STRING_LITERAL)? jsonValueOnErrorOrEmptyClause? jsonValueOnErrorOrEmptyClause?                    # JsonTableValueColumn
+    ;
+
+xmlFunction
+    : xmlElementFunction
+    | xmlForestFunction
+    | xmlPiFunction
+    | xmlQueryFunction
+    | xmlExistsFunction
+    | xmlAggFunction
+    ;
+
+xmlElementFunction
+    : XMLELEMENT '(' NAME identifier (',' xmlAttributesFunction)? (',' expressionOrPredicate)* ')'
+    ;
+
+xmlAttributesFunction
+    : XMLATTRIBUTES '(' expressionOrPredicate AS identifier (',' expressionOrPredicate AS identifier)* ')'
+    ;
+
+xmlForestFunction
+    : XMLFOREST '(' expressionOrPredicate (AS identifier)? (',' expressionOrPredicate (AS identifier)?)* ')'
+    ;
+
+xmlPiFunction
+    : XMLPI '(' NAME identifier (',' expression)? ')';
+
+xmlQueryFunction
+    : XMLQUERY '(' expression PASSING expression ')';
+
+xmlExistsFunction
+    : XMLEXISTS '(' expression PASSING expression ')';
+
+xmlAggFunction
+    : XMLAGG '(' expression orderByClause? ')' filterClause? overClause?;
+
+xmlTableFunction
+    : XMLTABLE '(' expression PASSING expression xmlTableColumnsClause ')';
+
+xmlTableColumnsClause
+    : COLUMNS xmlTableColumn (',' xmlTableColumn)*;
+
+xmlTableColumn
+    : identifier XML (PATH STRING_LITERAL)? xmltableDefaultClause?          # XmlTableQueryColumn
+    | identifier FOR ORDINALITY                                             # XmlTableOrdinalityColumn
+    | identifier castTarget (PATH STRING_LITERAL)? xmltableDefaultClause?   # XmlTableValueColumn
+    ;
+
+xmltableDefaultClause
+    : DEFAULT expression;
+
 // Predicates
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
@@ -1382,9 +1555,11 @@ entityName
 nakedIdentifier
     : IDENTIFIER
     | QUOTED_IDENTIFIER
-    | f=(ALL
+    | f=(ABSENT
+    | ALL
     | AND
     | ANY
+    | ARRAY
     | AS
     | ASC
     | AVG
@@ -1396,6 +1571,8 @@ nakedIdentifier
     | CAST
     | COLLATE
     | COLUMN
+    | COLUMNS
+    | CONDITIONAL
     | CONFLICT
     | CONSTRAINT
     | CONTAINS
@@ -1458,6 +1635,15 @@ nakedIdentifier
     | INTO
     | IS
     | JOIN
+    | JSON
+    | JSON_ARRAY
+    | JSON_ARRAYAGG
+    | JSON_EXISTS
+    | JSON_OBJECT
+    | JSON_OBJECTAGG
+    | JSON_QUERY
+    | JSON_TABLE
+    | JSON_VALUE
     | KEY
     | KEYS
     | LAST
@@ -1484,9 +1670,11 @@ nakedIdentifier
     | MININDEX
     | MINUTE
     | MONTH
+    | NAME
     | NANOSECOND
     | NATURALID
     | NEW
+    | NESTED
     | NEXT
     | NO
     | NOT
@@ -1500,12 +1688,15 @@ nakedIdentifier
     | ONLY
     | OR
     | ORDER
+    | ORDINALITY
     | OTHERS
     | OVER
     | OVERFLOW
     | OVERLAY
     | PAD
+    | PATH
     | PARTITION
+    | PASSING
     | PERCENT
     | PLACING
     | POSITION
@@ -1513,6 +1704,7 @@ nakedIdentifier
     | QUARTER
     | RANGE
     | RESPECT
+    | RETURNING
     | RIGHT
     | ROLLUP
     | ROW
@@ -1539,7 +1731,9 @@ nakedIdentifier
     | TRUNCATE
     | TYPE
     | UNBOUNDED
+    | UNCONDITIONAL
     | UNION
+    | UNIQUE
     | UPDATE
     | USING
     | VALUE
@@ -1552,6 +1746,16 @@ nakedIdentifier
     | WITH
     | WITHIN
     | WITHOUT
+    | WRAPPER
+    | XML
+    | XMLAGG
+    | XMLATTRIBUTES
+    | XMLELEMENT
+    | XMLEXISTS
+    | XMLFOREST
+    | XMLPI
+    | XMLQUERY
+    | XMLTABLE
     | YEAR
     | ZONED)
     ;
@@ -1610,9 +1814,11 @@ VERSION                     : V E R S I O N;
 VERSIONED                   : V E R S I O N E D;
 NATURALID                   : N A T U R A L I D;
 FK                          : F K;
+ABSENT                      : A B S E N T;
 ALL                         : A L L;
 AND                         : A N D;
 ANY                         : A N Y;
+ARRAY                       : A R R A Y;
 AS                          : A S;
 ASC                         : A S C;
 AVG                         : A V G;
@@ -1624,6 +1830,8 @@ CASE                        : C A S E;
 CAST                        : C A S T;
 COLLATE                     : C O L L A T E;
 COLUMN                      : C O L U M N;
+COLUMNS                     : C O L U M N S;
+CONDITIONAL                 : C O N D I T I O N A L;
 CONFLICT                    : C O N F L I C T;
 CONSTRAINT                  : C O N S T R A I N T;
 CONTAINS                    : C O N T A I N S;
@@ -1686,6 +1894,15 @@ INTERSECTS                  : I N T E R S E C T S;
 INTO                        : I N T O;
 IS                          : I S;
 JOIN                        : J O I N;
+JSON                        : J S O N;
+JSON_ARRAY                  : J S O N '_' A R R A Y;
+JSON_ARRAYAGG               : J S O N '_' A R R A Y A G G;
+JSON_EXISTS                 : J S O N '_' E X I S T S;
+JSON_OBJECT                 : J S O N '_' O B J E C T;
+JSON_OBJECTAGG              : J S O N '_' O B J E C T A G G;
+JSON_QUERY                  : J S O N '_' Q U E R Y;
+JSON_TABLE                  : J S O N '_' T A B L E;
+JSON_VALUE                  : J S O N '_' V A L U E;
 KEY                         : K E Y;
 KEYS                        : K E Y S;
 LAST                        : L A S T;
@@ -1713,8 +1930,10 @@ MINELEMENT                  : M I N E L E M E N T;
 MININDEX                    : M I N I N D E X;
 MINUTE                      : M I N U T E;
 MONTH                       : M O N T H;
+NAME                        : N A M E;
 NANOSECOND                  : N A N O S E C O N D;
 NEW                         : N E W;
+NESTED                      : N E S T E D;
 NEXT                        : N E X T;
 NO                          : N O;
 NOT                         : N O T;
@@ -1728,13 +1947,16 @@ ON                          : O N;
 ONLY                        : O N L Y;
 OR                          : O R;
 ORDER                       : O R D E R;
+ORDINALITY                  : O R D I N A L I T Y;
 OTHERS                      : O T H E R S;
 OUTER                       : O U T E R;
 OVER                        : O V E R;
 OVERFLOW                    : O V E R F L O W;
 OVERLAY                     : O V E R L A Y;
 PAD                         : P A D;
+PATH                        : P A T H;
 PARTITION                   : P A R T I T I O N;
+PASSING                     : P A S S I N G;
 PERCENT                     : P E R C E N T;
 PLACING                     : P L A C I N G;
 POSITION                    : P O S I T I O N;
@@ -1742,6 +1964,7 @@ PRECEDING                   : P R E C E D I N G;
 QUARTER                     : Q U A R T E R;
 RANGE                       : R A N G E;
 RESPECT                     : R E S P E C T;
+RETURNING                   : R E T U R N I N G;
 RIGHT                       : R I G H T;
 ROLLUP                      : R O L L U P;
 ROW                         : R O W;
@@ -1768,7 +1991,9 @@ TRUNC                       : T R U N C;
 TRUNCATE                    : T R U N C A T E;
 TYPE                        : T Y P E;
 UNBOUNDED                   : U N B O U N D E D;
+UNCONDITIONAL               : U N C O N D I T I O N A L;
 UNION                       : U N I O N;
+UNIQUE                      : U N I Q U E;
 UPDATE                      : U P D A T E;
 USING                       : U S I N G;
 VALUE                       : V A L U E;
@@ -1779,6 +2004,16 @@ WHERE                       : W H E R E;
 WITH                        : W I T H;
 WITHIN                      : W I T H I N;
 WITHOUT                     : W I T H O U T;
+WRAPPER                     : W R A P P E R;
+XML                         : X M L;
+XMLAGG                      : X M L A G G;
+XMLATTRIBUTES               : X M L A T T R I B U T E S;
+XMLELEMENT                  : X M L E L E M E N T;
+XMLEXISTS                   : X M L E X I S T S;
+XMLFOREST                   : X M L F O R E S T;
+XMLPI                       : X M L P I;
+XMLQUERY                    : X M L Q U E R Y;
+XMLTABLE                    : X M L T A B L E;
 YEAR                        : Y E A R;
 ZONED                       : Z O N E D;
 

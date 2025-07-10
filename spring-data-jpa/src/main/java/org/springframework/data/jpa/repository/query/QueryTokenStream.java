@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -95,6 +97,32 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 	}
 
 	/**
+	 * Compose a {@link QueryTokenStream} from a collection of expressions. Expressions are rendered using space
+	 * separators.
+	 *
+	 * @param elements collection of elements.
+	 * @param visitor visitor function converting the element into a {@link QueryTokenStream}.
+	 * @return the composed token stream.
+	 */
+	static <T> QueryTokenStream concatExpressions(Collection<T> elements, Function<T, QueryTokenStream> visitor) {
+
+		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+
+		for (T child : elements) {
+
+			if (child instanceof Token t) {
+				builder.append(QueryTokens.expression(t));
+			} else if (child instanceof TerminalNode tn) {
+				builder.append(QueryTokens.expression(tn));
+			} else {
+				builder.appendExpression(visitor.apply(child));
+			}
+		}
+
+		return builder.build();
+	}
+
+	/**
 	 * Compose a {@link QueryTokenStream} from a collection of elements.
 	 *
 	 * @param elements collection of elements.
@@ -137,6 +165,26 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 		}
 
 		return QueryTokenStream.empty();
+	}
+
+	/**
+	 * Creates a {@link QueryTokenStream} representing a function call. including arguments using parentheses to wrap
+	 * arguments
+	 *
+	 * @param functionName
+	 * @param arguments
+	 * @return
+	 * @since 5.0
+	 */
+	static QueryTokenStream ofFunction(TerminalNode functionName, QueryTokenStream arguments) {
+
+		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(QueryTokens.token(functionName));
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.appendInline(arguments);
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder.build();
 	}
 
 	/**

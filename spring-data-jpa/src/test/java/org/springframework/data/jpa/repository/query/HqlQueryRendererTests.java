@@ -2653,4 +2653,108 @@ class HqlQueryRendererTests {
 				"SELECT name, lastname from Person JOIN (select number, person from Phone) WHERE name = 'John' ORDER BY name");
 	}
 
+	@Test // GH-3883
+	void jsonArray() {
+
+		assertQuery("select json_array(1, false, 'val1', 'val2' null on null)");
+		assertQuery("select json_array(1, false, 'val1', 'val2' absent on null)");
+	}
+
+	@Test // GH-3883
+	void jsonExists() {
+
+		assertQuery("select json_exists(1, e.foo)");
+		assertQuery("select json_exists(e.json, '$.theArray[$idx]' passing 1 as idx ERROR ON ERROR) from Entity e");
+
+		assertQuery("select json_exists(e.json, '$.theArray[$idx]' passing 1 as idx TRUE ON ERROR) from Entity e");
+
+		assertQuery("select json_exists(1, e.foo FALSE ON ERROR)");
+	}
+
+	@Test // GH-3883
+	void jsonObject() {
+
+		assertQuery("select json_object('key', 'value')");
+		assertQuery("select json_object('key' VALUE 'value')");
+		assertQuery("select json_object(KEY 'key' VALUE 'value')");
+		assertQuery(
+				"select json_object('key1', 'value1', KEY 'key2' VALUE 'value2', 'key3' : 'value3', 'key4', 'value4', KEY 'key5' VALUE 'value5', 'key6' : 'value6')");
+		assertQuery("select json_object('key', 'value' absent on null)");
+		assertQuery("select json_object('key', 'value' null on null)");
+	}
+
+	@Test // GH-3883
+	void jsonQuery() {
+
+		assertQuery("select json_query(e.json, '$.theString') from Entity e");
+		assertQuery("select json_query(e.json, '$.theString' with wrapper) from Entity e");
+		assertQuery("select json_query(e.json, '$.theString' without wrapper) from Entity e");
+		assertQuery("select json_query(e.json, '$.theString' without array wrapper) from Entity e");
+		assertQuery("select json_query(e.json, '$.theString' with conditional array wrapper) from Entity e");
+		assertQuery("select json_query(e.json, '$.theArray[$idx]' passing 1 as idx) from Entity e");
+
+		assertQuery(
+				"select json_query(e.json, '$.theString' without array wrapper ERROR ON ERROR EMPTY ARRAY ON EMPTY) from Entity e");
+
+		assertQuery(
+				"select json_query(e.json, '$.theString' without array wrapper EMPTY OBJECT ON ERROR NULL ON EMPTY) from Entity e");
+	}
+
+	@Test // GH-3883
+	void jsonValue() {
+
+		assertQuery("select json_value(e.json, '$.theString') from Entity e");
+		assertQuery("select json_value(e.json, '$.theArray[$idx]' passing 1 as idx) from Entity e");
+		assertQuery(
+				"select json_value(e.json, '$.theArray[$idx]' passing 1 as idx RETURNING NUMBER(12, 2) NULL ON ERROR eRRor ON error) from Entity e");
+		assertQuery(
+				"select json_value(e.json, '$.theArray[$idx]' passing 1 as idx DEFAULT 7 ON ERROR NULL ON EMPTY) from Entity e");
+	}
+
+	@Test // GH-3883
+	void jsonArrayagg() {
+
+		assertQuery("select json_arrayagg(e.theString null on null) from Entity e");
+		assertQuery(
+				"select json_arrayagg(e.theString absent on null order by e.id) FILTER (where foo = bar) from Entity e");
+	}
+
+	@Test // GH-3883
+	void jsonObjectagg() {
+
+		assertQuery("select json_objectagg(e.theString : e.id) from Entity e");
+		assertQuery("select json_objectagg(KEY e.theString VALUE e.id) from Entity e");
+		assertQuery("select json_objectagg(e.theString VALUE e.id) from Entity e");
+		assertQuery(
+				"select json_objectagg(foo : bar ABSENT ON NULL WITH UNIQUE KEYS) FILTER (where foo = bar) from Entity e");
+	}
+
+	@Test // GH-3883
+	void jsonTable() {
+
+		assertQuery("""
+				SELECT e FROM from json_table(e.json, '$'
+				columns(theInt Integer,
+				theFloat Float,
+				nonExisting exists) ERROR ON ERROR)
+				""");
+
+		assertQuery("""
+				SELECT e FROM from EntityWithJson e
+						join lateral json_table(e.json, '$' columns(theInt Integer,
+						theFloat Float,
+						theString String,
+						theBoolean Boolean,
+						theNull String,
+						theObject JSON,
+						theObject JSON WITH UNCONDITIONAL ARRAY WRAPPER ERROR ON EMPTY EMPTY ON ERROR,
+						theObject JSON ERROR ON EMPTY EMPTY ON ERROR,
+						theNestedInt Integer path '$.theObject.theInt',
+						theNestedFloat Float path '$.theObject.theFloat',
+						theNestedString String path '$.theObject.theString',
+						nested '$.theArray[*]' columns(arrayIndex for ordinality,
+							arrayValue String path '$'),
+						nonExisting exists) ERROR ON ERROR)
+				""");
+	}
 }

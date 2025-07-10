@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.util.Assert;
 import org.springframework.util.CompositeIterator;
 
 /**
@@ -187,6 +188,8 @@ abstract class QueryRenderer implements QueryTokenStream {
 	}
 
 	public static QueryRenderer inline(QueryTokenStream tokenStream) {
+
+		Assert.notNull(tokenStream, "QueryTokenStream must not be null!");
 
 		if (tokenStream instanceof QueryRendererBuilder builder) {
 			tokenStream = builder.current;

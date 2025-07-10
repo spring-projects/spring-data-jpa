@@ -22,8 +22,10 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -421,7 +423,16 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitSetReturningFunction(HqlParser.SetReturningFunctionContext ctx) {
-		return visit(ctx.simpleSetReturningFunction());
+
+		if (ctx.simpleSetReturningFunction() != null) {
+			return visit(ctx.simpleSetReturningFunction());
+		} else if (ctx.jsonTableFunction() != null) {
+			return visit(ctx.jsonTableFunction());
+		} else if (ctx.xmlTableFunction() != null) {
+			return visit(ctx.xmlTableFunction());
+		}
+
+		return QueryTokenStream.empty();
 	}
 
 	@Override
@@ -461,6 +472,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		return builder;
 	}
+
 
 	@Override
 	public QueryTokenStream visitJoinPath(HqlParser.JoinPathContext ctx) {
@@ -503,14 +515,17 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(visit(ctx.setReturningFunction()));
+		if (ctx.LATERAL() != null) {
+			builder.append(QueryTokens.expression(ctx.LATERAL()));
+		}
+
+		builder.appendExpression(visit(ctx.setReturningFunction()));
 
 		if (ctx.variable() != null) {
 			builder.appendExpression(visit(ctx.variable()));
 		}
 
 		return builder;
-
 	}
 
 	@Override
@@ -2948,6 +2963,322 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitJsonFunctionInvocation(HqlParser.JsonFunctionInvocationContext ctx) {
+		return visit(ctx.jsonFunction());
+	}
+
+	@Override
+	public QueryTokenStream visitJsonFunction(HqlParser.JsonFunctionContext ctx) {
+
+		if (ctx.jsonArrayFunction() != null) {
+			return visit(ctx.jsonArrayFunction());
+		} else if (ctx.jsonExistsFunction() != null) {
+			return visit(ctx.jsonExistsFunction());
+		} else if (ctx.jsonObjectFunction() != null) {
+			return visit(ctx.jsonObjectFunction());
+		} else if (ctx.jsonQueryFunction() != null) {
+			return visit(ctx.jsonQueryFunction());
+		} else if (ctx.jsonValueFunction() != null) {
+			return visit(ctx.jsonValueFunction());
+		} else if (ctx.jsonArrayAggFunction() != null) {
+			return visit(ctx.jsonArrayAggFunction());
+		} else if (ctx.jsonObjectAggFunction() != null) {
+			return visit(ctx.jsonObjectAggFunction());
+		}
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitJsonArrayFunction(HqlParser.JsonArrayFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonNullClause() != null) {
+			builder.appendExpression(visit(ctx.jsonNullClause()));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.JSON_ARRAY(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonExistsFunction(HqlParser.JsonExistsFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonPassingClause() != null) {
+			builder.appendExpression(visit(ctx.jsonPassingClause()));
+		}
+
+		if (ctx.jsonExistsOnErrorClause() != null) {
+			builder.appendExpression(visit(ctx.jsonExistsOnErrorClause()));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.JSON_EXISTS(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonExistsOnErrorClause(HqlParser.JsonExistsOnErrorClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonObjectFunction(HqlParser.JsonObjectFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.jsonObjectFunctionEntry(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonNullClause() != null) {
+			builder.appendExpression(visit(ctx.jsonNullClause()));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.JSON_OBJECT(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonObjectFunctionEntry(HqlParser.JsonObjectFunctionEntryContext ctx) {
+
+		if (ctx.expressionOrPredicate() != null) {
+			return visit(ctx.expressionOrPredicate());
+		} else if (ctx.jsonObjectKeyValueEntry() != null) {
+			return visit(ctx.jsonObjectKeyValueEntry());
+		} else if (ctx.jsonObjectAssignmentEntry() != null) {
+			return visit(ctx.jsonObjectAssignmentEntry());
+		}
+
+		return QueryTokenStream.empty();
+	}
+
+	@Override
+	public QueryTokenStream visitJsonObjectKeyValueEntry(HqlParser.JsonObjectKeyValueEntryContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonObjectAssignmentEntry(HqlParser.JsonObjectAssignmentEntryContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonQueryFunction(HqlParser.JsonQueryFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonPassingClause() != null) {
+			builder.appendExpression(visit(ctx.jsonPassingClause()));
+		}
+
+		if (ctx.jsonQueryWrapperClause() != null) {
+			builder.appendExpression(visit(ctx.jsonQueryWrapperClause()));
+		}
+
+		builder.append(QueryTokenStream.concat(ctx.jsonQueryOnErrorOrEmptyClause(), this::visit, TOKEN_SPACE));
+
+		return QueryTokenStream.ofFunction(ctx.JSON_QUERY(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonQueryWrapperClause(HqlParser.JsonQueryWrapperClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonQueryOnErrorOrEmptyClause(HqlParser.JsonQueryOnErrorOrEmptyClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonValueFunction(HqlParser.JsonValueFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonPassingClause() != null) {
+			builder.appendExpression(visit(ctx.jsonPassingClause()));
+		}
+
+		if (ctx.jsonValueReturningClause() != null) {
+			builder.appendExpression(visit(ctx.jsonValueReturningClause()));
+		}
+
+		builder.append(QueryTokenStream.concat(ctx.jsonValueOnErrorOrEmptyClause(), this::visit, TOKEN_SPACE));
+
+		return QueryTokenStream.ofFunction(ctx.JSON_VALUE(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonValueReturningClause(HqlParser.JsonValueReturningClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonValueOnErrorOrEmptyClause(HqlParser.JsonValueOnErrorOrEmptyClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonArrayAggFunction(HqlParser.JsonArrayAggFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expressionOrPredicate()));
+
+		if (ctx.jsonNullClause() != null) {
+			builder.appendExpression(visit(ctx.jsonNullClause()));
+		}
+
+		if (ctx.orderByClause() != null) {
+			builder.appendExpression(visit(ctx.orderByClause()));
+		}
+
+		QueryTokenStream function = QueryTokenStream.ofFunction(ctx.JSON_ARRAYAGG(), builder);
+
+		if (ctx.filterClause() == null) {
+			return function;
+		}
+
+		QueryRendererBuilder functionWithFilter = QueryRenderer.builder();
+		functionWithFilter.appendExpression(function);
+		functionWithFilter.appendExpression(visit(ctx.filterClause()));
+
+		return functionWithFilter.build();
+	}
+
+	@Override
+	public QueryTokenStream visitJsonObjectAggFunction(HqlParser.JsonObjectAggFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (ctx.KEY() != null) {
+			builder.append(QueryTokens.expression(ctx.KEY()));
+		}
+
+		builder.appendExpression(visit(ctx.expressionOrPredicate(0)));
+
+		if (ctx.VALUE() != null) {
+			builder.append(QueryTokens.expression(ctx.VALUE()));
+		} else {
+			builder.append(TOKEN_COLON);
+		}
+
+		builder.appendExpression(visit(ctx.expressionOrPredicate(1)));
+
+		if (ctx.jsonNullClause() != null) {
+			builder.appendExpression(visit(ctx.jsonNullClause()));
+		}
+
+		if (ctx.jsonUniqueKeysClause() != null) {
+			builder.appendExpression(visit(ctx.jsonUniqueKeysClause()));
+		}
+
+		QueryTokenStream function = QueryTokenStream.ofFunction(ctx.JSON_OBJECTAGG(), builder);
+
+		if (ctx.filterClause() == null) {
+			return function;
+		}
+
+		QueryRendererBuilder functionWithFilter = QueryRenderer.builder();
+		functionWithFilter.appendExpression(function);
+		functionWithFilter.appendExpression(visit(ctx.filterClause()));
+
+		return functionWithFilter.build();
+	}
+
+	@Override
+	public QueryTokenStream visitJsonPassingClause(HqlParser.JsonPassingClauseContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.PASSING()));
+
+		builder.append(QueryTokenStream.concat(ctx.jsonPassingItem(), this::visit, TOKEN_COMMA));
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitJsonPassingItem(HqlParser.JsonPassingItemContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonNullClause(HqlParser.JsonNullClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonUniqueKeysClause(HqlParser.JsonUniqueKeysClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableFunction(HqlParser.JsonTableFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.expression(), this::visit, TOKEN_COMMA));
+
+		if (ctx.jsonPassingClause() != null) {
+			builder.appendExpression(visit(ctx.jsonPassingClause()));
+		}
+
+		builder.appendExpression(visit(ctx.jsonTableColumnsClause()));
+
+		if (ctx.jsonTableErrorClause() != null) {
+			builder.appendExpression(visit(ctx.jsonTableErrorClause()));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.JSON_TABLE(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableErrorClause(HqlParser.JsonTableErrorClauseContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableColumnsClause(HqlParser.JsonTableColumnsClauseContext ctx) {
+		return QueryTokenStream.ofFunction(ctx.COLUMNS(), visit(ctx.jsonTableColumns()));
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableColumns(HqlParser.JsonTableColumnsContext ctx) {
+		return QueryTokenStream.concat(ctx.jsonTableColumn(), this::visit, TOKEN_COMMA);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableNestedColumn(HqlParser.JsonTableNestedColumnContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableQueryColumn(HqlParser.JsonTableQueryColumnContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableOrdinalityColumn(HqlParser.JsonTableOrdinalityColumnContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableExistsColumn(HqlParser.JsonTableExistsColumnContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJsonTableValueColumn(HqlParser.JsonTableValueColumnContext ctx) {
+		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+	}
+
+	@Override
 	public QueryTokenStream visitCollectionQuantifier(HqlParser.CollectionQuantifierContext ctx) {
 
 		if (ctx.elementsValuesQuantifier() != null) {
@@ -3284,29 +3615,29 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitCastTarget(HqlParser.CastTargetContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
+		List<TerminalNode> literals = ctx.INTEGER_LITERAL();
 
-		builder.append(visit(ctx.castTargetType()));
+		if (!CollectionUtils.isEmpty(literals)) {
 
-		if (ctx.INTEGER_LITERAL() != null && !ctx.INTEGER_LITERAL().isEmpty()) {
-
+			QueryRendererBuilder builder = QueryRenderer.builder();
+			builder.append(visit(ctx.castTargetType()));
 			builder.append(TOKEN_OPEN_PAREN);
 
-			List<QueryToken> tokens = new ArrayList<>();
-			ctx.INTEGER_LITERAL().forEach(terminalNode -> {
-
-				if (!tokens.isEmpty()) {
-					tokens.add(TOKEN_COMMA);
+			QueryRendererBuilder args = QueryRenderer.builder();
+			for (int i = 0; i < literals.size(); i++) {
+				if (i > 0) {
+					args.append(TOKEN_COMMA);
 				}
-				tokens.add(QueryTokens.expression(terminalNode));
+				args.append(QueryTokens.token(literals.get(i)));
+			}
 
-			});
-
-			builder.append(tokens);
+			builder.appendInline(args.build());
 			builder.append(TOKEN_CLOSE_PAREN);
+
+			return builder.build();
 		}
 
-		return builder;
+		return visit(ctx.castTargetType());
 	}
 
 	@Override
