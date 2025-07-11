@@ -40,7 +40,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
@@ -59,7 +58,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
-import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
@@ -363,6 +361,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			return AGENT_CLASSES.stream() //
 					.anyMatch(agentClass -> ClassUtils.isPresent(agentClass, classLoader));
 		}
+
 	}
 
 	/**
@@ -374,25 +373,19 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
-		String GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
+		private static final String USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
+		private static final String MODULE_NAME = "jpa";
 
 		protected @Nullable JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
 				GenerationContext generationContext) {
 
-			Environment environment = repositoryContext.getEnvironment();
-
-			String enabledByDefault = AotDetector.useGeneratedArtifacts() ? "true" : "false";
-
-			boolean enabled = Boolean
-					.parseBoolean(environment.getProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, enabledByDefault));
-			if (!enabled) {
+			if (!repositoryContext.isGeneratedRepositoriesEnabled(MODULE_NAME)) {
 				return null;
 			}
 
 			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
-
-			boolean useEntityManager = Boolean
-					.parseBoolean(environment.getProperty(GENERATED_REPOSITORIES_JPA_USE_ENTITY_MANAGER, "false"));
+			Environment environment = repositoryContext.getEnvironment();
+			boolean useEntityManager = environment.getProperty(USE_ENTITY_MANAGER, Boolean.class, false);
 
 			if (useEntityManager) {
 
@@ -430,5 +423,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			log.debug("Using scanned types for AOT repository generation");
 			return new JpaRepositoryContributor(repositoryContext);
 		}
+
 	}
+
 }

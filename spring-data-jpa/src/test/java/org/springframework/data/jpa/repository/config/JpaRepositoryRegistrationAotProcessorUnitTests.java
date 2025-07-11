@@ -29,9 +29,9 @@ import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
-
 import org.junitpioneer.jupiter.ClearSystemProperty;
 import org.junitpioneer.jupiter.SetSystemProperty;
+
 import org.springframework.aot.AotDetector;
 import org.springframework.aot.generate.ClassNameGenerator;
 import org.springframework.aot.generate.DefaultGenerationContext;
@@ -58,8 +58,11 @@ import org.springframework.mock.env.MockPropertySource;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 
 /**
+ * Unit tests for {@link JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor}.
+ *
  * @author Christoph Strobl
  * @author Hyunsang Han
+ * @author Mark Paluch
  */
 class JpaRepositoryRegistrationAotProcessorUnitTests {
 
@@ -67,9 +70,10 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	void aotProcessorMustNotRegisterDomainTypes() {
 
 		GenerationContext ctx = createGenerationContext();
+		GenericApplicationContext context = new GenericApplicationContext();
 
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(new DummyAotRepositoryContext(null) {
+				.contribute(new DummyAotRepositoryContext(context) {
 					@Override
 					public Set<Class<?>> getResolvedTypes() {
 						return Collections.singleton(Person.class);
@@ -84,8 +88,9 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 
 		GenerationContext ctx = createGenerationContext();
 
+		GenericApplicationContext context = new GenericApplicationContext();
 		new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(new DummyAotRepositoryContext(null) {
+				.contribute(new DummyAotRepositoryContext(context) {
 
 					@Override
 					public Set<MergedAnnotation<Annotation>> getResolvedAnnotations() {
@@ -127,7 +132,8 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		context.getEnvironment().getPropertySources()
 				.addFirst(new MockPropertySource().withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "true"));
 
-		JpaRepositoryContributor contributor = createContributor(new DummyAotRepositoryContext(context), ctx);
+		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(new DummyAotRepositoryContext(context), ctx);
 
 		assertThat(contributor.getMetamodel().managedType(Person.class)).isNotNull();
 	}
@@ -137,7 +143,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	void repositoryProcessorShouldEnableAotRepositoriesByDefaultWhenAotIsEnabled() {
 
 		GenerationContext ctx = createGenerationContext();
-		GenericApplicationContext context = createApplicationContext();
+		GenericApplicationContext context = new GenericApplicationContext();
 
 		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
 
@@ -145,24 +151,23 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	}
 
 	@Test // GH-3899
-	@ClearSystemProperty(key = AotDetector.AOT_ENABLED)
-	void repositoryProcessorShouldNotEnableAotRepositoriesByDefaultWhenAotIsDisabled() {
+	@ClearSystemProperty(key = AotContext.GENERATED_REPOSITORIES_ENABLED)
+	void shouldEnableAotRepositoriesByDefault() {
 
 		GenerationContext ctx = createGenerationContext();
-		GenericApplicationContext context = createApplicationContext();
+		GenericApplicationContext context = new GenericApplicationContext();
 
 		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
 
-		assertThat(contributor).isNull();
+		assertThat(contributor).isNotNull();
 	}
 
 	@Test // GH-3899
-	@SetSystemProperty(key = AotDetector.AOT_ENABLED, value = "true")
 	@SetSystemProperty(key = AotContext.GENERATED_REPOSITORIES_ENABLED, value = "false")
-	void repositoryProcessorShouldRespectExplicitRepositoryEnabledProperty() {
+	void shouldDisableAotRepositoriesWhenGeneratedRepositoriesIsFalse() {
 
 		GenerationContext ctx = createGenerationContext();
-		GenericApplicationContext context = createApplicationContext();
+		GenericApplicationContext context = new GenericApplicationContext();
 
 		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
 
@@ -170,15 +175,15 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 	}
 
 	@Test // GH-3899
-	@SetSystemProperty(key = AotContext.GENERATED_REPOSITORIES_ENABLED, value = "true")
-	void repositoryProcessorShouldEnableWhenExplicitlySetToTrue() {
+	@SetSystemProperty(key = "spring.aot.jpa.repositories.enabled", value = "false")
+	void shouldDisableAotRepositoriesWhenJpaGeneratedRepositoriesIsFalse() {
 
 		GenerationContext ctx = createGenerationContext();
-		GenericApplicationContext context = createApplicationContext();
+		GenericApplicationContext context = new GenericApplicationContext();
 
 		JpaRepositoryContributor contributor = createContributorWithPersonTypes(context, ctx);
 
-		assertThat(contributor).isNotNull();
+		assertThat(contributor).isNull();
 	}
 
 	private GenerationContext createGenerationContext() {
@@ -186,17 +191,10 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 				new InMemoryGeneratedFiles());
 	}
 
-	private GenericApplicationContext createApplicationContext() {
-		return new GenericApplicationContext();
-	}
-
-	private JpaRepositoryContributor createContributor(AotRepositoryContext repositoryContext, GenerationContext ctx) {
-		return new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
-				.contribute(repositoryContext, ctx);
-	}
-
 	private JpaRepositoryContributor createContributorWithPersonTypes(GenericApplicationContext context, GenerationContext ctx) {
-		return createContributor(new DummyAotRepositoryContext(context) {
+
+		return new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
+				.contribute(new DummyAotRepositoryContext(context) {
 			@Override
 			public Set<Class<?>> getResolvedTypes() {
 				return Collections.singleton(Person.class);
@@ -252,12 +250,12 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 
 		@Override
 		public Set<MergedAnnotation<Annotation>> getResolvedAnnotations() {
-			return null;
+			return Set.of();
 		}
 
 		@Override
 		public Set<Class<?>> getResolvedTypes() {
-			return null;
+			return Set.of();
 		}
 
 		@Override
@@ -279,5 +277,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		public IntrospectedBeanDefinition introspectBeanDefinition(String beanName) {
 			return null;
 		}
+
 	}
+
 }
