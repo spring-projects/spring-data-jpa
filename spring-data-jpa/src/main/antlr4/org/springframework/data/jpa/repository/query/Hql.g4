@@ -1337,11 +1337,7 @@ jsonObjectAggFunction
     : JSON_OBJECTAGG '(' KEY? expressionOrPredicate (VALUE | ':') expressionOrPredicate jsonNullClause? jsonUniqueKeysClause? ')' filterClause?;
 
 jsonPassingClause
-    : PASSING jsonPassingItem (',' jsonPassingItem)*
-    ;
-
-jsonPassingItem
-    : expressionOrPredicate AS identifier
+    : PASSING aliasedExpressionOrPredicate (',' aliasedExpressionOrPredicate)*
     ;
 
 jsonNullClause
@@ -1387,11 +1383,11 @@ xmlElementFunction
     ;
 
 xmlAttributesFunction
-    : XMLATTRIBUTES '(' expressionOrPredicate AS identifier (',' expressionOrPredicate AS identifier)* ')'
+    : XMLATTRIBUTES '(' aliasedExpressionOrPredicate (',' aliasedExpressionOrPredicate)* ')'
     ;
 
 xmlForestFunction
-    : XMLFOREST '(' expressionOrPredicate (AS identifier)? (',' expressionOrPredicate (AS identifier)?)* ')'
+    : XMLFOREST '(' potentiallyAliasedExpressionOrPredicate (',' potentiallyAliasedExpressionOrPredicate)* ')'
     ;
 
 xmlPiFunction
@@ -1405,6 +1401,14 @@ xmlExistsFunction
 
 xmlAggFunction
     : XMLAGG '(' expression orderByClause? ')' filterClause? overClause?;
+
+aliasedExpressionOrPredicate
+    : expressionOrPredicate AS identifier
+    ;
+
+potentiallyAliasedExpressionOrPredicate
+    : expressionOrPredicate (AS identifier)?
+    ;
 
 xmlTableFunction
     : XMLTABLE '(' expression PASSING expression xmlTableColumnsClause ')';

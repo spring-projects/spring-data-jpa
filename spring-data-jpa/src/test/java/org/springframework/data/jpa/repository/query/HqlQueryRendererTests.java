@@ -26,9 +26,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
- * Tests built around examples of HQL found in
- * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc and
- * https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#query-language<br/>
+ * Tests built around examples of HQL found in <a href=
+ * "https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc">...</a> and
+ * <a href=
+ * "https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#query-language">...</a><br/>
  * <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
@@ -2757,4 +2758,67 @@ class HqlQueryRendererTests {
 						nonExisting exists) ERROR ON ERROR)
 				""");
 	}
+
+	@Test // GH-3883
+	void xmlElement() {
+
+		assertQuery("select xmlelement(name myelement)");
+		assertQuery(
+				"select xmlelement(name `my-element`, xmlattributes(123 as attr1, '456' as `attr-2`), 'myContent', xmlelement(name empty))");
+	}
+
+	@Test // GH-3883
+	void xmlForest() {
+
+		assertQuery("select xmlforest(123 as e1)");
+		assertQuery("select xmlforest(123 as e1, 'text' as e2)");
+	}
+
+	@Test // GH-3883
+	void xmlPi() {
+
+		assertQuery("select xmlpi(name php)");
+		assertQuery("select xmlpi(name php, foo)");
+	}
+
+	@Test // GH-3883
+	void xmlQuery() {
+
+		assertQuery("select xmlquery('/a/val' passing '<a><val>asd</val></a>')");
+		assertQuery("select xmlquery('/a/val' passing e.xml) from Entity e");
+	}
+
+	@Test // GH-3883
+	void xmlExists() {
+
+		assertQuery("select xmlexists('/a/val' passing '<a><val>asd</val></a>')");
+		assertQuery("select xmlexists('/a/val' passing e.xml) from Entity e");
+	}
+
+	@Test // GH-3883
+	void xmlAgg() {
+
+		assertQuery("select xmlagg(xmlelement(name a, e.theString))");
+		assertQuery(
+				"select xmlagg(xmlelement(name a, e.theString) order by e.id) FILTER (WHERE  foo = bar) OVER (PARTITION BY expression) from Entity e");
+	}
+
+	@Test // GH-3883
+	void xmlTable() {
+
+		assertQuery("""
+				select
+						t.nonExistingWithDefault
+						from xmltable('/root/elem' passing :xml columns theInt Integer,
+						theFloat Float,
+						theString String,
+						theBoolean Boolean,
+						theNull String,
+						theObject XML,
+						theNestedString String path 'theObject/nested',
+						nonExisting String,
+						nonExistingWithDefault String default 'none') t
+				""");
+	}
+
 }

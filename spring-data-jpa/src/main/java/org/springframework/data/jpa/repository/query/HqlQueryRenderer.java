@@ -1447,7 +1447,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.PASSING()));
-		builder.append(QueryTokenStream.concat(ctx.jsonPassingItem(), this::visit, TOKEN_COMMA));
+		builder.append(QueryTokenStream.concat(ctx.aliasedExpressionOrPredicate(), this::visit, TOKEN_COMMA));
 
 		return builder;
 	}
@@ -1480,6 +1480,142 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitJsonTableColumns(HqlParser.JsonTableColumnsContext ctx) {
 		return QueryTokenStream.concat(ctx.jsonTableColumn(), this::visit, TOKEN_COMMA);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlElementFunction(HqlParser.XmlElementFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.NAME()));
+		builder.append(visit(ctx.identifier()));
+
+		if (ctx.xmlAttributesFunction() != null) {
+			builder.append(TOKEN_COMMA);
+			builder.append(visit(ctx.xmlAttributesFunction()));
+		}
+
+		if (!CollectionUtils.isEmpty(ctx.expressionOrPredicate())) {
+			builder.append(TOKEN_COMMA);
+			builder.append(QueryTokenStream.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.XMLELEMENT(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlAttributesFunction(HqlParser.XmlAttributesFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(QueryTokenStream.concat(ctx.aliasedExpressionOrPredicate(), this::visit, TOKEN_COMMA));
+
+		return QueryTokenStream.ofFunction(ctx.XMLATTRIBUTES(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlForestFunction(HqlParser.XmlForestFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(
+				QueryTokenStream.concat(ctx.potentiallyAliasedExpressionOrPredicate(), this::visit, TOKEN_COMMA));
+
+		return QueryTokenStream.ofFunction(ctx.XMLFOREST(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlPiFunction(HqlParser.XmlPiFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.NAME()));
+		builder.append(visit(ctx.identifier()));
+
+		if (ctx.expression() != null) {
+			builder.append(TOKEN_COMMA);
+			builder.append(visit(ctx.expression()));
+		}
+
+		return QueryTokenStream.ofFunction(ctx.XMLPI(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlQueryFunction(HqlParser.XmlQueryFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression(0)));
+		builder.append(QueryTokens.expression(ctx.PASSING()));
+		builder.appendExpression(visit(ctx.expression(1)));
+
+		return QueryTokenStream.ofFunction(ctx.XMLQUERY(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlExistsFunction(HqlParser.XmlExistsFunctionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendExpression(visit(ctx.expression(0)));
+		builder.append(QueryTokens.expression(ctx.PASSING()));
+		builder.appendExpression(visit(ctx.expression(1)));
+
+		return QueryTokenStream.ofFunction(ctx.XMLEXISTS(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlAggFunction(HqlParser.XmlAggFunctionContext ctx) {
+
+		QueryRendererBuilder args = QueryRenderer.builder();
+
+		args.appendExpression(visit(ctx.expression()));
+		if (ctx.orderByClause() != null) {
+			args.appendExpression(visit(ctx.orderByClause()));
+		}
+
+		QueryTokenStream function = QueryTokenStream.ofFunction(ctx.XMLAGG(), args);
+
+		if (ctx.filterClause() == null && ctx.overClause() == null) {
+			return function;
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.appendExpression(function);
+
+		if (ctx.filterClause() != null) {
+			builder.appendExpression(visit(ctx.filterClause()));
+		}
+
+		if (ctx.overClause() != null) {
+			builder.appendExpression(visit(ctx.overClause()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitXmlTableFunction(HqlParser.XmlTableFunctionContext ctx) {
+
+		QueryRendererBuilder args = QueryRenderer.builder();
+
+		args.appendExpression(visit(ctx.expression(0)));
+		args.append(QueryTokens.expression(ctx.PASSING()));
+		args.appendExpression(visit(ctx.expression(1)));
+		args.appendExpression(visit(ctx.xmlTableColumnsClause()));
+
+		return QueryTokenStream.ofFunction(ctx.XMLTABLE(), args);
+	}
+
+	@Override
+	public QueryTokenStream visitXmlTableColumnsClause(HqlParser.XmlTableColumnsClauseContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(ctx.COLUMNS()));
+		builder.append(QueryTokenStream.concat(ctx.xmlTableColumn(), this::visit, TOKEN_COMMA));
+
+		return builder;
 	}
 
 	@Override
