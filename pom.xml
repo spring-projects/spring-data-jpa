@@ -28,8 +28,8 @@
 
 	<properties>
 		<antlr>4.13.0</antlr> <!-- align with Hibernate's parser -->
-		<eclipselink>4.0.6</eclipselink>
-		<eclipselink-next>4.0.7-SNAPSHOT</eclipselink-next>
+		<eclipselink>4.0.7</eclipselink>
+		<eclipselink-next>4.0.8-SNAPSHOT</eclipselink-next>
 		<hibernate>6.6.17.Final</hibernate>
 		<hibernate-62>6.2.38.Final</hibernate-62>
 		<hibernate-66-snapshots>6.6.18-SNAPSHOT</hibernate-66-snapshots>
