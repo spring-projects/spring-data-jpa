@@ -57,6 +57,7 @@ public interface Specification<T> extends Serializable {
 	 *
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @return guaranteed to be not {@literal null}.
+	 * @since 4.0
 	 */
 	static <T> Specification<T> unrestricted() {
 		return (root, query, builder) -> null;
