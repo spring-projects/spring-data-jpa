@@ -45,6 +45,16 @@ public interface Specification<T> extends Serializable {
 	@Serial long serialVersionUID = 1L;
 
 	/**
+	 * Simple static factory method to create a specification matching all objects.
+	 *
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @return guaranteed to be not {@literal null}.
+	 */
+	static <T> Specification<T> unrestricted() {
+		return (root, query, builder) -> null;
+	}
+
+	/**
 	 * Negates the given {@link Specification}.
 	 *
 	 * @apiNote with 4.0, this method will no longer accept {@literal null} specifications.
@@ -72,7 +82,8 @@ public interface Specification<T> extends Serializable {
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
-	 * @deprecated since 3.5, to be removed with 4.0 as we no longer want to support {@literal null} specifications.
+	 * @deprecated since 3.5, to be removed with 4.0 as we no longer want to support {@literal null} specifications. Use
+	 *             {@link #unrestricted()} instead.
 	 */
 	@Deprecated(since = "3.5.0", forRemoval = true)
 	static <T> Specification<T> where(@Nullable Specification<T> spec) {
