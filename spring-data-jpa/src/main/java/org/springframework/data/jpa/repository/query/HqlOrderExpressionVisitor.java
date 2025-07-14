@@ -210,6 +210,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	@Override
 	public Expression<?> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
+
 		Expression<String> condition = visitRequired(ctx.expression(0));
 		Expression<String> match = visitRequired(ctx.expression(1));
 		Expression<Character> escape = ctx.ESCAPE() != null ? charLiteralOf(ctx.ESCAPE()) : null;
@@ -224,8 +225,10 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 						? cb.notLike(condition, match) //
 						: cb.notLike(condition, match, escape);
 			}
-		} else {
+		} else if (ctx.ILIKE() != null && cb instanceof HibernateCriteriaBuilder) {
+
 			HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
+
 			if (ctx.NOT() == null) {
 				return escape == null //
 						? hcb.ilike(condition, match) //
@@ -235,6 +238,8 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 						? hcb.notIlike(condition, match) //
 						: hcb.notIlike(condition, match, escape);
 			}
+		} else {
+			throw new UnsupportedOperationException("Unsupported string pattern: " + ctx.getText());
 		}
 	}
 

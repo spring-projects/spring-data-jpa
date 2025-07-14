@@ -90,17 +90,20 @@ final class NamedQuery extends AbstractJpaQuery {
 			throw QueryCreationException.create(method, CANNOT_EXTRACT_QUERY);
 		}
 
-		if (parameters.hasPageableParameter()) {
-			LOG.warn(String.format(
-					"Query method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied; Use @%s(value=…) instead to apply sorting.",
-					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
-		}
-
+		boolean nativeQuery = method.isNativeQuery() || extractor.isNativeQuery(namedQuery);
 		String queryString = extractor.extractQueryString(namedQuery);
 
+		if (parameters.hasPageableParameter()) {
+
+			LOG.warn(String.format(
+					"Query method %s is backed by a NamedQuery but contains a Pageable parameter; Sorting delivered via this Pageable will not be applied; Use @%s(value=…) instead to apply sorting.",
+					method, nativeQuery ? "NativeQuery" : "Query"));
+		}
+
+		// || namedQuery.toString().contains("NativeQuery")
 		DeclaredQuery declaredQuery;
 		if (StringUtils.hasText(queryString)) {
-			if (method.isNativeQuery() || namedQuery.toString().contains("NativeQuery")) {
+			if (nativeQuery) {
 				declaredQuery = DeclaredQuery.nativeQuery(queryString);
 			} else {
 				declaredQuery = DeclaredQuery.jpqlQuery(queryString);

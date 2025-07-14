@@ -35,7 +35,10 @@ import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 
 import org.eclipse.persistence.config.QueryHints;
+import org.eclipse.persistence.internal.queries.DatabaseQueryMechanism;
+import org.eclipse.persistence.internal.queries.JPQLCallQueryMechanism;
 import org.eclipse.persistence.jpa.JpaQuery;
+import org.eclipse.persistence.queries.DatabaseQuery;
 import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
@@ -50,6 +53,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.StringUtils;
 
 /**
  * Enumeration representing persistence providers to be used.
@@ -137,11 +141,37 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 		@Override
 		public String extractQueryString(Object query) {
-			return ((JpaQuery<?>) query).getDatabaseQuery().getJPQLString();
+
+			if (query instanceof JpaQuery<?> jpaQuery) {
+
+				DatabaseQuery databaseQuery = jpaQuery.getDatabaseQuery();
+
+				if (StringUtils.hasText(databaseQuery.getJPQLString())) {
+					return databaseQuery.getJPQLString();
+				}
+
+				if (StringUtils.hasText(databaseQuery.getSQLString())) {
+					return databaseQuery.getSQLString();
+				}
+			}
+
+			return "";
 		}
 
 		@Override
 		public boolean isNativeQuery(Object query) {
+
+			if (query instanceof JpaQuery<?> jpaQuery) {
+
+				DatabaseQueryMechanism call = jpaQuery.getDatabaseQuery().getQueryMechanism();
+
+				if (call instanceof JPQLCallQueryMechanism) {
+					return false;
+				}
+
+				return true;
+			}
+
 			return false;
 		}
 
