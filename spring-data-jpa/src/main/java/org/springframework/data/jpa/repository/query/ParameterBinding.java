@@ -220,7 +220,7 @@ public class ParameterBinding {
 	 * @author Thomas Darimont
 	 * @author Mark Paluch
 	 */
-	static class PartTreeParameterBinding extends ParameterBinding {
+	public static class PartTreeParameterBinding extends ParameterBinding {
 
 		private final Class<?> parameterType;
 		private final JpqlQueryTemplates templates;
@@ -252,6 +252,14 @@ public class ParameterBinding {
 		 */
 		public boolean isIsNullParameter() {
 			return Type.IS_NULL.equals(type);
+		}
+
+		public boolean isIgnoreCase() {
+			return ignoreCase;
+		}
+
+		public JpqlQueryTemplates getTemplates() {
+			return templates;
 		}
 
 		public @Nullable Object getValue() {

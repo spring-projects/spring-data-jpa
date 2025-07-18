@@ -20,26 +20,33 @@ import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQueryReference;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension;
 import org.springframework.data.jpa.repository.query.*;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
+import org.springframework.data.repository.config.PropertiesBasedNamedQueriesFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
+import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.Assert;
@@ -54,28 +61,57 @@ import org.springframework.util.StringUtils;
 class QueriesFactory {
 
 	private final EntityManagerFactory entityManagerFactory;
+	private final NamedQueries namedQueries;
 	private final Metamodel metamodel;
 	private final EscapeCharacter escapeCharacter;
 	private final JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
 
-	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory) {
-		this(configurationSource, entityManagerFactory, entityManagerFactory.getMetamodel());
+	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
+			ClassLoader classLoader) {
+		this(configurationSource, entityManagerFactory, entityManagerFactory.getMetamodel(), classLoader);
 	}
 
 	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
-			Metamodel metamodel) {
+			Metamodel metamodel, ClassLoader classLoader) {
 
 		this.metamodel = metamodel;
+		this.namedQueries = getNamedQueries(configurationSource, classLoader);
 		this.entityManagerFactory = entityManagerFactory;
 
 		Optional<Character> escapeCharacter = configurationSource.getAttribute("escapeCharacter", Character.class);
 		this.escapeCharacter = escapeCharacter.map(EscapeCharacter::of).orElse(EscapeCharacter.DEFAULT);
 	}
 
+	private NamedQueries getNamedQueries(@Nullable RepositoryConfigurationSource configSource, ClassLoader classLoader) {
+
+		String location = configSource != null ? configSource.getNamedQueryLocation().orElse(null) : null;
+
+		if (location == null) {
+			location = new JpaRepositoryConfigExtension().getDefaultNamedQueryLocation();
+		}
+
+		if (StringUtils.hasText(location)) {
+
+			try {
+
+				PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
+
+				PropertiesBasedNamedQueriesFactoryBean factoryBean = new PropertiesBasedNamedQueriesFactoryBean();
+				factoryBean.setLocations(resolver.getResources(location));
+				factoryBean.afterPropertiesSet();
+				return factoryBean.getObject();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return new PropertiesBasedNamedQueries(new Properties());
+	}
+
 	/**
 	 * Creates the {@link AotQueries} used within a specific {@link JpaQueryMethod}.
 	 *
-	 * @param context
+	 * @param repositoryInformation
 	 * @param query
 	 * @param selector
 	 * @param queryMethod
@@ -89,12 +125,16 @@ class QueriesFactory {
 			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query, queryMethod);
 		}
 
-		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryMethod.getNamedQueryName());
-		if (namedQuery != null) {
-			return buildNamedQuery(returnedType, selector, namedQuery, query, queryMethod);
+		String queryName = queryMethod.getNamedQueryName();
+		if (hasNamedQuery(queryName, returnedType)) {
+			return buildNamedQuery(returnedType, selector, queryName, query, queryMethod);
 		}
 
 		return buildPartTreeQuery(returnedType, repositoryInformation, query, queryMethod);
+	}
+
+	private boolean hasNamedQuery(String queryName, ReturnedType returnedType) {
+		return namedQueries.hasQuery(queryName) || getNamedQuery(returnedType, queryName) != null;
 	}
 
 	private AotQueries buildStringQuery(Class<?> domainType, ReturnedType returnedType, QueryEnhancerSelector selector,
@@ -137,10 +177,9 @@ class QueriesFactory {
 			return AotQueries.from(aotStringQuery, queryFunction.apply(countQuery));
 		}
 
-		String namedCountQueryName = queryMethod.getNamedCountQueryName();
-		TypedQueryReference<?> namedCountQuery = getNamedQuery(returnedType, namedCountQueryName);
-		if (namedCountQuery != null) {
-			return AotQueries.from(aotStringQuery, buildNamedAotQuery(namedCountQuery, queryMethod, isNative));
+		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+			return AotQueries.from(aotStringQuery,
+					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, isNative));
 		}
 
 		String countProjection = query.getString("countProjection");
@@ -148,30 +187,52 @@ class QueriesFactory {
 	}
 
 	private AotQueries buildNamedQuery(ReturnedType returnedType, QueryEnhancerSelector selector,
-			TypedQueryReference<?> namedQuery, MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
+			String queryName, MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
-		NamedAotQuery aotQuery = buildNamedAotQuery(namedQuery, queryMethod,
-				query.isPresent() && query.getBoolean("nativeQuery"));
+		boolean nativeQuery = query.isPresent() && query.getBoolean("nativeQuery");
+		AotQuery aotQuery = createNamedAotQuery(returnedType, queryName, queryMethod, nativeQuery);
 
 		String countQuery = query.isPresent() ? query.getString("countQuery") : null;
+
 		if (StringUtils.hasText(countQuery)) {
 			return AotQueries.from(aotQuery,
 					aotQuery.isNative() ? StringAotQuery.nativeQuery(countQuery) : StringAotQuery.jpqlQuery(countQuery));
 		}
 
-		TypedQueryReference<?> namedCountQuery = getNamedQuery(returnedType, queryMethod.getNamedCountQueryName());
-
-		if (namedCountQuery != null) {
-			return AotQueries.from(aotQuery, buildNamedAotQuery(namedCountQuery, queryMethod, aotQuery.isNative()));
+		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+			return AotQueries.from(aotQuery,
+					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, nativeQuery));
 		}
 
 		String countProjection = query.isPresent() ? query.getString("countProjection") : null;
 		return AotQueries.from(aotQuery, it -> {
-			return StringAotQuery.of(aotQuery.getQuery()).getQuery();
+
+			if (it instanceof StringAotQuery sq) {
+				return sq.getQuery();
+			}
+
+			return ((NamedAotQuery) aotQuery).getQuery();
 		}, countProjection, selector);
 	}
 
-	private NamedAotQuery buildNamedAotQuery(TypedQueryReference<?> namedQuery, JpaQueryMethod queryMethod,
+	private AotQuery createNamedAotQuery(ReturnedType returnedType, String queryName, JpaQueryMethod queryMethod,
+			boolean isNative) {
+
+		if (namedQueries.hasQuery(queryName)) {
+
+			String queryString = namedQueries.getQuery(queryName);
+			return StringAotQuery.named(queryName,
+					isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString));
+		}
+
+		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryName);
+
+		Assert.state(namedQuery != null, "Native named query must not be null");
+
+		return createNamedAotQuery(namedQuery, queryMethod, isNative);
+	}
+
+	private AotQuery createNamedAotQuery(TypedQueryReference<?> namedQuery, JpaQueryMethod queryMethod,
 			boolean isNative) {
 
 		QueryExtractor queryExtractor = queryMethod.getQueryExtractor();
@@ -215,9 +276,9 @@ class QueriesFactory {
 			return AotQueries.from(aotQuery, StringAotQuery.jpqlQuery(query.getString("countQuery")));
 		}
 
-		TypedQueryReference<?> namedCountQuery = getNamedQuery(returnedType, queryMethod.getNamedCountQueryName());
-		if (namedCountQuery != null) {
-			return AotQueries.from(aotQuery, buildNamedAotQuery(namedCountQuery, queryMethod, false));
+		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+			return AotQueries.from(aotQuery,
+					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, false));
 		}
 
 		AotQuery partTreeCountQuery = createCountQuery(partTree, returnedType, queryMethod.getParameters(), templates);

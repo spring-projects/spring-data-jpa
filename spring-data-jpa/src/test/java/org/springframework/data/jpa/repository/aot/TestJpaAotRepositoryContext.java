@@ -18,24 +18,27 @@ package org.springframework.data.jpa.repository.aot;
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.test.tools.ClassFile;
 import org.springframework.data.jpa.domain.sample.Role;
+import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.support.JpaRepositoryFragmentsContributor;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.config.AotRepositoryInformation;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryInformation;
+import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.AnnotationRepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition;
-import org.springframework.lang.Nullable;
 
 /**
  * Test {@link AotRepositoryContext} implementation for JPA repositories.
@@ -44,15 +47,22 @@ import org.springframework.lang.Nullable;
  */
 public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 
-	private final StubRepositoryInformation repositoryInformation;
+	private final AotRepositoryInformation repositoryInformation;
 	private final Class<T> repositoryInterface;
 	private final RepositoryConfigurationSource configurationSource;
+	private @Nullable ConfigurableListableBeanFactory beanFactory;
 
 	public TestJpaAotRepositoryContext(Class<T> repositoryInterface, @Nullable RepositoryComposition composition,
 			RepositoryConfigurationSource configurationSource) {
 		this.repositoryInterface = repositoryInterface;
 		this.configurationSource = configurationSource;
-		this.repositoryInformation = new StubRepositoryInformation(repositoryInterface, composition);
+
+		RepositoryMetadata metadata = AnnotationRepositoryMetadata.getMetadata(repositoryInterface);
+
+		RepositoryComposition.RepositoryFragments fragments = JpaRepositoryFragmentsContributor.DEFAULT.describe(metadata);
+
+		this.repositoryInformation = new AotRepositoryInformation(metadata, SimpleJpaRepository.class,
+				composition.append(fragments).getFragments().stream().toList());
 	}
 
 	public Class<T> getRepositoryInterface() {
@@ -61,7 +71,7 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 
 	@Override
 	public ConfigurableListableBeanFactory getBeanFactory() {
-		return null;
+		return beanFactory;
 	}
 
 	@Override
@@ -116,22 +126,10 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 
 	@Override
 	public Set<Class<?>> getResolvedTypes() {
-		return Set.of(User.class, Role.class);
+		return Set.of(User.class, SpecialUser.class, Role.class);
 	}
 
-	public List<ClassFile> getRequiredContextFiles() {
-		return List.of(classFileForType(repositoryInformation.getRepositoryBaseClass()));
-	}
-
-	static ClassFile classFileForType(Class<?> type) {
-
-		String name = type.getName();
-		ClassPathResource cpr = new ClassPathResource(name.replaceAll("\\.", "/") + ".class");
-
-		try {
-			return ClassFile.of(name, cpr.getContentAsByteArray());
-		} catch (IOException e) {
-			throw new IllegalArgumentException("Cannot open [%s].".formatted(cpr.getPath()));
-		}
+	public void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
 	}
 }

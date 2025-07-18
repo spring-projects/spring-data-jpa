@@ -373,7 +373,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	 */
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
-		private static final String USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
+		public static final String USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
 		private static final String MODULE_NAME = "jpa";
 
 		protected @Nullable JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,

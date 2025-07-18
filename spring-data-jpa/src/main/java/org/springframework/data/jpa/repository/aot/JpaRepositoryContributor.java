@@ -87,26 +87,29 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
-
-		super(repositoryContext);
-
-		this.context = repositoryContext;
-		this.metamodel = entityManagerFactory.getMetamodel();
-		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
-		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory);
-		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
+		this(repositoryContext, entityManagerFactory.getMetamodel(),
+				PersistenceProvider.fromEntityManagerFactory(entityManagerFactory),
+				new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
+						repositoryContext.getRequiredClassLoader()),
+				new EntityGraphLookup(entityManagerFactory));
 	}
 
 	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, AotMetamodel metamodel) {
+		this(repositoryContext, metamodel,
+				PersistenceProvider.fromEntityManagerFactory(metamodel.getEntityManagerFactory()),
+				new QueriesFactory(repositoryContext.getConfigurationSource(), metamodel.getEntityManagerFactory(),
+						repositoryContext.getRequiredClassLoader()),
+				new EntityGraphLookup(metamodel.getEntityManagerFactory()));
+	}
 
+	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, Metamodel metamodel,
+			PersistenceProvider persistenceProvider, QueriesFactory queriesFactory, EntityGraphLookup entityGraphLookup) {
 		super(repositoryContext);
-
-		this.context = repositoryContext;
 		this.metamodel = metamodel;
-		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(metamodel.getEntityManagerFactory());
-		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(),
-				metamodel.getEntityManagerFactory(), metamodel);
-		this.entityGraphLookup = new EntityGraphLookup(metamodel.getEntityManagerFactory());
+		this.persistenceProvider = persistenceProvider;
+		this.queriesFactory = queriesFactory;
+		this.entityGraphLookup = entityGraphLookup;
+		this.context = repositoryContext;
 	}
 
 	@Override

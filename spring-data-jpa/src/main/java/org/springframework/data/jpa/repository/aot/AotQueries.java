@@ -101,6 +101,10 @@ record AotQueries(AotQuery result, AotQuery count) {
 				serialized.put("query", sq.getQueryString());
 			}
 
+			if (result() instanceof StringAotQuery.NamedStringAotQuery nsq) {
+				serialized.put("name", nsq.getQueryName());
+			}
+
 			if (paging) {
 
 				if (count() instanceof NamedAotQuery nq) {
@@ -111,6 +115,10 @@ record AotQueries(AotQuery result, AotQuery count) {
 
 				if (count() instanceof StringAotQuery sq) {
 					serialized.put("count-query", sq.getQueryString());
+				}
+
+				if (count() instanceof StringAotQuery.NamedStringAotQuery nsq) {
+					serialized.put("count-name", nsq.getQueryName());
 				}
 			}
 

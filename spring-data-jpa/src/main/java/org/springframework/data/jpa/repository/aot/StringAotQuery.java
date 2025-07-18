@@ -48,6 +48,19 @@ abstract class StringAotQuery extends AotQuery {
 	}
 
 	/**
+	 * Creates a new named (via {@link org.springframework.data.repository.core.NamedQueries}) {@code StringAotQuery} from
+	 * a {@link DeclaredQuery}. Parses the query into {@link PreprocessedQuery}.
+	 */
+	static StringAotQuery named(String queryName, DeclaredQuery query) {
+
+		if (query instanceof PreprocessedQuery pq) {
+			return new NamedStringAotQuery(queryName, pq, false);
+		}
+
+		return new NamedStringAotQuery(queryName, PreprocessedQuery.parse(query), false);
+	}
+
+	/**
 	 * Creates a new {@code StringAotQuery} from a JPQL {@code queryString}. Parses the query into
 	 * {@link PreprocessedQuery}.
 	 */
@@ -144,6 +157,20 @@ abstract class StringAotQuery extends AotQuery {
 			return new DeclaredAotQuery(query.rewrite(rewritten.getQueryString()), constructorExpressionOrDefaultProjection);
 		}
 
+	}
+
+	static class NamedStringAotQuery extends DeclaredAotQuery {
+
+		private final String queryName;
+
+		NamedStringAotQuery(String queryName, PreprocessedQuery query, boolean constructorExpressionOrDefaultProjection) {
+			super(query, constructorExpressionOrDefaultProjection);
+			this.queryName = queryName;
+		}
+
+		public String getQueryName() {
+			return queryName;
+		}
 	}
 
 	/**

@@ -19,11 +19,14 @@ import jakarta.persistence.EntityManager;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
+import java.util.List;
 
 import org.mockito.Mockito;
 
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -33,17 +36,22 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.data.expression.ValueExpressionParser;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
+import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.springframework.data.repository.core.support.RepositoryFragment;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.util.ReflectionUtils;
 
@@ -57,21 +65,31 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  */
 @ImportResource("classpath:/infrastructure.xml")
-class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
+public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 	private final Class<?> repositoryInterface;
+	private final boolean registerFragmentFacade;
 	private final TestJpaAotRepositoryContext<?> repositoryContext;
 
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface) {
-		this(repositoryInterface, SampleConfig.class);
+		this(repositoryInterface, SampleConfig.class, true);
 	}
 
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface, Class<?> configClass) {
+		this(repositoryInterface, configClass, true);
+	}
+
+	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface, Class<?> configClass,
+			boolean registerFragmentFacade, Class<?>... additionalFragments) {
 		this.repositoryInterface = repositoryInterface;
-		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, null,
+
+		RepositoryComposition composition = RepositoryComposition
+				.of((List) Arrays.stream(additionalFragments).map(RepositoryFragment::structural).toList());
+		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, composition,
 				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(configClass),
 						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
 						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
+		this.registerFragmentFacade = registerFragmentFacade;
 	}
 
 	@Override
@@ -79,27 +97,33 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 		TestGenerationContext generationContext = new TestGenerationContext(repositoryInterface);
 
+		repositoryContext.setBeanFactory(beanFactory);
+
 		new JpaRepositoryContributor(repositoryContext).contribute(generationContext);
 
 		AbstractBeanDefinition aotGeneratedRepository = BeanDefinitionBuilder
 				.genericBeanDefinition(repositoryInterface.getName() + "Impl__Aot")
 				.addConstructorArgValue(new RuntimeBeanReference(EntityManager.class))
-				.addConstructorArgValue(getCreationContext(repositoryContext)).getBeanDefinition();
+				.addConstructorArgValue(
+						getCreationContext(repositoryContext, beanFactory.getBean(Environment.class), beanFactory))
+				.getBeanDefinition();
 
 		TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
 			beanFactory.setBeanClassLoader(compiled.getClassLoader());
 			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition("fragment", aotGeneratedRepository);
 		});
 
-		BeanDefinition fragmentFacade = BeanDefinitionBuilder.rootBeanDefinition((Class) repositoryInterface, () -> {
+		if (registerFragmentFacade) {
+
+			BeanDefinition fragmentFacade = BeanDefinitionBuilder.rootBeanDefinition((Class) repositoryInterface, () -> {
 
 			Object fragment = beanFactory.getBean("fragment");
 			Object proxy = getFragmentFacadeProxy(fragment);
 
 			return repositoryInterface.cast(proxy);
 		}).getBeanDefinition();
-
-		((BeanDefinitionRegistry) beanFactory).registerBeanDefinition("fragmentFacade", fragmentFacade);
+			((BeanDefinitionRegistry) beanFactory).registerBeanDefinition("fragmentFacade", fragmentFacade);
+		}
 	}
 
 	private Object getFragmentFacadeProxy(Object fragment) {
@@ -124,7 +148,7 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 	}
 
 	private RepositoryFactoryBeanSupport.FragmentCreationContext getCreationContext(
-			TestJpaAotRepositoryContext<?> repositoryContext) {
+			TestJpaAotRepositoryContext<?> repositoryContext, Environment environment, ListableBeanFactory beanFactory) {
 
 		RepositoryFactoryBeanSupport.FragmentCreationContext creationContext = new RepositoryFactoryBeanSupport.FragmentCreationContext() {
 			@Override
@@ -134,7 +158,10 @@ class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 			@Override
 			public ValueExpressionDelegate getValueExpressionDelegate() {
-				return ValueExpressionDelegate.create();
+
+				QueryMethodValueEvaluationContextAccessor accessor = new QueryMethodValueEvaluationContextAccessor(environment,
+						beanFactory);
+				return new ValueExpressionDelegate(accessor, ValueExpressionParser.create());
 			}
 
 			@Override

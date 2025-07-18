@@ -17,19 +17,27 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.Tuple;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.CollectionFactory;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.expression.ValueExpression;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
+import org.springframework.data.jpa.repository.query.JpaResultConverters;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.jpa.util.TupleBackedMap;
@@ -49,6 +57,19 @@ import org.springframework.util.ConcurrentLruCache;
  * @since 4.0
  */
 public class AotRepositoryFragmentSupport {
+
+	private static final ConversionService CONVERSION_SERVICE;
+
+	static {
+
+		ConfigurableConversionService conversionService = new DefaultConversionService();
+
+		conversionService.addConverter(JpaResultConverters.BlobToByteArrayConverter.INSTANCE);
+		conversionService.removeConvertible(Collection.class, Object.class);
+		conversionService.removeConvertible(Object.class, Optional.class);
+
+		CONVERSION_SERVICE = conversionService;
+	}
 
 	private final RepositoryMetadata repositoryMetadata;
 
@@ -111,6 +132,41 @@ public class AotRepositoryFragmentSupport {
 		return expression.evaluate(contextProvider.getEvaluationContext(args, expression.getExpressionDependencies()));
 	}
 
+	protected @Nullable Object mapIgnoreCase(@Nullable Object source, UnaryOperator<String> mapper) {
+
+		if (source == null) {
+			return null;
+		}
+
+		if (source.getClass().isArray()) {
+			int length = Array.getLength(source);
+			Collection<Object> result = new ArrayList<>(length);
+
+			for (int i = 0; i < length; i++) {
+				result.add(Array.get(source, i));
+			}
+			source = result;
+		}
+
+		if (source instanceof Collection<?> c) {
+
+			Collection<@Nullable Object> result = new ArrayList<>(c.size());
+
+			for (Object o : c) {
+
+				if (o instanceof String s) {
+					result.add(mapper.apply(s));
+				} else {
+					result.add(o != null ? mapper.apply(o.toString()) : null);
+				}
+			}
+
+			return result;
+		}
+
+		return source;
+	}
+
 	protected <T> @Nullable T convertOne(@Nullable Object result, boolean nativeQuery, Class<T> projection) {
 
 		if (result == null) {
@@ -119,6 +175,10 @@ public class AotRepositoryFragmentSupport {
 
 		if (projection.isInstance(result)) {
 			return projection.cast(result);
+		}
+
+		if (CONVERSION_SERVICE.canConvert(result.getClass(), projection)) {
+			return CONVERSION_SERVICE.convert(result, projection);
 		}
 
 		return projectionFactory.createProjection(projection,

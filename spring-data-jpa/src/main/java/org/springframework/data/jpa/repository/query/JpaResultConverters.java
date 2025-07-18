@@ -21,9 +21,9 @@ import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
 
-import org.springframework.core.convert.converter.Converter;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.dao.CleanupFailureDataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.util.StreamUtils;
@@ -35,7 +35,7 @@ import org.springframework.util.StreamUtils;
  * @author Mark Paluch
  * @since 1.6
  */
-final class JpaResultConverters {
+public final class JpaResultConverters {
 
 	/**
 	 * {@code private} to prevent instantiation.
@@ -47,7 +47,7 @@ final class JpaResultConverters {
 	 *
 	 * @author Thomas Darimont
 	 */
-	enum BlobToByteArrayConverter implements Converter<Blob, byte[]> {
+	public enum BlobToByteArrayConverter implements Converter<Blob, byte[]> {
 
 		INSTANCE;
 
