@@ -98,8 +98,6 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		this.projection = detectProjection(this.statement);
 		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(this.statement));
 		this.joinAliases = Collections.unmodifiableSet(getJoinAliases(this.statement));
-		byte[] tmp = SerializationUtils.serialize(this.statement);
-		// this.serialized = tmp != null ? tmp : new byte[0];
 		this.serialized = SerializationUtils.serialize(this.statement);
 	}
 
