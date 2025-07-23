@@ -64,7 +64,7 @@ public class Jpa21Utils {
 	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
 	 *
 	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a2814">Jakarta
-	 *      Persistence Specfication - Use of Entity Graphs in find and query operations</a>
+	 *      Persistence Specification - Use of Entity Graphs in find and query operations</a>
 	 * @param em must not be {@literal null}.
 	 * @param jpaEntityGraph must not be {@literal null}.
 	 * @param entityType must not be {@literal null}.
