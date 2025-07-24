@@ -73,7 +73,6 @@ import org.springframework.util.StringUtils;
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	private final DeclaredQuery query;
-	private final Statement statement;
 	private final ParsedType parsedType;
 	private final boolean hasConstructorExpression;
 	private final @Nullable String primaryAlias;
@@ -88,15 +87,15 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public JSqlParserQueryEnhancer(DeclaredQuery query) {
 
 		this.query = query;
-		this.statement = parseStatement(query.getQueryString(), Statement.class);
+		Statement statement = parseStatement(query.getQueryString(), Statement.class);
 
 		this.parsedType = detectParsedType(statement);
 		this.hasConstructorExpression = QueryUtils.hasConstructorExpression(query.getQueryString());
-		this.primaryAlias = detectAlias(this.parsedType, this.statement);
-		this.projection = detectProjection(this.statement);
-		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(this.statement));
-		this.joinAliases = Collections.unmodifiableSet(getJoinAliases(this.statement));
-		this.serialized = SerializationUtils.serialize(this.statement);
+		this.primaryAlias = detectAlias(this.parsedType, statement);
+		this.projection = detectProjection(statement);
+		this.selectAliases = Collections.unmodifiableSet(getSelectionAliases(statement));
+		this.joinAliases = Collections.unmodifiableSet(getJoinAliases(statement));
+		this.serialized = SerializationUtils.serialize(statement);
 	}
 
 	/**
@@ -215,8 +214,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param statement
 	 * @param mapper
 	 * @param fallback
-	 * @return
 	 * @param <T>
+	 * @return
 	 */
 	private static <T> T doWithPlainSelect(Statement statement, java.util.function.Function<PlainSelect, T> mapper,
 			Supplier<T> fallback) {
@@ -236,8 +235,8 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	 * @param skipIf
 	 * @param mapper
 	 * @param fallback
-	 * @return
 	 * @param <T>
+	 * @return
 	 */
 	private static <T> T doWithPlainSelect(Statement statement, Predicate<PlainSelect> skipIf,
 			java.util.function.Function<PlainSelect, T> mapper, Supplier<T> fallback) {
