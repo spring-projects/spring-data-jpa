@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Choi Wang Gyu
  */
 class JpqlQueryBuilderUnitTests {
 
@@ -134,6 +135,31 @@ class JpqlQueryBuilderUnitTests {
 		// TODO: can we have this where.value(foo).memberOf(pathAndOrigin);
 		assertThat(where.notMemberOf(expression("'AT'")).render(context)).isEqualTo("'AT' NOT MEMBER OF o.country");
 		assertThat(where.neq(expression("'AT'")).render(context)).isEqualTo("o.country != 'AT'");
+	}
+
+	@Test // GH-3961 - Nested predicate parentheses handling
+	void inPredicateWithNestedExpression() {
+
+		Entity entity = JpqlQueryBuilder.entity(Order.class);
+		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
+		RenderContext context = ctx(entity);
+
+		// Test regular IN predicate with parentheses
+		assertThat(where.in(expression("'AT', 'DE'")).render(context)).isEqualTo("o.country IN ('AT', 'DE')");
+
+		// Test IN predicate with already parenthesized expression - should avoid double parentheses
+		Expression parenthesizedExpression = expression("('AT', 'DE')");
+		assertThat(where.in(parenthesizedExpression).render(context))
+				.isEqualTo("o.country IN ('AT', 'DE')");
+
+		// Test NOT IN predicate with already parenthesized expression
+		assertThat(where.notIn(parenthesizedExpression).render(context))
+				.isEqualTo("o.country NOT IN ('AT', 'DE')");
+
+		// Test IN with subquery (already parenthesized)
+		Expression subqueryExpression = expression("(SELECT c.code FROM Country c WHERE c.active = true)");
+		assertThat(where.in(subqueryExpression).render(context))
+				.isEqualTo("o.country IN (SELECT c.code FROM Country c WHERE c.active = true)");
 	}
 
 	@Test // GH-3588

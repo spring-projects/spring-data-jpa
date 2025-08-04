@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  * A Domain-Specific Language to build JPQL queries using Java code.
  *
  * @author Mark Paluch
+ * @author Choi Wang Gyu
  */
 @SuppressWarnings("JavadocDeclaration")
 public final class JpqlQueryBuilder {
@@ -1422,8 +1423,14 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String render(RenderContext context) {
 
-			// TODO: should we rather wrap it with nested or check if its a nested predicate before we call render
-			return "%s %s (%s)".formatted(path.render(context), operator, predicate.render(context));
+			String predicateStr = predicate.render(context);
+			
+			// Avoid double parentheses if predicate string already starts and ends with parentheses
+			if (predicateStr.startsWith("(") && predicateStr.endsWith(")")) {
+				return "%s %s %s".formatted(path.render(context), operator, predicateStr);
+			}
+			
+			return "%s %s (%s)".formatted(path.render(context), operator, predicateStr);
 		}
 
 		@Override
