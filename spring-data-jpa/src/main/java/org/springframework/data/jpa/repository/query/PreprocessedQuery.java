@@ -119,7 +119,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 		return this.hasNamedBindings;
 	}
 
-	boolean containsPageableInSpel() {
+	public boolean containsPageableInSpel() {
 		return containsPageableInSpel;
 	}
 

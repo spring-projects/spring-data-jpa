@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.aot;
 import java.util.List;
 
 import org.springframework.data.domain.Limit;
+import org.springframework.data.jpa.repository.query.EntityQuery;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 
 /**
@@ -33,6 +34,10 @@ abstract class AotQuery {
 
 	AotQuery(List<ParameterBinding> parameterBindings) {
 		this.parameterBindings = parameterBindings;
+	}
+
+	static boolean hasConstructorExpressionOrDefaultProjection(EntityQuery query) {
+		return query.hasConstructorExpression() || query.isDefaultProjection();
 	}
 
 	/**
@@ -88,5 +93,11 @@ abstract class AotQuery {
 
 		return false;
 	}
+
+	/**
+	 * @return {@literal true} if query is expected to return the declared method type directly; {@literal false} if the
+	 *         result requires projection post-processing. See also {@code NativeJpaQuery#getTypeToQueryFor}.
+	 */
+	public abstract boolean hasConstructorExpressionOrDefaultProjection();
 
 }

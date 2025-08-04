@@ -62,6 +62,11 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 		return query.getQueryString();
 	}
 
+	@Override
+	public PreprocessedQuery getQuery() {
+		return query;
+	}
+
 	/**
 	 * Returns whether we have found some like bindings.
 	 */

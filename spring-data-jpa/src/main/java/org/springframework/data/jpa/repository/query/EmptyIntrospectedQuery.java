@@ -84,6 +84,7 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 		return "";
 	}
 
+
 	@Override
 	public ParametrizedQuery deriveCountQuery(@Nullable String countQueryProjection) {
 		return INSTANCE;
@@ -92,6 +93,11 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 	@Override
 	public QueryProvider rewrite(QueryEnhancer.QueryRewriteInformation rewriteInformation) {
 		return this;
+	}
+
+	@Override
+	public PreprocessedQuery getQuery() {
+		return null;
 	}
 
 	@Override

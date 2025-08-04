@@ -39,15 +39,7 @@ record AotQueries(AotQuery result, AotQuery count) {
 	/**
 	 * Derive a count query from the given query.
 	 */
-	public static AotQueries from(StringAotQuery query, @Nullable String countProjection,
-			QueryEnhancerSelector selector) {
-		return from(query, StringAotQuery::getQuery, countProjection, selector);
-	}
-
-	/**
-	 * Derive a count query from the given query.
-	 */
-	public static <T extends AotQuery> AotQueries from(T query, Function<T, DeclaredQuery> queryMapper,
+	public static <T extends AotQuery> AotQueries withDerivedCountQuery(T query, Function<T, DeclaredQuery> queryMapper,
 			@Nullable String countProjection, QueryEnhancerSelector selector) {
 
 		DeclaredQuery underlyingQuery = queryMapper.apply(query);
@@ -56,8 +48,7 @@ record AotQueries(AotQuery result, AotQuery count) {
 		String derivedCountQuery = queryEnhancer
 				.createCountQueryFor(StringUtils.hasText(countProjection) ? countProjection : null);
 
-		DeclaredQuery countQuery = underlyingQuery.rewrite(derivedCountQuery);
-		return new AotQueries(query, StringAotQuery.of(countQuery));
+		return new AotQueries(query, StringAotQuery.of(underlyingQuery.rewrite(derivedCountQuery)));
 	}
 
 	/**

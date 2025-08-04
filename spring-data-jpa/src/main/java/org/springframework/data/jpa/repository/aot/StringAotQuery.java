@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
+import org.springframework.data.jpa.repository.query.EntityQuery;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 import org.springframework.data.jpa.repository.query.PreprocessedQuery;
 import org.springframework.data.jpa.repository.query.QueryProvider;
@@ -48,24 +49,18 @@ abstract class StringAotQuery extends AotQuery {
 	}
 
 	/**
-	 * Creates a new named (via {@link org.springframework.data.repository.core.NamedQueries}) {@code StringAotQuery} from
-	 * a {@link DeclaredQuery}. Parses the query into {@link PreprocessedQuery}.
+	 * Creates a new {@code StringAotQuery} from a {@link EntityQuery}. Parses the query into {@link PreprocessedQuery}.
 	 */
-	static StringAotQuery named(String queryName, DeclaredQuery query) {
-
-		if (query instanceof PreprocessedQuery pq) {
-			return new NamedStringAotQuery(queryName, pq, false);
-		}
-
-		return new NamedStringAotQuery(queryName, PreprocessedQuery.parse(query), false);
+	static StringAotQuery of(EntityQuery query) {
+		return new DeclaredAotQuery(query);
 	}
 
 	/**
-	 * Creates a new {@code StringAotQuery} from a JPQL {@code queryString}. Parses the query into
-	 * {@link PreprocessedQuery}.
+	 * Creates a new named (via {@link org.springframework.data.repository.core.NamedQueries}) {@code StringAotQuery} from
+	 * a {@link EntityQuery}. Parses the query into {@link PreprocessedQuery}.
 	 */
-	static StringAotQuery jpqlQuery(String queryString) {
-		return of(DeclaredQuery.jpqlQuery(queryString));
+	static StringAotQuery named(String queryName, EntityQuery query) {
+		return new NamedStringAotQuery(queryName, query);
 	}
 
 	/**
@@ -74,14 +69,6 @@ abstract class StringAotQuery extends AotQuery {
 	public static StringAotQuery jpqlQuery(String queryString, List<ParameterBinding> bindings, Limit resultLimit,
 			boolean delete, boolean exists) {
 		return new DerivedAotQuery(queryString, bindings, resultLimit, delete, exists);
-	}
-
-	/**
-	 * Creates a new {@code StringAotQuery} from a native (SQL) {@code queryString}. Parses the query into
-	 * {@link PreprocessedQuery}.
-	 */
-	static StringAotQuery nativeQuery(String queryString) {
-		return of(DeclaredQuery.nativeQuery(queryString));
 	}
 
 	/**
@@ -94,23 +81,16 @@ abstract class StringAotQuery extends AotQuery {
 	}
 
 	/**
-	 * @return {@literal true} if query is expected to return the declared method type directly; {@literal false} if the
-	 *         result requires projection post-processing. See also {@code NativeJpaQuery#getTypeToQueryFor}.
+	 * @return {@literal true} if query uses an own paging mechanism through {@code {#pageable}}.
 	 */
-	public abstract boolean hasConstructorExpressionOrDefaultProjection();
+	public abstract boolean hasPagingExpression();
 
-	/**
-	 * @return a new {@link StringAotQuery} using constructor expressions or containing the default (primary alias)
-	 *         projection.
-	 */
-	public abstract StringAotQuery withConstructorExpressionOrDefaultProjection();
+	public abstract StringAotQuery rewrite(QueryProvider rewritten);
 
 	@Override
 	public String toString() {
 		return getQueryString();
 	}
-
-	public abstract StringAotQuery rewrite(QueryProvider rewritten);
 
 	/**
 	 * @author Christoph Strobl
@@ -120,10 +100,19 @@ abstract class StringAotQuery extends AotQuery {
 
 		private final PreprocessedQuery query;
 		private final boolean constructorExpressionOrDefaultProjection;
+		private final boolean hasPagingExpression;
+
+		DeclaredAotQuery(EntityQuery query) {
+			super(query.getParameterBindings());
+			this.query = query.getQuery();
+			this.hasPagingExpression = query.usesPaging();
+			this.constructorExpressionOrDefaultProjection = hasConstructorExpressionOrDefaultProjection(query);
+		}
 
 		DeclaredAotQuery(PreprocessedQuery query, boolean constructorExpressionOrDefaultProjection) {
 			super(query.getBindings());
 			this.query = query;
+			this.hasPagingExpression = query.containsPageableInSpel();
 			this.constructorExpressionOrDefaultProjection = constructorExpressionOrDefaultProjection;
 		}
 
@@ -148,8 +137,8 @@ abstract class StringAotQuery extends AotQuery {
 		}
 
 		@Override
-		public StringAotQuery withConstructorExpressionOrDefaultProjection() {
-			return new DeclaredAotQuery(query, true);
+		public boolean hasPagingExpression() {
+			return hasPagingExpression;
 		}
 
 		@Override
@@ -163,6 +152,11 @@ abstract class StringAotQuery extends AotQuery {
 
 		private final String queryName;
 
+		NamedStringAotQuery(String queryName, EntityQuery entityQuery) {
+			super(entityQuery);
+			this.queryName = queryName;
+		}
+
 		NamedStringAotQuery(String queryName, PreprocessedQuery query, boolean constructorExpressionOrDefaultProjection) {
 			super(query, constructorExpressionOrDefaultProjection);
 			this.queryName = queryName;
@@ -171,6 +165,7 @@ abstract class StringAotQuery extends AotQuery {
 		public String getQueryName() {
 			return queryName;
 		}
+
 	}
 
 	/**
@@ -230,8 +225,8 @@ abstract class StringAotQuery extends AotQuery {
 		}
 
 		@Override
-		public StringAotQuery withConstructorExpressionOrDefaultProjection() {
-			return this;
+		public boolean hasPagingExpression() {
+			return false;
 		}
 
 		@Override

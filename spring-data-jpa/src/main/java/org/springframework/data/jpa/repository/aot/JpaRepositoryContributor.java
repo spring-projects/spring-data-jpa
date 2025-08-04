@@ -183,8 +183,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		MergedAnnotation<Query> query = MergedAnnotations.from(method).get(Query.class);
 
-		AotQueries aotQueries = queriesFactory.createQueries(getRepositoryInformation(), query, selector, queryMethod,
-				returnedType);
+		AotQueries aotQueries = queriesFactory.createQueries(getRepositoryInformation(), returnedType, selector, query,
+				queryMethod);
 
 		// no KeysetScrolling for now.
 		if (parameters.hasScrollPositionParameter()) {

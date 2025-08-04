@@ -96,6 +96,7 @@ class JpaCodeBlocks {
 		private @Nullable Class<?> queryRewriter = QueryRewriter.IdentityQueryRewriter.class;
 
 		private QueryBlockBuilder(AotQueryMethodGenerationContext context, JpaQueryMethod queryMethod) {
+
 			this.context = context;
 			this.queryMethod = queryMethod;
 			this.queryVariableName = context.localVariable("query");
@@ -294,14 +295,16 @@ class JpaCodeBlocks {
 				return builder.build();
 			}
 
+			if (queries != null && queries.result() instanceof StringAotQuery sq && sq.hasPagingExpression()) {
+				return builder.build();
+			}
+
 			String limit = context.getLimitParameterName();
 
 			if (StringUtils.hasText(limit)) {
 				builder.beginControlFlow("if ($L.isLimited())", limit);
 				builder.addStatement("$L.setMaxResults($L.max())", queryVariableName, limit);
 				builder.endControlFlow();
-			} else if (queries != null && queries.result().isLimited()) {
-				builder.addStatement("$L.setMaxResults($L)", queryVariableName, queries.result().getLimit().max());
 			}
 
 			if (StringUtils.hasText(pageable)) {
@@ -314,6 +317,20 @@ class JpaCodeBlocks {
 					builder.addStatement("$L.setMaxResults($L.getPageSize())", queryVariableName, pageable);
 				}
 				builder.endControlFlow();
+			}
+
+			if (queries.result().isLimited()) {
+
+				int max = queries.result().getLimit().max();
+
+				builder.beginControlFlow("if ($L.getMaxResults() != $T.MAX_VALUE)", queryVariableName, Integer.class);
+				builder.beginControlFlow("if ($1L.getMaxResults() > $2L && $1L.getFirstResult() > 0)", queryVariableName, max);
+				builder.addStatement("$1L.setFirstResult($1L.getFirstResult() - ($1L.getMaxResults() - $2L))",
+						queryVariableName, max);
+				builder.endControlFlow();
+				builder.endControlFlow();
+
+				builder.addStatement("$1L.setMaxResults($2L)", queryVariableName, max);
 			}
 
 			return builder.build();
@@ -484,11 +501,12 @@ class JpaCodeBlocks {
 
 			if (query instanceof NamedAotQuery nq) {
 
-				if (!count && returnedType.isProjecting() && returnedType.getReturnedType().isInterface()) {
-					builder.addStatement("$T $L = this.$L.createNamedQuery($S)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), nq.getName());
-					return builder.build();
-				} else if (queryReturnType != null) {
+				if (!count && !nq.hasConstructorExpressionOrDefaultProjection() && returnedType.isProjecting()
+						&& returnedType.getReturnedType().isInterface()) {
+					queryReturnType = Tuple.class;
+				}
+
+				if (queryReturnType != null) {
 
 					builder.addStatement("$T $L = this.$L.createNamedQuery($S, $T.class)", Query.class, queryVariableName,
 							context.fieldNameOf(EntityManager.class), nq.getName(), queryReturnType);

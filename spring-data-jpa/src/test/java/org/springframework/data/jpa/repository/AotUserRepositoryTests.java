@@ -21,9 +21,6 @@ import jakarta.persistence.PersistenceContext;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -109,21 +106,5 @@ class AotUserRepositoryTests extends UserRepositoryTests {
 			return new PropertiesBasedNamedQueries(factory.getObject());
 		}
 	}
-
-	@Test
-	@Disabled("ConversionFailedException: Failed to convert from type [java.lang.Object[]] to type [org.springframework.data.jpa.repository.sample.UserRepository$NameOnly] for value [{...}]")
-	void bindsNativeQueryResultsToProjectionByName() {}
-
-	@Test
-	@Disabled
-	void shouldFindUsersInNativeQueryWithPagination() {}
-
-	@Test
-	@Disabled
-	void find2YoungestUsersPageableWithPageSize3() {}
-
-	@Test
-	@Disabled
-	void find2YoungestUsersPageableWithPageSize3Sliced() {}
 
 }

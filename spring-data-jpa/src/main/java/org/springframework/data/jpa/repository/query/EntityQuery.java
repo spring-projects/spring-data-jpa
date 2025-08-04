@@ -81,6 +81,8 @@ public interface EntityQuery extends ParametrizedQuery {
 		return false;
 	}
 
+	PreprocessedQuery getQuery();
+
 	/**
 	 * Creates a new {@literal IntrospectedQuery} representing a count query, i.e. a query returning the number of rows to
 	 * be expected from the original query, either derived from the query wrapped by this instance or from the information

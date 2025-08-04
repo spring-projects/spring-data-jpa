@@ -15,11 +15,8 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
-import org.springframework.data.jpa.repository.query.ParameterBinding;
-import org.springframework.data.jpa.repository.query.PreprocessedQuery;
+import org.springframework.data.jpa.repository.query.EntityQuery;
 
 /**
  * Value object to describe a named AOT query.
@@ -31,20 +28,20 @@ class NamedAotQuery extends AotQuery {
 
 	private final String name;
 	private final DeclaredQuery query;
+	private final boolean constructorExpressionOrDefaultProjection;
 
-	private NamedAotQuery(String name, DeclaredQuery queryString, List<ParameterBinding> parameterBindings) {
-		super(parameterBindings);
+	public NamedAotQuery(String name, EntityQuery entityQuery) {
+		super(entityQuery.getParameterBindings());
 		this.name = name;
-		this.query = queryString;
+		this.query = entityQuery.getQuery();
+		this.constructorExpressionOrDefaultProjection = AotQuery.hasConstructorExpressionOrDefaultProjection(entityQuery);
 	}
 
 	/**
 	 * Creates a new {@code NamedAotQuery}.
 	 */
-	public static NamedAotQuery named(String namedQuery, DeclaredQuery queryString) {
-
-		PreprocessedQuery parsed = PreprocessedQuery.parse(queryString);
-		return new NamedAotQuery(namedQuery, queryString, parsed.getBindings());
+	public static NamedAotQuery named(String namedQuery, EntityQuery query) {
+		return new NamedAotQuery(namedQuery, query);
 	}
 
 	public String getName() {
@@ -62,6 +59,11 @@ class NamedAotQuery extends AotQuery {
 	@Override
 	public boolean isNative() {
 		return query.isNative();
+	}
+
+	@Override
+	public boolean hasConstructorExpressionOrDefaultProjection() {
+		return constructorExpressionOrDefaultProjection;
 	}
 
 }

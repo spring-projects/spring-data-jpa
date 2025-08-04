@@ -112,28 +112,28 @@ class QueriesFactory {
 	 * Creates the {@link AotQueries} used within a specific {@link JpaQueryMethod}.
 	 *
 	 * @param repositoryInformation
-	 * @param query
-	 * @param selector
-	 * @param queryMethod
 	 * @param returnedType
+	 * @param selector
+	 * @param query
+	 * @param queryMethod
 	 * @return
 	 */
-	public AotQueries createQueries(RepositoryInformation repositoryInformation, MergedAnnotation<Query> query,
-			QueryEnhancerSelector selector, JpaQueryMethod queryMethod, ReturnedType returnedType) {
+	public AotQueries createQueries(RepositoryInformation repositoryInformation, ReturnedType returnedType,
+			QueryEnhancerSelector selector, MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("value"))) {
 			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query, queryMethod);
 		}
 
 		String queryName = queryMethod.getNamedQueryName();
-		if (hasNamedQuery(queryName, returnedType)) {
+		if (hasNamedQuery(returnedType, queryName)) {
 			return buildNamedQuery(returnedType, selector, queryName, query, queryMethod);
 		}
 
-		return buildPartTreeQuery(returnedType, repositoryInformation, query, queryMethod);
+		return buildPartTreeQuery(repositoryInformation, returnedType, selector, query, queryMethod);
 	}
 
-	private boolean hasNamedQuery(String queryName, ReturnedType returnedType) {
+	private boolean hasNamedQuery(ReturnedType returnedType, String queryName) {
 		return namedQueries.hasQuery(queryName) || getNamedQuery(returnedType, queryName) != null;
 	}
 
@@ -142,18 +142,14 @@ class QueriesFactory {
 
 		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", domainType.getName());
 		boolean isNative = query.getBoolean("nativeQuery");
-		Function<String, StringAotQuery> queryFunction = isNative ? StringAotQuery::nativeQuery : StringAotQuery::jpqlQuery;
+		Function<String, DeclaredQuery> queryFunction = isNative ? DeclaredQuery::nativeQuery : DeclaredQuery::jpqlQuery;
 		queryFunction = operator.andThen(queryFunction);
 
 		String queryString = query.getString("value");
 
-		StringAotQuery aotStringQuery = queryFunction.apply(queryString);
+		EntityQuery entityQuery = EntityQuery.create(queryFunction.apply(queryString), selector);
+		StringAotQuery aotStringQuery = StringAotQuery.of(entityQuery);
 		String countQuery = query.getString("countQuery");
-
-		EntityQuery entityQuery = EntityQuery.create(aotStringQuery.getQuery(), selector);
-		if (entityQuery.hasConstructorExpression() || entityQuery.isDefaultProjection()) {
-			aotStringQuery = aotStringQuery.withConstructorExpressionOrDefaultProjection();
-		}
 
 		if (returnedType.isProjecting() && returnedType.hasInputProperties()
 				&& !returnedType.getReturnedType().isInterface()) {
@@ -174,38 +170,38 @@ class QueriesFactory {
 		}
 
 		if (StringUtils.hasText(countQuery)) {
-			return AotQueries.from(aotStringQuery, queryFunction.apply(countQuery));
+			return AotQueries.from(aotStringQuery, StringAotQuery.of(queryFunction.apply(countQuery)));
 		}
 
-		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+		if (hasNamedQuery(returnedType, queryMethod.getNamedCountQueryName())) {
 			return AotQueries.from(aotStringQuery,
-					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, isNative));
+					createNamedAotQuery(returnedType, selector, queryMethod.getNamedCountQueryName(), queryMethod, isNative));
 		}
 
 		String countProjection = query.getString("countProjection");
-		return AotQueries.from(aotStringQuery, countProjection, selector);
+		return AotQueries.withDerivedCountQuery(aotStringQuery, StringAotQuery::getQuery, countProjection, selector);
 	}
 
-	private AotQueries buildNamedQuery(ReturnedType returnedType, QueryEnhancerSelector selector,
-			String queryName, MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
+	private AotQueries buildNamedQuery(ReturnedType returnedType, QueryEnhancerSelector selector, String queryName,
+			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		boolean nativeQuery = query.isPresent() && query.getBoolean("nativeQuery");
-		AotQuery aotQuery = createNamedAotQuery(returnedType, queryName, queryMethod, nativeQuery);
-
+		AotQuery aotQuery = createNamedAotQuery(returnedType, selector, queryName, queryMethod, nativeQuery);
 		String countQuery = query.isPresent() ? query.getString("countQuery") : null;
 
 		if (StringUtils.hasText(countQuery)) {
 			return AotQueries.from(aotQuery,
-					aotQuery.isNative() ? StringAotQuery.nativeQuery(countQuery) : StringAotQuery.jpqlQuery(countQuery));
+					StringAotQuery
+							.of(aotQuery.isNative() ? DeclaredQuery.nativeQuery(countQuery) : DeclaredQuery.jpqlQuery(countQuery)));
 		}
 
-		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+		if (hasNamedQuery(returnedType, queryMethod.getNamedCountQueryName())) {
 			return AotQueries.from(aotQuery,
-					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, nativeQuery));
+					createNamedAotQuery(returnedType, selector, queryMethod.getNamedCountQueryName(), queryMethod, nativeQuery));
 		}
 
 		String countProjection = query.isPresent() ? query.getString("countProjection") : null;
-		return AotQueries.from(aotQuery, it -> {
+		return AotQueries.withDerivedCountQuery(aotQuery, it -> {
 
 			if (it instanceof StringAotQuery sq) {
 				return sq.getQuery();
@@ -215,25 +211,26 @@ class QueriesFactory {
 		}, countProjection, selector);
 	}
 
-	private AotQuery createNamedAotQuery(ReturnedType returnedType, String queryName, JpaQueryMethod queryMethod,
-			boolean isNative) {
+	private AotQuery createNamedAotQuery(ReturnedType returnedType, QueryEnhancerSelector selector, String queryName,
+			JpaQueryMethod queryMethod, boolean isNative) {
 
 		if (namedQueries.hasQuery(queryName)) {
 
 			String queryString = namedQueries.getQuery(queryName);
-			return StringAotQuery.named(queryName,
-					isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString));
+
+			DeclaredQuery query = isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString);
+			return StringAotQuery.named(queryName, EntityQuery.create(query, selector));
 		}
 
 		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryName);
 
 		Assert.state(namedQuery != null, "Native named query must not be null");
 
-		return createNamedAotQuery(namedQuery, queryMethod, isNative);
+		return createNamedAotQuery(namedQuery, selector, isNative, queryMethod);
 	}
 
-	private AotQuery createNamedAotQuery(TypedQueryReference<?> namedQuery, JpaQueryMethod queryMethod,
-			boolean isNative) {
+	private AotQuery createNamedAotQuery(TypedQueryReference<?> namedQuery, QueryEnhancerSelector selector,
+			boolean isNative, JpaQueryMethod queryMethod) {
 
 		QueryExtractor queryExtractor = queryMethod.getQueryExtractor();
 		String queryString = queryExtractor.extractQueryString(namedQuery);
@@ -244,8 +241,9 @@ class QueriesFactory {
 
 		Assert.hasText(queryString, () -> "Cannot extract Query from named query [%s]".formatted(namedQuery.getName()));
 
-		return NamedAotQuery.named(namedQuery.getName(),
-				isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString));
+		DeclaredQuery query = isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString);
+
+		return NamedAotQuery.named(namedQuery.getName(), EntityQuery.create(query, selector));
 	}
 
 	private @Nullable TypedQueryReference<?> getNamedQuery(ReturnedType returnedType, String queryName) {
@@ -266,19 +264,20 @@ class QueriesFactory {
 		return null;
 	}
 
-	private AotQueries buildPartTreeQuery(ReturnedType returnedType, RepositoryInformation repositoryInformation,
+	private AotQueries buildPartTreeQuery(RepositoryInformation repositoryInformation, ReturnedType returnedType,
+			QueryEnhancerSelector selector,
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		PartTree partTree = new PartTree(queryMethod.getName(), repositoryInformation.getDomainType());
 		AotQuery aotQuery = createQuery(partTree, returnedType, queryMethod.getParameters(), templates);
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("countQuery"))) {
-			return AotQueries.from(aotQuery, StringAotQuery.jpqlQuery(query.getString("countQuery")));
+			return AotQueries.from(aotQuery, StringAotQuery.of(DeclaredQuery.jpqlQuery(query.getString("countQuery"))));
 		}
 
-		if (hasNamedQuery(queryMethod.getNamedCountQueryName(), returnedType)) {
+		if (hasNamedQuery(returnedType, queryMethod.getNamedCountQueryName())) {
 			return AotQueries.from(aotQuery,
-					createNamedAotQuery(returnedType, queryMethod.getNamedCountQueryName(), queryMethod, false));
+					createNamedAotQuery(returnedType, selector, queryMethod.getNamedCountQueryName(), queryMethod, false));
 		}
 
 		AotQuery partTreeCountQuery = createCountQuery(partTree, returnedType, queryMethod.getParameters(), templates);
@@ -318,18 +317,20 @@ class QueriesFactory {
 
 		Class<?> result = queryForEntity ? returnedType.getDomainType() : null;
 
-		if (query instanceof StringAotQuery sq && sq.hasConstructorExpressionOrDefaultProjection()) {
-			return result;
-		}
-
 		if (returnedType.isProjecting()) {
 
 			if (returnedType.getReturnedType().isInterface()) {
+
+				if (query.hasConstructorExpressionOrDefaultProjection()) {
+					return result;
+				}
+
 				return Tuple.class;
 			}
 
 			return returnedType.getReturnedType();
 		}
+
 
 		return result;
 	}
