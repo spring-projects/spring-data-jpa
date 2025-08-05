@@ -27,6 +27,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,10 +43,10 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void placeholdersRenderCorrectly() {
 
-		assertThat(JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(1)).render(RenderContext.EMPTY)).isEqualTo("?1");
-		assertThat(JpqlQueryBuilder.parameter(ParameterPlaceholder.named("arg1")).render(RenderContext.EMPTY))
+		assertThatRendered(JpqlQueryBuilder.parameter(ParameterPlaceholder.indexed(1))).isEqualTo("?1");
+		assertThatRendered(JpqlQueryBuilder.parameter(ParameterPlaceholder.named("arg1")))
 				.isEqualTo(":arg1");
-		assertThat(JpqlQueryBuilder.parameter("?1").render(RenderContext.EMPTY)).isEqualTo("?1");
+		assertThatRendered(JpqlQueryBuilder.parameter("?1")).isEqualTo("?1");
 	}
 
 	@Test // GH-3588
@@ -57,17 +59,18 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void stringLiteralRendersAsQuotedString() {
 
-		assertThat(literal("literal").render(RenderContext.EMPTY)).isEqualTo("'literal'");
+		assertThatRendered(literal("literal")).isEqualTo("'literal'");
 
 		/* JPA Spec - 4.6.1 Literals:
 		   > A string literal that includes a single quote is represented by two single quotes--for example: 'literal''s'. */
-		assertThat(literal("literal's").render(RenderContext.EMPTY)).isEqualTo("'literal''s'");
+		assertThatRendered(literal("literal's")).isEqualTo("'literal''s'");
 	}
 
 	@Test // GH-3588
 	void entity() {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
+
 		assertThat(entity.getAlias()).isEqualTo("o");
 		assertThat(entity.getEntity()).isEqualTo(Order.class.getName());
 		assertThat(entity.getName()).isEqualTo(Order.class.getSimpleName());
@@ -76,20 +79,20 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void literalExpressionRendersAsIs() {
 		Expression expression = expression("CONCAT(person.lastName, ‘, ’, person.firstName))");
-		assertThat(expression.render(RenderContext.EMPTY)).isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName))");
+		assertThatRendered(expression).isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName))");
 	}
 
-	@Test // GH-
+	@Test // GH-3961
 	void aliasedExpression() {
 
 		// aliasing is contextual and happens during selection rendering. E.g. constructor expressions don't use aliases.
 		Expression expression = expression("CONCAT(person.lastName, ‘, ’, person.firstName)").as("concatted");
-		assertThat(expression.render(RenderContext.EMPTY))
+		assertThatRendered(expression)
 				.isEqualTo("CONCAT(person.lastName, ‘, ’, person.firstName)");
 	}
 
-	@Test // GH-3588
-	void xxx() {
+	@Test // GH-3961
+	void shouldRenderDateAsJpqlLiteral() {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 		PathAndOrigin orderDate = JpqlQueryBuilder.path(entity, "date");
@@ -104,61 +107,60 @@ class JpqlQueryBuilderUnitTests {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
-		RenderContext context = ctx(entity);
+		ContextualAssert ctx = contextual(ctx(entity));
 
-		assertThat(where.between(expression("'AT'"), expression("'DE'")).render(context))
+		ctx.assertThat(where.between(expression("'AT'"), expression("'DE'")))
 				.isEqualTo("o.country BETWEEN 'AT' AND 'DE'");
-		assertThat(where.eq(expression("'AT'")).render(context)).isEqualTo("o.country = 'AT'");
-		assertThat(where.eq(literal("AT")).render(context)).isEqualTo("o.country = 'AT'");
-		assertThat(where.gt(expression("'AT'")).render(context)).isEqualTo("o.country > 'AT'");
-		assertThat(where.gte(expression("'AT'")).render(context)).isEqualTo("o.country >= 'AT'");
+		ctx.assertThat(where.eq(expression("'AT'"))).isEqualTo("o.country = 'AT'");
+		ctx.assertThat(where.eq(literal("AT"))).isEqualTo("o.country = 'AT'");
+		ctx.assertThat(where.gt(expression("'AT'"))).isEqualTo("o.country > 'AT'");
+		ctx.assertThat(where.gte(expression("'AT'"))).isEqualTo("o.country >= 'AT'");
 
-		// TODO: that is really really bad
-		// lange namen
-		assertThat(where.in(expression("'AT', 'DE'")).render(context)).isEqualTo("o.country IN ('AT', 'DE')");
+		ctx.assertThat(where.in(expression("'AT', 'DE'"))).isEqualTo("o.country IN ('AT', 'DE')");
 
 		// 1 in age - cleanup what is not used - remove everything eles
 		// assertThat(where.inMultivalued("'AT', 'DE'").render(ctx(entity))).isEqualTo("o.country IN ('AT', 'DE')"); //
-		assertThat(where.isEmpty().render(context)).isEqualTo("o.country IS EMPTY");
-		assertThat(where.isNotEmpty().render(context)).isEqualTo("o.country IS NOT EMPTY");
-		assertThat(where.isTrue().render(context)).isEqualTo("o.country = TRUE");
-		assertThat(where.isFalse().render(context)).isEqualTo("o.country = FALSE");
-		assertThat(where.isNull().render(context)).isEqualTo("o.country IS NULL");
-		assertThat(where.isNotNull().render(context)).isEqualTo("o.country IS NOT NULL");
-		assertThat(where.like("'\\_%'", "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(context))
+		ctx.assertThat(where.isEmpty()).isEqualTo("o.country IS EMPTY");
+		ctx.assertThat(where.isNotEmpty()).isEqualTo("o.country IS NOT EMPTY");
+		ctx.assertThat(where.isTrue()).isEqualTo("o.country = TRUE");
+		ctx.assertThat(where.isFalse()).isEqualTo("o.country = FALSE");
+		ctx.assertThat(where.isNull()).isEqualTo("o.country IS NULL");
+		ctx.assertThat(where.isNotNull()).isEqualTo("o.country IS NOT NULL");
+		ctx.assertThat(where.like("'\\_%'", "" + EscapeCharacter.DEFAULT.getEscapeCharacter()))
 				.isEqualTo("o.country LIKE '\\_%' ESCAPE '\\'");
-		assertThat(where.notLike(expression("'\\_%'"), "" + EscapeCharacter.DEFAULT.getEscapeCharacter()).render(context))
+		ctx.assertThat(where.notLike(expression("'\\_%'"), "" + EscapeCharacter.DEFAULT.getEscapeCharacter()))
 				.isEqualTo("o.country NOT LIKE '\\_%' ESCAPE '\\'");
-		assertThat(where.lt(expression("'AT'")).render(context)).isEqualTo("o.country < 'AT'");
-		assertThat(where.lte(expression("'AT'")).render(context)).isEqualTo("o.country <= 'AT'");
-		assertThat(where.memberOf(expression("'AT'")).render(context)).isEqualTo("'AT' MEMBER OF o.country");
+		ctx.assertThat(where.lt(expression("'AT'"))).isEqualTo("o.country < 'AT'");
+		ctx.assertThat(where.lte(expression("'AT'"))).isEqualTo("o.country <= 'AT'");
+		ctx.assertThat(where.memberOf(expression("'AT'"))).isEqualTo("'AT' MEMBER OF o.country");
+
 		// TODO: can we have this where.value(foo).memberOf(pathAndOrigin);
-		assertThat(where.notMemberOf(expression("'AT'")).render(context)).isEqualTo("'AT' NOT MEMBER OF o.country");
-		assertThat(where.neq(expression("'AT'")).render(context)).isEqualTo("o.country != 'AT'");
+		ctx.assertThat(where.notMemberOf(expression("'AT'"))).isEqualTo("'AT' NOT MEMBER OF o.country");
+		ctx.assertThat(where.neq(expression("'AT'"))).isEqualTo("o.country != 'AT'");
 	}
 
-	@Test // GH-3961 - Nested predicate parentheses handling
+	@Test // GH-3961
 	void inPredicateWithNestedExpression() {
 
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
-		RenderContext context = ctx(entity);
+		ContextualAssert ctx = contextual(ctx(entity));
 
 		// Test regular IN predicate with parentheses
-		assertThat(where.in(expression("'AT', 'DE'")).render(context)).isEqualTo("o.country IN ('AT', 'DE')");
+		ctx.assertThat(where.in(expression("'AT', 'DE'"))).isEqualTo("o.country IN ('AT', 'DE')");
 
 		// Test IN predicate with already parenthesized expression - should avoid double parentheses
 		Expression parenthesizedExpression = expression("('AT', 'DE')");
-		assertThat(where.in(parenthesizedExpression).render(context))
+		ctx.assertThat(where.in(parenthesizedExpression))
 				.isEqualTo("o.country IN ('AT', 'DE')");
 
 		// Test NOT IN predicate with already parenthesized expression
-		assertThat(where.notIn(parenthesizedExpression).render(context))
+		ctx.assertThat(where.notIn(parenthesizedExpression))
 				.isEqualTo("o.country NOT IN ('AT', 'DE')");
 
 		// Test IN with subquery (already parenthesized)
 		Expression subqueryExpression = expression("(SELECT c.code FROM Country c WHERE c.active = true)");
-		assertThat(where.in(subqueryExpression).render(context))
+		ctx.assertThat(where.in(subqueryExpression))
 				.isEqualTo("o.country IN (SELECT c.code FROM Country c WHERE c.active = true)");
 	}
 
@@ -206,6 +208,25 @@ class JpqlQueryBuilderUnitTests {
 				.and(JpqlQueryBuilder.where(personName).eq(literal("cstrobl"))).render(ctx(entity));
 
 		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'cstrobl'");
+	}
+
+	static ContextualAssert contextual(RenderContext context) {
+		return new ContextualAssert(context);
+	}
+
+	static AbstractStringAssert<?> assertThatRendered(Renderable renderable) {
+		return contextual(RenderContext.EMPTY).assertThat(renderable);
+	}
+
+	static AbstractStringAssert<?> assertThat(String actual) {
+		return Assertions.assertThat(actual);
+	}
+
+	record ContextualAssert(RenderContext context) {
+
+		public AbstractStringAssert<?> assertThat(Renderable renderable) {
+			return Assertions.assertThat(renderable.render(context));
+		}
 	}
 
 	static RenderContext ctx(Entity... entities) {
