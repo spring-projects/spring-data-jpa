@@ -215,10 +215,6 @@ class JpaCodeBlocks {
 				builder.add(applyRewrite(sortParameterName, dynamicReturnType, queryStringVariableName, actualReturnType));
 			}
 
-			if (queries.result().hasExpression() || queries.count().hasExpression()) {
-				builder.addStatement("class ExpressionMarker{}");
-			}
-
 			builder.add(createQuery(false, queryVariableName, queryStringVariableName, queryRewriterName, queries.result(),
 					this.sqlResultSetMapping, pageable, this.queryHints, this.entityGraph, this.queryReturnType));
 
@@ -550,13 +546,13 @@ class JpaCodeBlocks {
 					expressionString = "#{" + expressionString + "}";
 				}
 
-				builder.add("evaluateExpression(ExpressionMarker.class.getEnclosingMethod(), $S$L)", expressionString,
+				builder.add("evaluateExpression($L, $S$L)", context.getExpressionMarker().enclosingMethod(), expressionString,
 						parameterNames);
 
 				return builder.build();
 			}
 
-			throw new UnsupportedOperationException("Not supported yet");
+			throw new UnsupportedOperationException("Not supported yet for: " + origin);
 		}
 
 		private CodeBlock applyEntityGraph(AotEntityGraph entityGraph, String queryVariableName) {
