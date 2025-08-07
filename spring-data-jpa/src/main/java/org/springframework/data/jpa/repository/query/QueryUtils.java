@@ -42,6 +42,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -88,6 +89,7 @@ import org.springframework.util.StringUtils;
  * @author Eduard Dudar
  * @author Yanming Zhou
  * @author Alim Naizabek
+ * @author Jakub Soltys
  */
 public abstract class QueryUtils {
 
@@ -773,11 +775,17 @@ public abstract class QueryUtils {
 
 		boolean isLeafProperty = !property.hasNext();
 
-		boolean requiresOuterJoin = requiresOuterJoin(from, property, isForSelection, hasRequiredOuterJoin);
+		boolean isRelationshipId = isRelationshipId(from, property);
+		boolean requiresOuterJoin = requiresOuterJoin(from, property, isForSelection, hasRequiredOuterJoin, isLeafProperty, isRelationshipId);
 
-		// if it does not require an outer join and is a leaf, simply get the segment
-		if (!requiresOuterJoin && isLeafProperty) {
-			return from.get(segment);
+		// if it does not require an outer join and is a leaf or relationship id, simply get rest of the segment path
+		if (!requiresOuterJoin && (isLeafProperty || isRelationshipId)) {
+			Path<T> trailingPath = from.get(segment);
+			while (property.hasNext()) {
+				property = property.next();
+				trailingPath = trailingPath.get(property.getSegment());
+			}
+			return trailingPath;
 		}
 
 		// get or create the join
@@ -806,10 +814,12 @@ public abstract class QueryUtils {
 	 *          to generate an explicit outer join in order to prevent Hibernate to use an inner join instead. see
 	 *          https://hibernate.atlassian.net/browse/HHH-12999
 	 * @param hasRequiredOuterJoin has a parent already required an outer join?
+	 * @param isLeafProperty is leaf property
+	 * @param isRelationshipId whether property path refers to relationship id
 	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
 	static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
-			boolean hasRequiredOuterJoin) {
+			boolean hasRequiredOuterJoin, boolean isLeafProperty, boolean isRelationshipId) {
 
 		// already inner joined so outer join is useless
 		if (isAlreadyInnerJoined(from, property.getSegment())) {
@@ -818,14 +828,7 @@ public abstract class QueryUtils {
 
 		Bindable<?> model = from.getModel();
 		ManagedType<?> managedType = getManagedTypeForModel(model);
-		Bindable<?> propertyPathModel = getModelForPath(property, managedType, from);
-
-		// is the attribute of Collection type?
-		boolean isPluralAttribute = model instanceof PluralAttribute;
-
-		if (propertyPathModel == null && isPluralAttribute) {
-			return true;
-		}
+		Bindable<?> propertyPathModel = getModelForPath(property, managedType, () -> from);
 
 		if (!(propertyPathModel instanceof Attribute<?, ?> attribute)) {
 			return false;
@@ -843,12 +846,34 @@ public abstract class QueryUtils {
 		boolean isInverseOptionalOneToOne = ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
-		boolean isLeafProperty = !property.hasNext();
-		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
+		if ((isLeafProperty || isRelationshipId) && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
 
 		return hasRequiredOuterJoin || getAnnotationProperty(attribute, "optional", true);
+	}
+
+	/**
+	 * Checks if this property path is referencing to relationship id.
+	 *
+	 * @param from the {@link From} to check for attribute model.
+	 * @param property the property path
+	 * @return whether in a query is relationship id.
+	 */
+	static boolean isRelationshipId(From<?, ?> from, PropertyPath property) {
+		if (!property.hasNext()) {
+			return false;
+		}
+
+		Bindable<?> model = from.getModel();
+		ManagedType<?> managedType = getManagedTypeForModel(model);
+		Bindable<?> propertyPathModel = getModelForPath(property, managedType, () -> from);
+		ManagedType<?> propertyPathManagedType = getManagedTypeForModel(propertyPathModel);
+		Bindable<?> nextPropertyPathModel = getModelForPath(property.next(), propertyPathManagedType, () -> from.get(property.getSegment()));
+		if (nextPropertyPathModel instanceof SingularAttribute<?, ?>) {
+			return ((SingularAttribute<?, ?>) nextPropertyPathModel).isId();
+		}
+		return false;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -954,14 +979,14 @@ public abstract class QueryUtils {
 	 * @param path the current {@link PropertyPath} segment.
 	 * @param managedType primary source for the resulting {@link Bindable}. Can be {@literal null}.
 	 * @param fallback must not be {@literal null}.
-	 * @return the corresponding {@link Bindable} of {@literal null}.
+	 * @return the corresponding {@link Bindable}.
 	 * @see <a href=
 	 *      "https://hibernate.atlassian.net/browse/HHH-16144">https://hibernate.atlassian.net/browse/HHH-16144</a>
 	 * @see <a href=
 	 *      "https://github.com/jakartaee/persistence/issues/562">https://github.com/jakartaee/persistence/issues/562</a>
 	 */
-	private static @Nullable Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
-			Path<?> fallback) {
+	private static Bindable<?> getModelForPath(PropertyPath path, @Nullable ManagedType<?> managedType,
+			Supplier<Path<?>> fallback) {
 
 		String segment = path.getSegment();
 		if (managedType != null) {
@@ -972,7 +997,7 @@ public abstract class QueryUtils {
 			}
 		}
 
-		return fallback.get(segment).getModel();
+		return fallback.get().get(segment).getModel();
 	}
 
 	/**

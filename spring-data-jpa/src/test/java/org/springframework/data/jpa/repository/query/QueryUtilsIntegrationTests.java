@@ -34,7 +34,6 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
@@ -56,6 +55,8 @@ import org.springframework.data.jpa.domain.sample.Category;
 import org.springframework.data.jpa.domain.sample.Invoice;
 import org.springframework.data.jpa.domain.sample.InvoiceItem;
 import org.springframework.data.jpa.domain.sample.Order;
+import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
 import org.springframework.data.mapping.PropertyPath;
@@ -71,6 +72,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Patrice Blanchardie
  * @author Diego Krupitza
  * @author Krzysztof Krason
+ * @author Jakub Soltys
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -385,6 +387,45 @@ class QueryUtilsIntegrationTests {
 		root.get("manager");
 
 		assertThat(root.getJoins()).hasSize(getNumberOfJoinsAfterCreatingAPath());
+	}
+
+	@Test // GH-3349
+	void doesNotCreateJoinForRelationshipSimpleId() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+
+		QueryUtils.toExpressionRecursively(from, PropertyPath.from("manager.id", User.class));
+
+		assertThat(from.getFetches()).hasSize(0);
+		assertThat(from.getJoins()).hasSize(0);
+	}
+
+	@Test // GH-3349
+	void doesNotCreateJoinForRelationshipEmbeddedId() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<ReferencingEmbeddedIdExampleEmployee> query = builder.createQuery(ReferencingEmbeddedIdExampleEmployee.class);
+		Root<ReferencingEmbeddedIdExampleEmployee> from = query.from(ReferencingEmbeddedIdExampleEmployee.class);
+
+		QueryUtils.toExpressionRecursively(from, PropertyPath.from("employee.employeePk.employeeId", ReferencingEmbeddedIdExampleEmployee.class));
+
+		assertThat(from.getFetches()).hasSize(0);
+		assertThat(from.getJoins()).hasSize(0);
+	}
+
+	@Test // GH-3349
+	void doesNotCreateJoinForRelationshipIdClass() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<ReferencingIdClassExampleEmployee> query = builder.createQuery(ReferencingIdClassExampleEmployee.class);
+		Root<ReferencingIdClassExampleEmployee> from = query.from(ReferencingIdClassExampleEmployee.class);
+
+		QueryUtils.toExpressionRecursively(from, PropertyPath.from("employee.empId", ReferencingIdClassExampleEmployee.class));
+
+		assertThat(from.getFetches()).hasSize(0);
+		assertThat(from.getJoins()).hasSize(0);
 	}
 
 	int getNumberOfJoinsAfterCreatingAPath() {
