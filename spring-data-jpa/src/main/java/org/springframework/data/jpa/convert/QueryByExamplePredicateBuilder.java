@@ -43,7 +43,6 @@ import org.springframework.data.domain.ExampleMatcher.PropertyValueTransformer;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
 import org.springframework.data.support.ExampleMatcherAccessor;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
-import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;

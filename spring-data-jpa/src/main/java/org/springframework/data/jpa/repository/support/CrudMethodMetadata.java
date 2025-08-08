@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.support;
 import jakarta.persistence.LockModeType;
 
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 
