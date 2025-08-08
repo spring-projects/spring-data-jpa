@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
 
-import org.jspecify.annotations.NullUnmarked;
 import org.springframework.data.domain.Auditable;
 
 import org.jspecify.annotations.Nullable;

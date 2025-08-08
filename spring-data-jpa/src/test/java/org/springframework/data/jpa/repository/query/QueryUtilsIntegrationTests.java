@@ -34,7 +34,6 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
