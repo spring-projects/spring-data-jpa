@@ -30,9 +30,8 @@
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.0-B09</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.1.0.CR2</hibernate>
-		<hibernate-70-snapshots>7.0.7-SNAPSHOT</hibernate-70-snapshots>
-		<hibernate-71-snapshots>7.1.0-SNAPSHOT</hibernate-71-snapshots>
+		<hibernate>7.1.0.Final</hibernate>
+		<hibernate-71-snapshots>7.1.1-SNAPSHOT</hibernate-71-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
@@ -62,22 +61,6 @@
 				<repository>
 					<id>jitpack</id>
 					<url>https://jitpack.io</url>
-				</repository>
-			</repositories>
-		</profile>
-		<profile>
-			<id>hibernate-70-snapshots</id>
-			<properties>
-				<hibernate>${hibernate-70-snapshots}</hibernate>
-				<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
-			</properties>
-			<repositories>
-				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-					<releases>
-						<enabled>false</enabled>
-					</releases>
 				</repository>
 			</repositories>
 		</profile>
