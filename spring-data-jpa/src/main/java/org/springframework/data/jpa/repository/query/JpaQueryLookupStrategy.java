@@ -312,7 +312,6 @@ public final class JpaQueryLookupStrategy {
 			case CREATE_IF_NOT_FOUND -> new CreateIfNotFoundQueryLookupStrategy(em, queryMethodFactory,
 					new CreateQueryLookupStrategy(em, queryMethodFactory, configuration),
 					new DeclaredQueryLookupStrategy(em, queryMethodFactory, configuration), configuration);
-			default -> throw new IllegalArgumentException(String.format("Unsupported query lookup strategy %s", key));
 		};
 	}
 
