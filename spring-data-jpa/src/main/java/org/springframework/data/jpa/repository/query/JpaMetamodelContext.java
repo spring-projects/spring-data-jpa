@@ -60,7 +60,7 @@ public class JpaMetamodelContext implements PathOptimizationStrategy.MetamodelCo
 
 		try {
 			ManagedType<?> managedType = metamodel.managedType(entityType);
-			
+
 			if (managedType instanceof EntityType<?> entity) {
 				// Check for single ID attribute
 				if (entity.hasSingleIdAttribute()) {
@@ -72,11 +72,11 @@ public class JpaMetamodelContext implements PathOptimizationStrategy.MetamodelCo
 				return entity.getIdClassAttributes().stream()
 					.anyMatch(attr -> attr.getName().equals(propertyName));
 			}
-			
+
 		} catch (IllegalArgumentException e) {
 			// Type not found in metamodel
 		}
-		
+
 		return false;
 	}
 
