@@ -770,14 +770,23 @@ public abstract class QueryUtils {
 			boolean hasRequiredOuterJoin) {
 
 		String segment = property.getSegment();
-
 		boolean isLeafProperty = !property.hasNext();
 
-		boolean requiresOuterJoin = requiresOuterJoin(from, property, isForSelection, hasRequiredOuterJoin);
+		// Check for relationship ID optimization (based on PR #3922 approach)
+		PathOptimizationStrategy strategy = new DefaultPathOptimizationStrategy();
+		JpaMetamodelContext context = new JpaMetamodelContext(null); // Metamodel not available in this context
+		
+		boolean isRelationshipId = strategy.canOptimizeForeignKeyAccess(property, from.getModel(), context);
+		boolean requiresOuterJoin = requiresOuterJoin(from, property, isForSelection, hasRequiredOuterJoin, isLeafProperty, isRelationshipId);
 
-		// if it does not require an outer join and is a leaf, simply get the segment
-		if (!requiresOuterJoin && isLeafProperty) {
-			return from.get(segment);
+		// if it does not require an outer join and is a leaf or relationship id, simply get rest of the segment path
+		if (!requiresOuterJoin && (isLeafProperty || isRelationshipId)) {
+			Path<T> trailingPath = from.get(segment);
+			while (property.hasNext()) {
+				property = property.next();
+				trailingPath = trailingPath.get(property.getSegment());
+			}
+			return trailingPath;
 		}
 
 		// get or create the join
@@ -809,7 +818,7 @@ public abstract class QueryUtils {
 	 * @return whether an outer join is to be used for integrating this attribute in a query.
 	 */
 	static boolean requiresOuterJoin(From<?, ?> from, PropertyPath property, boolean isForSelection,
-			boolean hasRequiredOuterJoin) {
+			boolean hasRequiredOuterJoin, boolean isLeafProperty, boolean isRelationshipId) {
 
 		// already inner joined so outer join is useless
 		if (isAlreadyInnerJoined(from, property.getSegment())) {
@@ -843,8 +852,7 @@ public abstract class QueryUtils {
 		boolean isInverseOptionalOneToOne = ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", ""));
 
-		boolean isLeafProperty = !property.hasNext();
-		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
+		if ((isLeafProperty || isRelationshipId) && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
 

@@ -63,11 +63,28 @@ class JpqlUtils {
 		String segment = property.getSegment();
 
 		boolean isLeafProperty = !property.hasNext();
-		boolean requiresOuterJoin = requiresOuterJoin(metamodel, from, property, isForSelection, hasRequiredOuterJoin);
+		
+		// Check for relationship ID optimization using unified abstraction
+		PathOptimizationStrategy strategy = new DefaultPathOptimizationStrategy();
+		JpaMetamodelContext context = new JpaMetamodelContext(metamodel);
+		boolean isRelationshipId = strategy.canOptimizeForeignKeyAccess(property, from, context);
+		
+		boolean requiresOuterJoin = requiresOuterJoin(metamodel, from, property, isForSelection, hasRequiredOuterJoin, isLeafProperty, isRelationshipId);
 
-		// if it does not require an outer join and is a leaf, simply get the segment
-		if (!requiresOuterJoin && isLeafProperty) {
-			return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+		// if it does not require an outer join and is a leaf or relationship id, simply get rest of the segment path
+		if (!requiresOuterJoin && (isLeafProperty || isRelationshipId)) {
+			if (isRelationshipId) {
+				// For relationship ID case, create implicit path without joins
+				PropertyPath implicitPath = PropertyPath.from(segment, from.getBindableJavaType());
+				PropertyPath remainingPath = property.next();
+				while (remainingPath != null) {
+					implicitPath = implicitPath.nested(remainingPath.getSegment());
+					remainingPath = remainingPath.next();
+				}
+				return new JpqlQueryBuilder.PathAndOrigin(implicitPath, source, false);
+			} else {
+				return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+			}
 		}
 
 		// get or create the join
@@ -105,7 +122,7 @@ class JpqlUtils {
 	 * @return
 	 */
 	static boolean requiresOuterJoin(@Nullable Metamodel metamodel, Bindable<?> bindable, PropertyPath propertyPath,
-			boolean isForSelection, boolean hasRequiredOuterJoin) {
+			boolean isForSelection, boolean hasRequiredOuterJoin, boolean isLeafProperty, boolean isRelationshipId) {
 
 		ManagedType<?> managedType = QueryUtils.getManagedTypeForModel(bindable);
 		Attribute<?, ?> attribute = getModelForPath(metamodel, propertyPath, managedType, bindable);
@@ -127,8 +144,7 @@ class JpqlUtils {
 		boolean isInverseOptionalOneToOne = PersistentAttributeType.ONE_TO_ONE == attribute.getPersistentAttributeType()
 				&& StringUtils.hasText(QueryUtils.getAnnotationProperty(attribute, "mappedBy", ""));
 
-		boolean isLeafProperty = !propertyPath.hasNext();
-		if (isLeafProperty && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
+		if ((isLeafProperty || isRelationshipId) && !isForSelection && !isCollection && !isInverseOptionalOneToOne && !hasRequiredOuterJoin) {
 			return false;
 		}
 
@@ -159,4 +175,14 @@ class JpqlUtils {
 
 		return null;
 	}
+	
+	/**
+	 * Checks if the given property path can be optimized by directly accessing the foreign key column
+	 * instead of creating a JOIN.
+	 *
+	 * @param metamodel the JPA metamodel
+	 * @param from the bindable to check
+	 * @param property the property path
+	 * @return true if this can be optimized to use foreign key directly
+	 */
 }
