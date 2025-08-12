@@ -102,11 +102,13 @@ public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProce
 		new JpaRepositoryContributor(repositoryContext).contribute(generationContext);
 
 		AbstractBeanDefinition aotGeneratedRepository = BeanDefinitionBuilder
-				.genericBeanDefinition(repositoryInterface.getName() + "Impl__Aot")
+				.genericBeanDefinition(repositoryInterface.getName() + "Impl__AotRepository")
 				.addConstructorArgValue(new RuntimeBeanReference(EntityManager.class))
 				.addConstructorArgValue(
 						getCreationContext(repositoryContext, beanFactory.getBean(Environment.class), beanFactory))
 				.getBeanDefinition();
+
+		generationContext.writeGeneratedContent();
 
 		TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
 			beanFactory.setBeanClassLoader(compiled.getClassLoader());
