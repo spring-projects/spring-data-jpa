@@ -332,6 +332,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			} else if (AopUtils.isAopProxy(unwrapped)) {
 				unwrapped = (EntityManagerFactory) AopProxyUtils.getSingletonTarget(unwrapped);
 			}
+
+			if (unwrapped == null) {
+				throw new IllegalStateException(
+						"Unwrapping EntityManagerFactory from '%s' failed resulting in null".formatted(emf));
+			}
 		}
 
 		Class<?> entityManagerType = unwrapped.getClass();

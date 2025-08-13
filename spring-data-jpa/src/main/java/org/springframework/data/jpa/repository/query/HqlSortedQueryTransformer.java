@@ -142,7 +142,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		QueryTokenStream tokens = super.visitJoinFunctionCall(ctx);
 
 		if (ctx.variable() != null && !tokens.isEmpty()) {
-			transformerSupport.registerAlias(tokens.getLast());
+			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
 		return tokens;

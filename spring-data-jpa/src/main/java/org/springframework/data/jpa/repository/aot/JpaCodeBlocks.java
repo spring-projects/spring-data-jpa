@@ -281,7 +281,9 @@ class JpaCodeBlocks {
 			return builder.build();
 		}
 
-		private CodeBlock applyLimits(boolean exists, String pageable) {
+		private CodeBlock applyLimits(boolean exists, @Nullable String pageable) {
+
+			Assert.notNull(queries, "Queries must not be null");
 
 			Builder builder = CodeBlock.builder();
 

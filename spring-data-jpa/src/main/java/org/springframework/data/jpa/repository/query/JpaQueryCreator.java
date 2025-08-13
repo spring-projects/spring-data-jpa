@@ -357,7 +357,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		}
 	}
 
-	private JpqlQueryBuilder.Expression getDistanceExpression() {
+	private JpqlQueryBuilder.@Nullable Expression getDistanceExpression() {
 
 		DistanceFunction distanceFunction = DISTANCE_FUNCTIONS.get(provider.getScoringFunction());
 

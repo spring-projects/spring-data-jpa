@@ -97,7 +97,7 @@ enum EmptyIntrospectedQuery implements EntityQuery {
 
 	@Override
 	public PreprocessedQuery getQuery() {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

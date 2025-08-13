@@ -91,7 +91,7 @@ class AotMetamodel implements Metamodel {
 
 		this.entityManagerFactory = init(() -> {
 
-			managedTypes.stream().forEach(persistenceUnitInfo::addManagedClassName);
+			managedTypes.forEach(persistenceUnitInfo::addManagedClassName);
 
 			persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
 
@@ -104,7 +104,7 @@ class AotMetamodel implements Metamodel {
 
 				@Override
 				public URL getPersistenceUnitRootUrl() {
-					return persistenceUnitRootUrl;
+					return persistenceUnitRootUrl != null ? persistenceUnitRootUrl : super.getPersistenceUnitRootUrl();
 				}
 
 			};
