@@ -240,7 +240,8 @@ public interface JpaSpecificationExecutor<T> {
 	 * @since 3.0
 	 * @throws InvalidDataAccessApiUsageException if the query function returns the {@link FluentQuery} instance.
 	 */
-	<S extends T, R> R findBy(Specification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction);
+	<S extends T, R extends @Nullable Object> R findBy(Specification<T> spec,
+			Function<? super SpecificationFluentQuery<S>, R> queryFunction);
 
 	/**
 	 * Extension to {@link FetchableFluentQuery} allowing slice results and pagination with a custom count
