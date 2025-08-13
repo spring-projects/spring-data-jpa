@@ -37,6 +37,8 @@ import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.QEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.QIdClassExampleEmployee;
+import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithEmbeddedId;
 import org.springframework.data.jpa.repository.sample.EmployeeRepositoryWithIdClass;
 import org.springframework.data.jpa.repository.sample.ReferencingEmployeeRepositoryWithEmbeddedIdRepository;
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ernst-Jan van der Laan
  * @author Krzysztof Krason
  * @author Aleksei Elin
+ * @author Jakub Soltys
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = SampleConfig.class)

@@ -1020,16 +1020,6 @@ public final class JpqlQueryBuilder {
 	}
 
 	/**
-	 * An origin that is used to select data from. selection origins are used with paths to define where a path is
-	 * anchored.
-	 */
-	public interface Bindable {
-
-		boolean isRoot();
-
-	}
-
-	/**
 	 * The root entity.
 	 */
 	public static final class Entity implements Origin {

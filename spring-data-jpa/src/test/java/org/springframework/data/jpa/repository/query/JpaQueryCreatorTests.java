@@ -45,6 +45,10 @@ import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Vector;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
+import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
@@ -63,6 +67,9 @@ class JpaQueryCreatorTests {
 
 	private static final TestMetaModel ORDER = TestMetaModel.hibernateModel(Order.class, LineItem.class, Product.class);
 	private static final TestMetaModel PERSON = TestMetaModel.hibernateModel(Person.class);
+	private static final TestMetaModel REFERENCE_IDS = TestMetaModel.hibernateModel(
+			ReferencingEmbeddedIdExampleEmployee.class, EmbeddedIdExampleEmployee.class, EmbeddedIdExampleEmployeePK.class,
+			EmbeddedIdExampleDepartment.class);
 
 	static List<JpqlQueryTemplates> ignoreCaseTemplates = List.of(JpqlQueryTemplates.LOWER, JpqlQueryTemplates.UPPER);
 
@@ -711,6 +718,30 @@ class JpaQueryCreatorTests {
 				.returing(Long.class).withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", Person.class.getName()) //
+				.validateQuery();
+	}
+
+	@Test // GH-3588
+	void doesNotCreateJoinForRelationshipEmbeddedId() {
+
+		queryCreator(REFERENCE_IDS) //
+				.forTree(ReferencingEmbeddedIdExampleEmployee.class, "findByEmployee_EmployeePk_EmployeeId") //
+				.withParameters(1L) //
+				.as(QueryCreatorTester::create) //
+				.expectJpql(
+						"SELECT r FROM org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee r WHERE r.employee.employeePk.employeeId = ?1") //
+				.validateQuery();
+	}
+
+	@Test // GH-3588
+	void createsJoinForReferenceName() {
+
+		queryCreator(REFERENCE_IDS) //
+				.forTree(ReferencingEmbeddedIdExampleEmployee.class, "findByEmployee_Department_Name") //
+				.withParameters("foo") //
+				.as(QueryCreatorTester::create) //
+				.expectJpql(
+						"SELECT r FROM org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee r LEFT JOIN r.employee e LEFT JOIN e.department d WHERE d.name = ?1") //
 				.validateQuery();
 	}
 

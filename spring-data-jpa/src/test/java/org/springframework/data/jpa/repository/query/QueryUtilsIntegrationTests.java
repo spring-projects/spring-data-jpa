@@ -398,8 +398,8 @@ class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(from, PropertyPath.from("manager.id", User.class));
 
-		assertThat(from.getFetches()).hasSize(0);
-		assertThat(from.getJoins()).hasSize(0);
+		assertThat(from.getFetches()).isEmpty();
+		assertThat(from.getJoins()).isEmpty();
 	}
 
 	@Test // GH-3349
@@ -411,8 +411,8 @@ class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(from, PropertyPath.from("employee.employeePk.employeeId", ReferencingEmbeddedIdExampleEmployee.class));
 
-		assertThat(from.getFetches()).hasSize(0);
-		assertThat(from.getJoins()).hasSize(0);
+		assertThat(from.getFetches()).isEmpty();
+		assertThat(from.getJoins()).isEmpty();
 	}
 
 	@Test // GH-3349
@@ -424,8 +424,8 @@ class QueryUtilsIntegrationTests {
 
 		QueryUtils.toExpressionRecursively(from, PropertyPath.from("employee.empId", ReferencingIdClassExampleEmployee.class));
 
-		assertThat(from.getFetches()).hasSize(0);
-		assertThat(from.getJoins()).hasSize(0);
+		assertThat(from.getFetches()).isEmpty();
+		assertThat(from.getJoins()).isEmpty();
 	}
 
 	int getNumberOfJoinsAfterCreatingAPath() {
