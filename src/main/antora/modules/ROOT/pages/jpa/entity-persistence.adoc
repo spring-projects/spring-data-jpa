@@ -19,7 +19,8 @@ Spring Data JPA offers the following strategies to detect whether an entity is n
    If the identifier property is `null`, then the entity is assumed to be new.
    Otherwise, it is assumed to be not new.
 In contrast to other Spring Data modules, JPA considers `0` (zero) as the first inserted version of an entity and therefore, a primitive version property cannot be used to determine whether an entity is new or not.
-2. Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity. See the link:$$https://docs.spring.io/spring-data/data-commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html$$[JavaDoc] for details.
+2. Implementing `Persistable`: If an entity implements `Persistable`, Spring Data JPA delegates the new detection to the `isNew(…)` method of the entity.
+See the link:{spring-data-commons-javadoc-base}/org/springframework/data/domain/Persistable.html[JavaDoc] for details.
 3. Implementing `EntityInformation`: You can customize the `EntityInformation` abstraction used in the `SimpleJpaRepository` implementation by creating a subclass of `JpaRepositoryFactory` and overriding the `getEntityInformation(…)` method accordingly. You then have to register the custom implementation of `JpaRepositoryFactory` as a Spring bean. Note that this should be rarely necessary. See the javadoc:org.springframework.data.jpa.repository.support.JpaRepositoryFactory[JavaDoc] for details.
 
 Option 1 is not an option for entities that use manually assigned identifiers and no version attribute as with those the identifier will always be non-`null`.
