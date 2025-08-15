@@ -5,19 +5,19 @@ asciidoc:
   attributes:
     attribute-missing: 'warn'
     chomp: 'all'
-    version: ${project.version}
-    copyright-year: ${current.year}
-    springversionshort: ${spring.short}
-    springversion: ${spring}
-    commons: ${springdata.commons.docs}
+    version: '${project.version}'
+    copyright-year: '${current.year}'
+    springversionshort: '${spring.short}'
+    springversion: '${spring}'
+    commons: '${springdata.commons.docs}'
     include-xml-namespaces: false
-    spring-data-commons-docs-url: https://docs.spring.io/spring-data/commons/reference/{commons}
+    spring-data-commons-docs-url: '${documentation.baseurl}/spring-data/commons/reference/${springdata.commons.short}'
     spring-data-commons-javadoc-base: '{spring-data-commons-docs-url}/api/java'
-    springdocsurl: https://docs.spring.io/spring-framework/reference/{springversionshort}
+    springdocsurl: '${documentation.baseurl}/spring-framework/reference/{springversionshort}'
     spring-framework-docs: '{springdocsurl}'
-    springjavadocurl: https://docs.spring.io/spring-framework/docs/${spring}/javadoc-api
+    springjavadocurl: '${documentation.spring-javadoc-url}'
     spring-framework-javadoc: '{springjavadocurl}'
-    springhateoasversion: ${spring-hateoas}
+    springhateoasversion: '${spring-hateoas}'
     hibernatejavadocurl: https://docs.jboss.org/hibernate/orm/6.6/javadocs/
-    releasetrainversion: ${releasetrain}
+    releasetrainversion: '${releasetrain}'
     store: Jpa
