@@ -45,6 +45,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.Any;
+import org.hibernate.annotations.AnyDiscriminator;
+import org.hibernate.annotations.AnyDiscriminatorValue;
+import org.hibernate.annotations.AnyKeyJavaClass;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -73,6 +77,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Diego Krupitza
  * @author Krzysztof Krason
  * @author Jakub Soltys
+ * @author Hyunjoon Park
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
@@ -372,6 +377,36 @@ class QueryUtilsIntegrationTests {
 		}
 	}
 
+	@Test // GH-2318
+	void handlesHibernateAnyAnnotationWithoutThrowingException() {
+
+		doInMerchantContext((emf) -> {
+
+			CriteriaBuilder builder = emf.createEntityManager().getCriteriaBuilder();
+			CriteriaQuery<EntityWithAny> query = builder.createQuery(EntityWithAny.class);
+			Root<EntityWithAny> root = query.from(EntityWithAny.class);
+
+			// This would throw IllegalArgumentException without the fix
+			PropertyPath monitorObjectPath = PropertyPath.from("monitorObject", EntityWithAny.class);
+			assertThatNoException().isThrownBy(() -> QueryUtils.toExpressionRecursively(root, monitorObjectPath));
+		});
+	}
+
+	@Test // GH-2318
+	void doesNotCreateJoinForAnyAnnotatedProperty() {
+
+		doInMerchantContext((emf) -> {
+
+			CriteriaBuilder builder = emf.createEntityManager().getCriteriaBuilder();
+			CriteriaQuery<EntityWithAny> query = builder.createQuery(EntityWithAny.class);
+			Root<EntityWithAny> root = query.from(EntityWithAny.class);
+
+			QueryUtils.toExpressionRecursively(root, PropertyPath.from("monitorObject", EntityWithAny.class));
+
+			assertThat(root.getJoins()).isEmpty();
+		});
+	}
+
 	/**
 	 * This test documents an ambiguity in the JPA spec (or it's implementation in Hibernate vs EclipseLink) that we have
 	 * to work around in the test {@link #doesNotCreateJoinForOptionalAssociationWithoutFurtherNavigation()}. See also:
@@ -473,6 +508,38 @@ class QueryUtilsIntegrationTests {
 
 		@Id String id;
 		String uid;
+	}
+
+	@Entity
+	@SuppressWarnings("unused")
+	static class EntityWithAny {
+
+		@Id String id;
+
+		@Any
+		@AnyDiscriminator // Default is STRING type
+		@AnyDiscriminatorValue(discriminator = "monitorable", entity = MonitorableEntity.class)
+		@AnyDiscriminatorValue(discriminator = "another", entity = AnotherMonitorableEntity.class)
+		@AnyKeyJavaClass(String.class)
+		@jakarta.persistence.JoinColumn(name = "monitor_object_id")
+		@jakarta.persistence.Column(name = "monitor_object_type")
+		Object monitorObject;
+	}
+
+	@Entity
+	@SuppressWarnings("unused")
+	static class MonitorableEntity {
+
+		@Id String id;
+		String name;
+	}
+
+	@Entity
+	@SuppressWarnings("unused")
+	static class AnotherMonitorableEntity {
+
+		@Id String id;
+		String code;
 	}
 
 	/**
