@@ -106,6 +106,9 @@
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Address</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Employee</class>
 		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$Credential</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$EntityWithAny</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$MonitorableEntity</class>
+		<class>org.springframework.data.jpa.repository.query.QueryUtilsIntegrationTests$AnotherMonitorableEntity</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />

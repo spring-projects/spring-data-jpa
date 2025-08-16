@@ -32,6 +32,9 @@ import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Bindable;
 import jakarta.persistence.metamodel.ManagedType;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,6 +91,7 @@ import org.springframework.util.StringUtils;
  * @author Yanming Zhou
  * @author Alim Naizabek
  * @author Jakub Soltys
+ * @author Hyunjoon Park
  */
 public abstract class QueryUtils {
 
@@ -789,6 +793,13 @@ public abstract class QueryUtils {
 
 			boolean isLeafProperty = !property.hasNext();
 
+			// Check if this is a Hibernate @Any annotated property
+			if (isAnyAnnotatedProperty(from, property)) {
+				// For @Any associations, we need to handle them specially since they're not in the metamodel
+				// Simply return the path expression without further processing
+				return from.get(segment);
+			}
+
 			FromPathResolver resolver = new FromPathResolver(from);
 			boolean isRelationshipId = isRelationshipId(resolver, property);
 			boolean requiresOuterJoin = requiresOuterJoin(resolver, property, isForSelection, hasRequiredOuterJoin,
@@ -947,11 +958,57 @@ public abstract class QueryUtils {
 						return (Bindable<?>) managedType.getAttribute(segment);
 					} catch (IllegalArgumentException ex) {
 						// ManagedType may be erased for some vendor if the attribute is declared as generic
+						// or the attribute is not part of the metamodel (e.g., @Any annotation)
 					}
 				}
 
-				return (Bindable<?>) fallback.get().get(segment);
+				try {
+					return (Bindable<?>) fallback.get().get(segment);
+				} catch (IllegalArgumentException ex) {
+					// This can happen with @Any annotated properties as they're not in the metamodel
+					// Return null to indicate the property cannot be resolved through the metamodel
+					return null;
+				}
 			}
+		}
+
+		/**
+		 * Checks if the given property path represents a property annotated with Hibernate's @Any annotation.
+		 * This is necessary because @Any associations are not present in the JPA metamodel.
+		 *
+		 * @param from the root from which to resolve the property
+		 * @param property the property path to check
+		 * @return true if the property is annotated with @Any, false otherwise
+		 */
+		private static boolean isAnyAnnotatedProperty(From<?, ?> from, PropertyPath property) {
+
+			try {
+				Class<?> javaType = from.getJavaType();
+				String propertyName = property.getSegment();
+				
+				Member member = null;
+				try {
+					member = javaType.getDeclaredField(propertyName);
+				} catch (NoSuchFieldException ex) {
+					String capitalizedProperty = propertyName.substring(0, 1).toUpperCase() + propertyName.substring(1);
+					try {
+						member = javaType.getDeclaredMethod("get" + capitalizedProperty);
+					} catch (NoSuchMethodException ex2) {
+						return false;
+					}
+				}
+				
+				if (member instanceof AnnotatedElement annotatedElement) {
+					for (Annotation annotation : annotatedElement.getAnnotations()) {
+						if (annotation.annotationType().getName().equals("org.hibernate.annotations.Any")) {
+							return true;
+						}
+					}
+				}
+			} catch (Exception ex) {
+				// If anything goes wrong, assume it's not an @Any property
+			}
+			return false;
 		}
 	}
 

@@ -79,6 +79,12 @@ class ExpressionFactorySupport {
 
 		Bindable<?> propertyPathModel = resolver.resolve(property);
 
+		// If propertyPathModel is null, it might be a @Any association
+		if (propertyPathModel == null) {
+			// For @Any associations or other non-metamodel properties, default to outer join
+			return true;
+		}
+
 		if (!(propertyPathModel instanceof Attribute<?, ?> attribute)) {
 			return false;
 		}
