@@ -783,6 +783,14 @@ class UserRepositoryTests {
 		assertThat(repository.findNativeByLastname("Matthews")).containsOnly(thirdUser);
 	}
 
+	@Test // GH-3979
+	void executesNativeQueryWithSelectStarCorrectly() {
+
+		flushTestUsers();
+
+		assertThat(repository.findNativeWithSelectStar("Matthews")).containsOnly(thirdUser);
+	}
+
 	@Test // DATAJPA-132
 	void executesFinderWithTrueKeywordCorrectly() {
 

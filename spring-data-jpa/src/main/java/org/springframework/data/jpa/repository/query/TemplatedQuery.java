@@ -86,7 +86,7 @@ class TemplatedQuery {
 
 		ValueExpressionParser expressionParser = queryContext.getValueExpressionDelegate().getValueExpressionParser();
 		String resolvedExpressionQuery = renderQueryIfExpressionOrReturnQuery(declaredQuery.getQueryString(),
-				entityMetadata, expressionParser);
+				entityMetadata, expressionParser, declaredQuery.isNative());
 
 		return EntityQuery.create(declaredQuery.rewrite(resolvedExpressionQuery), queryContext.getSelector());
 	}
@@ -98,6 +98,17 @@ class TemplatedQuery {
 	 */
 	static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
 			ValueExpressionParser parser) {
+		return renderQueryIfExpressionOrReturnQuery(query, metadata, parser, false);
+	}
+
+	/**
+	 * @param query, the query expression potentially containing a SpEL expression. Must not be {@literal null}.
+	 * @param metadata the {@link JpaEntityMetadata} for the given entity. Must not be {@literal null}.
+	 * @param parser Must not be {@literal null}.
+	 * @param isNative whether the query is a native SQL query.
+	 */
+	static String renderQueryIfExpressionOrReturnQuery(String query, JpaEntityMetadata<?> metadata,
+			ValueExpressionParser parser, boolean isNative) {
 
 		Assert.notNull(query, "query must not be null");
 		Assert.notNull(metadata, "metadata must not be null");
@@ -108,7 +119,10 @@ class TemplatedQuery {
 		}
 
 		SimpleEvaluationContext evalContext = SimpleEvaluationContext.forReadOnlyDataBinding().build();
-		evalContext.setVariable(ENTITY_NAME, metadata.getEntityName());
+		
+		String entityNameValue = isNative ? metadata.getTableName() : metadata.getEntityName();
+		
+		evalContext.setVariable(ENTITY_NAME, entityNameValue);
 
 		query = potentiallyQuoteExpressionsParameter(query);
 

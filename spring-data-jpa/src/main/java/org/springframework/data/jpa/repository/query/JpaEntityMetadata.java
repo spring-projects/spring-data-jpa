@@ -30,4 +30,14 @@ public interface JpaEntityMetadata<T> extends EntityMetadata<T> {
 	 * @return
 	 */
 	String getEntityName();
+
+	/**
+	 * Returns the table name from the @Table annotation or defaults to the entity name.
+	 *
+	 * @return the table name
+	 * @since 4.0
+	 */
+	default String getTableName() {
+		return getEntityName();
+	}
 }

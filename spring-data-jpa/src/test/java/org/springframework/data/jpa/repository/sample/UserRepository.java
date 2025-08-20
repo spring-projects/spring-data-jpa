@@ -676,6 +676,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query(value = "VALUES (1)", nativeQuery = true)
 	List<Integer> valuesStatementNative();
 
+	// GH-3979
+	@Query(value = "select * from #{#entityName} where lastname = ?1", nativeQuery = true)
+	List<User> findNativeWithSelectStar(String lastname);
+
 	// GH-2578
 	@Query(value = "with sample_data as ( Select * from SD_User u where u.age > 30  ) \n select * from sample_data",
 			nativeQuery = true)
