@@ -72,18 +72,18 @@ These are typically all query methods that are not backed by an xref:repositorie
 **Supported Features**
 
 * Derived query methods, `@Query`/`@NativeQuery` and named query methods
+* Stored procedure query methods annotated with `@Procedure`
 * `@Modifying` methods returning `void` or `int`
 * `@QueryHints` support
 * Pagination, `Slice`, `Stream`, and `Optional` return types
 * Sort query rewriting
-* DTO Projections
+* Interface and DTO Projections
 * Value Expressions (Those require a bit of reflective information.
 Mind that using Value Expressions requires expression parsing and contextual information to evaluate the expression)
 
 **Limitations**
 
 * Requires Hibernate for AOT processing.
-* Configuration of `escapeCharacter` and `queryEnhancerSelector` are not yet considered
 * `QueryRewriter` must be a no-args class. `QueryRewriter` beans are not yet supported.
 * Methods accepting `ScrollPosition` (e.g. `Keyset` pagination) are not yet supported
 
@@ -92,7 +92,6 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 * `CrudRepository`, Querydsl, Query by Example, and other base interface methods as their implementation is provided by the base class respective fragments
 * Methods whose implementation would be overly complex
 ** Methods accepting `ScrollPosition` (e.g. `Keyset` pagination)
-** Stored procedure query methods annotated with `@Procedure`
 ** Dynamic projections
 
 [[aot.repositories.json]]
@@ -113,7 +112,7 @@ interface UserRepository extends CrudRepository<User, Integer> {
   Page<User> findPageOfUsersByLastnameStartingWith(String lastname, Pageable page);    <2>
 
   @Query("select u from User u where u.emailAddress = ?1")
-  User findAnnotatedQueryByEmailAddress(String username);                              <3>
+  User findAnnotatedQueryByEmailAddress(String emailAddress);                              <3>
 
   User findByEmailAddress(String emailAddress);                                        <4>
 
@@ -134,7 +133,7 @@ While stored procedure methods are included in JSON metadata, their method code 
 ----
 {
   "name": "com.acme.UserRepository",
-  "module": "",
+  "module": "JPA",
   "type": "IMPERATIVE",
   "methods": [
     {
