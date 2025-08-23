@@ -53,12 +53,18 @@ public @interface EnableJpaRepositories {
 	/**
 	 * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
 	 * {@code @EnableJpaRepositories("org.my.pkg")} instead of {@code @EnableJpaRepositories(basePackages="org.my.pkg")}.
+	 * <p>
+	 * Supports Ant-style wildcards for flexible package matching. See {@link #basePackages()} for more details and examples.
 	 */
 	String[] value() default {};
 
 	/**
 	 * Base packages to scan for annotated components. {@link #value()} is an alias for (and mutually exclusive with) this
 	 * attribute. Use {@link #basePackageClasses()} for a type-safe alternative to String-based package names.
+	 * <p>
+	 * This attribute supports Ant-style wildcards for flexible package matching. For example,
+	 * {@code "com.example.**.repository"} will scan the {@code repository} package in all sub-packages of
+	 * {@code com.example}.
 	 */
 	String[] basePackages() default {};
 
