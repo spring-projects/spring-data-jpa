@@ -53,6 +53,17 @@ class ExpressionBasedStringQuery extends StringQuery {
 	private static final String ENTITY_NAME_VARIABLE_EXPRESSION = "#{" + ENTITY_NAME_VARIABLE;
 
 	/**
+	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link JpaQueryMethod}.
+	 *
+	 * @param query must not be {@literal null} or empty.
+	 * @param queryMethod must not be {@literal null} or empty.
+	 * @param parser must not be {@literal null}.
+	 */
+	public ExpressionBasedStringQuery(String query, JpaQueryMethod queryMethod, ValueExpressionParser parser) {
+		this(query, queryMethod.getEntityInformation(), parser, queryMethod.isNativeQuery());
+	}
+
+	/**
 	 * Creates a new {@link ExpressionBasedStringQuery} for the given query and {@link EntityMetadata}.
 	 *
 	 * @param query must not be {@literal null} or empty.
@@ -62,7 +73,7 @@ class ExpressionBasedStringQuery extends StringQuery {
 	 */
 	public ExpressionBasedStringQuery(String query, JpaEntityMetadata<?> metadata, ValueExpressionParser parser,
 			boolean nativeQuery) {
-		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery && !containsExpression(query));
+		super(renderQueryIfExpressionOrReturnQuery(query, metadata, parser), nativeQuery);
 	}
 
 	/**

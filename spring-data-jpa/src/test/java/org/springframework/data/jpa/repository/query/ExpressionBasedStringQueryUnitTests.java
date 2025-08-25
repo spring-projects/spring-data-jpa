@@ -97,25 +97,13 @@ class ExpressionBasedStringQueryUnitTests {
 		assertThat(query.getParameterBindings()).hasSize(8);
 	}
 
-	@Test
-	void shouldDetectComplexNativeQueriesWithSpelAsNonNative() {
+	@Test // GH-3979
+	void shouldExpandExpressionUsingNativeQueries() {
 
-		StringQuery query = new ExpressionBasedStringQuery(
-				"select n from #{#entityName} n where (LOWER(n.name) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.name},'%')), '')) OR ?#{#networkRequest.name} IS NULL )"
-						+ "AND (LOWER(n.server) LIKE LOWER(NULLIF(text(concat('%',?#{#networkRequest.server},'%')), '')) OR ?#{#networkRequest.server} IS NULL)"
-						+ "AND (n.createdAt >= ?#{#networkRequest.createdTime.startDateTime}) AND (n.createdAt <=?#{#networkRequest.createdTime.endDateTime})"
-						+ "AND (n.updatedAt >= ?#{#networkRequest.updatedTime.startDateTime}) AND (n.updatedAt <=?#{#networkRequest.updatedTime.endDateTime})",
-				metadata, PARSER, true);
+		StringQuery query = new ExpressionBasedStringQuery("select n.* from #{#entityName} n", metadata, PARSER, true);
 
-		assertThat(query.isNativeQuery()).isFalse();
-	}
-
-	@Test
-	void shouldDetectSimpleNativeQueriesWithSpelAsNonNative() {
-
-		StringQuery query = new ExpressionBasedStringQuery("select n from #{#entityName} n", metadata, PARSER, true);
-
-		assertThat(query.isNativeQuery()).isFalse();
+		assertThat(query.isNativeQuery()).isTrue();
+		assertThat(query.getQueryString()).isEqualTo("select n.* from User n");
 	}
 
 	@Test
