@@ -22,11 +22,16 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 
+import java.util.List;
+
+import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * EclipseLink variant of {@link QueryUtilsIntegrationTests}.
@@ -61,6 +66,24 @@ class EclipseLinkQueryUtilsIntegrationTests extends QueryUtilsIntegrationTests {
 		assertThat(expr.getParentPath()).hasFieldOrPropertyWithValue("isFetch", true);
 		assertThat(from.getFetches()).hasSize(1);
 		assertThat(from.getJoins()).hasSize(1);
+	}
+
+	@Test // GH-3983, GH-2870
+	@Disabled("Not supported by EclipseLink")
+	@Transactional
+	@Override
+	void applyAndBindOptimizesIn() {}
+
+	@Test // GH-3983, GH-2870
+	@Transactional
+	@Override
+	void applyAndBindExpandsToPositionalPlaceholders() {
+
+		em.getCriteriaBuilder();
+		EJBQueryImpl<?> query = (EJBQueryImpl) QueryUtils.applyAndBind("DELETE FROM User u",
+				List.of(new User(), new User()), em.unwrap(null));
+
+		assertThat(query.getDatabaseQuery().getJPQLString()).isEqualTo("DELETE FROM User u where u = ?1 or u = ?2");
 	}
 
 }
