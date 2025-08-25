@@ -613,7 +613,7 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	Map<String, Object> findMapWithNullValues();
 
 	// DATAJPA-1307
-	@Query(value = "select * from SD_User u where u.emailAddress = ?", nativeQuery = true)
+	@Query(value = "select * from SD_#{#entityName} u where u.emailAddress = ?", nativeQuery = true)
 	User findByEmailNativeAddressJdbcStyleParameter(String emailAddress);
 
 	// DATAJPA-1334
