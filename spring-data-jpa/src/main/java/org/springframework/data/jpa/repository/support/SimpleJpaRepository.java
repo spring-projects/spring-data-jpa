@@ -518,7 +518,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public <S extends T, R> R findBy(Specification<T> spec,
+	public <S extends T, R extends @Nullable Object> R findBy(Specification<T> spec,
 			Function<? super SpecificationFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(spec, SPECIFICATION_MUST_NOT_BE_NULL);
@@ -626,7 +626,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <S extends T, R> R findBy(Example<S> example, Function<FetchableFluentQuery<S>, R> queryFunction) {
+	public <S extends T, R extends @Nullable Object> R findBy(Example<S> example,
+			Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(example, EXAMPLE_MUST_NOT_BE_NULL);
 		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);

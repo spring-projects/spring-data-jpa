@@ -181,7 +181,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <S extends T, R> R findBy(Predicate predicate, Function<FetchableFluentQuery<S>, R> queryFunction) {
+	public <S extends T, R extends @Nullable Object> R findBy(Predicate predicate,
+			Function<FetchableFluentQuery<S>, R> queryFunction) {
 
 		Assert.notNull(predicate, PREDICATE_MUST_NOT_BE_NULL);
 		Assert.notNull(queryFunction, QUERY_FUNCTION_MUST_NOT_BE_NULL);
