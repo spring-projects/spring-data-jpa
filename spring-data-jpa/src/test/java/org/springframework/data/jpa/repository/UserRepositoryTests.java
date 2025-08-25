@@ -3656,7 +3656,7 @@ class UserRepositoryTests {
 		String getLastname();
 	}
 
-	record UserDto(Integer id, String firstname, String lastname, String emailAddress) {
+	public record UserDto(Integer id, String firstname, String lastname, String emailAddress) {
 
 	}
 

@@ -52,6 +52,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
@@ -516,6 +517,21 @@ public abstract class QueryUtils {
 	 * @return Guaranteed to be not {@literal null}.
 	 */
 	public static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager) {
+		return applyAndBind(queryString, entities, entityManager, PersistenceProvider.fromEntityManager(entityManager));
+	}
+
+	/**
+	 * Creates a where-clause referencing the given entities and appends it to the given query string. Binds the given
+	 * entities to the query.
+	 *
+	 * @param <T> type of the entities.
+	 * @param queryString must not be {@literal null}.
+	 * @param entities must not be {@literal null}.
+	 * @param entityManager must not be {@literal null}.
+	 * @return Guaranteed to be not {@literal null}.
+	 */
+	static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager,
+			PersistenceProvider persistenceProvider) {
 
 		Assert.notNull(queryString, "Querystring must not be null");
 		Assert.notNull(entities, "Iterable of entities must not be null");
@@ -527,9 +543,46 @@ public abstract class QueryUtils {
 			return entityManager.createQuery(queryString);
 		}
 
+		if (persistenceProvider == PersistenceProvider.HIBERNATE) {
+
+			String alias = detectAlias(queryString);
+			Query query = entityManager.createQuery("%s where %s IN (?1)".formatted(queryString, alias));
+			query.setParameter(1, entities instanceof Collection<T> ? entities : Streamable.of(entities).toList());
+
+			return query;
+		}
+
+		return applyWhereEqualsAndBind(queryString, entities, entityManager, iterator);
+	}
+
+	private static Query applyWhereEqualsAndBind(String queryString, Iterable<?> entities, EntityManager entityManager,
+			Iterator<?> iterator) {
+
 		String alias = detectAlias(queryString);
-		Query query = entityManager.createQuery("%s where %s IN (?1)".formatted(queryString, alias));
-		query.setParameter(1, entities instanceof Collection<T> ? entities : Streamable.of(entities).toList());
+		StringBuilder builder = new StringBuilder(queryString);
+		builder.append(" where");
+
+		int i = 0;
+
+		while (iterator.hasNext()) {
+
+			iterator.next();
+
+			builder.append(String.format(" %s = ?%d", alias, ++i));
+
+			if (iterator.hasNext()) {
+				builder.append(" or");
+			}
+		}
+
+		Query query = entityManager.createQuery(builder.toString());
+
+		iterator = entities.iterator();
+		i = 0;
+
+		while (iterator.hasNext()) {
+			query.setParameter(++i, iterator.next());
+		}
 
 		return query;
 	}
