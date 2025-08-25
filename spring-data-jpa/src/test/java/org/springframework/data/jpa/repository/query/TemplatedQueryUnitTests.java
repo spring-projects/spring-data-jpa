@@ -73,6 +73,14 @@ class TemplatedQueryUnitTests {
 		assertThat(query.getQueryString()).isEqualTo("select u from User u");
 	}
 
+	@Test // GH-3979
+	void renderAliasInNativeExpressionQueryCorrectly() {
+
+		DefaultEntityQuery query = nativeEntityQuery("select u.* from #{#entityName} u");
+		assertThat(query.getAlias()).isEqualTo("u");
+		assertThat(query.getQueryString()).isEqualTo("select u.* from User u");
+	}
+
 	@Test // DATAJPA-1695
 	void shouldDetectBindParameterCountCorrectly() {
 
