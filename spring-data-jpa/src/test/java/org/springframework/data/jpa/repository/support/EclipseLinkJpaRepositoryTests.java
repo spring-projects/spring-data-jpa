@@ -15,7 +15,18 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import static org.assertj.core.api.Assertions.*;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -23,9 +34,48 @@ import org.springframework.test.context.ContextConfiguration;
  *
  * @author Oliver Gierke
  * @author Greg Turnquist
+ * @author Mark Paluch
  */
 @ContextConfiguration("classpath:eclipselink.xml")
 class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
+
+	@PersistenceContext EntityManager em;
+
+	SimpleJpaRepository<User, Integer> repository;
+	User firstUser, secondUser;
+
+	@BeforeEach
+	@Override
+	void setUp() {
+
+		super.setUp();
+
+		repository = new SimpleJpaRepository<>(User.class, em);
+
+		firstUser = new User("Oliver", "Gierke", "gierke@synyx.de");
+		firstUser.setAge(28);
+		secondUser = new User("Joachim", "Arrasz", "arrasz@synyx.de");
+		secondUser.setAge(35);
+
+		repository.deleteAll();
+		repository.saveAllAndFlush(List.of(firstUser, secondUser));
+	}
+
+	@Test // GH-3990
+	void deleteAllBySimpleIdInBatch() {
+
+		repository.deleteAllByIdInBatch(List.of(firstUser.getId(), secondUser.getId()));
+
+		assertThat(repository.count()).isZero();
+	}
+
+	@Test // GH-3990
+	void deleteAllInBatch() {
+
+		repository.deleteAllInBatch(List.of(firstUser, secondUser));
+
+		assertThat(repository.count()).isZero();
+	}
 
 	@Override
 	@Disabled("https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477")
@@ -38,4 +88,5 @@ class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
 	void deleteAllByIdInBatchShouldConvertAnIterableToACollection() {
 		// disabled
 	}
+
 }
