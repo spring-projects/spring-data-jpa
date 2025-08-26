@@ -27,6 +27,7 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
@@ -120,7 +121,16 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	@Override
 	protected void customizeConstructor(AotRepositoryConstructorBuilder constructorBuilder) {
 
-		constructorBuilder.addParameter("entityManager", EntityManager.class);
+		String entityManagerFactoryRef = getEntityManagerFactoryRef();
+
+		constructorBuilder.addParameter("entityManager", EntityManager.class, customizer -> {
+
+			customizer.bindToField().origin(
+					StringUtils.hasText(entityManagerFactoryRef)
+							? new RuntimeBeanReference(entityManagerFactoryRef, EntityManager.class)
+							: new RuntimeBeanReference(EntityManager.class));
+		});
+
 		constructorBuilder.addParameter("context", RepositoryFactoryBeanSupport.FragmentCreationContext.class);
 
 		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelector = getQueryEnhancerSelectorClass();
@@ -133,6 +143,11 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
 			}
 		});
+	}
+
+	private String getEntityManagerFactoryRef() {
+		return context.getConfigurationSource().getAttribute("entityManagerFactoryRef")
+				.filter(it -> !"entityManagerFactory".equals(it)).orElse(null);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

@@ -141,7 +141,7 @@ class QueriesFactory {
 	private AotQueries buildStringQuery(Class<?> domainType, ReturnedType returnedType, QueryEnhancerSelector selector,
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
-		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", domainType.getName());
+		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", domainType.getSimpleName());
 		boolean isNative = query.getBoolean("nativeQuery");
 		Function<String, DeclaredQuery> queryFunction = isNative ? DeclaredQuery::nativeQuery : DeclaredQuery::jpqlQuery;
 		queryFunction = operator.andThen(queryFunction);
