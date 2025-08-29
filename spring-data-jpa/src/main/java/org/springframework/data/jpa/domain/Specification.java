@@ -48,6 +48,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Daniel Shuy
  * @author Sergey Rukin
+ * @author Heeeun Cho
  */
 @FunctionalInterface
 public interface Specification<T> extends Serializable {
@@ -76,6 +77,21 @@ public interface Specification<T> extends Serializable {
 		Assert.notNull(spec, "PredicateSpecification must not be null");
 
 		return (root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder);
+	}
+
+	/**
+	 * Creates a {@link Specification} from the given {@link Specification}. This is a factory method for fluent composition.
+	 *
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @param spec must not be {@literal null}.
+	 * @return the given specification.
+	 * @since 4.1
+	 */
+	static <T> Specification<T> where(Specification<T> spec) {
+
+		Assert.notNull(spec, "Specification must not be null");
+
+		return spec;
 	}
 
 	/**

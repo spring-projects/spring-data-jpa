@@ -42,6 +42,7 @@ import org.mockito.quality.Strictness;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Daniel Shuy
+ * @author Heeeun Cho
  */
 @SuppressWarnings({ "unchecked", "deprecation" })
 @ExtendWith(MockitoExtension.class)
@@ -135,6 +136,36 @@ class SpecificationUnitTests {
 
 		assertThat(notSpec.toPredicate(root, query, builder)).isNotNull();
 		verify(builder).disjunction();
+	}
+
+	@Test // GH-3992
+	void whereWithSpecificationReturnsSameSpecification() {
+
+		Specification<Object> originalSpec = (r, q, cb) -> predicate;
+		Specification<Object> wrappedSpec = Specification.where(originalSpec);
+
+		assertThat(wrappedSpec).isSameAs(originalSpec);
+	}
+
+	@Test // GH-3992
+	void whereWithSpecificationSupportsFluentComposition() {
+
+		Specification<Object> firstSpec = (r, q, cb) -> predicate;
+		Specification<Object> secondSpec = (r, q, cb) -> predicate;
+
+		Specification<Object> composedSpec = Specification.where(firstSpec).and(secondSpec);
+
+		assertThat(composedSpec).isNotNull();
+		composedSpec.toPredicate(root, query, builder);
+		verify(builder).and(predicate, predicate);
+	}
+
+	@Test // GH-3992
+	void whereWithNullSpecificationThrowsException() {
+
+		assertThatThrownBy(() -> Specification.where((Specification<Object>) null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Specification must not be null");
 	}
 
 	static class SerializableSpecification implements Serializable, Specification<Object> {
