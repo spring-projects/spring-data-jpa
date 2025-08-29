@@ -20,7 +20,6 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -160,8 +159,6 @@ class JpaCodeBlocks {
 			Assert.notNull(queries, "Queries must not be null");
 
 			boolean isProjecting = context.getReturnedType().isProjecting();
-			Class<?> actualReturnType = isProjecting ? context.getActualReturnType().toClass()
-					: context.getRepositoryInformation().getDomainType();
 
 			String dynamicReturnType = null;
 			if (queryMethod.getParameters().hasDynamicProjection()) {
@@ -212,7 +209,7 @@ class JpaCodeBlocks {
 			if ((StringUtils.hasText(sortParameterName) || StringUtils.hasText(dynamicReturnType))
 					&& queries != null && queries.result() instanceof StringAotQuery
 					&& StringUtils.hasText(queryStringVariableName)) {
-				builder.add(applyRewrite(sortParameterName, dynamicReturnType, queryStringVariableName, actualReturnType));
+				builder.add(applyRewrite(sortParameterName, dynamicReturnType, isProjecting, queryStringVariableName));
 			}
 
 			builder.add(createQuery(false, queryVariableName, queryStringVariableName, queryRewriterName, queries.result(),
@@ -246,8 +243,8 @@ class JpaCodeBlocks {
 			return builder.build();
 		}
 
-		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, String queryString,
-				Class<?> actualReturnType) {
+		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, boolean isProjecting,
+				String queryString) {
 
 			Builder builder = CodeBlock.builder();
 
@@ -266,6 +263,9 @@ class JpaCodeBlocks {
 				builder.addStatement("$L = rewriteQuery($L, $L, $L)", queryString, context.localVariable("declaredQuery"), sort,
 						dynamicReturnType);
 			} else if (hasSort) {
+
+				Object actualReturnType = isProjecting ? context.getActualReturnTypeName() : context.getDomainType();
+
 				builder.addStatement("$L = rewriteQuery($L, $L, $T.class)", queryString, context.localVariable("declaredQuery"),
 						sort, actualReturnType);
 			} else if (hasDynamicReturnType) {
@@ -657,11 +657,9 @@ class JpaCodeBlocks {
 
 			Builder builder = CodeBlock.builder();
 
-			boolean isProjecting = context.getActualReturnType() != null
-					&& !ObjectUtils.nullSafeEquals(TypeName.get(context.getRepositoryInformation().getDomainType()),
-							context.getActualReturnType());
-			Type actualReturnType = isProjecting ? context.getActualReturnType().getType()
-					: context.getRepositoryInformation().getDomainType();
+			boolean isProjecting = !ObjectUtils.nullSafeEquals(context.getDomainType(), context.getActualReturnTypeName());
+			TypeName actualReturnType = isProjecting ? context.getActualReturnTypeName()
+					: TypeName.get(context.getDomainType());
 			builder.add("\n");
 
 			if (modifying.isPresent()) {
@@ -775,7 +773,7 @@ class JpaCodeBlocks {
 						if (Optional.class.isAssignableFrom(context.getReturnType().toClass())) {
 							builder.addStatement("return $T.ofNullable(($T) convertOne($L.getSingleResultOrNull(), $L, $T.class))",
 									Optional.class, actualReturnType, queryVariableName, aotQuery.isNative(),
-									context.getActualReturnType().toClass());
+									queryResultType);
 						} else {
 							builder.addStatement("return ($T) convertOne($L.getSingleResultOrNull(), $L, $T.class)",
 									context.getReturnTypeName(), queryVariableName, aotQuery.isNative(),
