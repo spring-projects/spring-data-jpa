@@ -291,7 +291,7 @@ public class ParameterBinding {
 
 
 		@SuppressWarnings("unchecked")
-		@Contract("false, _ -> param2; _, null -> null; true, !null -> new)")
+		@Contract("false, _ -> param2; _, null -> null; true, !null -> new")
 		private @Nullable Collection<?> potentiallyIgnoreCase(boolean ignoreCase, @Nullable Collection<?> collection) {
 
 			if (!ignoreCase || CollectionUtils.isEmpty(collection)) {

@@ -162,10 +162,7 @@ class SpecificationUnitTests {
 
 	@Test // GH-3992
 	void whereWithNullSpecificationThrowsException() {
-
-		assertThatThrownBy(() -> Specification.where((Specification<Object>) null))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Specification must not be null");
+		assertThatIllegalArgumentException().isThrownBy(() -> Specification.where((Specification<Object>) null));
 	}
 
 	static class SerializableSpecification implements Serializable, Specification<Object> {

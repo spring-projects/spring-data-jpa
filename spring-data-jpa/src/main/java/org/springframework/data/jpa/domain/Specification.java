@@ -65,6 +65,23 @@ public interface Specification<T> extends Serializable {
 	}
 
 	/**
+	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
+	 *
+	 * @implNote does not accept {@literal null} values since 4.0, use {@link #unrestricted()} instead of passing
+	 *           {@literal null} values.
+	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
+	 * @param spec can be {@literal null}.
+	 * @return guaranteed to be not {@literal null}.
+	 * @since 2.0
+	 */
+	static <T> Specification<T> where(Specification<T> spec) {
+
+		Assert.notNull(spec, "Specification must not be null");
+
+		return spec;
+	}
+
+	/**
 	 * Simple static factory method to add some syntactic sugar translating {@link PredicateSpecification} to
 	 * {@link Specification}.
 	 *
@@ -77,21 +94,6 @@ public interface Specification<T> extends Serializable {
 		Assert.notNull(spec, "PredicateSpecification must not be null");
 
 		return (root, update, criteriaBuilder) -> spec.toPredicate(root, criteriaBuilder);
-	}
-
-	/**
-	 * Creates a {@link Specification} from the given {@link Specification}. This is a factory method for fluent composition.
-	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
-	 * @param spec must not be {@literal null}.
-	 * @return the given specification.
-	 * @since 4.1
-	 */
-	static <T> Specification<T> where(Specification<T> spec) {
-
-		Assert.notNull(spec, "Specification must not be null");
-
-		return spec;
 	}
 
 	/**
