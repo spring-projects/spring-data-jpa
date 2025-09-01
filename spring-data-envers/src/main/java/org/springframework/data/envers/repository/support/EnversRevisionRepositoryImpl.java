@@ -93,6 +93,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		this.entityManager = entityManager;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Optional<Revision<N, T>> findLastChangeRevision(ID id) {
 
@@ -131,6 +132,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		return Optional.of(createRevision(new QueryResult<>(singleResult.get(0))));
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Revisions<N, T> findRevisions(ID id) {
 
@@ -171,6 +173,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		return result;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Page<Revision<N, T>> findRevisions(ID id, Pageable pageable) {
 
