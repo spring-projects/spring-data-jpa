@@ -182,9 +182,12 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 
 		orderMapped.forEach(baseQuery::addOrder);
 
+		if (pageable.isPaged()) {
+			baseQuery.setFirstResult((int) pageable.getOffset()) //
+					.setMaxResults(pageable.getPageSize());
+		}
+
 		List<Object[]> resultList = baseQuery //
-				.setFirstResult((int) pageable.getOffset()) //
-				.setMaxResults(pageable.getPageSize()) //
 				.getResultList();
 
 		Long count = (Long) createBaseQuery(id) //

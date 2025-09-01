@@ -15,12 +15,23 @@
  */
 package org.springframework.data.envers.repository.support;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.envers.Config;
 import org.springframework.data.envers.sample.Country;
@@ -33,21 +44,13 @@ import org.springframework.data.history.Revisions;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.springframework.data.history.RevisionMetadata.RevisionType.*;
-
 /**
  * Integration tests for repositories.
  *
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Niklas Loechte
+ * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Config.class)
@@ -105,6 +108,40 @@ class RepositoryIntegrationTests {
 			assertThat(latestRevision.getRequiredRevisionNumber()).isEqualTo(it.getRequiredRevisionNumber());
 			assertThat(latestRevision.getEntity()).isEqualTo(it.getEntity());
 		});
+	}
+
+	@Test // GH-3999
+	void shouldReturnUnpagedResults() {
+
+		License license = new License();
+		license.name = "Schnitzel";
+
+		licenseRepository.save(license);
+
+		Country de = new Country();
+		de.code = "de";
+		de.name = "Deutschland";
+
+		countryRepository.save(de);
+
+		Country se = new Country();
+		se.code = "se";
+		se.name = "Schweden";
+
+		countryRepository.save(se);
+
+		license.laender = new HashSet<>();
+		license.laender.addAll(Arrays.asList(de, se));
+
+		licenseRepository.save(license);
+
+		de.name = "Daenemark";
+
+		countryRepository.save(de);
+
+		Page<Revision<Integer, License>> revisions = licenseRepository.findRevisions(license.id, Pageable.unpaged());
+
+		assertThat(revisions).hasSize(2);
 	}
 
 	@Test // #1
