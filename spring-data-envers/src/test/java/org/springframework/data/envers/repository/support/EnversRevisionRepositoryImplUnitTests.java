@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import org.hibernate.envers.DefaultRevisionEntity;
 import org.hibernate.envers.RevisionType;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.history.AnnotationRevisionMetadata;
 import org.springframework.data.history.RevisionMetadata;
 
