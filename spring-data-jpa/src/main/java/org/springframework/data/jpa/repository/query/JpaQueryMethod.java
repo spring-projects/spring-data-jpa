@@ -62,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
  * @author Aleksei Elin
+ * @author 2heunxun
  */
 public class JpaQueryMethod extends QueryMethod {
 

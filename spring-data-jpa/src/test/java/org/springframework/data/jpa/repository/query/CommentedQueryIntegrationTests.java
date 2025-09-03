@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for parsing JPQL queries containing block comments.
  *
  * @see <https://github.com/spring-projects/spring-data-jpa/issues/3997>
+ * @author 2heunxun
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:infrastructure.xml")
