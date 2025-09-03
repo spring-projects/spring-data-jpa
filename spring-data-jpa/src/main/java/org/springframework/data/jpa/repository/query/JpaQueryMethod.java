@@ -96,10 +96,9 @@ public class JpaQueryMethod extends QueryMethod {
 	 * writer : 2heunxun
 	 */
 	private static String stripBlockComments(@Nullable String query) {
-		if(query == null || !query.contains("/*")) {
+		if (query == null || !query.contains("/*")) {
 			return query;
 		}
-		// Add the (?s) flag to the beginning of the regex
 		return query.replaceAll("(?s)/\\*.*?\\*/", " ");
 	}
 

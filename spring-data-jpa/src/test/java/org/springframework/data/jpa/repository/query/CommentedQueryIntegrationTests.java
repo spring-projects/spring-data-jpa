@@ -45,13 +45,13 @@ class CommentedQueryIntegrationTests {
          * A query method that contains a multi-line block comment and another inline comment.
          */
         @Query("""
-				SELECT /*
-				 * This is a multi-line
-				 * block comment.
-				 */ u
-				FROM User u
-				WHERE u.lastname = :lastname /* Another inline comment */
-				""")
+                SELECT /*
+                 * This is a multi-line
+                 * block comment.
+                 */ u
+                FROM User u
+                WHERE u.lastname = :lastname /* Another inline comment */
+                """)
         List<User> findUsersWithMultiLineAndInlineComments(String lastname);
     }
 
