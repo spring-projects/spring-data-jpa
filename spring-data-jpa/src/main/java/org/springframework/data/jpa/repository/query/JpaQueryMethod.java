@@ -90,6 +90,19 @@ public class JpaQueryMethod extends QueryMethod {
 	private final Lazy<JpaEntityMetadata<?>> entityMetadata;
 	private final Lazy<Optional<Meta>> metaAnnotation;
 
+
+	/**
+	 * ticket issue #3997
+	 * writer : 2heunxun
+	 */
+	private static String stripBlockComments(@Nullable String query) {
+		if(query == null || !query.contains("/*")) {
+			return query;
+		}
+		// Add the (?s) flag to the beginning of the regex
+		return query.replaceAll("(?s)/\\*.*?\\*/", " ");
+	}
+
 	/**
 	 * Creates a {@link JpaQueryMethod}.
 	 *
@@ -311,7 +324,8 @@ public class JpaQueryMethod extends QueryMethod {
 	public @Nullable String getAnnotatedQuery() {
 
 		String query = getAnnotationValue("value", String.class);
-		return StringUtils.hasText(query) ? query : null;
+		// The next line is the only change you need to make.
+		return StringUtils.hasText(query) ? stripBlockComments(query) : null;
 	}
 
 	/**
