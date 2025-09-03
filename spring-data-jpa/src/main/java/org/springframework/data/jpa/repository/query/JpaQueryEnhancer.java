@@ -238,7 +238,7 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	 */
 	@Override
 	public DeclaredQuery getQuery() {
-		throw new UnsupportedOperationException();
+		return DeclaredQuery.of(applySorting(Sort.unsorted()), false);
 	}
 
 	/**

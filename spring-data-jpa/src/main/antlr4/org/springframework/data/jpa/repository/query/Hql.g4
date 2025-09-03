@@ -1561,6 +1561,7 @@ identifier
 
 
 WS                          : [ \t\r\n] -> channel(HIDDEN);
+COMMENT                     : '/*' (~'*' | '*' ~'/' )* '*/' -> skip;
 
 // Build up case-insentive tokens
 
