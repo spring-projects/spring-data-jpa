@@ -299,6 +299,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
 
+	User deleteOneByLastname(String lastname);
+
+	Optional<User> deleteOneOptionalByLastname(String lastname);
+
 	/**
 	 * @see <a href="https://issues.apache.org/jira/browse/OPENJPA-2484">OPENJPA-2484</a>
 	 */

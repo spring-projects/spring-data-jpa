@@ -1557,6 +1557,38 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser);
 	}
 
+	@Test // GH-3995
+	void deleteOneByShouldReturnDeletedElement() {
+
+		assertThat(repository.deleteOneByLastname(firstUser.getLastname())).isNull();
+
+		flushTestUsers();
+
+		User result = repository.deleteOneByLastname(firstUser.getLastname());
+		assertThat(result).isEqualTo(firstUser);
+	}
+
+	@Test // GH-3995
+	void deleteOneOptionalByShouldReturnDeletedElement() {
+
+		flushTestUsers();
+
+		Optional<User> result = repository.deleteOneOptionalByLastname(firstUser.getLastname());
+		assertThat(result).contains(firstUser);
+	}
+
+	@Test // GH-3995
+	void deleteOneShouldFailWhenMatchingMultipleResults() {
+
+		firstUser.setLastname("foo");
+		secondUser.setLastname("foo");
+		firstUser = repository.save(firstUser);
+		secondUser = repository.save(secondUser);
+
+		assertThatExceptionOfType(IncorrectResultSizeDataAccessException.class)
+				.isThrownBy(() -> repository.deleteOneByLastname(firstUser.getLastname()));
+	}
+
 	@Test // DATAJPA-460
 	void deleteByShouldRemoveElementsMatchingDerivedQuery() {
 
