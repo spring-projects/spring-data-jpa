@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.SliceImpl;
@@ -46,6 +47,7 @@ import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
 import org.springframework.javapoet.TypeName;
@@ -662,13 +664,14 @@ class JpaCodeBlocks {
 					: TypeName.get(context.getDomainType());
 			builder.add("\n");
 
+			Class<?> methodReturnType = context.getMethod().getReturnType();
 			if (modifying.isPresent()) {
 
 				if (modifying.getBoolean("flushAutomatically")) {
 					builder.addStatement("this.$L.flush()", context.fieldNameOf(EntityManager.class));
 				}
 
-				Class<?> returnType = context.getMethod().getReturnType();
+				Class<?> returnType = methodReturnType;
 
 				if (returnsModifying(returnType)) {
 					builder.addStatement("int $L = $L.executeUpdate()", context.localVariable("result"), queryVariableName);
@@ -697,19 +700,42 @@ class JpaCodeBlocks {
 
 				builder.addStatement("$T $L = $L.getResultList()", List.class,
 						context.localVariable("resultList"), queryVariableName);
+
+				boolean returnCount = ClassUtils.isAssignable(Number.class, methodReturnType);
+				boolean simpleBatch = returnCount || ReflectionUtils.isVoid(methodReturnType);
+				boolean collectionQuery = queryMethod.isCollectionQuery();
+
+				if (!simpleBatch && !collectionQuery) {
+
+					builder.beginControlFlow("if ($L.size() > 1)", context.localVariable("resultList"));
+					builder.addStatement("throw new $1T($2S + $3L.size(), 1, $3L.size())",
+							IncorrectResultSizeDataAccessException.class,
+							"Delete query returned more than one element: expected 1, actual ", context.localVariable("resultList"));
+					builder.endControlFlow();
+
+					builder.addStatement("$L.forEach($L::remove)", context.localVariable("resultList"),
+							context.fieldNameOf(EntityManager.class));
+				}
+
 				builder.addStatement("$L.forEach($L::remove)", context.localVariable("resultList"),
 						context.fieldNameOf(EntityManager.class));
-				if (!Collection.class.isAssignableFrom(context.getReturnType().toClass())) {
-					if (ClassUtils.isAssignable(Number.class, context.getMethod().getReturnType())) {
-						builder.addStatement("return $T.valueOf($L.size())", context.getMethod().getReturnType(),
+
+				if (collectionQuery) {
+					builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
+
+				} else if (returnCount) {
+					builder.addStatement("return $T.valueOf($L.size())", methodReturnType,
 								context.localVariable("resultList"));
 					} else {
-						builder.addStatement("return ($T) ($L.isEmpty() ? null : $L.iterator().next())", actualReturnType,
-								context.localVariable("resultList"), context.localVariable("resultList"));
+
+						if (Optional.class.isAssignableFrom(methodReturnType)) {
+							builder.addStatement("return ($1T) $1T.ofNullable($2L.isEmpty() ? null : $2L.iterator().next())",
+									Optional.class, context.localVariable("resultList"));
+						} else {
+							builder.addStatement("return ($1T) ($2L.isEmpty() ? null : $2L.iterator().next())", actualReturnType,
+									context.localVariable("resultList"));
+						}
 					}
-				} else {
-					builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
-				}
 			} else if (aotQuery != null && aotQuery.isExists()) {
 				builder.addStatement("return !$L.getResultList().isEmpty()", queryVariableName);
 			} else if (aotQuery != null) {

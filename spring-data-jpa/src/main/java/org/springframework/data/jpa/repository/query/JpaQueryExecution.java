@@ -32,6 +32,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Score;
@@ -51,6 +52,7 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
@@ -399,16 +401,33 @@ public abstract class JpaQueryExecution {
 		}
 
 		@Override
-		protected Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
+		protected @Nullable Object doExecute(AbstractJpaQuery jpaQuery, JpaParametersParameterAccessor accessor) {
 
 			Query query = jpaQuery.createQuery(accessor);
 			List<?> resultList = query.getResultList();
+
+			boolean simpleBatch = Number.class.isAssignableFrom(jpaQuery.getQueryMethod().getReturnType())
+					|| org.springframework.data.util.ReflectionUtils.isVoid(jpaQuery.getQueryMethod().getReturnType());
+			boolean collectionQuery = jpaQuery.getQueryMethod().isCollectionQuery();
+
+			if (!simpleBatch && !collectionQuery) {
+
+				if (resultList.size() > 1) {
+					throw new IncorrectResultSizeDataAccessException(
+							"Delete query returned more than one element: expected 1, actual " + resultList.size(), 1,
+							resultList.size());
+				}
+			}
 
 			for (Object o : resultList) {
 				em.remove(o);
 			}
 
-			return jpaQuery.getQueryMethod().isCollectionQuery() ? resultList : resultList.size();
+			if (simpleBatch) {
+				return resultList.size();
+			}
+
+			return collectionQuery ? resultList : CollectionUtils.firstElement(resultList);
 		}
 	}
 

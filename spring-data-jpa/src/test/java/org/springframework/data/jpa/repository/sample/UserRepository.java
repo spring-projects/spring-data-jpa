@@ -302,6 +302,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
 
+	User deleteOneByLastname(String lastname);
+
+	Optional<User> deleteOneOptionalByLastname(String lastname);
+
 	/**
 	 * Explicitly mapped to a procedure with name "plus1inout" in database.
 	 */
