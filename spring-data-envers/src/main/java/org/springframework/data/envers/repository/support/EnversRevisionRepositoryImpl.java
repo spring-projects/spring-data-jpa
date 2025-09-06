@@ -66,12 +66,14 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Aref Behboodi
  * @author Ngoc Nhan
+ * @author Chaedong Im
  */
 @Transactional(readOnly = true)
 public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N>>
 		implements RevisionRepository<T, ID, N> {
 
 	private final EntityInformation<T, ?> entityInformation;
+	private final RevisionEntityInformation revisionEntityInformation;
 	private final EntityManager entityManager;
 
 	/**
@@ -90,14 +92,16 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		Assert.notNull(revisionEntityInformation, "RevisionEntityInformation must not be null!");
 
 		this.entityInformation = entityInformation;
+		this.revisionEntityInformation = revisionEntityInformation;
 		this.entityManager = entityManager;
 	}
 
 	@SuppressWarnings("unchecked")
 	public Optional<Revision<N, T>> findLastChangeRevision(ID id) {
 
+		String timestampFieldName = getRevisionTimestampFieldName();
 		List<Object[]> singleResult = createBaseQuery(id) //
-				.addOrder(AuditEntity.revisionProperty("timestamp").desc()) //
+				.addOrder(AuditEntity.revisionProperty(timestampFieldName).desc()) //
 				.addOrder(AuditEntity.revisionNumber().desc()) //
 				.setMaxResults(1) //
 				.getResultList();
@@ -211,6 +215,16 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	@SuppressWarnings("unchecked")
 	private Revision<N, T> createRevision(QueryResult<T> queryResult) {
 		return Revision.of((RevisionMetadata<N>) queryResult.createRevisionMetadata(), queryResult.entity);
+	}
+
+	private String getRevisionTimestampFieldName() {
+		if (revisionEntityInformation instanceof ReflectionRevisionEntityInformation reflection) {
+			return reflection.getRevisionTimestampFieldName();
+		} else if (revisionEntityInformation instanceof DefaultRevisionEntityInformation defaultInfo) {
+			return defaultInfo.getRevisionTimestampFieldName();
+		} else {
+			return "timestamp";
+		}
 	}
 
 	@SuppressWarnings("unchecked")

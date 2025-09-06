@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import org.hibernate.envers.DefaultRevisionEntity;
 import org.hibernate.envers.RevisionType;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.envers.sample.CustomRevisionEntity;
+import org.springframework.data.envers.sample.CustomRevisionEntityWithDifferentTimestamp;
 import org.springframework.data.history.AnnotationRevisionMetadata;
 import org.springframework.data.history.RevisionMetadata;
 
@@ -28,6 +30,7 @@ import org.springframework.data.history.RevisionMetadata;
  * Unit tests for {@link EnversRevisionRepositoryImpl}.
  *
  * @author Jens Schauder
+ * @author Chaedong Im
  */
 class EnversRevisionRepositoryImplUnitTests {
 
@@ -57,4 +60,27 @@ class EnversRevisionRepositoryImplUnitTests {
 		assertThat(revisionMetadata.getRevisionType()).isEqualTo(RevisionMetadata.RevisionType.DELETE);
 	}
 
+	@Test // gh-2850
+	void reflectionRevisionEntityInformationDetectsStandardTimestampField() {
+
+		ReflectionRevisionEntityInformation revisionInfo = new ReflectionRevisionEntityInformation(CustomRevisionEntity.class);
+
+		assertThat(revisionInfo.getRevisionTimestampFieldName()).isEqualTo("timestamp");
+	}
+
+	@Test // gh-2850
+	void reflectionRevisionEntityInformationDetectsCustomTimestampField() {
+
+		ReflectionRevisionEntityInformation revisionInfo = new ReflectionRevisionEntityInformation(CustomRevisionEntityWithDifferentTimestamp.class);
+
+		assertThat(revisionInfo.getRevisionTimestampFieldName()).isEqualTo("myCustomTimestamp");
+	}
+
+	@Test // gh-2850
+	void defaultRevisionEntityInformationReturnsStandardTimestampFieldName() {
+
+		DefaultRevisionEntityInformation revisionInfo = new DefaultRevisionEntityInformation();
+
+		assertThat(revisionInfo.getRevisionTimestampFieldName()).isEqualTo("timestamp");
+	}
 }

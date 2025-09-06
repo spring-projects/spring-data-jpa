@@ -16,6 +16,7 @@
 package org.springframework.data.envers.repository.support;
 
 import org.hibernate.envers.RevisionNumber;
+import org.hibernate.envers.RevisionTimestamp;
 
 import org.springframework.data.repository.history.support.RevisionEntityInformation;
 import org.springframework.data.util.AnnotationDetectionFieldCallback;
@@ -27,11 +28,13 @@ import org.springframework.util.ReflectionUtils;
  * find out about the revision number type.
  *
  * @author Oliver Gierke
+ * @author Chaedong Im
  */
 public class ReflectionRevisionEntityInformation implements RevisionEntityInformation {
 
 	private final Class<?> revisionEntityClass;
 	private final Class<?> revisionNumberType;
+	private final String revisionTimestampFieldName;
 
 	/**
 	 * Creates a new {@link ReflectionRevisionEntityInformation} inspecting the given revision entity class.
@@ -42,10 +45,14 @@ public class ReflectionRevisionEntityInformation implements RevisionEntityInform
 
 		Assert.notNull(revisionEntityClass, "Revision entity type must not be null");
 
-		AnnotationDetectionFieldCallback fieldCallback = new AnnotationDetectionFieldCallback(RevisionNumber.class);
-		ReflectionUtils.doWithFields(revisionEntityClass, fieldCallback);
+		AnnotationDetectionFieldCallback revisionNumberFieldCallback = new AnnotationDetectionFieldCallback(RevisionNumber.class);
+		ReflectionUtils.doWithFields(revisionEntityClass, revisionNumberFieldCallback);
 
-		this.revisionNumberType = fieldCallback.getRequiredType();
+		AnnotationDetectionFieldCallback revisionTimestampFieldCallback = new AnnotationDetectionFieldCallback(RevisionTimestamp.class);
+		ReflectionUtils.doWithFields(revisionEntityClass, revisionTimestampFieldCallback);
+
+		this.revisionNumberType = revisionNumberFieldCallback.getRequiredType();
+		this.revisionTimestampFieldName = revisionTimestampFieldCallback.getRequiredField().getName();
 		this.revisionEntityClass = revisionEntityClass;
 
 	}
@@ -60,5 +67,9 @@ public class ReflectionRevisionEntityInformation implements RevisionEntityInform
 
 	public Class<?> getRevisionNumberType() {
 		return this.revisionNumberType;
+	}
+
+	public String getRevisionTimestampFieldName() {
+		return this.revisionTimestampFieldName;
 	}
 }

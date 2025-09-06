@@ -22,6 +22,7 @@ import org.springframework.data.repository.history.support.RevisionEntityInforma
  * {@link RevisionEntityInformation} for {@link DefaultRevisionEntity}.
  *
  * @author Oliver Gierke
+ * @author Chaedong Im
  */
 class DefaultRevisionEntityInformation implements RevisionEntityInformation {
 
@@ -35,5 +36,9 @@ class DefaultRevisionEntityInformation implements RevisionEntityInformation {
 
 	public Class<?> getRevisionEntityClass() {
 		return DefaultRevisionEntity.class;
+	}
+
+	public String getRevisionTimestampFieldName() {
+		return "timestamp";
 	}
 }
