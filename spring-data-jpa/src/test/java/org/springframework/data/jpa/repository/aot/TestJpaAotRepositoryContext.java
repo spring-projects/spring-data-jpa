@@ -19,7 +19,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 
@@ -27,6 +30,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.data.aot.AotTypeConfiguration;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -90,6 +94,16 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	}
 
 	@Override
+	public void typeConfiguration(Class<?> type, Consumer<AotTypeConfiguration> configurationConsumer) {
+
+	}
+
+	@Override
+	public Collection<AotTypeConfiguration> typeConfigurations() {
+		return List.of();
+	}
+
+	@Override
 	public String getBeanName() {
 		return "dummyRepository";
 	}
@@ -127,6 +141,11 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	@Override
 	public Set<Class<?>> getResolvedTypes() {
 		return Set.of(User.class, SpecialUser.class, Role.class);
+	}
+
+	@Override
+	public Set<Class<?>> getUserDomainTypes() {
+		return Set.of();
 	}
 
 	public void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {

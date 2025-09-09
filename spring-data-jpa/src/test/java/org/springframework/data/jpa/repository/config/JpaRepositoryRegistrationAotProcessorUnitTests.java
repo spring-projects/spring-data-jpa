@@ -23,9 +23,11 @@ import jakarta.persistence.Id;
 
 import java.lang.annotation.Annotation;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -45,6 +47,7 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.data.aot.AotContext;
+import org.springframework.data.aot.AotTypeConfiguration;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.Repository;
@@ -259,6 +262,11 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		}
 
 		@Override
+		public Set<Class<?>> getUserDomainTypes() {
+			return Set.of();
+		}
+
+		@Override
 		public ConfigurableListableBeanFactory getBeanFactory() {
 			return applicationContext != null ? applicationContext.getBeanFactory() : null;
 		}
@@ -278,6 +286,15 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 			return null;
 		}
 
+		@Override
+		public void typeConfiguration(Class<?> type, Consumer<AotTypeConfiguration> configurationConsumer) {
+
+		}
+
+		@Override
+		public Collection<AotTypeConfiguration> typeConfigurations() {
+			return List.of();
+		}
 	}
 
 }
