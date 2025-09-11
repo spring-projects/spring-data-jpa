@@ -202,7 +202,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 				queryMethod);
 
 		// no KeysetScrolling for now.
-		if (parameters.hasScrollPositionParameter()) {
+		if (parameters.hasScrollPositionParameter() || queryMethod.isScrollQuery()) {
 			return MethodContributor.forQueryMethod(queryMethod)
 					.metadataOnly(aotQueries.toMetadata(queryMethod.isPageQuery()));
 		}
