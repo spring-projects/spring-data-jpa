@@ -30,7 +30,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Oliver Gierke
  * @author Chaedong Im
  */
-public class ReflectionRevisionEntityInformation implements RevisionEntityInformation {
+public class ReflectionRevisionEntityInformation implements EnversRevisionEntityInformation {
 
 	private final Class<?> revisionEntityClass;
 	private final Class<?> revisionNumberType;
@@ -54,22 +54,25 @@ public class ReflectionRevisionEntityInformation implements RevisionEntityInform
 		this.revisionNumberType = revisionNumberFieldCallback.getRequiredType();
 		this.revisionTimestampFieldName = revisionTimestampFieldCallback.getRequiredField().getName();
 		this.revisionEntityClass = revisionEntityClass;
-
 	}
 
+	@Override
 	public boolean isDefaultRevisionEntity() {
 		return false;
 	}
 
+	@Override
 	public Class<?> getRevisionEntityClass() {
 		return this.revisionEntityClass;
 	}
 
+	@Override
 	public Class<?> getRevisionNumberType() {
 		return this.revisionNumberType;
 	}
 
-	public String getRevisionTimestampFieldName() {
+	@Override
+	public String getRevisionTimestampPropertyName() {
 		return this.revisionTimestampFieldName;
 	}
 }

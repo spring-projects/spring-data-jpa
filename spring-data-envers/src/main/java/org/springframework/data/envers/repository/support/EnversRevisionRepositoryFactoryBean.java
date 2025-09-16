@@ -20,8 +20,8 @@ import jakarta.persistence.EntityManager;
 import java.util.Optional;
 
 import org.hibernate.envers.DefaultRevisionEntity;
-
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -90,7 +90,7 @@ public class EnversRevisionRepositoryFactoryBean<T extends RevisionRepository<S,
 			this.revisionEntityInformation = Optional.ofNullable(revisionEntityClass) //
 					.filter(it -> !it.equals(DefaultRevisionEntity.class))//
 					.<RevisionEntityInformation> map(ReflectionRevisionEntityInformation::new) //
-					.orElseGet(DefaultRevisionEntityInformation::new);
+					.orElse(DefaultRevisionEntityInformation.INSTANCE);
 		}
 
 		@Override

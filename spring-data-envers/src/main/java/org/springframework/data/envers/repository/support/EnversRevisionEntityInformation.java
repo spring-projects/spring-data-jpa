@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,21 @@
  */
 package org.springframework.data.envers.repository.support;
 
-import org.hibernate.envers.DefaultRevisionEntity;
 import org.springframework.data.repository.history.support.RevisionEntityInformation;
 
 /**
- * {@link RevisionEntityInformation} for {@link DefaultRevisionEntity}.
+ * Envers-specific extension to {@link RevisionEntityInformation}.
  *
- * @author Oliver Gierke
- * @author Chaedong Im
+ * @author Mark Paluch
+ * @since 4.0
  */
-enum DefaultRevisionEntityInformation implements EnversRevisionEntityInformation {
+public interface EnversRevisionEntityInformation extends RevisionEntityInformation {
 
-	INSTANCE;
+	/**
+	 * Return the name of the timestamp property (annotated with {@link org.hibernate.envers.RevisionTimestamp}).
+	 *
+	 * @return the name of the timestamp property,
+	 */
+	String getRevisionTimestampPropertyName();
 
-	@Override
-	public Class<?> getRevisionNumberType() {
-		return Integer.class;
-	}
-
-	@Override
-	public boolean isDefaultRevisionEntity() {
-		return true;
-	}
-
-	@Override
-	public Class<?> getRevisionEntityClass() {
-		return DefaultRevisionEntity.class;
-	}
-
-	@Override
-	public String getRevisionTimestampPropertyName() {
-		return "timestamp";
-	}
 }

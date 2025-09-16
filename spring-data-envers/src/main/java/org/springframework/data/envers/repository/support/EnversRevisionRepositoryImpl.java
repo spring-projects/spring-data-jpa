@@ -218,12 +218,10 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 	}
 
 	private String getRevisionTimestampFieldName() {
-		if (revisionEntityInformation instanceof ReflectionRevisionEntityInformation reflection) {
-			return reflection.getRevisionTimestampFieldName();
-		} else if (revisionEntityInformation instanceof DefaultRevisionEntityInformation defaultInfo) {
-			return defaultInfo.getRevisionTimestampFieldName();
+		if (revisionEntityInformation instanceof EnversRevisionEntityInformation reflection) {
+			return reflection.getRevisionTimestampPropertyName();
 		} else {
-			return "timestamp";
+			return DefaultRevisionEntityInformation.INSTANCE.getRevisionTimestampPropertyName();
 		}
 	}
 
