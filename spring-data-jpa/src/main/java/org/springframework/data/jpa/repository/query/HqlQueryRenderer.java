@@ -195,22 +195,22 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.CYCLE().getText()));
-		builder.append(visit(ctx.cteAttributes()));
+		builder.appendExpression(visit(ctx.cteAttributes()));
 		builder.append(QueryTokens.expression(ctx.SET().getText()));
-		builder.append(visit(ctx.identifier(0)));
+		builder.appendExpression(visit(ctx.identifier(0)));
 
 		if (ctx.TO() != null) {
 
 			builder.append(QueryTokens.expression(ctx.TO().getText()));
 			builder.append(visit(ctx.literal(0)));
 			builder.append(QueryTokens.expression(ctx.DEFAULT().getText()));
-			builder.append(visit(ctx.literal(1)));
+			builder.appendExpression(visit(ctx.literal(1)));
 		}
 
 		if (ctx.USING() != null) {
 
 			builder.append(QueryTokens.expression(ctx.USING().getText()));
-			builder.append(visit(ctx.identifier(1)));
+			builder.appendExpression(visit(ctx.identifier(1)));
 		}
 
 		return builder;
