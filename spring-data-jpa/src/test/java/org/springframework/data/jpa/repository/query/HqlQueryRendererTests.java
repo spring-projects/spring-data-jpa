@@ -1713,6 +1713,12 @@ class HqlQueryRendererTests {
 		assertQuery("select ln(7.5) from Element a");
 	}
 
+	@Test // GH-4013
+	void minMaxFunctionsShouldWork() {
+		assertQuery("SELECT MAX(MIN(MOD(e.salary, 10))), e.address.city FROM Employee e");
+		assertQuery("SELECT MIN(MOD(e.salary, 10)), e.address.city FROM Employee e");
+	}
+
 	@Test // GH-2981
 	void cteWithClauseShouldWork() {
 

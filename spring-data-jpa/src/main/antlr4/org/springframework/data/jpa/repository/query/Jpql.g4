@@ -208,8 +208,8 @@ constructor_item
     ;
 
 aggregate_expression
-    : (AVG | MAX | MIN | SUM) '(' (DISTINCT)? state_valued_path_expression ')'
-    | COUNT '(' (DISTINCT)? (identification_variable | state_valued_path_expression | single_valued_object_path_expression) ')'
+    : (AVG | MAX | MIN | SUM) '(' (DISTINCT)? simple_select_expression ')'
+    | COUNT '(' (DISTINCT)? simple_select_expression ')'
     | function_invocation
     ;
 
@@ -571,10 +571,7 @@ datetime_part
     ;
 
 function_arg
-    : literal
-    | state_valued_path_expression
-    | input_parameter
-    | scalar_expression
+    : simple_select_expression
     ;
 
 case_expression
