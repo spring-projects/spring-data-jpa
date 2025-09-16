@@ -495,7 +495,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 				builder.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
 
-			builder.appendInline(visit(ctx.state_valued_path_expression()));
+			builder.appendInline(visit(ctx.simple_select_expression()));
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.COUNT() != null) {
 
@@ -504,13 +504,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			if (ctx.DISTINCT() != null) {
 				builder.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
-			if (ctx.identification_variable() != null) {
-				builder.appendInline(visit(ctx.identification_variable()));
-			} else if (ctx.state_valued_path_expression() != null) {
-				builder.appendInline(visit(ctx.state_valued_path_expression()));
-			} else if (ctx.single_valued_object_path_expression() != null) {
-				builder.appendInline(visit(ctx.single_valued_object_path_expression()));
-			}
+
+			builder.appendInline(visit(ctx.simple_select_expression()));
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.function_invocation() != null) {
 			builder.append(visit(ctx.function_invocation()));
