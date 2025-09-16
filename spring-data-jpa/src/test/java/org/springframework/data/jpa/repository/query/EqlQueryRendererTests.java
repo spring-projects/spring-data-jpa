@@ -952,6 +952,14 @@ class EqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-4013
+	void minMaxFunctionsShouldWork() {
+		assertQuery("SELECT MAX(e.age), e.address.city FROM Employee e");
+		assertQuery("SELECT MAX(1), e.address.city FROM Employee e");
+		assertQuery("SELECT MAX(MIN(MOD(e.salary, 10))), e.address.city FROM Employee e");
+		assertQuery("SELECT MIN(MOD(e.salary, 10)), e.address.city FROM Employee e");
+	}
+
 	@Test // GH-2982
 	void floorShouldBeValidEntityName() {
 

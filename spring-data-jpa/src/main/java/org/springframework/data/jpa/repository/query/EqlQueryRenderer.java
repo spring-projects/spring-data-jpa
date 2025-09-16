@@ -766,7 +766,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 				builder.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
 
-			builder.appendInline(visit(ctx.state_valued_path_expression()));
+			builder.appendInline(visit(ctx.simple_select_expression()));
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.COUNT() != null) {
 
@@ -775,13 +775,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			if (ctx.DISTINCT() != null) {
 				builder.append(QueryTokens.expression(ctx.DISTINCT()));
 			}
-			if (ctx.identification_variable() != null) {
-				builder.appendInline(visit(ctx.identification_variable()));
-			} else if (ctx.state_valued_path_expression() != null) {
-				builder.appendInline(visit(ctx.state_valued_path_expression()));
-			} else if (ctx.single_valued_object_path_expression() != null) {
-				builder.appendInline(visit(ctx.single_valued_object_path_expression()));
-			}
+			builder.appendInline(visit(ctx.simple_select_expression()));
 			builder.append(TOKEN_CLOSE_PAREN);
 		} else if (ctx.function_invocation() != null) {
 			builder.append(visit(ctx.function_invocation()));
@@ -2085,16 +2079,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitFunction_arg(EqlParser.Function_argContext ctx) {
-
-		if (ctx.literal() != null) {
-			return visit(ctx.literal());
-		} else if (ctx.state_valued_path_expression() != null) {
-			return visit(ctx.state_valued_path_expression());
-		} else if (ctx.input_parameter() != null) {
-			return visit(ctx.input_parameter());
-		} else {
-			return visit(ctx.scalar_expression());
-		}
+		return visit(ctx.simple_select_expression());
 	}
 
 	@Override
