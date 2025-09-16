@@ -132,6 +132,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitSearchSpecifications(HqlParser.SearchSpecificationsContext ctx) {
+		return QueryTokenStream.concat(ctx.searchSpecification(), this::visit, TOKEN_COMMA);
+	}
+
+	@Override
 	public QueryTokenStream visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();

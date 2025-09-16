@@ -2097,6 +2097,31 @@ class HqlQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-4012
+	void cteWithSearch() {
+
+		assertQuery("""
+				WITH Tree AS (SELECT o.uuid AS test_uuid FROM DemoEntity o)
+				SEARCH BREADTH FIRST BY foo ASC NULLS FIRST, bar DESC NULLS LAST SET baz
+					SELECT test_uuid FROM Tree
+				""");
+	}
+
+	@Test // GH-4012
+	void cteWithCycle() {
+
+		assertQuery("""
+				WITH Tree AS (SELECT o.uuid AS test_uuid FROM DemoEntity o) CYCLE test_uuid SET circular TO true DEFAULT false
+					SELECT test_uuid FROM Tree
+				""");
+
+		assertQuery(
+				"""
+						WITH Tree AS (SELECT o.uuid AS test_uuid FROM DemoEntity o) CYCLE test_uuid SET circular TO true DEFAULT false USING bar
+							SELECT test_uuid FROM Tree
+						""");
+	}
+
 	@Test // GH-2982
 	void floorShouldBeValidEntityName() {
 
