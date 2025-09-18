@@ -1623,12 +1623,21 @@ class UserRepositoryTests {
 		assertThat(repository.countByLastname(firstUser.getLastname())).isZero();
 	}
 
-	@Test // DATAJPA-460
+	@Test // DATAJPA-460, GH-4015
 	void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsLong() {
 
 		flushTestUsers();
 
 		assertThat(repository.removeByLastname(firstUser.getLastname())).isOne();
+		assertThat(repository.removeOneByLastname(secondUser.getLastname())).isOne();
+	}
+
+	@Test // GH-4015
+	void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsInt() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeOneMoreByLastname(secondUser.getLastname())).isOne();
 	}
 
 	@Test // DATAJPA-460

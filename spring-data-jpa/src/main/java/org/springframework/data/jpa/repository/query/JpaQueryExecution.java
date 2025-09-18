@@ -405,9 +405,10 @@ public abstract class JpaQueryExecution {
 
 			Query query = jpaQuery.createQuery(accessor);
 			List<?> resultList = query.getResultList();
+			Class<?> returnType = jpaQuery.getQueryMethod().getReturnType();
 
-			boolean simpleBatch = Number.class.isAssignableFrom(jpaQuery.getQueryMethod().getReturnType())
-					|| org.springframework.data.util.ReflectionUtils.isVoid(jpaQuery.getQueryMethod().getReturnType());
+			boolean simpleBatch = ClassUtils.isAssignable(Number.class, returnType)
+					|| org.springframework.data.util.ReflectionUtils.isVoid(returnType);
 			boolean collectionQuery = jpaQuery.getQueryMethod().isCollectionQuery();
 
 			if (!simpleBatch && !collectionQuery) {

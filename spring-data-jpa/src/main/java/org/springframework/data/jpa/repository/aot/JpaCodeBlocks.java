@@ -706,7 +706,8 @@ class JpaCodeBlocks {
 					builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
 
 				} else if (returnCount) {
-					builder.addStatement("return $T.valueOf($L.size())", methodReturn.getActualClassName(),
+					builder.addStatement("return $T.valueOf($L.size())",
+							ClassUtils.resolvePrimitiveIfNecessary(methodReturn.getActualReturnClass()),
 								context.localVariable("resultList"));
 					} else {
 
