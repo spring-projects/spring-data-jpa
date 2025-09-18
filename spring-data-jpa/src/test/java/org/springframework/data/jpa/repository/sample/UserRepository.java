@@ -296,6 +296,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-460
 	Long removeByLastname(String lastname);
 
+	long removeOneByLastname(String lastname);
+
+	int removeOneMoreByLastname(String lastname);
+
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
 
