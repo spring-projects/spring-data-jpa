@@ -1,2 +1,5 @@
 org.springframework.aot.hint.RuntimeHintsRegistrar=\
 	org.springframework.data.jpa.repository.aot.JpaRuntimeHints
+
+org.springframework.data.util.TypeCollector$TypeCollectorFilters=\
+	org.springframework.data.jpa.repository.aot.JpaTypeFilters
