@@ -169,7 +169,7 @@ class JpaQueryExecutionUnitTests {
 	@Test
 	void modifyingExecutionRejectsNonIntegerOrVoidReturnType() {
 
-		when(method.getReturnType()).thenReturn((Class) Long.class);
+		when(method.getReturnType()).thenReturn((Class) String.class);
 		assertThatIllegalArgumentException().isThrownBy(() -> new ModifyingExecution(method, em));
 	}
 

@@ -248,11 +248,11 @@ public abstract class JpaQueryExecution {
 
 			Class<?> returnType = method.getReturnType();
 
-			boolean isVoid = ClassUtils.isAssignable(returnType, Void.class);
-			boolean isInt = ClassUtils.isAssignable(returnType, Integer.class);
+			boolean isVoid = org.springframework.data.util.ReflectionUtils.isVoid(returnType);
+			boolean isNumber = ClassUtils.isAssignable(Number.class, returnType);
 
-			Assert.isTrue(isInt || isVoid,
-					"Modifying queries can only use void or int/Integer as return type; Offending method: " + method);
+			Assert.isTrue(isNumber || isVoid,
+					"Modifying queries can only use void, int/Integer, or long/Long as return type; Offending method: " + method);
 
 			this.em = em;
 			this.flush = method.getFlushAutomatically();
