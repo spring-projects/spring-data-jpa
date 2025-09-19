@@ -23,8 +23,6 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.data.jpa.repository.query.EqlParser.Range_variable_declarationContext;
-
 /**
  * {@link ParsedQueryIntrospector} for EQL queries.
  *
