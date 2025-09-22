@@ -41,6 +41,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.jspecify.annotations.Nullable;
 
@@ -241,9 +243,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(ids, IDS_MUST_NOT_BE_NULL);
 
-		for (ID id : ids) {
-			deleteById(id);
-		}
+		StreamSupport.stream(ids.spliterator(), false)
+				.forEach(this::deleteById);
 	}
 
 	@Override
@@ -683,13 +684,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(entities, ENTITIES_MUST_NOT_BE_NULL);
 
-		List<S> result = new ArrayList<>();
-
-		for (S entity : entities) {
-			result.add(save(entity));
-		}
-
-		return result;
+		return StreamSupport.stream(entities.spliterator(), false)
+				.map(this::save)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -1097,13 +1094,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Assert.notNull(query, "TypedQuery must not be null");
 
 		List<Long> totals = query.getResultList();
-		long total = 0L;
 
-		for (Long element : totals) {
-			total += element == null ? 0 : element;
-		}
-
-		return total;
+		return totals.stream()
+				.mapToLong(element -> element == null ? 0L : element)
+				.sum();
 	}
 
 	/**

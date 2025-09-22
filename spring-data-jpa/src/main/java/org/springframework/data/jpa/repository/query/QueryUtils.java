@@ -45,6 +45,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.jspecify.annotations.Nullable;
 
@@ -710,13 +711,9 @@ public abstract class QueryUtils {
 		Assert.notNull(from, "From must not be null");
 		Assert.notNull(cb, "CriteriaBuilder must not be null");
 
-		List<jakarta.persistence.criteria.Order> orders = new ArrayList<>();
-
-		for (Order order : sort) {
-			orders.add(toJpaOrder(order, from, cb));
-		}
-
-		return orders;
+		return StreamSupport.stream(sort.spliterator(), false)
+				.map(order -> toJpaOrder(order, from, cb))
+				.collect(Collectors.toList());
 	}
 
 	/**
