@@ -30,10 +30,8 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.aot.ApplicationContextAotGenerator;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.config.InfrastructureConfig;
-import org.springframework.mock.env.MockPropertySource;
 
 /**
  * Integration tests for AOT processing.
@@ -70,8 +68,6 @@ class AotContributionIntegrationTests {
 	private static TestGenerationContext generate(Class<?>... configurationClasses) {
 
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		context.getEnvironment().getPropertySources()
-				.addFirst(new MockPropertySource().withProperty(AotContext.GENERATED_REPOSITORIES_ENABLED, "true"));
 		context.register(configurationClasses);
 
 		ApplicationContextAotGenerator generator = new ApplicationContextAotGenerator();

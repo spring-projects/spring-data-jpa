@@ -19,24 +19,20 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.annotation.MergedAnnotation;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.StandardEnvironment;
-import org.springframework.data.aot.AotTypeConfiguration;
+import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFragmentsContributor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.config.AotRepositoryContextSupport;
 import org.springframework.data.repository.config.AotRepositoryInformation;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -49,15 +45,16 @@ import org.springframework.data.repository.core.support.RepositoryComposition;
  *
  * @author Christoph Strobl
  */
-public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
+public class TestJpaAotRepositoryContext<T> extends AotRepositoryContextSupport {
 
 	private final AotRepositoryInformation repositoryInformation;
 	private final Class<T> repositoryInterface;
 	private final RepositoryConfigurationSource configurationSource;
-	private @Nullable ConfigurableListableBeanFactory beanFactory;
 
-	public TestJpaAotRepositoryContext(Class<T> repositoryInterface, @Nullable RepositoryComposition composition,
+	public TestJpaAotRepositoryContext(BeanFactory beanFactory, Class<T> repositoryInterface,
+			@Nullable RepositoryComposition composition,
 			RepositoryConfigurationSource configurationSource) {
+		super(AotContext.from(beanFactory));
 		this.repositoryInterface = repositoryInterface;
 		this.configurationSource = configurationSource;
 
@@ -69,45 +66,6 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 				composition.append(fragments).getFragments().stream().toList());
 	}
 
-	public Class<T> getRepositoryInterface() {
-		return repositoryInterface;
-	}
-
-	@Override
-	public ConfigurableListableBeanFactory getBeanFactory() {
-		return beanFactory;
-	}
-
-	@Override
-	public Environment getEnvironment() {
-		return new StandardEnvironment();
-	}
-
-	@Override
-	public TypeIntrospector introspectType(String typeName) {
-		return null;
-	}
-
-	@Override
-	public IntrospectedBeanDefinition introspectBeanDefinition(String beanName) {
-		return null;
-	}
-
-	@Override
-	public void typeConfiguration(Class<?> type, Consumer<AotTypeConfiguration> configurationConsumer) {
-
-	}
-
-	@Override
-	public Collection<AotTypeConfiguration> typeConfigurations() {
-		return List.of();
-	}
-
-	@Override
-	public String getBeanName() {
-		return "dummyRepository";
-	}
-
 	@Override
 	public String getModuleName() {
 		return "JPA";
@@ -116,11 +74,6 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 	@Override
 	public RepositoryConfigurationSource getConfigurationSource() {
 		return configurationSource;
-	}
-
-	@Override
-	public Set<String> getBasePackages() {
-		return Set.of("org.springframework.data.dummy.repository.aot");
 	}
 
 	@Override
@@ -143,12 +96,4 @@ public class TestJpaAotRepositoryContext<T> implements AotRepositoryContext {
 		return Set.of(User.class, SpecialUser.class, Role.class);
 	}
 
-	@Override
-	public Set<Class<?>> getUserDomainTypes() {
-		return Set.of();
-	}
-
-	public void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-		this.beanFactory = beanFactory;
-	}
 }

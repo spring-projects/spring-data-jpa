@@ -58,6 +58,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
@@ -374,10 +375,22 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	public static class JpaRepositoryRegistrationAotProcessor extends RepositoryRegistrationAotProcessor {
 
 		public static final String USE_ENTITY_MANAGER = "spring.aot.jpa.repositories.use-entitymanager";
+
 		private static final String MODULE_NAME = "jpa";
 
-		protected @Nullable JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
+		@Override
+		protected void configureTypeContributions(AotRepositoryContext repositoryContext,
 				GenerationContext generationContext) {
+			super.configureTypeContributions(repositoryContext, generationContext);
+		}
+
+		@Override
+		protected void configureTypeContribution(Class<?> type, AotContext aotContext) {
+			aotContext.typeConfiguration(type, config -> config.contributeAccessors().forQuerydsl());
+		}
+
+		@Override
+		protected @Nullable JpaRepositoryContributor contributeAotRepository(AotRepositoryContext repositoryContext) {
 
 			if (!repositoryContext.isGeneratedRepositoriesEnabled(MODULE_NAME)) {
 				return null;

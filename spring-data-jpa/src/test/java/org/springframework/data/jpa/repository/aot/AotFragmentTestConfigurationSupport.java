@@ -47,6 +47,7 @@ import org.springframework.data.jpa.repository.sample.SampleConfig;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
@@ -69,7 +70,8 @@ public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProce
 
 	private final Class<?> repositoryInterface;
 	private final boolean registerFragmentFacade;
-	private final TestJpaAotRepositoryContext<?> repositoryContext;
+	private final Class<?>[] additionalFragments;
+	private final RepositoryConfigurationSource configSource;
 
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface) {
 		this(repositoryInterface, SampleConfig.class, true);
@@ -82,22 +84,22 @@ public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProce
 	public AotFragmentTestConfigurationSupport(Class<?> repositoryInterface, Class<?> configClass,
 			boolean registerFragmentFacade, Class<?>... additionalFragments) {
 		this.repositoryInterface = repositoryInterface;
-
-		RepositoryComposition composition = RepositoryComposition
-				.of((List) Arrays.stream(additionalFragments).map(RepositoryFragment::structural).toList());
-		this.repositoryContext = new TestJpaAotRepositoryContext<>(repositoryInterface, composition,
-				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(configClass),
-						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
-						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
 		this.registerFragmentFacade = registerFragmentFacade;
+		this.additionalFragments = additionalFragments;
+		this.configSource = new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(configClass),
+				EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
+				Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE);
 	}
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 
 		TestGenerationContext generationContext = new TestGenerationContext(repositoryInterface);
+		RepositoryComposition composition = RepositoryComposition
+				.of((List) Arrays.stream(additionalFragments).map(RepositoryFragment::structural).toList());
 
-		repositoryContext.setBeanFactory(beanFactory);
+		TestJpaAotRepositoryContext<?> repositoryContext = new TestJpaAotRepositoryContext<>(beanFactory,
+				repositoryInterface, composition, configSource);
 
 		new JpaRepositoryContributor(repositoryContext).contribute(generationContext);
 

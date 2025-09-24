@@ -40,6 +40,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.test.tools.TestCompiler;
@@ -56,6 +57,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
+import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryComposition;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
@@ -82,11 +84,16 @@ public class AotRepositoryQueryMethodBenchmarks {
 	public static class BenchmarkParameters {
 
 		public static Class<?> aot;
-		public static TestJpaAotRepositoryContext<PersonRepository> repositoryContext = new TestJpaAotRepositoryContext<>(
-				PersonRepository.class, null,
-				new AnnotationRepositoryConfigurationSource(AnnotationMetadata.introspect(SampleConfig.class),
-						EnableJpaRepositories.class, new DefaultResourceLoader(), new StandardEnvironment(),
-						Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE));
+		public static TestJpaAotRepositoryContext<PersonRepository> repositoryContext;
+
+		static {
+			RepositoryConfigurationSource configurationSource = new AnnotationRepositoryConfigurationSource(
+					AnnotationMetadata.introspect(SampleConfig.class), EnableJpaRepositories.class, new DefaultResourceLoader(),
+					new StandardEnvironment(), Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE);
+
+			repositoryContext = new TestJpaAotRepositoryContext<>(new DefaultListableBeanFactory(), PersonRepository.class,
+					null, configurationSource);
+		}
 
 		EntityManager entityManager;
 		RepositoryComposition.RepositoryFragments fragments;
