@@ -43,6 +43,7 @@ import org.mockito.quality.Strictness;
  * @author Mark Paluch
  * @author Daniel Shuy
  * @author Heeeun Cho
+ * @author Peter Aisher
  */
 @SuppressWarnings({ "unchecked", "deprecation" })
 @ExtendWith(MockitoExtension.class)
@@ -127,15 +128,13 @@ class SpecificationUnitTests {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
-	@Test // GH-3849
+	@Test // GH-3849, GH-4023
 	void notWithNullPredicate() {
 
-		when(builder.disjunction()).thenReturn(mock(Predicate.class));
+		Specification<Object> notSpec = Specification.not(Specification.unrestricted());
 
-		Specification<Object> notSpec = Specification.not((r, q, cb) -> null);
-
-		assertThat(notSpec.toPredicate(root, query, builder)).isNotNull();
-		verify(builder).disjunction();
+		assertThat(notSpec.toPredicate(root, query, builder)).isNull();
+		verifyNoInteractions(builder);
 	}
 
 	@Test // GH-3992

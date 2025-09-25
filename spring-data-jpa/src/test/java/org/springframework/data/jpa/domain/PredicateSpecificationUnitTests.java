@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2024-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.mockito.quality.Strictness;
  * Unit tests for {@link PredicateSpecification}.
  *
  * @author Mark Paluch
+ * @author Peter Aisher
  */
 @SuppressWarnings({ "unchecked", "deprecation" })
 @ExtendWith(MockitoExtension.class)
@@ -156,15 +157,13 @@ class PredicateSpecificationUnitTests implements Serializable {
 		verify(builder).or(firstPredicate, secondPredicate);
 	}
 
-	@Test // GH-3849
+	@Test // GH-3849, GH-4023
 	void notWithNullPredicate() {
-
-		when(builder.disjunction()).thenReturn(mock(Predicate.class));
 
 		PredicateSpecification<Object> notSpec = PredicateSpecification.not((r, cb) -> null);
 
-		assertThat(notSpec.toPredicate(root, builder)).isNotNull();
-		verify(builder).disjunction();
+		assertThat(notSpec.toPredicate(root, builder)).isNull();
+		verifyNoInteractions(builder);
 	}
 
 	static class SerializableSpecification implements Serializable, PredicateSpecification<Object> {
