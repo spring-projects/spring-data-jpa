@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer
  * <br/>
  * IMPORTANT: Purely verifies the parser without any transformations.
  *
+ * @author polyglot-k
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
