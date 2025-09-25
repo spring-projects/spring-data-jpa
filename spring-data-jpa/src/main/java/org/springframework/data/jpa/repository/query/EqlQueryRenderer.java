@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an EQL query without making any changes.
  *
+ * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -47,15 +48,16 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
-		if (ctx instanceof EqlParser.SubqueryContext) {
-			return true;
-		} else if (ctx instanceof EqlParser.Update_statementContext) {
-			return false;
-		} else if (ctx instanceof EqlParser.Delete_statementContext) {
-			return false;
-		} else {
-			return ctx.getParent() != null && isSubquery(ctx.getParent());
+		while (ctx != null) {
+			if (ctx instanceof EqlParser.SubqueryContext) {
+				return true;
+			}
+			if (ctx instanceof EqlParser.Update_statementContext || ctx instanceof EqlParser.Delete_statementContext) {
+				return false;
+			}
+			ctx = ctx.getParent();
 		}
+		return false;
 	}
 
 	/**
@@ -65,11 +67,13 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSetQuery(ParserRuleContext ctx) {
 
-		if (ctx instanceof EqlParser.Set_fuctionContext) {
-			return true;
+		while (ctx != null) {
+			if (ctx instanceof EqlParser.Set_fuctionContext) {
+				return true;
+			}
+			ctx = ctx.getParent();
 		}
-
-		return ctx.getParent() != null && isSetQuery(ctx.getParent());
+		return false;
 	}
 
 	@Override
