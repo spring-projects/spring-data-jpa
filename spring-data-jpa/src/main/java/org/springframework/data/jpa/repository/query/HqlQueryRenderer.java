@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
  *
+ * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @since 3.1
@@ -43,19 +44,20 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
-		if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
-			return true;
-		} else if (ctx instanceof HqlParser.SelectStatementContext) {
-			return false;
-		} else if (ctx instanceof HqlParser.InsertStatementContext) {
-			return false;
-		} else if (ctx instanceof HqlParser.DeleteStatementContext) {
-			return false;
-		} else if (ctx instanceof HqlParser.UpdateStatementContext) {
-			return false;
-		} else {
-			return ctx.getParent() != null && isSubquery(ctx.getParent());
+		while (ctx != null) {
+			if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
+				return true;
+			}
+			if (ctx instanceof HqlParser.SelectStatementContext ||
+					ctx instanceof HqlParser.InsertStatementContext ||
+					ctx instanceof HqlParser.DeleteStatementContext ||
+					ctx instanceof HqlParser.UpdateStatementContext
+			) {
+				return false;
+			}
+			ctx = ctx.getParent();
 		}
+		return false;
 	}
 
 	@Override
