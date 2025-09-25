@@ -57,41 +57,75 @@ class BadJpqlGrammarErrorListener extends BaseErrorListener {
 	/**
 	 * Rewrite the error message.
 	 */
-	private static String formatMessage(Object offendingSymbol, int line, int charPositionInLine, String message,
-			RecognitionException e, String query) {
+    private static String formatMessage(Object offendingSymbol,
+            int line,
+            int charPositionInLine,
+            String message,
+            RecognitionException e,
+            String query) {
 
-		String errorText = "At " + line + ":" + charPositionInLine;
+        StringBuilder errorText = new StringBuilder(256)
+                .append("At ")
+                .append(line)
+                .append(":")
+                .append(charPositionInLine);
 
-		if (offendingSymbol instanceof CommonToken ct) {
+        if (offendingSymbol instanceof CommonToken ct) {
+            String token = ct.getText();
+            if (!ObjectUtils.isEmpty(token)) {
+                errorText.append(" and token '").append(token).append("'");
+            }
+        }
+        errorText.append(", ");
 
-			String token = ct.getText();
-			if (!ObjectUtils.isEmpty(token)) {
-				errorText += " and token '" + token + "'";
-			}
-		}
-		errorText += ", ";
+        if (e instanceof NoViableAltException) {
+            int idx = message.indexOf('\'');
+            if (idx >= 0) {
+                errorText.append(message, 0, idx);
+            } else {
+                errorText.append(message);
+            }
 
-		if (e instanceof NoViableAltException) {
+            if (query.isEmpty()) {
+                errorText.append("'*' (empty query string)");
+            } else {
+                String lineText = getLineAt(query, line);
 
-			errorText += message.substring(0, message.indexOf('\''));
-			if (query.isEmpty()) {
-				errorText += "'*' (empty query string)";
-			} else {
+                StringBuilder lineSb = new StringBuilder(lineText.length() + 1); // 삽입 고려
+                lineSb.append(lineText);
+                if (charPositionInLine >= 0 && charPositionInLine <= lineSb.length()) {
+                    lineSb.insert(charPositionInLine, '*');
+                } else {
+                    lineSb.append('*');
+                }
 
-				List<String> list = query.lines().toList();
-				String lineText = list.get(line - 1);
-				String text = lineText.substring(0, charPositionInLine) + "*" + lineText.substring(charPositionInLine);
-				errorText += "'" + text + "'";
-			}
+                errorText.append("'").append(lineSb).append("'");
+            }
 
-		} else if (e instanceof InputMismatchException) {
-			errorText += message.substring(0, message.length() - 1).replace(" expecting {",
-					", expecting one of the following tokens: ");
-		} else {
-			errorText += message;
-		}
+        } else if (e instanceof InputMismatchException) {
+            errorText.append(
+                    message.substring(0, message.length() - 1)
+                            .replace(" expecting {", ", expecting one of the following tokens: ")
+            );
+        } else {
+            errorText.append(message);
+        }
 
-		return errorText;
-	}
+        return errorText.toString();
+    }
 
+    private static String getLineAt(String query, int line) {
+        if (query == null || query.isEmpty()) {
+            return "";
+        }
+
+        String[] lines = query.split("\\r?\\n");
+        int lineIndex = line - 1; // 라인 번호는 1-based이므로 0-based 인덱스로 변환
+
+        if (lineIndex >= 0 && lineIndex < lines.length) {
+            return lines[lineIndex];
+        }
+
+        return ""; // 라인 번호가 범위를 벗어나면 빈 문자열 반환
+    }
 }
