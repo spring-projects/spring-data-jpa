@@ -29,6 +29,13 @@ import org.springframework.lang.Nullable;
 
 /**
  * Specification in the sense of Domain Driven Design.
+ * <p>
+ * Specifications can be composed into higher order functions from other specifications using
+ * {@link #and(Specification)}, {@link #or(Specification)} or factory methods such as {@link #allOf(Iterable)}.
+ * <p>
+ * Composition considers whether one or more specifications contribute to the overall predicate by returning a
+ * {@link Predicate} or {@literal null}. Specifications returning {@literal null}, such as {@code where(null)}, are
+ * considered to not contribute to the overall predicate, and their result is not considered in the final predicate.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -38,6 +45,7 @@ import org.springframework.lang.Nullable;
  * @author Jens Schauder
  * @author Daniel Shuy
  * @author Sergey Rukin
+ * @author Peter Aisher
  */
 @FunctionalInterface
 public interface Specification<T> extends Serializable {
@@ -59,7 +67,7 @@ public interface Specification<T> extends Serializable {
 				: (root, query, builder) -> {
 
 			Predicate predicate = spec.toPredicate(root, query, builder);
-					return predicate != null ? builder.not(predicate) : builder.disjunction();
+					return predicate != null ? builder.not(predicate) : null;
 		};
 	}
 
