@@ -47,15 +47,16 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
-		if (ctx instanceof JpqlParser.SubqueryContext) {
-			return true;
-		} else if (ctx instanceof JpqlParser.Update_statementContext) {
-			return false;
-		} else if (ctx instanceof JpqlParser.Delete_statementContext) {
-			return false;
-		} else {
-			return ctx.getParent() != null && isSubquery(ctx.getParent());
-		}
+        while (ctx != null) {
+            if (ctx instanceof JpqlParser.SubqueryContext) {
+                return true;
+            }
+            if (ctx instanceof JpqlParser.Update_statementContext || ctx instanceof JpqlParser.Delete_statementContext) {
+                return false;
+            }
+            ctx = ctx.getParent();
+        }
+        return false;
 	}
 
 	/**
