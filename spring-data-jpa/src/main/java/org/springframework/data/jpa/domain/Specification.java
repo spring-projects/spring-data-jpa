@@ -36,9 +36,10 @@ import org.springframework.util.Assert;
  * <p>
  * Specifications can be composed into higher order functions from other specifications using
  * {@link #and(Specification)}, {@link #or(Specification)} or factory methods such as {@link #allOf(Iterable)}.
+ * <p>
  * Composition considers whether one or more specifications contribute to the overall predicate by returning a
- * {@link Predicate} or {@literal null}. Specifications returning {@literal null} are considered to not contribute to
- * the overall predicate and their result is not considered in the final predicate.
+ * {@link Predicate} or {@literal null}. Specifications returning {@literal null}, such as {@link #unrestricted()}, are
+ * considered to not contribute to the overall predicate, and their result is not considered in the final predicate.
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
@@ -49,12 +50,22 @@ import org.springframework.util.Assert;
  * @author Daniel Shuy
  * @author Sergey Rukin
  * @author Heeeun Cho
+ * @author Peter Aisher
  */
 @FunctionalInterface
 public interface Specification<T> extends Serializable {
 
 	/**
-	 * Simple static factory method to create a specification matching all objects.
+	 * Simple static factory method to create a specification which does not participate in matching. The specification
+	 * returned is {@code null}-like, and is elided in all operations.
+	 * 
+	 * <pre>
+	 * {@code
+	 * unrestricted().and(other) // consider only `other`
+	 * unrestricted().or(other) // consider only `other`
+	 * not(unrestricted()) // equivalent to `unrestricted()`
+	 * }
+	 * </pre>
 	 *
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
 	 * @return guaranteed to be not {@literal null}.
@@ -175,7 +186,7 @@ public interface Specification<T> extends Serializable {
 		return (root, query, builder) -> {
 
 			Predicate predicate = spec.toPredicate(root, query, builder);
-			return predicate != null ? builder.not(predicate) : builder.disjunction();
+			return predicate != null ? builder.not(predicate) : null;
 		};
 	}
 
