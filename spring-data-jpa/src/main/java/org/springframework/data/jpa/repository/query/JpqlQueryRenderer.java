@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
+ * @author polyglot-k
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
