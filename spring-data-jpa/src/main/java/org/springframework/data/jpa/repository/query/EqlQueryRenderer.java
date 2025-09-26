@@ -46,7 +46,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	 *
 	 * @return boolean
 	 */
-	static boolean isSubquery(ParserRuleContext ctx) {
+    static boolean isSubquery(ParserRuleContext ctx) {
 
         while (ctx != null) {
             if (ctx instanceof EqlParser.SubqueryContext) {
@@ -58,24 +58,23 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
             ctx = ctx.getParent();
         }
         return false;
-	}
+    }
 
 	/**
 	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
 	 *
 	 * @return boolean
 	 */
-	static boolean isSetQuery(ParserRuleContext ctx) {
+    static boolean isSetQuery(ParserRuleContext ctx) {
 
         while (ctx != null) {
             if (ctx instanceof EqlParser.Set_fuctionContext) {
                 return true;
             }
-
             ctx = ctx.getParent();
         }
         return false;
-	}
+    }
 
 	@Override
 	public QueryTokenStream visitStart(EqlParser.StartContext ctx) {
