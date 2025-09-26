@@ -47,7 +47,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	 *
 	 * @return boolean
 	 */
-	static boolean isSubquery(ParserRuleContext ctx) {
+    static boolean isSubquery(ParserRuleContext ctx) {
 
         while (ctx != null) {
             if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
@@ -63,7 +63,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
             ctx = ctx.getParent();
         }
         return false;
-	}
+    }
 
 	/**
 	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
@@ -71,6 +71,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	 * @return boolean
 	 */
     static boolean isSetQuery(ParserRuleContext ctx) {
+
         while (ctx != null) {
             ParserRuleContext parent = ctx.getParent();
             if (ctx instanceof HqlParser.OrderedQueryContext && parent instanceof HqlParser.QueryExpressionContext qec) {
