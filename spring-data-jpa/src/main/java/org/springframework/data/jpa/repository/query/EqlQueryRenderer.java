@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *	  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,35 +46,35 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	 *
 	 * @return boolean
 	 */
-    static boolean isSubquery(ParserRuleContext ctx) {
+	static boolean isSubquery(ParserRuleContext ctx) {
 
-        while (ctx != null) {
-            if (ctx instanceof EqlParser.SubqueryContext) {
-                return true;
-            }
-            if (ctx instanceof EqlParser.Update_statementContext || ctx instanceof EqlParser.Delete_statementContext) {
-                return false;
-            }
-            ctx = ctx.getParent();
-        }
-        return false;
-    }
+		while (ctx != null) {
+			if (ctx instanceof EqlParser.SubqueryContext) {
+				return true;
+			}
+			if (ctx instanceof EqlParser.Update_statementContext || ctx instanceof EqlParser.Delete_statementContext) {
+				return false;
+			}
+			ctx = ctx.getParent();
+		}
+		return false;
+	}
 
 	/**
 	 * Is this AST tree a {@literal set} query that has been added through {@literal UNION|INTERSECT|EXCEPT}?
 	 *
 	 * @return boolean
 	 */
-    static boolean isSetQuery(ParserRuleContext ctx) {
+	static boolean isSetQuery(ParserRuleContext ctx) {
 
-        while (ctx != null) {
-            if (ctx instanceof EqlParser.Set_fuctionContext) {
-                return true;
-            }
-            ctx = ctx.getParent();
-        }
-        return false;
-    }
+		while (ctx != null) {
+			if (ctx instanceof EqlParser.Set_fuctionContext) {
+				return true;
+			}
+			ctx = ctx.getParent();
+		}
+		return false;
+	}
 
 	@Override
 	public QueryTokenStream visitStart(EqlParser.StartContext ctx) {
