@@ -32,7 +32,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
- * @author polyglot-k
+ * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -67,11 +67,13 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSetQuery(ParserRuleContext ctx) {
 
-		if (ctx instanceof JpqlParser.Set_fuctionContext) {
-			return true;
-		}
-
-		return ctx.getParent() != null && isSetQuery(ctx.getParent());
+        while (ctx != null) {
+            if (ctx instanceof JpqlParser.Set_fuctionContext) {
+                return true;
+            }
+            ctx = ctx.getParent();
+        }
+        return false;
 	}
 
 	@Override
