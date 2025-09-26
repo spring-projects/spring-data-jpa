@@ -73,7 +73,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
     static boolean isSetQuery(ParserRuleContext ctx) {
         while (ctx != null) {
             ParserRuleContext parent = ctx.getParent();
-
+            
             if (ctx instanceof HqlParser.OrderedQueryContext
                     && parent instanceof HqlParser.QueryExpressionContext qec) {
                 if (qec.orderedQuery().indexOf(ctx) != 0) {
