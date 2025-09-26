@@ -71,6 +71,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
             if (ctx instanceof JpqlParser.Set_fuctionContext) {
                 return true;
             }
+
             ctx = ctx.getParent();
         }
         return false;

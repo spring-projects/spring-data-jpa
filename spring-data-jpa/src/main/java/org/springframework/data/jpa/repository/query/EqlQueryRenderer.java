@@ -71,6 +71,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
             if (ctx instanceof EqlParser.Set_fuctionContext) {
                 return true;
             }
+
             ctx = ctx.getParent();
         }
         return false;
