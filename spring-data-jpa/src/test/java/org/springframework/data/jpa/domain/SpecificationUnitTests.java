@@ -217,7 +217,7 @@ class SpecificationUnitTests {
 	@Test // GH-3849, GH-4023
 	void notWithNullPredicate() {
 
-		Specification<Object> notSpec = Specification.not(Specification.unrestricted());
+		Specification<Object> notSpec = Specification.not(Specification.where(null));
 
 		assertThat(notSpec.toPredicate(root, query, builder)).isNull();
 		verifyNoInteractions(builder);
