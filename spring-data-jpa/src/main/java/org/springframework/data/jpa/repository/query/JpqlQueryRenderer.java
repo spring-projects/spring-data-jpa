@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *	  https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
+ * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
@@ -47,15 +48,16 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
-		if (ctx instanceof JpqlParser.SubqueryContext) {
-			return true;
-		} else if (ctx instanceof JpqlParser.Update_statementContext) {
-			return false;
-		} else if (ctx instanceof JpqlParser.Delete_statementContext) {
-			return false;
-		} else {
-			return ctx.getParent() != null && isSubquery(ctx.getParent());
+		while (ctx != null) {
+			if (ctx instanceof JpqlParser.SubqueryContext) {
+				return true;
+			}
+			if (ctx instanceof JpqlParser.Update_statementContext || ctx instanceof JpqlParser.Delete_statementContext) {
+				return false;
+			}
+			ctx = ctx.getParent();
 		}
+		return false;
 	}
 
 	/**
@@ -65,11 +67,13 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	 */
 	static boolean isSetQuery(ParserRuleContext ctx) {
 
-		if (ctx instanceof JpqlParser.Set_fuctionContext) {
-			return true;
+		while (ctx != null) {
+			if (ctx instanceof JpqlParser.Set_fuctionContext) {
+				return true;
+			}
+			ctx = ctx.getParent();
 		}
-
-		return ctx.getParent() != null && isSetQuery(ctx.getParent());
+		return false;
 	}
 
 	@Override
