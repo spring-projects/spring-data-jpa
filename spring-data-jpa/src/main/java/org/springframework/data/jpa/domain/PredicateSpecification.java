@@ -50,13 +50,11 @@ public interface PredicateSpecification<T> extends Serializable {
 	/**
 	 * Simple static factory method to create a specification which does not participate in matching. The specification
 	 * returned is {@code null}-like, and is elided in all operations.
-	 * 
-	 * <pre>
-	 * {@code
+	 *
+	 * <pre class="code">
 	 * unrestricted().and(other) // consider only `other`
 	 * unrestricted().or(other) // consider only `other`
 	 * not(unrestricted()) // equivalent to `unrestricted()`
-	 * }
 	 * </pre>
 	 *
 	 * @param <T> the type of the {@link Root} the resulting {@literal PredicateSpecification} operates on.
@@ -131,7 +129,7 @@ public interface PredicateSpecification<T> extends Serializable {
 
 	/**
 	 * Applies an AND operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
-	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
+	 * resulting {@link PredicateSpecification} will be {@link #unrestricted()} applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -145,7 +143,7 @@ public interface PredicateSpecification<T> extends Serializable {
 
 	/**
 	 * Applies an AND operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
-	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
+	 * resulting {@link PredicateSpecification} will be {@link #unrestricted()} applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the conjunction of the specifications.
@@ -160,7 +158,7 @@ public interface PredicateSpecification<T> extends Serializable {
 
 	/**
 	 * Applies an OR operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
-	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
+	 * resulting {@link PredicateSpecification} will be {@link #unrestricted()} applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
@@ -174,7 +172,7 @@ public interface PredicateSpecification<T> extends Serializable {
 
 	/**
 	 * Applies an OR operation to all the given {@link PredicateSpecification}s. If {@code specifications} is empty, the
-	 * resulting {@link PredicateSpecification} will be unrestricted applying to all objects.
+	 * resulting {@link PredicateSpecification} will be {@link #unrestricted()} applying to all objects.
 	 *
 	 * @param specifications the {@link PredicateSpecification}s to compose.
 	 * @return the disjunction of the specifications.
