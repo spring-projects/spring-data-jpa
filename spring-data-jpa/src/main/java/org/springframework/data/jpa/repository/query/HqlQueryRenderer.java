@@ -54,9 +54,9 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
                 return true;
             }
             if (ctx instanceof HqlParser.SelectStatementContext ||
-                ctx instanceof HqlParser.InsertStatementContext ||
-                ctx instanceof HqlParser.DeleteStatementContext ||
-                ctx instanceof HqlParser.UpdateStatementContext
+                    ctx instanceof HqlParser.InsertStatementContext ||
+                    ctx instanceof HqlParser.DeleteStatementContext ||
+                    ctx instanceof HqlParser.UpdateStatementContext
             ) {
                 return false;
             }
@@ -73,9 +73,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
     static boolean isSetQuery(ParserRuleContext ctx) {
         while (ctx != null) {
             ParserRuleContext parent = ctx.getParent();
-
-            if (ctx instanceof HqlParser.OrderedQueryContext
-                    && parent instanceof HqlParser.QueryExpressionContext qec) {
+            if (ctx instanceof HqlParser.OrderedQueryContext && parent instanceof HqlParser.QueryExpressionContext qec) {
                 if (qec.orderedQuery().indexOf(ctx) != 0) {
                     return true;
                 }
