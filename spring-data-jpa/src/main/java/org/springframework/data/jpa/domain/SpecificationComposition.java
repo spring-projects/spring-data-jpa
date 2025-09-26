@@ -31,8 +31,8 @@ import org.springframework.lang.Nullable;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Mark Paluch
- * @see Specification
  * @since 2.2
+ * @see Specification
  */
 class SpecificationComposition {
 

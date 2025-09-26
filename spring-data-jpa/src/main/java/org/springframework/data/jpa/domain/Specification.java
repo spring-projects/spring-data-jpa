@@ -68,7 +68,7 @@ public interface Specification<T> extends Serializable {
 				: (root, query, builder) -> {
 
 					Predicate predicate = spec.toPredicate(root, query, builder);
-					return predicate != null ? builder.not(predicate) : builder.disjunction();
+					return predicate != null ? builder.not(predicate) : null;
 				};
 	}
 
@@ -76,12 +76,10 @@ public interface Specification<T> extends Serializable {
 	 * Simple static factory method to create a specification which does not participate in matching. The specification
 	 * returned is {@code null}-like, and is elided in all operations.
 	 *
-	 * <pre>
-	 * {@code
+	 * <pre class="code">
 	 * unrestricted().and(other) // consider only `other`
 	 * unrestricted().or(other) // consider only `other`
 	 * not(unrestricted()) // equivalent to `unrestricted()`
-	 * }
 	 * </pre>
 	 *
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
