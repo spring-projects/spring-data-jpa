@@ -80,7 +80,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
                     return true;
                 }
             }
-
             ctx = parent;
         }
         return false;
