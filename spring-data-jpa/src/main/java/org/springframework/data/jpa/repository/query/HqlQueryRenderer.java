@@ -29,9 +29,10 @@ import org.springframework.util.ObjectUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an HQL query without making any changes.
  *
- * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Mark Paluch
+ * @author TaeHyun Kang
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
@@ -40,23 +41,26 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	/**
 	 * Is this select clause a {@literal subquery}?
 	 *
-	 * @return boolean
+	 * @return {@literal true} is the query is a subquery; {@literal false} otherwise.
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
 		while (ctx != null) {
+
 			if (ctx instanceof HqlParser.SubqueryContext || ctx instanceof HqlParser.CteContext) {
 				return true;
 			}
+
 			if (ctx instanceof HqlParser.SelectStatementContext ||
 					ctx instanceof HqlParser.InsertStatementContext ||
 					ctx instanceof HqlParser.DeleteStatementContext ||
-					ctx instanceof HqlParser.UpdateStatementContext
-			) {
+					ctx instanceof HqlParser.UpdateStatementContext) {
 				return false;
 			}
+
 			ctx = ctx.getParent();
 		}
+
 		return false;
 	}
 
