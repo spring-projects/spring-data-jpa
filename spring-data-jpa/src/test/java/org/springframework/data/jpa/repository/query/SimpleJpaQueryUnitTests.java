@@ -192,7 +192,7 @@ class SimpleJpaQueryUnitTests {
 		createJpaQuery(method);
 	}
 
-	@Test // DATAJPA-352
+	@Test // DATAJPA-352, GH-2736
 	void validatesAndRejectsCountQueryIfPagingMethod() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
@@ -201,7 +201,7 @@ class SimpleJpaQueryUnitTests {
 
 		assertThatIllegalArgumentException() //
 				.isThrownBy(() -> createJpaQuery(method)) //
-				.withMessageContaining("Count") //
+				.withMessageContaining("User u") //
 				.withMessageContaining(method.getName());
 	}
 
@@ -356,21 +356,21 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	private AbstractJpaQuery createJpaQuery(Method method) {
-		return createJpaQuery(method, null);
+		return createJpaQuery(method, Optional.empty());
 	}
 
-	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, @Nullable String queryString,
+	private AbstractJpaQuery createJpaQuery(JpaQueryMethod queryMethod, String queryString,
 			@Nullable String countQueryString) {
 
 		return JpaQueryFactory.INSTANCE.fromMethodWithQueryString(queryMethod, em, queryString, countQueryString,
 				QueryRewriter.IdentityQueryRewriter.INSTANCE, ValueExpressionDelegate.create());
 	}
 
-	private AbstractJpaQuery createJpaQuery(Method method, @Nullable Optional<String> countQueryString) {
+	private AbstractJpaQuery createJpaQuery(Method method, Optional<String> countQueryString) {
 
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 		return createJpaQuery(queryMethod, queryMethod.getAnnotatedQuery(),
-				countQueryString == null ? null : countQueryString.orElse(queryMethod.getCountQuery()));
+				countQueryString.orElse(queryMethod.getCountQuery()));
 	}
 
 	private String createQuery(AbstractStringBasedJpaQuery jpaQuery) {
