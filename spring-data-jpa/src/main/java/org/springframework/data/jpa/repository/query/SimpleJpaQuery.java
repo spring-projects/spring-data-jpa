@@ -64,10 +64,10 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, sourceQuery, countQueryString, queryRewriter, valueExpressionDelegate);
 
-		validateQuery(getQuery(), "Validation failed for query %s for method %s", method);
+		validateQuery(getQuery(), "Query '%s' validation failed for method %s", method);
 
 		if (method.isPageQuery()) {
-			validateQuery(getCountQuery(), "Count query %s validation failed for method %s", method);
+			validateQuery(getCountQuery(), "Count query '%s' validation failed for method %s", method);
 		}
 	}
 
@@ -83,24 +83,14 @@ final class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-		EntityManager validatingEm = null;
-		var queryString = query.getQueryString();
-
-		try {
-			validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager();
+		String queryString = query.getQueryString();
+		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
 			validatingEm.createQuery(queryString);
-
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
 			// https://download.oracle.com/javaee-archive/jpa-spec.java.net/users/2012/07/0404.html
-			throw new IllegalArgumentException(errorMessage.formatted(query, method), e);
-
-		} finally {
-
-			if (validatingEm != null) {
-				validatingEm.close();
-			}
+			throw new IllegalArgumentException(errorMessage.formatted(queryString, method), e);
 		}
 	}
 }
