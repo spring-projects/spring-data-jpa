@@ -32,10 +32,10 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders an EQL query without making any changes.
  *
- * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author TaeHyun Kang
  * @since 3.2
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -44,19 +44,23 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	/**
 	 * Is this AST tree a {@literal subquery}?
 	 *
-	 * @return boolean
+	 * @return {@literal true} is the query is a subquery; {@literal false} otherwise.
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
 		while (ctx != null) {
+
 			if (ctx instanceof EqlParser.SubqueryContext) {
 				return true;
 			}
+
 			if (ctx instanceof EqlParser.Update_statementContext || ctx instanceof EqlParser.Delete_statementContext) {
 				return false;
 			}
+
 			ctx = ctx.getParent();
 		}
+
 		return false;
 	}
 
@@ -68,11 +72,14 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	static boolean isSetQuery(ParserRuleContext ctx) {
 
 		while (ctx != null) {
+
 			if (ctx instanceof EqlParser.Set_fuctionContext) {
 				return true;
 			}
+
 			ctx = ctx.getParent();
 		}
+
 		return false;
 	}
 

@@ -32,10 +32,10 @@ import org.springframework.util.CollectionUtils;
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that renders a JPQL query without making any changes.
  *
- * @author TaeHyun Kang(polyglot-k)
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author TaeHyun Kang
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -44,19 +44,23 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	/**
 	 * Is this AST tree a {@literal subquery}?
 	 *
-	 * @return boolean
+	 * @return {@literal true} is the query is a subquery; {@literal false} otherwise.
 	 */
 	static boolean isSubquery(ParserRuleContext ctx) {
 
 		while (ctx != null) {
+
 			if (ctx instanceof JpqlParser.SubqueryContext) {
 				return true;
 			}
+
 			if (ctx instanceof JpqlParser.Update_statementContext || ctx instanceof JpqlParser.Delete_statementContext) {
 				return false;
 			}
+
 			ctx = ctx.getParent();
 		}
+
 		return false;
 	}
 
@@ -68,11 +72,14 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	static boolean isSetQuery(ParserRuleContext ctx) {
 
 		while (ctx != null) {
+
 			if (ctx instanceof JpqlParser.Set_fuctionContext) {
 				return true;
 			}
+
 			ctx = ctx.getParent();
 		}
+
 		return false;
 	}
 
