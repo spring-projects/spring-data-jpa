@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -124,8 +125,9 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 			}
 		}
 
-		Assert.isTrue(method.isNativeQuery() || !this.query.usesJdbcStyleParameters(),
-				"JDBC style parameters (?) are not supported for JPA queries");
+		if (!method.isNativeQuery() && this.query.usesJdbcStyleParameters()) {
+			throw QueryCreationException.create(method, "JDBC-style parameters (?) are not supported for JPA queries");
+		}
 	}
 
 	@Override

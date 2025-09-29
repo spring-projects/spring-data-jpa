@@ -43,6 +43,7 @@ import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.util.QueryExecutionConverters;
 import org.springframework.data.util.Lazy;
@@ -148,8 +149,10 @@ public class JpaQueryMethod extends QueryMethod {
 		this.metaAnnotation = Lazy
 				.of(() -> Optional.ofNullable(AnnotatedElementUtils.findMergedAnnotation(method, Meta.class)));
 
-		Assert.isTrue(!(isModifyingQuery() && getParameters().hasSpecialParameter()),
-				() -> String.format("Modifying method must not contain %s", Parameters.TYPES));
+		if (isModifyingQuery() && getParameters().hasSpecialParameter()) {
+			throw QueryCreationException.create(this,
+					String.format("Modifying method must not contain %s", Parameters.TYPES));
+		}
 	}
 
 	private static Class<?> potentiallyUnwrapReturnTypeFor(RepositoryMetadata metadata, Method method) {

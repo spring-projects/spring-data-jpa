@@ -38,6 +38,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExe
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ScrollExecution;
 import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.Part;
@@ -102,13 +103,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		try {
 
 			this.tree = new PartTree(method.getName(), domainClass);
-			validate(tree, parameters, method.toString());
+			validate(tree, parameters);
 			this.countQuery = new CountQueryPreparer();
 			this.queryPreparer = tree.isCountProjection() ? countQuery : new QueryPreparer();
 
 		} catch (Exception o_O) {
-			throw new IllegalArgumentException(
-					String.format("Failed to create query for method %s; %s", method, o_O.getMessage()), o_O);
+			throw QueryCreationException.create(getQueryMethod(), o_O);
 		}
 	}
 
@@ -142,7 +142,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		return super.getExecution(accessor);
 	}
 
-	private static void validate(PartTree tree, JpaParameters parameters, String methodName) {
+	private static void validate(PartTree tree, JpaParameters parameters) {
 
 		int argCount = 0;
 
@@ -154,14 +154,14 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			for (int i = 0; i < numberOfArguments; i++) {
 
-				throwExceptionOnArgumentMismatch(methodName, part, parameters, argCount);
+				throwExceptionOnArgumentMismatch(part, parameters, argCount);
 
 				argCount++;
 			}
 		}
 	}
 
-	private static void throwExceptionOnArgumentMismatch(String methodName, Part part, JpaParameters parameters,
+	private static void throwExceptionOnArgumentMismatch(Part part, JpaParameters parameters,
 			int index) {
 
 		Type type = part.getType();
@@ -169,28 +169,28 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 		if (!parameters.getBindableParameters().hasParameterAt(index)) {
 			throw new IllegalStateException(String.format(
-					"Method %s expects at least %d arguments but only found %d; This leaves an operator of type %s for property %s unbound",
-					methodName, index + 1, index, type.name(), property));
+					"Method expects at least %d arguments but only found %d; This leaves an operator of type '%s' for property '%s' unbound",
+					index + 1, index, type.name(), property));
 		}
 
 		JpaParameter parameter = parameters.getBindableParameter(index);
 
 		if (expectsCollection(type)) {
 			if (!parameterIsCollectionLike(parameter)) {
-				throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "Collection", parameter));
+				throw new IllegalStateException(wrongParameterTypeMessage(property, type, "Collection", parameter));
 			}
 		} else {
 			if (!part.getProperty().isCollection() && !parameterIsScalarLike(parameter)) {
-				throw new IllegalStateException(wrongParameterTypeMessage(methodName, property, type, "scalar", parameter));
+				throw new IllegalStateException(wrongParameterTypeMessage(property, type, "scalar", parameter));
 			}
 		}
 	}
 
-	private static String wrongParameterTypeMessage(String methodName, String property, Type operatorType,
+	private static String wrongParameterTypeMessage(String property, Type operatorType,
 			String expectedArgumentType, JpaParameter parameter) {
 
-		return String.format("Operator %s on %s requires a %s argument, found %s in method %s", operatorType.name(),
-				property, expectedArgumentType, parameter.getType(), methodName);
+		return String.format("Operator '%s' on '%s' requires a %s argument, found '%s'", operatorType.name(), property,
+				expectedArgumentType, parameter.getType());
 	}
 
 	private static boolean parameterIsCollectionLike(JpaParameter parameter) {

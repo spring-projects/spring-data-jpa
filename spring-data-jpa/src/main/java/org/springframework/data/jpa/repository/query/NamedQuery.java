@@ -75,9 +75,9 @@ final class NamedQuery extends AbstractJpaQuery {
 		Parameters<?, ?> parameters = method.getParameters();
 
 		if (parameters.hasSortParameter()) {
-			throw new IllegalStateException(String.format("Query method %s is backed by a NamedQuery and must "
+			throw QueryCreationException.create(method, String.format("Query method is backed by a NamedQuery and must "
 					+ "not contain a sort parameter as we cannot modify the query; Use @%s(value=…) instead to apply sorting or remove the 'Sort' parameter.",
-					method, method.isNativeQuery() ? "NativeQuery" : "Query"));
+					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);

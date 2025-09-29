@@ -45,6 +45,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.RepositoryQuery;
@@ -58,6 +59,7 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
  * @author Jens Schauder
  * @author Réda Housni Alaoui
  * @author Greg Turnquist
+ * @author Mark Paluch
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -160,7 +162,7 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("customNamedQuery", String.class, Sort.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		assertThatIllegalStateException()
+		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
 				.withMessageContaining(
 						"is backed by a NamedQuery and must not contain a sort parameter as we cannot modify the query; Use @Query(value=…) instead to apply sorting or remove the 'Sort' parameter.");

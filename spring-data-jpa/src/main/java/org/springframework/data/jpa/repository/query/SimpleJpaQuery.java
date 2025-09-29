@@ -20,6 +20,7 @@ import jakarta.persistence.Query;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 
 /**
@@ -48,10 +49,10 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, query, countQuery, queryConfiguration);
 
-		validateQuery(getQuery(), "Validation failed for query %s for method %s", method);
+		validateQuery(getQuery(), "Query validation failed for '%s'", method);
 
 		if (method.isPageQuery()) {
-			validateQuery(getCountQuery(), "Count query %s validation failed for method %s", method);
+			validateQuery(getCountQuery(), "Count query validation failed for '%s'", method);
 		}
 	}
 
@@ -67,18 +68,14 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-		EntityManager validatingEm = null;
-		var queryString = query.getQueryString();
-
-		try {
-			validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager();
+		String queryString = query.getQueryString();
+		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
 			validatingEm.createQuery(queryString);
-
 		} catch (RuntimeException e) {
 
-            // Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
-            // https://download.oracle.com/javaee-archive/jpa-spec.java.net/users/2012/07/0404.html
-            throw new IllegalArgumentException(errorMessage.formatted(query, method), e);
-        }
+			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
+			// https://download.oracle.com/javaee-archive/jpa-spec.java.net/users/2012/07/0404.html
+			throw QueryCreationException.create(method, errorMessage.formatted(queryString), e);
+		}
 	}
 }

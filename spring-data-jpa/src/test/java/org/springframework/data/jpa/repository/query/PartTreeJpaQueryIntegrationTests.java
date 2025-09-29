@@ -50,6 +50,7 @@ import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -192,8 +193,7 @@ class PartTreeJpaQueryIntegrationTests {
 
 		assertThatExceptionOfType(RuntimeException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager)) //
-				.withMessageContaining("findByIdIn") //
-				.withMessageContaining(" IN ") //
+				.withMessageContaining("'IN'") //
 				.withMessageContaining("Collection") //
 				.withMessageContaining("Integer");
 	}
@@ -203,11 +203,10 @@ class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findById", Collection.class);
 
-		assertThatExceptionOfType(RuntimeException.class) //
+		assertThatExceptionOfType(QueryCreationException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager)) //
-				.withMessageContaining("findById") //
-				.withMessageContaining(" SIMPLE_PROPERTY ") //
-				.withMessageContaining(" scalar ") //
+				.withMessageContaining("'SIMPLE_PROPERTY'") //
+				.withMessageContaining("scalar ") //
 				.withMessageContaining("Collection");
 	}
 
@@ -226,11 +225,9 @@ class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findByFirstname");
 
-		assertThatExceptionOfType(IllegalArgumentException.class) //
+		assertThatExceptionOfType(QueryCreationException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager)) //
-				.withMessageContaining("findByFirstname") // the method being analyzed
-				.withMessageContaining(" firstname ") // the property we are looking for
-				.withMessageContaining("UserRepository"); // the repository
+				.withMessageContaining("'firstname'"); // the property we are looking for
 	}
 
 	@Test // DATAJPA-863
@@ -238,11 +235,9 @@ class PartTreeJpaQueryIntegrationTests {
 
 		JpaQueryMethod method = getQueryMethod("findByNoSuchProperty", String.class);
 
-		assertThatExceptionOfType(IllegalArgumentException.class) //
+		assertThatExceptionOfType(QueryCreationException.class) //
 				.isThrownBy(() -> new PartTreeJpaQuery(method, entityManager)) //
-				.withMessageContaining("findByNoSuchProperty") // the method being analyzed
-				.withMessageContaining("'noSuchProperty'") // the property we are looking for
-				.withMessageContaining("UserRepository"); // the repository
+				.withMessageContaining("'noSuchProperty'"); // the property we are looking for
 	}
 
 	@Test // GH-3356
