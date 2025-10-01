@@ -57,6 +57,7 @@ import org.springframework.util.StringUtils;
  * Factory for {@link AotQueries}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.0
  */
 class QueriesFactory {
@@ -123,7 +124,7 @@ class QueriesFactory {
 			QueryEnhancerSelector selector, MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("value"))) {
-			return buildStringQuery(repositoryInformation.getDomainType(), returnedType, selector, query, queryMethod);
+			return buildStringQuery(returnedType, selector, query, queryMethod);
 		}
 
 		String queryName = queryMethod.getNamedQueryName();
@@ -138,10 +139,10 @@ class QueriesFactory {
 		return namedQueries.hasQuery(queryName) || getNamedQuery(returnedType, queryName) != null;
 	}
 
-	private AotQueries buildStringQuery(Class<?> domainType, ReturnedType returnedType, QueryEnhancerSelector selector,
+	private AotQueries buildStringQuery(ReturnedType returnedType, QueryEnhancerSelector selector,
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
-		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", domainType.getSimpleName());
+		UnaryOperator<String> operator = s -> s.replaceAll("#\\{#entityName}", queryMethod.getEntityInformation().getEntityName());
 		boolean isNative = query.getBoolean("nativeQuery");
 		Function<String, DeclaredQuery> queryFunction = isNative ? DeclaredQuery::nativeQuery : DeclaredQuery::jpqlQuery;
 		queryFunction = operator.andThen(queryFunction);
