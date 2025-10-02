@@ -722,7 +722,7 @@ class JpaCodeBlocks {
 
 				if (isProjecting) {
 
-					TypeName returnType = TypeNames.typeNameOrWrapper(methodReturn.getActualType());
+					TypeName returnType = methodReturn.getActualTypeName();
 					CodeBlock convertTo;
 					if (StringUtils.hasText(context.getDynamicProjectionParameterName())) {
 						convertTo = CodeBlock.of("$L", context.getDynamicProjectionParameterName());
