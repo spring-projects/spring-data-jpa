@@ -347,6 +347,15 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(user.getFirstname()).isEqualTo("Han");
 	}
 
+	@Test // GH-4028
+	void shouldResolveTemplatedQueryFromBaseRepo() {
+
+		User user = fragment.findByEmailAddressViaTemplatedDeclaredInBaseRepo("han@smuggler.net");
+
+		assertThat(user).isNotNull();
+		assertThat(user.getFirstname()).isEqualTo("Han");
+	}
+
 	@Test // GH-3830
 	void shouldEvaluateExpressionByName() {
 

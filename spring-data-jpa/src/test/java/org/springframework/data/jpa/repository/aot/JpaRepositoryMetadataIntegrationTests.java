@@ -15,14 +15,13 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
-import static org.assertj.core.api.Assertions.*;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
@@ -35,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the {@link UserRepository} JSON metadata via {@link JpaRepositoryContributor}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @SpringJUnitConfig(classes = JpaRepositoryMetadataIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -74,10 +74,9 @@ class JpaRepositoryMetadataIntegrationTests {
 		assertThat(resource.exists()).isTrue();
 
 		String json = resource.getContentAsString(StandardCharsets.UTF_8);
-
-		assertThatJson(json).inPath("$.methods[0]").isObject().containsEntry("name", "countUsersByLastname");
-		assertThatJson(json).inPath("$.methods[0].query").isObject().containsEntry("query",
-				"SELECT COUNT(u) FROM User u WHERE u.lastname = :lastname");
+		assertThatJson(json).inPath("$.methods[?(@.name == 'countUsersByLastname')].query").isArray().element(0).isObject()
+				.containsEntry("query",
+						"SELECT COUNT(u) FROM User u WHERE u.lastname = :lastname");
 	}
 
 	@Test // GH-3830

@@ -41,7 +41,7 @@ import org.springframework.data.repository.query.Param;
  * @author Christoph Strobl
  * @author Mark Paluch
  */
-interface UserRepository extends CrudRepository<User, Integer> {
+interface UserRepository extends BaseRepository<User, Integer> {
 
 	List<User> findUserNoArgumentsBy();
 
