@@ -22,7 +22,7 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.lang.Nullable;
 
 /**
- * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
+ * Extension of {@link JpaMetamodelEntityInformation} that considers methods of {@link Persistable} to lookup the id.
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
@@ -53,4 +53,5 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 	public ID getId(T entity) {
 		return entity.getId();
 	}
+
 }
