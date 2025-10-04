@@ -232,7 +232,7 @@ public class ParameterMetadataProvider {
 	/**
 	 *
 	 * @return the vector binding identifier.
-	 * @throws IllegalStateException if parameters do not cotain
+	 * @throws IllegalStateException if parameters do not contain
 	 * @since 4.0
 	 */
 	ParameterBinding getVectorBinding() {
