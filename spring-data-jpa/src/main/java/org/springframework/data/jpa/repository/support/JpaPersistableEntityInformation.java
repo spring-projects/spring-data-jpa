@@ -23,7 +23,7 @@ import org.springframework.data.domain.Persistable;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
+ * Extension of {@link JpaMetamodelEntityInformation} that considers methods of {@link Persistable} to lookup the id.
  *
  * @author Oliver Gierke
  * @author Christoph Strobl
@@ -34,7 +34,7 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 * @param persistenceUnitUtil must not be {@literal null}.
