@@ -230,9 +230,8 @@ public class ParameterMetadataProvider {
 	}
 
 	/**
-	 *
 	 * @return the vector binding identifier.
-	 * @throws IllegalStateException if parameters do not cotain
+	 * @throws IllegalStateException if parameters do not contain a Vector parameter binding.
 	 * @since 4.0
 	 */
 	ParameterBinding getVectorBinding() {
@@ -362,6 +361,7 @@ public class ParameterMetadataProvider {
 
 			return false;
 		}
+
 	}
 
 	static class RangeParameterBinding extends ScoreParameterBinding {
@@ -403,6 +403,7 @@ public class ParameterMetadataProvider {
 
 			return false;
 		}
+
 	}
 
 }
