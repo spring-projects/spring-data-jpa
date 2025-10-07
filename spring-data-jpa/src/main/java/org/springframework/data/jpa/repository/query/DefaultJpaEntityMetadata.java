@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.Entity;
 
+import java.util.function.Function;
+
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -49,8 +51,13 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 
 	@Override
 	public String getEntityName() {
+		return getEntityNameOr(Class::getSimpleName);
+	}
+
+	String getEntityNameOr(Function<Class<?>, String> alternative) {
 
 		Entity entity = AnnotatedElementUtils.findMergedAnnotation(domainType, Entity.class);
-		return null != entity && StringUtils.hasText(entity.name()) ? entity.name() : domainType.getSimpleName();
+		return null != entity && StringUtils.hasText(entity.name()) ? entity.name() : alternative.apply(domainType);
 	}
+
 }

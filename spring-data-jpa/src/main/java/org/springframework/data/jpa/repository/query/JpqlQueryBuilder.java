@@ -58,7 +58,8 @@ public final class JpqlQueryBuilder {
 	 * @return
 	 */
 	public static Entity entity(Class<?> from) {
-		return new Entity(from.getName(), from.getSimpleName(),
+		DefaultJpaEntityMetadata<?> entityMetadata = new DefaultJpaEntityMetadata<>(from);
+		return new Entity(from.getName(), entityMetadata.getEntityNameOr(Class::getName),
 				getAlias(from.getSimpleName(), Predicates.isTrue(), () -> "r"));
 	}
 
@@ -538,7 +539,8 @@ public final class JpqlQueryBuilder {
 		if (origin instanceof Entity entity) {
 
 			try {
-				PropertyPath from = PropertyPath.from(path, ClassUtils.forName(entity.entity, Entity.class.getClassLoader()));
+				PropertyPath from = PropertyPath.from(path,
+						ClassUtils.forName(entity.className, Entity.class.getClassLoader()));
 				return new PathAndOrigin(from, entity, false);
 			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(e);
@@ -847,7 +849,7 @@ public final class JpqlQueryBuilder {
 			StringBuilder where = new StringBuilder();
 			StringBuilder orderby = new StringBuilder();
 			StringBuilder result = new StringBuilder(
-					"SELECT %s FROM %s %s".formatted(selection.render(renderContext), entity.getEntity(), entity.getAlias()));
+					"SELECT %s FROM %s %s".formatted(selection.render(renderContext), entity.getName(), entity.getAlias()));
 
 			if (getWhere() != null) {
 				where.append(" WHERE ").append(getWhere().render(renderContext));
@@ -1024,28 +1026,24 @@ public final class JpqlQueryBuilder {
 	 */
 	public static final class Entity implements Origin {
 
+		private final String className;
 		private final String entity;
-		private final String simpleName;
 		private final String alias;
 
 		/**
-		 * @param entity fully-qualified entity name.
-		 * @param simpleName simple class name.
+		 * @param className fully-qualified entity name.
+		 * @param entity entity name (as in {@code @Entity(…)}).
 		 * @param alias alias to use.
 		 */
-		Entity(String entity, String simpleName, String alias) {
+		Entity(String className, String entity, String alias) {
+			this.className = className;
 			this.entity = entity;
-			this.simpleName = simpleName;
 			this.alias = alias;
-		}
-
-		public String getEntity() {
-			return entity;
 		}
 
 		@Override
 		public String getName() {
-			return simpleName;
+			return entity;
 		}
 
 		public String getAlias() {
@@ -1061,18 +1059,18 @@ public final class JpqlQueryBuilder {
 				return false;
 			}
 			var that = (Entity) obj;
-			return Objects.equals(this.entity, that.entity) && Objects.equals(this.simpleName, that.simpleName)
+			return Objects.equals(this.entity, that.entity) && Objects.equals(this.className, that.className)
 					&& Objects.equals(this.alias, that.alias);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(entity, simpleName, alias);
+			return Objects.hash(entity, className, alias);
 		}
 
 		@Override
 		public String toString() {
-			return "Entity[" + "entity=" + entity + ", " + "simpleName=" + simpleName + ", " + "alias=" + alias + ']';
+			return "Entity[" + "entity=" + entity + ", " + "className=" + className + ", " + "alias=" + alias + ']';
 		}
 
 	}

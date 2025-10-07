@@ -72,8 +72,16 @@ class JpqlQueryBuilderUnitTests {
 		Entity entity = JpqlQueryBuilder.entity(Order.class);
 
 		assertThat(entity.getAlias()).isEqualTo("o");
-		assertThat(entity.getEntity()).isEqualTo(Order.class.getName());
-		assertThat(entity.getName()).isEqualTo(Order.class.getSimpleName());
+		assertThat(entity.getName()).isEqualTo(Order.class.getName());
+	}
+
+	@Test // GH-4032
+	void considersEntityName() {
+
+		Entity entity = JpqlQueryBuilder.entity(Product.class);
+
+		assertThat(entity.getAlias()).isEqualTo("p");
+		assertThat(entity.getName()).isEqualTo("my_product");
 	}
 
 	@Test // GH-3588
@@ -266,7 +274,7 @@ class JpqlQueryBuilderUnitTests {
 		String name;
 	}
 
-	@jakarta.persistence.Entity
+	@jakarta.persistence.Entity(name = "my_product")
 	static class Product {
 
 		@Id Long id;
