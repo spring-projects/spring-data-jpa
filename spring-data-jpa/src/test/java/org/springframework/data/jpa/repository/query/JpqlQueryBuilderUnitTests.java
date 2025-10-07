@@ -69,16 +69,16 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void entity() {
 
-		Entity entity = JpqlQueryBuilder.entity(Order.class);
+		Entity entity = entity(Order.class);
 
 		assertThat(entity.getAlias()).isEqualTo("o");
-		assertThat(entity.getName()).isEqualTo(Order.class.getName());
+		assertThat(entity.getName()).isEqualTo(getClass().getSimpleName() + "$" + Order.class.getSimpleName());
 	}
 
 	@Test // GH-4032
 	void considersEntityName() {
 
-		Entity entity = JpqlQueryBuilder.entity(Product.class);
+		Entity entity = entity(Product.class);
 
 		assertThat(entity.getAlias()).isEqualTo("p");
 		assertThat(entity.getName()).isEqualTo("my_product");
@@ -102,7 +102,7 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3961
 	void shouldRenderDateAsJpqlLiteral() {
 
-		Entity entity = JpqlQueryBuilder.entity(Order.class);
+		Entity entity = entity(Order.class);
 		PathAndOrigin orderDate = JpqlQueryBuilder.path(entity, "date");
 
 		String fragment = JpqlQueryBuilder.where(orderDate).eq(expression("{d '2024-11-05'}")).render(ctx(entity));
@@ -113,7 +113,7 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void predicateRendering() {
 
-		Entity entity = JpqlQueryBuilder.entity(Order.class);
+		Entity entity = entity(Order.class);
 		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
 		ContextualAssert ctx = contextual(ctx(entity));
 
@@ -150,7 +150,7 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3961
 	void inPredicateWithNestedExpression() {
 
-		Entity entity = JpqlQueryBuilder.entity(Order.class);
+		Entity entity = entity(Order.class);
 		WhereStep where = JpqlQueryBuilder.where(JpqlQueryBuilder.path(entity, "country"));
 		ContextualAssert ctx = contextual(ctx(entity));
 
@@ -176,20 +176,21 @@ class JpqlQueryBuilderUnitTests {
 	void selectRendering() {
 
 		// make sure things are immutable
-		SelectStep select = JpqlQueryBuilder.selectFrom(Order.class); // the select step is mutable - not sure i like it
+		SelectStep select = JpqlQueryBuilder.selectFrom(entity(Order.class)); // the select step is mutable
+																																					// - not sure i like it
 		// hm, I somehow exepect this to render only the selection part
 		assertThat(select.count().render()).startsWith("SELECT COUNT(o)");
 		assertThat(select.distinct().entity().render()).startsWith("SELECT DISTINCT o ");
 		assertThat(select.distinct().count().render()).startsWith("SELECT COUNT(DISTINCT o) ");
-		assertThat(JpqlQueryBuilder.selectFrom(Order.class)
-				.select(JpqlQueryBuilder.path(JpqlQueryBuilder.entity(Order.class), "country")).render())
+		assertThat(JpqlQueryBuilder.selectFrom(entity(Order.class))
+				.select(JpqlQueryBuilder.path(entity(Order.class), "country")).render())
 				.startsWith("SELECT o.country ");
 	}
 
 	@Test // GH-3588
 	void joins() {
 
-		Entity entity = JpqlQueryBuilder.entity(LineItem.class);
+		Entity entity = entity(LineItem.class);
 		Join li_pr = JpqlQueryBuilder.innerJoin(entity, "product");
 		Join li_pr2 = JpqlQueryBuilder.innerJoin(entity, "product2");
 
@@ -205,7 +206,7 @@ class JpqlQueryBuilderUnitTests {
 	@Test // GH-3588
 	void joinOnPaths() {
 
-		Entity entity = JpqlQueryBuilder.entity(LineItem.class);
+		Entity entity = entity(LineItem.class);
 		Join li_pr = JpqlQueryBuilder.innerJoin(entity, "product");
 		Join li_pe = JpqlQueryBuilder.innerJoin(entity, "person");
 
@@ -245,6 +246,16 @@ class JpqlQueryBuilderUnitTests {
 		}
 
 		return new RenderContext(aliases);
+	}
+
+	/**
+	 * Create an {@link Entity} from the given {@link Class entity class}.
+	 *
+	 * @param from the entity type to select from.
+	 * @return
+	 */
+	static Entity entity(Class<?> from) {
+		return JpqlQueryBuilder.entity(new DefaultJpaEntityMetadata<>(from));
 	}
 
 	@jakarta.persistence.Entity

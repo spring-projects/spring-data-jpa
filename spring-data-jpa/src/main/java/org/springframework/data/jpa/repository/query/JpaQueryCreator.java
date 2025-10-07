@@ -115,8 +115,15 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		this(tree, false, type, provider, templates, metamodel);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, Metamodel metamodel) {
+		this(tree, searchQuery, type, provider, templates,
+				new JpaMetamodelEntityMetadata(metamodel.entity(type.getDomainType())), metamodel);
+	}
+
+	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel) {
 
 		super(tree);
 
@@ -144,7 +151,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		this.templates = templates;
 		this.escape = provider.getEscape();
 		this.entityType = metamodel.entity(type.getDomainType());
-		this.entity = JpqlQueryBuilder.entity(returnedType.getDomainType());
+		this.entity = JpqlQueryBuilder.entity(entityMetadata);
 		this.metamodel = metamodel;
 		this.similarityNormalizer = provider.getSimilarityNormalizer();
 	}

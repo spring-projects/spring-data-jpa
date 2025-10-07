@@ -77,7 +77,7 @@ class JpaKeysetScrollQueryCreatorTests {
 		String query = creator.createQuery();
 
 		assertThat(query).containsIgnoringWhitespaces("""
-				SELECT u FROM org.springframework.data.jpa.domain.sample.User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
+				SELECT u FROM User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
 				AND (u.firstname < :keyset_firstname
 				OR u.firstname = :keyset_firstname AND u.emailAddress < :keyset_emailAddress
 				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id < :keyset_id)

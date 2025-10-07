@@ -79,11 +79,12 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		return delegate.createPredicate(position, sort, new CriteriaBuilderStrategy(root, criteriaBuilder));
 	}
 
-	public JpqlQueryBuilder.@Nullable Predicate createJpqlPredicate(Bindable<?> from, JpqlQueryBuilder.Entity entity,
+	public JpqlQueryBuilder.@Nullable Predicate createJpqlPredicate(Metamodel metamodel, Bindable<?> from,
+			JpqlQueryBuilder.Entity entity,
 			ParameterFactory factory) {
 
 		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
-		return delegate.createPredicate(position, sort, new JpqlStrategy(null, from, entity, factory));
+		return delegate.createPredicate(position, sort, new JpqlStrategy(metamodel, from, entity, factory));
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -137,9 +138,9 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		private final Bindable<?> from;
 		private final JpqlQueryBuilder.Entity entity;
 		private final ParameterFactory factory;
-		private final @Nullable Metamodel metamodel;
+		private final Metamodel metamodel;
 
-		public JpqlStrategy(@Nullable Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity,
+		public JpqlStrategy(Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity,
 				ParameterFactory factory) {
 
 			this.from = from;

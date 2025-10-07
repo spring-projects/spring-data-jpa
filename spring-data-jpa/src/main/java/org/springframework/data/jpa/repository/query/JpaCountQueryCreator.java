@@ -34,7 +34,6 @@ import org.springframework.data.repository.query.parser.PartTree;
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
 	private final boolean distinct;
-	private final ReturnedType returnedType;
 
 	/**
 	 * Creates a new {@link JpaCountQueryCreator}
@@ -51,7 +50,6 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 		super(tree, returnedType, provider, templates, em.getMetamodel());
 
 		this.distinct = tree.isDistinct();
-		this.returnedType = returnedType;
 	}
 
 	/**
@@ -69,12 +67,21 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 		super(tree, returnedType, provider, templates, metamodel);
 
 		this.distinct = tree.isDistinct();
-		this.returnedType = returnedType;
+	}
+
+	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel) {
+
+		super(tree, false, returnedType, provider, templates, entityMetadata, metamodel);
+
+		this.distinct = tree.isDistinct();
 	}
 
 	@Override
 	protected JpqlQueryBuilder.Select buildQuery(Sort sort) {
-		JpqlQueryBuilder.SelectStep selectStep = JpqlQueryBuilder.selectFrom(returnedType.getDomainType());
+
+		JpqlQueryBuilder.SelectStep selectStep = JpqlQueryBuilder.selectFrom(getEntity());
+
 		if (this.distinct) {
 			selectStep = selectStep.distinct();
 		}

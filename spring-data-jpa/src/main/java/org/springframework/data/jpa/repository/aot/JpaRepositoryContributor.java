@@ -17,12 +17,14 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
@@ -32,22 +34,28 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
+import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
+import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.aot.generate.AotRepositoryClassBuilder;
 import org.springframework.data.repository.aot.generate.AotRepositoryConstructorBuilder;
 import org.springframework.data.repository.aot.generate.MethodContributor;
 import org.springframework.data.repository.aot.generate.QueryMetadata;
 import org.springframework.data.repository.aot.generate.RepositoryContributor;
 import org.springframework.data.repository.config.AotRepositoryContext;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.TypeInformation;
@@ -70,6 +78,7 @@ import org.springframework.util.StringUtils;
 public class JpaRepositoryContributor extends RepositoryContributor {
 
 	private final Metamodel metamodel;
+	private final PersistenceUnitUtil persistenceUnitUtil;
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
@@ -88,28 +97,24 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
-		this(repositoryContext, entityManagerFactory.getMetamodel(),
-				PersistenceProvider.fromEntityManagerFactory(entityManagerFactory),
-				new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
-						repositoryContext.getRequiredClassLoader()),
-				new EntityGraphLookup(entityManagerFactory));
+		this(repositoryContext, entityManagerFactory, entityManagerFactory.getMetamodel());
 	}
 
 	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, AotMetamodel metamodel) {
-		this(repositoryContext, metamodel,
-				PersistenceProvider.fromEntityManagerFactory(metamodel.getEntityManagerFactory()),
-				new QueriesFactory(repositoryContext.getConfigurationSource(), metamodel.getEntityManagerFactory(),
-						repositoryContext.getRequiredClassLoader()),
-				new EntityGraphLookup(metamodel.getEntityManagerFactory()));
+		this(repositoryContext, metamodel.getEntityManagerFactory(), metamodel);
 	}
 
-	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, Metamodel metamodel,
-			PersistenceProvider persistenceProvider, QueriesFactory queriesFactory, EntityGraphLookup entityGraphLookup) {
+	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory,
+			Metamodel metamodel) {
+
 		super(repositoryContext);
+
 		this.metamodel = metamodel;
-		this.persistenceProvider = persistenceProvider;
-		this.queriesFactory = queriesFactory;
-		this.entityGraphLookup = entityGraphLookup;
+		this.persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
+		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
+		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
+				repositoryContext.getRequiredClassLoader());
+		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
 		this.context = repositoryContext;
 	}
 
@@ -159,8 +164,10 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	@Override
 	protected @Nullable MethodContributor<? extends QueryMethod> contributeQueryMethod(Method method) {
 
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, getRepositoryInformation(), getProjectionFactory(),
-				persistenceProvider);
+		JpaEntityMetadata<?> entityInformation = JpaEntityInformationSupport
+				.getEntityInformation(getRepositoryInformation().getDomainType(), metamodel, persistenceUnitUtil);
+		AotJpaQueryMethod queryMethod = new AotJpaQueryMethod(method, getRepositoryInformation(), entityInformation,
+				getProjectionFactory(), persistenceProvider, JpaParameters::new);
 
 		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelectorClass = getQueryEnhancerSelectorClass();
 		QueryEnhancerSelector selector = queryEnhancerSelectorClass.map(BeanUtils::instantiateClass)
@@ -269,6 +276,29 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		public Map<String, Object> serialize() {
 			return Map.of("procedure-name", procedureName());
 		}
+	}
+
+	/**
+	 * AOT extension to {@link JpaQueryMethod} providing a metamodel backed {@link JpaEntityMetadata} object.
+	 */
+	static class AotJpaQueryMethod extends JpaQueryMethod {
+
+		private final JpaEntityMetadata<?> entityMetadata;
+
+		public AotJpaQueryMethod(Method method, RepositoryMetadata metadata, JpaEntityMetadata<?> entityMetadata,
+				ProjectionFactory factory, QueryExtractor extractor,
+				Function<ParametersSource, JpaParameters> parametersFunction) {
+
+			super(method, metadata, factory, extractor, parametersFunction);
+
+			this.entityMetadata = entityMetadata;
+		}
+
+		@Override
+		public JpaEntityMetadata<?> getEntityInformation() {
+			return this.entityMetadata;
+		}
+
 	}
 
 }

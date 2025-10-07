@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 
+	private final Metamodel metamodel;
 	private final JpaEntityInformation<?, ?> entityInformation;
 	private final KeysetScrollPosition scrollPosition;
 	private final ParameterMetadataProvider provider;
@@ -49,8 +51,9 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 			JpqlQueryTemplates templates, JpaEntityInformation<?, ?> entityInformation, KeysetScrollPosition scrollPosition,
 			EntityManager em) {
 
-		super(tree, type, provider, templates, em.getMetamodel());
+		super(tree, false, type, provider, templates, entityInformation, em.getMetamodel());
 
+		this.metamodel = em.getMetamodel();
 		this.entityInformation = entityInformation;
 		this.scrollPosition = scrollPosition;
 		this.provider = provider;
@@ -76,7 +79,7 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 		JpqlQueryBuilder.Select query = buildQuery(keysetSpec.sort());
 
 		Map<String, Map<Object, ParameterBinding>> cachedBindings = new LinkedHashMap<>();
-		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(getFrom(), getEntity(),
+		JpqlQueryBuilder.Predicate keysetPredicate = keysetSpec.createJpqlPredicate(metamodel, getFrom(), getEntity(),
 				(property, value) -> {
 
 					Map<Object, ParameterBinding> bindings = cachedBindings.computeIfAbsent(property, k -> new LinkedHashMap<>());

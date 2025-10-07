@@ -53,10 +53,10 @@ class JpaEntityInformationSupportUnitTests {
 	@Mock PersistenceUnitUtil persistenceUnitUtil;
 
 	@Test
-	void usesSimpleClassNameIfNoEntityNameGiven() {
+	void usesUnqualifiedClassNameIfNoEntityNameGiven() {
 
 		JpaEntityInformation<User, Integer> information = new DummyJpaEntityInformation<>(User.class);
-		assertThat(information.getEntityName()).isEqualTo("User");
+		assertThat(information.getEntityName()).isEqualTo(getClass().getSimpleName() + "$" + User.class.getSimpleName());
 
 		JpaEntityInformation<NamedUser, ?> second = new DummyJpaEntityInformation<NamedUser, Serializable>(NamedUser.class);
 		assertThat(second.getEntityName()).isEqualTo("AnotherNamedUser");

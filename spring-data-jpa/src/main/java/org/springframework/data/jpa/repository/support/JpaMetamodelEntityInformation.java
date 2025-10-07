@@ -37,11 +37,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.springframework.beans.BeanWrapper;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.beans.BeanWrapper;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
@@ -94,6 +95,28 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
+
+		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
+		this.persistenceUnitUtil = persistenceUnitUtil;
+	}
+
+	/**
+	 * Creates a new {@link JpaMetamodelEntityInformation} for the given {@link Metamodel}.
+	 *
+	 * @param entityType must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
+	 * @param persistenceUnitUtil must not be {@literal null}.
+	 * @since 4.0
+	 */
+	JpaMetamodelEntityInformation(EntityType<T> entityType, Metamodel metamodel,
+			PersistenceUnitUtil persistenceUnitUtil) {
+
+		super(new JpaMetamodelEntityMetadata<>(entityType));
+
+		this.metamodel = metamodel;
+		this.entityName = entityType.getName();
+		this.idMetadata = new IdMetadata<>(entityType, PersistenceProvider.fromMetamodel(metamodel));
+		this.versionAttribute = findVersionAttribute(entityType, metamodel);
 
 		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
 		this.persistenceUnitUtil = persistenceUnitUtil;

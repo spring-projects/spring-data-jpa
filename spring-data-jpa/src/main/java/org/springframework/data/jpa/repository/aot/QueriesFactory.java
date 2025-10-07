@@ -271,7 +271,8 @@ class QueriesFactory {
 			MergedAnnotation<Query> query, JpaQueryMethod queryMethod) {
 
 		PartTree partTree = new PartTree(queryMethod.getName(), repositoryInformation.getDomainType());
-		AotQuery aotQuery = createQuery(partTree, returnedType, queryMethod.getParameters(), templates);
+		AotQuery aotQuery = createQuery(partTree, returnedType, queryMethod.getParameters(), templates,
+				queryMethod.getEntityInformation());
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("countQuery"))) {
 			return AotQueries.from(aotQuery, StringAotQuery.of(DeclaredQuery.jpqlQuery(query.getString("countQuery"))));
@@ -282,27 +283,28 @@ class QueriesFactory {
 					createNamedAotQuery(returnedType, selector, queryMethod.getNamedCountQueryName(), queryMethod, false));
 		}
 
-		AotQuery partTreeCountQuery = createCountQuery(partTree, returnedType, queryMethod.getParameters(), templates);
+		AotQuery partTreeCountQuery = createCountQuery(partTree, returnedType, queryMethod.getParameters(), templates,
+				queryMethod.getEntityInformation());
 		return AotQueries.from(aotQuery, partTreeCountQuery);
 	}
 
 	private AotQuery createQuery(PartTree partTree, ReturnedType returnedType, JpaParameters parameters,
-			JpqlQueryTemplates templates) {
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata) {
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
 		JpaQueryCreator queryCreator = new JpaQueryCreator(partTree, false, returnedType, metadataProvider, templates,
-				metamodel);
+				entityMetadata, metamodel);
 
 		return StringAotQuery.jpqlQuery(queryCreator.createQuery(), metadataProvider.getBindings(),
 				partTree.getResultLimit(), partTree.isDelete(), partTree.isExistsProjection());
 	}
 
 	private AotQuery createCountQuery(PartTree partTree, ReturnedType returnedType, JpaParameters parameters,
-			JpqlQueryTemplates templates) {
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata) {
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
 		JpaQueryCreator queryCreator = new JpaCountQueryCreator(partTree, returnedType, metadataProvider, templates,
-				metamodel);
+				entityMetadata, metamodel);
 
 		return StringAotQuery.jpqlQuery(queryCreator.createQuery(), metadataProvider.getBindings(), Limit.unlimited(),
 				false, false);
@@ -332,7 +334,6 @@ class QueriesFactory {
 
 			return returnedType.getReturnedType();
 		}
-
 
 		return result;
 	}

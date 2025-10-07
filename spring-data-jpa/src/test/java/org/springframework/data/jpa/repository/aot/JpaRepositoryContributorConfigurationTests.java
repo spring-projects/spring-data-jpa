@@ -68,7 +68,7 @@ class JpaRepositoryContributorConfigurationTests {
 
 		assertThatJson(json).inPath("$.methods[?(@.name == 'streamByLastnameLike')].query").isArray().first().isObject()
 				.containsEntry("query",
-						"SELECT u FROM org.springframework.data.jpa.domain.sample.User u WHERE u.lastname LIKE :lastname ESCAPE 'ö'");
+						"SELECT u FROM User u WHERE u.lastname LIKE :lastname ESCAPE 'ö'");
 	}
 
 }

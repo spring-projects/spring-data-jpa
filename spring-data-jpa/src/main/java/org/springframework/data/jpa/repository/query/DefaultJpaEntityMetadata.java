@@ -19,6 +19,8 @@ import jakarta.persistence.Entity;
 
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -32,6 +34,7 @@ import org.springframework.util.StringUtils;
 public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 
 	private final Class<T> domainType;
+	private final @Nullable Entity entity;
 
 	/**
 	 * Creates a new {@link DefaultJpaEntityMetadata} for the given domain type.
@@ -41,7 +44,9 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 	public DefaultJpaEntityMetadata(Class<T> domainType) {
 
 		Assert.notNull(domainType, "Domain type must not be null");
+
 		this.domainType = domainType;
+		this.entity = AnnotatedElementUtils.findMergedAnnotation(domainType, Entity.class);
 	}
 
 	@Override
@@ -51,13 +56,20 @@ public class DefaultJpaEntityMetadata<T> implements JpaEntityMetadata<T> {
 
 	@Override
 	public String getEntityName() {
-		return getEntityNameOr(Class::getSimpleName);
+		return getEntityNameOr(DefaultJpaEntityMetadata::unqualify);
 	}
 
-	String getEntityNameOr(Function<Class<?>, String> alternative) {
+	private String getEntityNameOr(Function<Class<?>, String> alternative) {
+		return (entity != null && StringUtils.hasText(entity.name())) ? entity.name() : alternative.apply(domainType);
+	}
 
-		Entity entity = AnnotatedElementUtils.findMergedAnnotation(domainType, Entity.class);
-		return null != entity && StringUtils.hasText(entity.name()) ? entity.name() : alternative.apply(domainType);
+	static String unqualify(Class<?> clazz) {
+		return unqualify(clazz.getName());
+	}
+
+	static String unqualify(String qualifiedName) {
+		int loc = qualifiedName.lastIndexOf('.');
+		return loc < 0 ? qualifiedName : qualifiedName.substring(loc + 1);
 	}
 
 }

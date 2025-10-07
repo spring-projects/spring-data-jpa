@@ -62,6 +62,7 @@ import org.springframework.data.util.Lazy;
  * Unit tests for {@link JpaQueryCreator}.
  *
  * @author Christoph Strobl
+ * @author Mark Paluch
  */
 class JpaQueryCreatorTests {
 
@@ -80,7 +81,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountry") //
 				.withParameters("AT") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -91,7 +92,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountry") //
 				.withParameterTypes(String.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country IS NULL", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country IS NULL", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -102,7 +103,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountryNot") //
 				.withParameters("US") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country != ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country != ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -113,7 +114,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountryIsNot") //
 				.withParameterTypes(String.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country IS NOT NULL", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country IS NOT NULL", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -124,7 +125,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountryAndDate") //
 				.withParameters("GB", new Date()) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 AND o.date = ?2", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 AND o.date = ?2",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -135,7 +137,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountryOrDate") //
 				.withParameters("BE", new Date()) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 OR o.date = ?2", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 OR o.date = ?2",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -147,7 +150,7 @@ class JpaQueryCreatorTests {
 				.withParameters("IT", new Date(), Boolean.FALSE) //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 AND o.date = ?2 OR o.completed = ?3",
-						Order.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -158,7 +161,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findDistinctOrderByCountry") //
 				.withParameters("AU") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT DISTINCT o FROM %s o WHERE o.country = ?1", Order.class.getName()) //
+				.expectJpql("SELECT DISTINCT o FROM %s o WHERE o.country = ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -170,7 +173,7 @@ class JpaQueryCreatorTests {
 				.returing(Long.class) //
 				.withParameters("AU") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT COUNT(o) FROM %s o WHERE o.country = ?1", Order.class.getName()) //
+				.expectJpql("SELECT COUNT(o) FROM %s o WHERE o.country = ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -182,7 +185,8 @@ class JpaQueryCreatorTests {
 				.returing(Long.class) //
 				.withParameterTypes(Integer.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT COUNT(o) FROM %s o LEFT JOIN o.lineItems l WHERE l.quantity > ?1", Order.class.getName()) //
+				.expectJpql("SELECT COUNT(o) FROM %s o LEFT JOIN o.lineItems l WHERE l.quantity > ?1",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -194,7 +198,8 @@ class JpaQueryCreatorTests {
 				.returing(Long.class) //
 				.withParameters("AU") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT COUNT(DISTINCT o) FROM %s o WHERE o.country = ?1", Order.class.getName()) //
+				.expectJpql("SELECT COUNT(DISTINCT o) FROM %s o WHERE o.country = ?1",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -207,7 +212,7 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("BB") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE %s(o.country) = %s(?1)", Order.class.getName(),
+				.expectJpql("SELECT o FROM %s o WHERE %s(o.country) = %s(?1)", DefaultJpaEntityMetadata.unqualify(Order.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
 	}
@@ -222,7 +227,7 @@ class JpaQueryCreatorTests {
 				.withParameters("spring", "data") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) = %s(?1) AND %s(p.productType) = %s(?2)",
-						Product.class.getName(), ingnoreCaseTemplate.getIgnoreCaseOperator(),
+						DefaultJpaEntityMetadata.unqualify(Product.class), ingnoreCaseTemplate.getIgnoreCaseOperator(),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator(),
 						ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
@@ -237,7 +242,8 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("spring", "data") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name = ?1 AND %s(p.productType) = %s(?2)", Product.class.getName(),
+				.expectJpql("SELECT p FROM %s p WHERE p.name = ?1 AND %s(p.productType) = %s(?2)",
+						DefaultJpaEntityMetadata.unqualify(Product.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator(),
 						ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
@@ -250,7 +256,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateLessThan") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date < ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date < ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -261,7 +267,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateLessThanEqual") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date <= ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date <= ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -272,7 +278,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateGreaterThan") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date > ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date > ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -283,7 +289,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateBefore") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date < ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date < ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -294,7 +300,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateAfter") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date > ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date > ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -305,7 +311,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateBetween") //
 				.withParameterTypes(Date.class, Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date BETWEEN ?1 AND ?2", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date BETWEEN ?1 AND ?2",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -315,7 +322,7 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByDateIsNull") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date IS NULL", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date IS NULL", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -325,7 +332,7 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByDateIsNotNull") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date IS NOT NULL", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date IS NOT NULL", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -337,7 +344,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameLike") //
 				.withParameters(parameterValue) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", parameterValue) //
 				.validateQuery();
 	}
@@ -349,7 +357,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameContaining") //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -361,7 +370,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameNotContaining") //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name NOT LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name NOT LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -373,7 +383,7 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameIn") //
 				.withParameters(List.of("spring", "data")) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name IN (?1)", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name IN (?1)", DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", List.of("spring", "data")) //
 				.validateQuery();
 	}
@@ -385,7 +395,7 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameNotIn") //
 				.withParameters(List.of("spring", "data")) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name NOT IN (?1)", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name NOT IN (?1)", DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", List.of("spring", "data")) //
 				.validateQuery();
 	}
@@ -397,7 +407,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByCategoriesContaining") //
 				.withParameterTypes(String.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE ?1 MEMBER OF p.categories", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE ?1 MEMBER OF p.categories",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.validateQuery();
 	}
 
@@ -408,7 +419,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByCategoriesNotContaining") //
 				.withParameterTypes(String.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE ?1 NOT MEMBER OF p.categories", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE ?1 NOT MEMBER OF p.categories",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.validateQuery();
 	}
 
@@ -421,7 +433,8 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'", Product.class.getName(),
+				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
@@ -435,7 +448,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameNotLike") //
 				.withParameters(parameterValue) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name NOT LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name NOT LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", parameterValue) //
 				.validateQuery();
 	}
@@ -449,7 +463,8 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) NOT LIKE %s(?1) ESCAPE '\\'", Product.class.getName(),
+				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) NOT LIKE %s(?1) ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
@@ -462,7 +477,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameStartingWith") //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", "spring%") //
 				.validateQuery();
 	}
@@ -476,7 +492,8 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'", Product.class.getName(),
+				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "spring%") //
 				.validateQuery();
@@ -489,7 +506,8 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameEndingWith") //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'", Product.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", "%spring") //
 				.validateQuery();
 	}
@@ -503,7 +521,8 @@ class JpaQueryCreatorTests {
 				.ingnoreCaseAs(ingnoreCaseTemplate) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'", Product.class.getName(),
+				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class),
 						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring") //
 				.validateQuery();
@@ -516,7 +535,7 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByDateGreaterThanEqual") //
 				.withParameterTypes(Date.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.date >= ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.date >= ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -526,7 +545,7 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByCompletedIsTrue") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.completed = TRUE", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.completed = TRUE", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -536,7 +555,7 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByCompletedIsFalse") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.completed = FALSE", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.completed = FALSE", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -546,7 +565,7 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByLineItemsEmpty") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.lineItems IS EMPTY", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.lineItems IS EMPTY", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -556,7 +575,8 @@ class JpaQueryCreatorTests {
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByLineItemsNotEmpty") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.lineItems IS NOT EMPTY", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.lineItems IS NOT EMPTY",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -567,7 +587,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByCountryOrderByDate") //
 				.withParameters("CA") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 ORDER BY o.date asc", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1 ORDER BY o.date asc",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -578,7 +599,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByOrderByCountryAscDateDesc") //
 				.withParameters() //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o ORDER BY o.country asc, o.date desc", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o ORDER BY o.country asc, o.date desc",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -591,7 +613,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByOrderByCountryAscAllIgnoreCase") //
 				.render();
 
-		assertThat(jpql).isEqualTo("SELECT o FROM %s o ORDER BY %s(o.date) asc", Order.class.getName(),
+		assertThat(jpql).isEqualTo("SELECT o FROM %s o ORDER BY %s(o.date) asc",
+				DefaultJpaEntityMetadata.unqualify(Order.class),
 				ingoreCase.getIgnoreCaseOperator());
 	}
 
@@ -602,7 +625,8 @@ class JpaQueryCreatorTests {
 				.forTree(Order.class, "findOrderByLineItemsQuantityGreaterThan") //
 				.withParameterTypes(Integer.class) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT o FROM %s o LEFT JOIN o.lineItems l WHERE l.quantity > ?1", Order.class.getName()) //
+				.expectJpql("SELECT o FROM %s o LEFT JOIN o.lineItems l WHERE l.quantity > ?1",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -614,7 +638,7 @@ class JpaQueryCreatorTests {
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE p.name = ?1",
-						Order.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -627,7 +651,7 @@ class JpaQueryCreatorTests {
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
 						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE l.quantity > ?1 AND p.name = ?2",
-						Order.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -640,7 +664,7 @@ class JpaQueryCreatorTests {
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
 						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p WHERE p.name = ?1 AND p.name != ?2",
-						Order.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -653,7 +677,7 @@ class JpaQueryCreatorTests {
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
 						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p LEFT JOIN l.product2 join_0 WHERE p.name = ?1 AND join_0.name = ?2",
-						Order.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
 
@@ -666,7 +690,7 @@ class JpaQueryCreatorTests {
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT new %s(p.name, p.productType) FROM %s p WHERE p.name = ?1",
-						DtoProductProjection.class.getName(), Product.class.getName()) //
+						DtoProductProjection.class.getName(), DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.validateQuery();
 	}
 
@@ -679,7 +703,7 @@ class JpaQueryCreatorTests {
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.name name, p.productType productType FROM %s p WHERE p.name = ?1",
-						Product.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.validateQuery();
 	}
 
@@ -693,7 +717,7 @@ class JpaQueryCreatorTests {
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.id id, p.firstname firstname, p.lastname lastname FROM %s p WHERE p.firstname = ?1",
-						Person.class.getName()) //
+						DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
 
@@ -706,7 +730,7 @@ class JpaQueryCreatorTests {
 				.returing(resultType) //
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.firstname = ?1", Person.class.getName()) //
+				.expectJpql("SELECT p FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
 
@@ -717,7 +741,7 @@ class JpaQueryCreatorTests {
 				.forTree(Person.class, "existsPersonByFirstname") //
 				.returing(Long.class).withParameters("chris") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", Person.class.getName()) //
+				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
 
@@ -729,7 +753,7 @@ class JpaQueryCreatorTests {
 				.withParameters(1L) //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT r FROM org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee r WHERE r.employee.employeePk.employeeId = ?1") //
+						"SELECT r FROM ReferencingEmbeddedIdExampleEmployee r WHERE r.employee.employeePk.employeeId = ?1") //
 				.validateQuery();
 	}
 
@@ -741,7 +765,7 @@ class JpaQueryCreatorTests {
 				.withParameters("foo") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT r FROM org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee r LEFT JOIN r.employee e LEFT JOIN e.department d WHERE d.name = ?1") //
+						"SELECT r FROM ReferencingEmbeddedIdExampleEmployee r LEFT JOIN r.employee e LEFT JOIN e.department d WHERE d.name = ?1") //
 				.validateQuery();
 	}
 

@@ -16,11 +16,12 @@
 package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.Metamodel;
 
-import org.springframework.data.domain.Persistable;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.domain.Persistable;
 
 /**
  * Extension of {@link JpaMetamodelEntityInformation} that consideres methods of {@link Persistable} to lookup the id.
@@ -34,7 +35,7 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 
 	/**
 	 * Creates a new {@link JpaPersistableEntityInformation} for the given domain class and {@link Metamodel}.
-	 * 
+	 *
 	 * @param domainClass must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 * @param persistenceUnitUtil must not be {@literal null}.
@@ -42,6 +43,19 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 	public JpaPersistableEntityInformation(Class<T> domainClass, Metamodel metamodel,
 			PersistenceUnitUtil persistenceUnitUtil) {
 		super(domainClass, metamodel, persistenceUnitUtil);
+	}
+
+	/**
+	 * Creates a new {@link JpaPersistableEntityInformation} for the given {@link Metamodel}.
+	 *
+	 * @param entityType must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
+	 * @param persistenceUnitUtil must not be {@literal null}.
+	 * @since 4.0
+	 */
+	JpaPersistableEntityInformation(EntityType<T> entityType, Metamodel metamodel,
+			PersistenceUnitUtil persistenceUnitUtil) {
+		super(entityType, metamodel, persistenceUnitUtil);
 	}
 
 	@Override

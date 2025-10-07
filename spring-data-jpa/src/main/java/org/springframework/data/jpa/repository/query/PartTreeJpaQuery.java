@@ -16,7 +16,6 @@
 package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
@@ -36,7 +35,8 @@ import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ScrollExecution;
-import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
+import org.springframework.data.jpa.repository.support.JpaEntityInformation;
+import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
@@ -44,6 +44,7 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 
@@ -69,7 +70,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final QueryPreparer countQuery;
 	private final EntityManager em;
 	private final EscapeCharacter escape;
-	private final JpaMetamodelEntityInformation<?, Object> entityInformation;
+	private final Lazy<JpaEntityInformation<?, ?>> entityInformation;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
@@ -97,8 +98,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.parameters = method.getParameters();
 
 		Class<?> domainClass = method.getEntityInformation().getJavaType();
-		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
-		this.entityInformation = new JpaMetamodelEntityInformation<>(domainClass, em.getMetamodel(), persistenceUnitUtil);
+		this.entityInformation = Lazy.of(() -> JpaEntityInformationSupport.getEntityInformation(domainClass, em));
 
 		try {
 
@@ -132,7 +132,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	protected JpaQueryExecution getExecution(JpaParametersParameterAccessor accessor) {
 
 		if (this.getQueryMethod().isScrollQuery()) {
-			return new ScrollExecution(this.tree.getSort(), new ScrollDelegate<>(entityInformation));
+			return new ScrollExecution(this.tree.getSort(), new ScrollDelegate<>(entityInformation.get()));
 		} else if (this.tree.isDelete()) {
 			return new DeleteExecution(em);
 		} else if (this.tree.isExistsProjection()) {
@@ -297,7 +297,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			ReturnedType returnedType = processor.withDynamicProjection(accessor).getReturnedType();
 
 			if (accessor.getScrollPosition() instanceof KeysetScrollPosition keyset) {
-				return new JpaKeysetScrollQueryCreator(tree, returnedType, provider, templates, entityInformation, keyset,
+				return new JpaKeysetScrollQueryCreator(tree, returnedType, provider, templates, entityInformation.get(), keyset,
 						entityManager);
 			}
 
@@ -305,11 +305,12 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			if (accessor.getParameters().hasDynamicProjection() || getQueryMethod().isSearchQuery()
 					|| parameters.hasScoreRangeParameter() || parameters.hasScoreParameter()) {
 				return new JpaQueryCreator(tree, getQueryMethod().isSearchQuery(), returnedType, provider, templates,
-						em.getMetamodel());
+						entityInformation.get(), em.getMetamodel());
 			}
 
 			JpqlQueryCreator creator = new CacheableJpqlQueryCreator(sort, new JpaQueryCreator(tree,
-					getQueryMethod().isSearchQuery(), returnedType, provider, templates, em.getMetamodel()));
+					getQueryMethod().isSearchQuery(), returnedType, provider, templates, entityInformation.get(),
+					em.getMetamodel()));
 
 			cache.put(sort, accessor, creator);
 
@@ -391,7 +392,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 
 			ParameterMetadataProvider provider = new ParameterMetadataProvider(accessor, escape, templates);
 			JpaCountQueryCreator creator = new JpaCountQueryCreator(tree,
-					getQueryMethod().getResultProcessor().getReturnedType(), provider, templates, em);
+					getQueryMethod().getResultProcessor().getReturnedType(), provider, templates, entityInformation.get(),
+					em.getMetamodel());
 
 			if (!accessor.getParameters().hasDynamicProjection()) {
 				cached = new CacheableJpqlCountQueryCreator(creator);

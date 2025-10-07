@@ -36,7 +36,6 @@ import org.springframework.data.util.Predicates;
 import org.springframework.lang.CheckReturnValue;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -52,15 +51,14 @@ public final class JpqlQueryBuilder {
 	private JpqlQueryBuilder() {}
 
 	/**
-	 * Create an {@link Entity} from the given {@link Class entity class}.
+	 * Create an {@link Entity} from the given {@link JpaEntityMetadata}.
 	 *
 	 * @param from the entity type to select from.
 	 * @return
 	 */
-	public static Entity entity(Class<?> from) {
-		DefaultJpaEntityMetadata<?> entityMetadata = new DefaultJpaEntityMetadata<>(from);
-		return new Entity(from.getName(), entityMetadata.getEntityNameOr(Class::getName),
-				getAlias(from.getSimpleName(), Predicates.isTrue(), () -> "r"));
+	public static Entity entity(JpaEntityMetadata<?> from) {
+		return new Entity(from.getJavaType(), from.getEntityName(),
+				getAlias(from.getJavaType().getSimpleName(), Predicates.isTrue(), () -> "r"));
 	}
 
 	/**
@@ -83,17 +81,6 @@ public final class JpqlQueryBuilder {
 	 */
 	public static Join leftJoin(Origin origin, String path) {
 		return new Join(origin, "LEFT JOIN", path);
-	}
-
-	/**
-	 * Start building a {@link Select} statement by selecting {@link Class from}. This is a short form for
-	 * {@code selectFrom(entity(from))}.
-	 *
-	 * @param from the entity type to select from.
-	 * @return
-	 */
-	public static SelectStep selectFrom(Class<?> from) {
-		return selectFrom(entity(from));
 	}
 
 	/**
@@ -538,13 +525,8 @@ public final class JpqlQueryBuilder {
 
 		if (origin instanceof Entity entity) {
 
-			try {
-				PropertyPath from = PropertyPath.from(path,
-						ClassUtils.forName(entity.className, Entity.class.getClassLoader()));
-				return new PathAndOrigin(from, entity, false);
-			} catch (ClassNotFoundException e) {
-				throw new RuntimeException(e);
-			}
+			PropertyPath from = PropertyPath.from(path, entity.entityClass);
+			return new PathAndOrigin(from, entity, false);
 		}
 
 		if (origin instanceof Join join) {
@@ -1026,17 +1008,17 @@ public final class JpqlQueryBuilder {
 	 */
 	public static final class Entity implements Origin {
 
-		private final String className;
+		private final Class<?> entityClass;
 		private final String entity;
 		private final String alias;
 
 		/**
-		 * @param className fully-qualified entity name.
+		 * @param entityClass entity class.
 		 * @param entity entity name (as in {@code @Entity(…)}).
 		 * @param alias alias to use.
 		 */
-		Entity(String className, String entity, String alias) {
-			this.className = className;
+		Entity(Class<?> entityClass, String entity, String alias) {
+			this.entityClass = entityClass;
 			this.entity = entity;
 			this.alias = alias;
 		}
@@ -1059,18 +1041,19 @@ public final class JpqlQueryBuilder {
 				return false;
 			}
 			var that = (Entity) obj;
-			return Objects.equals(this.entity, that.entity) && Objects.equals(this.className, that.className)
+			return Objects.equals(this.entity, that.entity) && Objects.equals(this.entityClass, that.entityClass)
 					&& Objects.equals(this.alias, that.alias);
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(entity, className, alias);
+			return Objects.hash(entity, entityClass, alias);
 		}
 
 		@Override
 		public String toString() {
-			return "Entity[" + "entity=" + entity + ", " + "className=" + className + ", " + "alias=" + alias + ']';
+			return "Entity[" + "entity=" + entity + ", " + "className=" + entityClass.getName() + ", " + "alias=" + alias
+					+ ']';
 		}
 
 	}

@@ -17,6 +17,8 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceUnitUtil;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
 import org.springframework.data.domain.Persistable;
@@ -43,8 +45,17 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 	 * @param domainClass must not be {@literal null}.
 	 */
 	public JpaEntityInformationSupport(Class<T> domainClass) {
-		super(domainClass);
-		this.metadata = new DefaultJpaEntityMetadata<>(domainClass);
+		this(new DefaultJpaEntityMetadata<>(domainClass));
+	}
+
+	/**
+	 * Creates a new {@link JpaEntityInformationSupport} with the given {@link JpaEntityMetadata}.
+	 *
+	 * @param metadata must not be {@literal null}.
+	 */
+	public JpaEntityInformationSupport(JpaEntityMetadata<T> metadata) {
+		super(metadata.getJavaType());
+		this.metadata = metadata;
 	}
 
 	/**
@@ -54,14 +65,39 @@ public abstract class JpaEntityInformationSupport<T, ID> extends AbstractEntityI
 	 * @param em must not be {@literal null}.
 	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static <T> JpaEntityInformation<T, ?> getEntityInformation(Class<T> domainClass, EntityManager em) {
 
 		Assert.notNull(domainClass, "Domain class must not be null");
 		Assert.notNull(em, "EntityManager must not be null");
 
-		Metamodel metamodel = em.getMetamodel();
-		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
+		return getEntityInformation(domainClass, em.getMetamodel(), em.getEntityManagerFactory().getPersistenceUnitUtil());
+	}
+
+	/**
+	 * Creates a {@link JpaEntityInformation} for the given domain class and {@link Metamodel}.
+	 *
+	 * @param domainClass must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
+	 * @param persistenceUnitUtil must not be {@literal null}.
+	 * @return
+	 * @since 4.0
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> JpaEntityInformation<T, ?> getEntityInformation(Class<T> domainClass, Metamodel metamodel,
+			PersistenceUnitUtil persistenceUnitUtil) {
+
+		Assert.notNull(domainClass, "Domain class must not be null");
+		Assert.notNull(metamodel, "Metamodel must not be null");
+
+		ManagedType<T> type = metamodel.managedType(domainClass);
+
+		if (type instanceof EntityType<T> entityType) {
+			if (Persistable.class.isAssignableFrom(domainClass)) {
+				return new JpaPersistableEntityInformation(entityType, metamodel, persistenceUnitUtil);
+			} else {
+				return new JpaMetamodelEntityInformation(entityType, metamodel, persistenceUnitUtil);
+			}
+		}
 
 		if (Persistable.class.isAssignableFrom(domainClass)) {
 			return new JpaPersistableEntityInformation(domainClass, metamodel, persistenceUnitUtil);

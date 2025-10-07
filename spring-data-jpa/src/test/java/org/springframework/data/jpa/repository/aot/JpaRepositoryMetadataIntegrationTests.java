@@ -77,7 +77,7 @@ class JpaRepositoryMetadataIntegrationTests {
 
 		assertThatJson(json).inPath("$.methods[0]").isObject().containsEntry("name", "countUsersByLastname");
 		assertThatJson(json).inPath("$.methods[0].query").isObject().containsEntry("query",
-				"SELECT COUNT(u) FROM org.springframework.data.jpa.domain.sample.User u WHERE u.lastname = :lastname");
+				"SELECT COUNT(u) FROM User u WHERE u.lastname = :lastname");
 	}
 
 	@Test // GH-3830
