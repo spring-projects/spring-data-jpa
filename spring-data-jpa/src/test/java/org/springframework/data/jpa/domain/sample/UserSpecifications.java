@@ -26,27 +26,27 @@ import org.springframework.data.jpa.domain.Specification;
  */
 public class UserSpecifications {
 
-	public static PredicateSpecification<User> userHasFirstname(final String firstname) {
+	public static PredicateSpecification<User> userHasFirstname(String firstname) {
 
 		return simplePropertySpec("firstname", firstname);
 	}
 
-	public static PredicateSpecification<User> userHasLastname(final String lastname) {
+	public static PredicateSpecification<User> userHasLastname(String lastname) {
 
 		return simplePropertySpec("lastname", lastname);
 	}
 
-	public static PredicateSpecification<User> userHasFirstnameLike(final String expression) {
+	public static PredicateSpecification<User> userHasFirstnameLike(String expression) {
 
 		return (root, cb) -> cb.like(root.get("firstname").as(String.class), String.format("%%%s%%", expression));
 	}
 
-	public static PredicateSpecification<User> userHasAgeLess(final Integer age) {
+	public static PredicateSpecification<User> userHasAgeLess(Integer age) {
 
 		return (root, cb) -> cb.lessThan(root.get("age").as(Integer.class), age);
 	}
 
-	public static Specification<User> userHasLastnameLikeWithSort(final String expression) {
+	public static Specification<User> userHasLastnameLikeWithSort(String expression) {
 
 		return (root, query, cb) -> {
 
@@ -56,8 +56,8 @@ public class UserSpecifications {
 		};
 	}
 
-	private static <T> PredicateSpecification<T> simplePropertySpec(final String property, final Object value) {
+	private static <T> PredicateSpecification<T> simplePropertySpec(String property, Object value) {
 
-		return (root, builder) -> builder.equal(root.get(property), value);
+		return (from, builder) -> builder.equal(from.get(property), value);
 	}
 }

@@ -41,6 +41,7 @@ import org.springframework.util.Assert;
  * {@link Predicate} or {@literal null}. Specifications returning {@literal null}, such as {@link #unrestricted()}, are
  * considered to not contribute to the overall predicate, and their result is not considered in the final predicate.
  *
+ * @param <T> the type of the {@link Root entity} to which the specification is applied.
  * @author Mark Paluch
  * @author Peter Aisher
  * @since 4.0
