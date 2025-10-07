@@ -26,9 +26,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.core.annotation.AnnotatedElementUtils;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -213,7 +213,7 @@ enum StoredProcedureAttributeSource {
 
 		return StringUtils.hasText(procedure.name()) //
 				? procedure.name() //
-				: entityMetadata.getEntityName() + "." + method.getName();
+				: entityMetadata.getJavaType().getSimpleName() + "." + method.getName();
 	}
 
 	/**

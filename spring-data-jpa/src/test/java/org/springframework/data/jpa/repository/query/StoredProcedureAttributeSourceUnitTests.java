@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
@@ -42,6 +41,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.data.jpa.domain.sample.Dummy;
 import org.springframework.data.jpa.domain.sample.User;
@@ -74,7 +74,7 @@ class StoredProcedureAttributeSourceUnitTests {
 		creator = StoredProcedureAttributeSource.INSTANCE;
 
 		doReturn(User.class).when(entityMetadata).getJavaType();
-		when(entityMetadata.getEntityName()).thenReturn("User");
+		when(entityMetadata.getEntityName()).thenReturn("Some$User");
 	}
 
 	@Test // DATAJPA-455
