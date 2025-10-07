@@ -16,8 +16,8 @@
 package org.springframework.data.jpa.domain;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -34,12 +34,16 @@ import org.springframework.util.Assert;
  * <p>
  * Specifications can be composed into higher order functions from other specifications using
  * {@link #and(PredicateSpecification)}, {@link #or(PredicateSpecification)} or factory methods such as
- * {@link #allOf(Iterable)}.
+ * {@link #allOf(Iterable)} with reduced type interference of the query source type.
+ * <p>
+ * PredicateSpecifications are building blocks for composition and do not express their type opinion towards a specific
+ * entity source or join source type for improved reuse.
  * <p>
  * Composition considers whether one or more specifications contribute to the overall predicate by returning a
  * {@link Predicate} or {@literal null}. Specifications returning {@literal null}, such as {@link #unrestricted()}, are
  * considered to not contribute to the overall predicate, and their result is not considered in the final predicate.
  *
+ * @param <T> the type of the {@link From From target} to which the specification is applied.
  * @author Mark Paluch
  * @author Peter Aisher
  * @since 4.0
@@ -57,17 +61,17 @@ public interface PredicateSpecification<T> extends Serializable {
 	 * not(unrestricted()) // equivalent to `unrestricted()`
 	 * </pre>
 	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal PredicateSpecification} operates on.
+	 * @param <T> the type of the {@link From} the resulting {@literal PredicateSpecification} operates on.
 	 * @return guaranteed to be not {@literal null}.
 	 */
 	static <T> PredicateSpecification<T> unrestricted() {
-		return (root, builder) -> null;
+		return (from, builder) -> null;
 	}
 
 	/**
 	 * Simple static factory method to add some syntactic sugar around a {@literal PredicateSpecification}.
 	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal PredicateSpecification} operates on.
+	 * @param <T> the type of the {@link From} the resulting {@literal PredicateSpecification} operates on.
 	 * @param spec must not be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
@@ -112,7 +116,7 @@ public interface PredicateSpecification<T> extends Serializable {
 	/**
 	 * Negates the given {@link PredicateSpecification}.
 	 *
-	 * @param <T> the type of the {@link Root} the resulting {@literal PredicateSpecification} operates on.
+	 * @param <T> the type of the {@link From} the resulting {@literal PredicateSpecification} operates on.
 	 * @param spec can be {@literal null}.
 	 * @return guaranteed to be not {@literal null}.
 	 */
@@ -120,9 +124,9 @@ public interface PredicateSpecification<T> extends Serializable {
 
 		Assert.notNull(spec, "Specification must not be null");
 
-		return (root, builder) -> {
+		return (from, builder) -> {
 
-			Predicate predicate = spec.toPredicate(root, builder);
+			Predicate predicate = spec.toPredicate(from, builder);
 			return predicate != null ? builder.not(predicate) : null;
 		};
 	}
@@ -187,13 +191,13 @@ public interface PredicateSpecification<T> extends Serializable {
 
 	/**
 	 * Creates a WHERE clause for a query of the referenced entity in form of a {@link Predicate} for the given
-	 * {@link Root} and {@link CriteriaBuilder}.
+	 * {@link From} and {@link CriteriaBuilder}.
 	 *
-	 * @param root must not be {@literal null}.
+	 * @param from must not be {@literal null}.
 	 * @param criteriaBuilder must not be {@literal null}.
 	 * @return a {@link Predicate}, may be {@literal null}.
 	 */
 	@Nullable
-	Predicate toPredicate(Root<T> root, CriteriaBuilder criteriaBuilder);
+	Predicate toPredicate(From<?, T> from, CriteriaBuilder criteriaBuilder);
 
 }

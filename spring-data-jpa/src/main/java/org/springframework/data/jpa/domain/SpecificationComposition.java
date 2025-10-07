@@ -19,6 +19,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaDelete;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaUpdate;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -127,9 +128,9 @@ class SpecificationComposition {
 		};
 	}
 
-	private static <T> @Nullable Predicate toPredicate(@Nullable PredicateSpecification<T> specification, Root<T> root,
+	private static <T> @Nullable Predicate toPredicate(@Nullable PredicateSpecification<T> specification, From<?, T> from,
 			CriteriaBuilder builder) {
-		return specification == null ? null : specification.toPredicate(root, builder);
+		return specification == null ? null : specification.toPredicate(from, builder);
 	}
 
 }

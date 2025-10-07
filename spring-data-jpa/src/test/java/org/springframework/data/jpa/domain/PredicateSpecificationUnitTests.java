@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.util.SerializationUtils.*;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
@@ -169,7 +170,7 @@ class PredicateSpecificationUnitTests implements Serializable {
 	static class SerializableSpecification implements Serializable, PredicateSpecification<Object> {
 
 		@Override
-		public Predicate toPredicate(Root<Object> root, CriteriaBuilder cb) {
+		public Predicate toPredicate(From<?, Object> root, CriteriaBuilder cb) {
 			return null;
 		}
 	}
