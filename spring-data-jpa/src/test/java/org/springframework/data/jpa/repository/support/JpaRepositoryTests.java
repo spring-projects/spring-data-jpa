@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -151,7 +150,6 @@ class JpaRepositoryTests {
 			private List<SampleEntityPK> ids = Arrays.asList(new SampleEntityPK("one", "eins"),
 					new SampleEntityPK("three", "drei"));
 
-			@NotNull
 			@Override
 			public Iterator<SampleEntityPK> iterator() {
 				return ids.iterator();
