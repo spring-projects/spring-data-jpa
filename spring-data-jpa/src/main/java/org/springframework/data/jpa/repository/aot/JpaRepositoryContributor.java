@@ -150,7 +150,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		});
 	}
 
-	private String getEntityManagerFactoryRef() {
+	private @Nullable String getEntityManagerFactoryRef() {
 		return context.getConfigurationSource().getAttribute("entityManagerFactoryRef")
 				.filter(it -> !"entityManagerFactory".equals(it)).orElse(null);
 	}

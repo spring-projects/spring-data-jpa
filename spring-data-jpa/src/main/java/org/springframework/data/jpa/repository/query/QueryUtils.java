@@ -834,7 +834,7 @@ public abstract class QueryUtils {
 		 * @param <T> the type of the expression
 		 * @return the expression
 		 */
-		@SuppressWarnings("unchecked")
+		@SuppressWarnings({ "unchecked", "NullAway" })
 		<T> Expression<T> toExpressionRecursively(From<?, ?> from, PropertyPath property, boolean isForSelection,
 				boolean hasRequiredOuterJoin) {
 

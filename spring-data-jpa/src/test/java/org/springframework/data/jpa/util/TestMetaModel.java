@@ -21,9 +21,7 @@ import jakarta.persistence.metamodel.EmbeddableType;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
-import jakarta.persistence.spi.ClassTransformer;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,8 +29,7 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.springframework.data.util.Lazy;
-import org.springframework.instrument.classloading.SimpleThrowawayClassLoader;
-import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
+import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 
 /**
  * @author Christoph Strobl
@@ -97,28 +94,14 @@ public class TestMetaModel implements Metamodel {
 
 	EntityManagerFactory init() {
 
-		MutablePersistenceUnitInfo persistenceUnitInfo = new MutablePersistenceUnitInfo() {
-			@Override
-			public ClassLoader getNewTempClassLoader() {
-				return new SimpleThrowawayClassLoader(this.getClass().getClassLoader());
-			}
-
-			@Override
-			public void addTransformer(ClassTransformer classTransformer) {
-				// just ingnore it
-			}
-		};
+		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(this.getClass().getClassLoader());
 
 		persistenceUnitInfo.setPersistenceUnitName(persistenceUnit);
 		this.managedTypes.stream().map(Class::getName).forEach(persistenceUnitInfo::addManagedClassName);
-
 		persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
 
-		return new EntityManagerFactoryBuilderImpl(new PersistenceUnitInfoDescriptor(persistenceUnitInfo) {
-			@Override
-			public List<String> getManagedClassNames() {
-				return persistenceUnitInfo.getManagedClassNames();
-			}
-		}, Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect")).build();
+		return new EntityManagerFactoryBuilderImpl(
+				new PersistenceUnitInfoDescriptor(persistenceUnitInfo.asStandardPersistenceUnitInfo()) {},
+				Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect")).build();
 	}
 }

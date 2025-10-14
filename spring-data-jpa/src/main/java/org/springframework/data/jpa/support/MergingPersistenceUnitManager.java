@@ -18,18 +18,18 @@ package org.springframework.data.jpa.support;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import jakarta.persistence.spi.PersistenceUnitInfo;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager;
 import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
+import org.springframework.util.StringUtils;
 
 /**
  * Extends {@link DefaultPersistenceUnitManager} to merge configurations of one persistence unit residing in multiple
  * {@code persistence.xml} files into one. This is necessary to allow the declaration of entities in separate modules.
  *
  * @author Oliver Gierke
+ * @author Christoph Strobl
  * @link https://github.com/spring-projects/spring-framework/issues/7287
  */
 public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager {
@@ -42,10 +42,12 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		// Invoke normal post processing
 		super.postProcessPersistenceUnitInfo(pui);
 
-		PersistenceUnitInfo oldPui = getPersistenceUnitInfo(((PersistenceUnitInfo) pui).getPersistenceUnitName());
+		if (StringUtils.hasText(pui.getPersistenceUnitName())) {
+			MutablePersistenceUnitInfo oldPui = getPersistenceUnitInfo(pui.getPersistenceUnitName());
 
-		if (oldPui != null) {
-			postProcessPersistenceUnitInfo(pui, oldPui);
+			if (oldPui != null) {
+				postProcessPersistenceUnitInfo(pui, oldPui);
+			}
 		}
 	}
 
@@ -54,7 +56,7 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 		return true;
 	}
 
-	void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui, PersistenceUnitInfo oldPui) {
+	void postProcessPersistenceUnitInfo(MutablePersistenceUnitInfo pui, MutablePersistenceUnitInfo oldPui) {
 
 		String persistenceUnitName = pui.getPersistenceUnitName();
 
@@ -82,7 +84,8 @@ public class MergingPersistenceUnitManager extends DefaultPersistenceUnitManager
 			if (!pui.getMappingFileNames().contains(mappingFileName)) {
 
 				if (LOG.isDebugEnabled()) {
-					LOG.debug(String.format("Adding mapping file %s to persistence unit %s", mappingFileName, persistenceUnitName));
+					LOG.debug(
+							String.format("Adding mapping file %s to persistence unit %s", mappingFileName, persistenceUnitName));
 				}
 				pui.addMappingFileName(mappingFileName);
 			}

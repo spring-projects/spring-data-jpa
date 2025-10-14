@@ -21,12 +21,10 @@ import jakarta.persistence.metamodel.EmbeddableType;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
-import jakarta.persistence.spi.ClassTransformer;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -38,12 +36,10 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.repository.config.AotRepositoryContext;
 import org.springframework.data.util.Lazy;
-import org.springframework.instrument.classloading.SimpleThrowawayClassLoader;
-import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
+import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 
 /**
  * AOT metamodel implementation that uses Hibernate to build the metamodel.
@@ -76,38 +72,17 @@ class AotMetamodel implements Metamodel {
 
 	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl) {
 
-		MutablePersistenceUnitInfo persistenceUnitInfo = new MutablePersistenceUnitInfo() {
-			@Override
-			public ClassLoader getNewTempClassLoader() {
-				return new SimpleThrowawayClassLoader(this.getClass().getClassLoader());
-			}
-
-			@Override
-			public void addTransformer(ClassTransformer classTransformer) {
-				// just ignore it
-			}
-		};
-		persistenceUnitInfo.setPersistenceUnitName("AotMetaModel");
+		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(
+				managedTypes.getClass().getClassLoader());
+		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
+		persistenceUnitInfo.setPersistenceUnitRootUrl(persistenceUnitRootUrl);
 
 		this.entityManagerFactory = init(() -> {
 
 			managedTypes.forEach(persistenceUnitInfo::addManagedClassName);
 
 			persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
-
-			return new PersistenceUnitInfoDescriptor(persistenceUnitInfo) {
-
-				@Override
-				public List<String> getManagedClassNames() {
-					return persistenceUnitInfo.getManagedClassNames();
-				}
-
-				@Override
-				public URL getPersistenceUnitRootUrl() {
-					return persistenceUnitRootUrl != null ? persistenceUnitRootUrl : super.getPersistenceUnitRootUrl();
-				}
-
-			};
+			return new PersistenceUnitInfoDescriptor(persistenceUnitInfo.asStandardPersistenceUnitInfo());
 		});
 	}
 

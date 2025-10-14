@@ -46,7 +46,7 @@ import org.springframework.orm.jpa.persistenceunit.MutablePersistenceUnitInfo;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class MergingPersistenceUnitManagerUnitTests {
 
-	@Mock PersistenceUnitInfo oldInfo;
+	@Mock MutablePersistenceUnitInfo oldInfo;
 
 	@Mock MutablePersistenceUnitInfo newInfo;
 
