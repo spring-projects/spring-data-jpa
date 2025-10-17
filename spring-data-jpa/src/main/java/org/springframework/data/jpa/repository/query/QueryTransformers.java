@@ -52,16 +52,16 @@ class QueryTransformers {
 					continue;
 				}
 
-				if (token.equals(TOKEN_AS)) {
+				if (TOKEN_AS.equals(token)) {
 					skipNext = true;
 					continue;
 				}
 
-				if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
+				if (!TOKEN_COMMA.equals(token) && token.isExpression()) {
 					token = QueryTokens.token(token.value());
 				}
 
-				if (!containsNew && token.equals(TOKEN_NEW)) {
+				if (!containsNew && TOKEN_NEW.equals(token)) {
 					containsNew = true;
 				}
 
@@ -89,12 +89,12 @@ class QueryTransformers {
 
 			for (QueryToken token : this) {
 
-				if (token.equals(TOKEN_OPEN_PAREN)) {
+				if (TOKEN_OPEN_PAREN.equals(token)) {
 					nestingLevel++;
 					continue;
 				}
 
-				if (token.equals(TOKEN_CLOSE_PAREN)) {
+				if (TOKEN_CLOSE_PAREN.equals(token)) {
 					nestingLevel--;
 					continue;
 				}
