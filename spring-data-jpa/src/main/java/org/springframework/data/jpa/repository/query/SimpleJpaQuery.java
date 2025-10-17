@@ -20,6 +20,7 @@ import jakarta.persistence.Query;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -32,6 +33,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @author Su Ko
  */
 class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
@@ -68,9 +70,15 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-		String queryString = query.getQueryString();
+        String queryString = query.getQueryString();
+        if(query instanceof EntityQuery entityQuery) {
+             queryString = entityQuery
+                     .rewrite(new DefaultQueryRewriteInformation(Sort.unsorted(),getReturnedType(method.getResultProcessor())))
+                     .getQueryString();
+        }
+
 		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
-			validatingEm.createQuery(queryString);
+			validatingEm.createQuery(potentiallyRewriteQuery(queryString, Sort.unsorted(), null));
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
