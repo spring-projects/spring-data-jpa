@@ -30,6 +30,7 @@ import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
  *
  * @author Mark Paluch
  * @author Oscar Fanchin
+ * @author kssumin
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
 class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector<HibernateQueryInformation> {
@@ -42,11 +43,36 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	private boolean hasConstructorExpression = false;
 	private boolean hasCte = false;
 	private boolean hasFromFunction = false;
+	private QueryInformation.StatementType statementType = QueryInformation.StatementType.SELECT;
 
 	@Override
 	public HibernateQueryInformation getParsedQueryInformation() {
 		return new HibernateQueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression, hasCte, hasFromFunction);
+				hasConstructorExpression, statementType, hasCte, hasFromFunction);
+	}
+
+	@Override
+	public Void visitSelectStatement(HqlParser.SelectStatementContext ctx) {
+		statementType = QueryInformation.StatementType.SELECT;
+		return super.visitSelectStatement(ctx);
+	}
+
+	@Override
+	public Void visitInsertStatement(HqlParser.InsertStatementContext ctx) {
+		statementType = QueryInformation.StatementType.INSERT;
+		return super.visitInsertStatement(ctx);
+	}
+
+	@Override
+	public Void visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
+		statementType = QueryInformation.StatementType.UPDATE;
+		return super.visitUpdateStatement(ctx);
+	}
+
+	@Override
+	public Void visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
+		statementType = QueryInformation.StatementType.DELETE;
+		return super.visitDeleteStatement(ctx);
 	}
 
 	@Override

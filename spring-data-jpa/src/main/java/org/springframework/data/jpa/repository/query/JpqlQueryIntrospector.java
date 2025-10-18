@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author kssumin
  */
 @SuppressWarnings({ "UnreachableCode", "ConstantValue" })
 class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQueryIntrospector<QueryInformation> {
@@ -38,11 +39,36 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	private @Nullable List<QueryToken> projection;
 	private boolean projectionProcessed;
 	private boolean hasConstructorExpression = false;
+	private QueryInformation.StatementType statementType = QueryInformation.StatementType.SELECT;
 
 	@Override
 	public QueryInformation getParsedQueryInformation() {
 		return new QueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression);
+				hasConstructorExpression, statementType);
+	}
+
+	@Override
+	public Void visitSelectQuery(JpqlParser.SelectQueryContext ctx) {
+		statementType = QueryInformation.StatementType.SELECT;
+		return super.visitSelectQuery(ctx);
+	}
+
+	@Override
+	public Void visitFromQuery(JpqlParser.FromQueryContext ctx) {
+		statementType = QueryInformation.StatementType.SELECT;
+		return super.visitFromQuery(ctx);
+	}
+
+	@Override
+	public Void visitUpdate_statement(JpqlParser.Update_statementContext ctx) {
+		statementType = QueryInformation.StatementType.UPDATE;
+		return super.visitUpdate_statement(ctx);
+	}
+
+	@Override
+	public Void visitDelete_statement(JpqlParser.Delete_statementContext ctx) {
+		statementType = QueryInformation.StatementType.DELETE;
+		return super.visitDelete_statement(ctx);
 	}
 
 	@Override
