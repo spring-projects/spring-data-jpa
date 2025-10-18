@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
  * Value object capturing introspection details of a parsed query.
  *
  * @author Mark Paluch
+ * @author kssumin
  * @since 3.5
  */
 class QueryInformation {
@@ -33,10 +34,18 @@ class QueryInformation {
 
 	private final boolean hasConstructorExpression;
 
+	private final StatementType statementType;
+
 	QueryInformation(@Nullable String alias, List<QueryToken> projection, boolean hasConstructorExpression) {
+		this(alias, projection, hasConstructorExpression, StatementType.SELECT);
+	}
+
+	QueryInformation(@Nullable String alias, List<QueryToken> projection, boolean hasConstructorExpression,
+			StatementType statementType) {
 		this.alias = alias;
 		this.projection = projection;
 		this.hasConstructorExpression = hasConstructorExpression;
+		this.statementType = statementType;
 	}
 
 	/**
@@ -61,4 +70,59 @@ class QueryInformation {
 	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
+
+	/**
+	 * @return the statement type of the query.
+	 * @since 4.0
+	 */
+	public StatementType getStatementType() {
+		return statementType;
+	}
+
+	/**
+	 * @return {@code true} if the query is a SELECT statement.
+	 * @since 4.0
+	 */
+	public boolean isSelectStatement() {
+		return statementType == StatementType.SELECT;
+	}
+
+	/**
+	 * Enum representing the type of SQL/JPQL statement.
+	 *
+	 * @since 4.0
+	 */
+	enum StatementType {
+
+		/**
+		 * SELECT statement.
+		 */
+		SELECT,
+
+		/**
+		 * INSERT statement.
+		 */
+		INSERT,
+
+		/**
+		 * UPDATE statement.
+		 */
+		UPDATE,
+
+		/**
+		 * DELETE statement.
+		 */
+		DELETE,
+
+		/**
+		 * MERGE statement.
+		 */
+		MERGE,
+
+		/**
+		 * Other statement types.
+		 */
+		OTHER
+	}
+
 }

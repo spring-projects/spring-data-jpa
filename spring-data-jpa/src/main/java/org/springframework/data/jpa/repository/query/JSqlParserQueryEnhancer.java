@@ -69,6 +69,7 @@ import org.springframework.util.StringUtils;
  * @author Yanming Zhou
  * @author Christoph Strobl
  * @author Diego Pedregal
+ * @author kssumin
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -343,7 +344,16 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 		String queryString = query.getQueryString();
 		Assert.hasText(queryString, "Query must not be null or empty");
 
-		if (this.parsedType != ParsedType.SELECT || sort.isUnsorted()) {
+		if (this.parsedType != ParsedType.SELECT) {
+			if (!sort.isUnsorted()) {
+				throw new IllegalStateException(String.format(
+						"Cannot apply sorting to %s statement. Sorting is only supported for SELECT statements.",
+						this.parsedType));
+			}
+			return queryString;
+		}
+
+		if (sort.isUnsorted()) {
 			return queryString;
 		}
 
@@ -383,7 +393,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (this.parsedType != ParsedType.SELECT) {
-			return this.query.getQueryString();
+			throw new IllegalStateException(String.format(
+					"Cannot derive count query for %s statement. Count queries are only supported for SELECT statements.",
+					this.parsedType));
 		}
 
 		Assert.hasText(this.query.getQueryString(), "OriginalQuery must not be null or empty");

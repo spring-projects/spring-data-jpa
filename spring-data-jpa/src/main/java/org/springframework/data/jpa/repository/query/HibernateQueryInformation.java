@@ -24,18 +24,25 @@ import org.jspecify.annotations.Nullable;
  *
  * @author Mark Paluch
  * @author Oscar Fanchin
+ * @author kssumin
  * @since 3.5
  */
 class HibernateQueryInformation extends QueryInformation {
 
 	private final boolean hasCte;
-	
+
 	private final boolean hasFromFunction;
-	
 
 	public HibernateQueryInformation(@Nullable String alias, List<QueryToken> projection,
-			boolean hasConstructorExpression, boolean hasCte,boolean hasFromFunction) {
+			boolean hasConstructorExpression, boolean hasCte, boolean hasFromFunction) {
 		super(alias, projection, hasConstructorExpression);
+		this.hasCte = hasCte;
+		this.hasFromFunction = hasFromFunction;
+	}
+
+	public HibernateQueryInformation(@Nullable String alias, List<QueryToken> projection,
+			boolean hasConstructorExpression, StatementType statementType, boolean hasCte, boolean hasFromFunction) {
+		super(alias, projection, hasConstructorExpression, statementType);
 		this.hasCte = hasCte;
 		this.hasFromFunction = hasFromFunction;
 	}
@@ -43,9 +50,9 @@ class HibernateQueryInformation extends QueryInformation {
 	public boolean hasCte() {
 		return hasCte;
 	}
-	
+
 	public boolean hasFromFunction() {
 		return hasFromFunction;
 	}
-	
+
 }
