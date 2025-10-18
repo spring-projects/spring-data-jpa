@@ -27,7 +27,7 @@ class DefaultQueryEnhancer implements QueryEnhancer {
 
 	private final QueryProvider query;
 	private final boolean hasConstructorExpression;
-	private final @Nullable  String alias;
+	private final @Nullable String alias;
 	private final String projection;
 
 	public DefaultQueryEnhancer(QueryProvider query) {
