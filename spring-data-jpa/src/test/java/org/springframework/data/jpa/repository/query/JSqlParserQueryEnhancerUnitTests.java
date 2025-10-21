@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.ReturnedType;
@@ -35,6 +36,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
  * @author Christoph Strobl
+ * @author Soomin Kim
  */
 class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
@@ -238,10 +240,11 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		assertThat(query.getProjection()).isEmpty();
 		assertThat(query.hasConstructorExpression()).isFalse();
 
-		// GH-2856: QueryEnhancer should throw exceptions for non-SELECT statements with sorting
-		assertThatThrownBy(() -> queryEnhancer.rewrite(getRewriteInformation(Sort.by("day").descending())))
+		assertThatIllegalStateException()
+				.isThrownBy(() -> queryEnhancer.rewrite(getRewriteInformation(Sort.by("day").descending())))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot apply sorting to OTHER statement");
+				.withMessageContaining("Cannot apply sorting to OTHER statement");
+
 		assertThat(queryEnhancer.detectAlias()).isNull();
 		assertThat(queryEnhancer.getProjection()).isEmpty();
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
@@ -287,21 +290,16 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	@Test // GH-2856
 	void nativeInsertQueryThrowsExceptionForCountQuery() {
 
-		// Given: Native INSERT query
 		DeclaredQuery query = DeclaredQuery.nativeQuery("INSERT INTO users(name) VALUES('John')");
 		QueryEnhancer enhancer = new JSqlParserQueryEnhancer(query);
 
-		// When/Then: Should throw IllegalStateException for count query
-		assertThatThrownBy(() -> enhancer.createCountQueryFor(null))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for INSERT statement")
-				.hasMessageContaining("SELECT");
+		assertThatIllegalStateException().isThrownBy(() -> enhancer.createCountQueryFor(null))
+				.withMessageContaining("Cannot derive count query for INSERT statement").withMessageContaining("SELECT");
 	}
 
 	@Test // GH-2856
 	void nativeUpdateQueryThrowsExceptionForSorting() {
 
-		// Given: UPDATE query
 		DeclaredQuery query = DeclaredQuery.nativeQuery("UPDATE users SET name = 'test'");
 		QueryEnhancer enhancer = new JSqlParserQueryEnhancer(query);
 
@@ -310,24 +308,19 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 		QueryEnhancer.QueryRewriteInformation rewriteInfo = new DefaultQueryRewriteInformation(
 				sort, ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 
-		assertThatThrownBy(() -> enhancer.rewrite(rewriteInfo))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot apply sorting to UPDATE statement")
-				.hasMessageContaining("SELECT");
+		assertThatIllegalStateException().isThrownBy(() -> enhancer.rewrite(rewriteInfo))
+				.withMessageContaining("Cannot apply sorting to UPDATE statement").withMessageContaining("SELECT");
 	}
 
 	@Test // GH-2856
 	void nativeAllowsUnsortedForNonSelectQueries() {
 
-		// Given: UPDATE query
 		DeclaredQuery query = DeclaredQuery.nativeQuery("UPDATE users SET name = 'test'");
 		QueryEnhancer enhancer = new JSqlParserQueryEnhancer(query);
 
-		// When: Unsorted (no sorting)
 		QueryEnhancer.QueryRewriteInformation rewriteInfo = new DefaultQueryRewriteInformation(
 				Sort.unsorted(), ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 
-		// Then: Should not throw exception
 		String result = enhancer.rewrite(rewriteInfo);
 		assertThat(result).containsIgnoringCase("UPDATE users");
 	}

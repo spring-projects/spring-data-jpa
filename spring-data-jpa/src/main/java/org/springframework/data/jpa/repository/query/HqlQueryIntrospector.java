@@ -15,14 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
 
 /**
@@ -30,58 +22,61 @@ import org.springframework.data.jpa.repository.query.HqlParser.VariableContext;
  *
  * @author Mark Paluch
  * @author Oscar Fanchin
- * @author kssumin
+ * @author Soomin Kim
  */
-@SuppressWarnings({ "UnreachableCode", "ConstantValue" })
+@SuppressWarnings({ "UnreachableCode" })
 class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIntrospector<HibernateQueryInformation> {
 
 	private final HqlQueryRenderer renderer = new HqlQueryRenderer();
+	private final QueryInformationHolder introspection = new QueryInformationHolder();
 
-	private @Nullable String primaryFromAlias = null;
-	private @Nullable List<QueryToken> projection;
-	private boolean projectionProcessed;
-	private boolean hasConstructorExpression = false;
 	private boolean hasCte = false;
 	private boolean hasFromFunction = false;
-	private QueryInformation.StatementType statementType = QueryInformation.StatementType.SELECT;
 
 	@Override
 	public HibernateQueryInformation getParsedQueryInformation() {
-		return new HibernateQueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression, statementType, hasCte, hasFromFunction);
+		return new HibernateQueryInformation(introspection, hasCte, hasFromFunction);
 	}
 
 	@Override
 	public Void visitSelectStatement(HqlParser.SelectStatementContext ctx) {
-		statementType = QueryInformation.StatementType.SELECT;
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
 		return super.visitSelectStatement(ctx);
 	}
 
 	@Override
+	public Void visitFromQuery(HqlParser.FromQueryContext ctx) {
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
+		return super.visitFromQuery(ctx);
+	}
+
+	@Override
 	public Void visitInsertStatement(HqlParser.InsertStatementContext ctx) {
-		statementType = QueryInformation.StatementType.INSERT;
+
+		introspection.setStatementType(QueryInformation.StatementType.INSERT);
 		return super.visitInsertStatement(ctx);
 	}
 
 	@Override
 	public Void visitUpdateStatement(HqlParser.UpdateStatementContext ctx) {
-		statementType = QueryInformation.StatementType.UPDATE;
+
+		introspection.setStatementType(QueryInformation.StatementType.UPDATE);
 		return super.visitUpdateStatement(ctx);
 	}
 
 	@Override
 	public Void visitDeleteStatement(HqlParser.DeleteStatementContext ctx) {
-		statementType = QueryInformation.StatementType.DELETE;
+
+		introspection.setStatementType(QueryInformation.StatementType.DELETE);
 		return super.visitDeleteStatement(ctx);
 	}
 
 	@Override
 	public Void visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		if (!this.projectionProcessed) {
-			this.projection = captureSelectItems(ctx.selectionList().selection(), renderer);
-			this.projectionProcessed = true;
-		}
+		introspection.captureProjection(ctx.selectionList().selection(), renderer::visitSelection);
 
 		return super.visitSelectClause(ctx);
 	}
@@ -95,9 +90,9 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootEntity(HqlParser.RootEntityContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+		if (ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
 				&& !HqlQueryRenderer.isSetQuery(ctx)) {
-			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
+			capturePrimaryAlias(ctx.variable());
 		}
 
 		return super.visitRootEntity(ctx);
@@ -106,9 +101,9 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootSubquery(HqlParser.RootSubqueryContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+		if (ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
 				&& !HqlQueryRenderer.isSetQuery(ctx)) {
-			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
+			capturePrimaryAlias(ctx.variable());
 		}
 
 		return super.visitRootSubquery(ctx);
@@ -117,9 +112,9 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitRootFunction(HqlParser.RootFunctionContext ctx) {
 
-		if (this.primaryFromAlias == null && ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
+		if (ctx.variable() != null && !HqlQueryRenderer.isSubquery(ctx)
 				&& !HqlQueryRenderer.isSetQuery(ctx)) {
-			this.primaryFromAlias = capturePrimaryAlias(ctx.variable());
+			capturePrimaryAlias(ctx.variable());
 			this.hasFromFunction = true;
 		}
 
@@ -129,27 +124,13 @@ class HqlQueryIntrospector extends HqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitInstantiation(HqlParser.InstantiationContext ctx) {
 
-		hasConstructorExpression = true;
-
+		introspection.constructorExpressionPresent();
 		return super.visitInstantiation(ctx);
 	}
 
-	private static String capturePrimaryAlias(VariableContext ctx) {
-		return ((ctx).nakedIdentifier() != null ? ctx.nakedIdentifier() : ctx.identifier()).getText();
+	private void capturePrimaryAlias(VariableContext ctx) {
+		introspection
+				.capturePrimaryAlias((ctx.nakedIdentifier() != null ? ctx.nakedIdentifier() : ctx.identifier()).getText());
 	}
 
-	private static List<QueryToken> captureSelectItems(List<HqlParser.SelectionContext> selections,
-			HqlQueryRenderer itemRenderer) {
-
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-		for (HqlParser.SelectionContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelection(selection)).render()));
-		}
-		return selectItemTokens;
-	}
 }

@@ -15,16 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.List;
-
-import org.jspecify.annotations.Nullable;
-
 /**
  * Hibernate-specific query details capturing common table expression details.
  *
  * @author Mark Paluch
  * @author Oscar Fanchin
- * @author kssumin
+ * @author Soomin Kim
  * @since 3.5
  */
 class HibernateQueryInformation extends QueryInformation {
@@ -33,16 +29,8 @@ class HibernateQueryInformation extends QueryInformation {
 
 	private final boolean hasFromFunction;
 
-	public HibernateQueryInformation(@Nullable String alias, List<QueryToken> projection,
-			boolean hasConstructorExpression, boolean hasCte, boolean hasFromFunction) {
-		super(alias, projection, hasConstructorExpression);
-		this.hasCte = hasCte;
-		this.hasFromFunction = hasFromFunction;
-	}
-
-	public HibernateQueryInformation(@Nullable String alias, List<QueryToken> projection,
-			boolean hasConstructorExpression, StatementType statementType, boolean hasCte, boolean hasFromFunction) {
-		super(alias, projection, hasConstructorExpression, statementType);
+	public HibernateQueryInformation(QueryInformationHolder introspection, boolean hasCte, boolean hasFromFunction) {
+		super(introspection);
 		this.hasCte = hasCte;
 		this.hasFromFunction = hasFromFunction;
 	}

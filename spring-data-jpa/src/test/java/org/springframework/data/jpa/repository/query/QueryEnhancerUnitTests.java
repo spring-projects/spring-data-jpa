@@ -18,9 +18,7 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assumptions.*;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.assertj.core.api.SoftAssertions;
@@ -43,6 +41,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
  * @author Mark Paluch
+ * @author Soomin Kim
  */
 class QueryEnhancerUnitTests {
 
@@ -196,10 +195,8 @@ class QueryEnhancerUnitTests {
 
 		DefaultEntityQuery query = new TestEntityQuery("delete from some_table where id in :ids", true);
 
-		// GH-2856: QueryEnhancer should throw exceptions for non-SELECT queries
-		assertThatThrownBy(() -> getEnhancer(query).createCountQueryFor("p.lastname"))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for DELETE statement");
+		assertThatIllegalStateException().isThrownBy(() -> getEnhancer(query).createCountQueryFor("p.lastname"))
+				.withMessageContaining("Cannot derive count query for DELETE statement");
 	}
 
 	@Test // DATAJPA-456
@@ -626,13 +623,10 @@ class QueryEnhancerUnitTests {
 		assertThat(modiQuery.getProjection()).isEqualToIgnoringCase(projectionNotConsideringQueryType);
 		assertThat(modiQuery.hasConstructorExpression()).isEqualTo(constructorExpressionNotConsideringQueryType);
 
-		// QueryUtils returns original query (not aware of statement type)
 		assertThat(countQueryForNotConsiderQueryType).isEqualToIgnoringCase(modifyingQuery);
 
-		// GH-2856: QueryEnhancer should throw exceptions for non-SELECT queries
-		assertThatThrownBy(() -> QueryEnhancer.create(modiQuery).createCountQueryFor(null))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for UPDATE statement");
+		assertThatIllegalStateException().isThrownBy(() -> QueryEnhancer.create(modiQuery).createCountQueryFor(null))
+				.withMessageContaining("Cannot derive count query for UPDATE statement");
 	}
 
 	@ParameterizedTest // GH-2593
@@ -647,8 +641,6 @@ class QueryEnhancerUnitTests {
 		// queryutils results
 		String queryUtilsDetectAlias = QueryUtils.detectAlias(insertQuery);
 		String queryUtilsProjection = QueryUtils.getProjection(insertQuery);
-		String queryUtilsCountQuery = QueryUtils.createCountQueryFor(insertQuery);
-		Set<String> queryUtilsOuterJoinAlias = QueryUtils.getOuterJoinAliases(insertQuery);
 
 		// direct access
 		assertThat(stringQuery.getAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
@@ -656,37 +648,21 @@ class QueryEnhancerUnitTests {
 		assertThat(stringQuery.hasConstructorExpression()).isFalse();
 
 		// access over enhancer
-		// GH-2856: QueryEnhancer should throw exceptions for non-SELECT statements
-		assertThatThrownBy(() -> queryEnhancer.createCountQueryFor(null))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for INSERT statement");
+		assertThatIllegalStateException().isThrownBy(() -> queryEnhancer.createCountQueryFor(null))
+				.withMessageContaining("Cannot derive count query for INSERT statement");
 
-		assertThatThrownBy(() -> queryEnhancer.rewrite(getRewriteInformation(sorting)))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot apply sorting to INSERT statement");
+		assertThatIllegalStateException().isThrownBy(() -> queryEnhancer.rewrite(getRewriteInformation(sorting)))
+				.withMessageContaining("Cannot apply sorting to INSERT statement");
 		assertThat(queryEnhancer.detectAlias()).isEqualToIgnoringCase(queryUtilsDetectAlias);
 		assertThat(queryEnhancer.getProjection()).isEqualToIgnoringCase(queryUtilsProjection);
 		assertThat(queryEnhancer.hasConstructorExpression()).isFalse();
 	}
 
-	public static Stream<Arguments> insertStatementIsProcessedSameAsDefaultSource() {
+	static Stream<Arguments> insertStatementIsProcessedSameAsDefaultSource() {
 
 		return Stream.of( //
 				Arguments.of("INSERT INTO FOO(A) VALUES('A')"), //
 				Arguments.of("INSERT INTO randomsecondTable(A,B,C,D) VALUES('A','B','C','D')") //
-		);
-	}
-
-	public static Stream<Arguments> detectsJoinAliasesCorrectlySource() {
-
-		return Stream.of( //
-				Arguments.of("select p from Person p left outer join x.foo b2_$ar", Collections.singletonList("b2_$ar")), //
-				Arguments.of("select p from Person p left join x.foo b2_$ar", Collections.singletonList("b2_$ar")), //
-				Arguments.of("select p from Person p left outer join x.foo as b2_$ar, left join x.bar as foo",
-						Arrays.asList("b2_$ar", "foo")), //
-				Arguments.of("select p from Person p left join x.foo as b2_$ar, left outer join x.bar foo",
-						Arrays.asList("b2_$ar", "foo")) //
-
 		);
 	}
 
@@ -701,61 +677,46 @@ class QueryEnhancerUnitTests {
 	@Test // GH-2856
 	void jpqlInsertQueryThrowsExceptionForCountQuery() {
 
-		// Given: HQL INSERT query (HQL supports INSERT INTO ... SELECT)
 		DeclaredQuery query = DeclaredQuery.jpqlQuery("INSERT INTO Foo(a) SELECT b.a FROM Bar b");
 		QueryEnhancer enhancer = QueryEnhancer.create(query);
 
-		// When/Then: Should throw IllegalStateException for count query
-		assertThatThrownBy(() -> enhancer.createCountQueryFor(null))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for INSERT statement")
-				.hasMessageContaining("SELECT");
+		assertThatIllegalStateException().isThrownBy(() -> enhancer.createCountQueryFor(null))
+				.withMessageContaining("Cannot derive count query for INSERT statement").withMessageContaining("SELECT");
 	}
 
 	@Test // GH-2856
 	void jpqlUpdateQueryThrowsExceptionForSorting() {
 
-		// Given: JPQL UPDATE query
 		DeclaredQuery query = DeclaredQuery.jpqlQuery("UPDATE User SET name = 'test'");
 		QueryEnhancer enhancer = QueryEnhancer.create(query);
 
-		// When/Then: Should throw IllegalStateException for sorting
 		Sort sort = Sort.by("id");
 		QueryEnhancer.QueryRewriteInformation rewriteInfo = new DefaultQueryRewriteInformation(
 				sort, ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 
-		assertThatThrownBy(() -> enhancer.rewrite(rewriteInfo))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot apply sorting to UPDATE statement")
-				.hasMessageContaining("SELECT");
+		assertThatIllegalStateException().isThrownBy(() -> enhancer.rewrite(rewriteInfo))
+				.withMessageContaining("Cannot apply sorting to UPDATE statement").withMessageContaining("SELECT");
 	}
 
 	@Test // GH-2856
 	void jpqlDeleteQueryThrowsExceptionForCountQuery() {
 
-		// Given: JPQL DELETE query
 		DeclaredQuery query = DeclaredQuery.jpqlQuery("DELETE FROM User u WHERE u.id = :id");
 		QueryEnhancer enhancer = QueryEnhancer.create(query);
 
-		// When/Then: Should throw IllegalStateException for count query
-		assertThatThrownBy(() -> enhancer.createCountQueryFor(null))
-				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining("Cannot derive count query for DELETE statement")
-				.hasMessageContaining("SELECT");
+		assertThatIllegalStateException().isThrownBy(() -> enhancer.createCountQueryFor(null))
+				.withMessageContaining("Cannot derive count query for DELETE statement").withMessageContaining("SELECT");
 	}
 
 	@Test // GH-2856
 	void jpqlAllowsUnsortedForNonSelectQueries() {
 
-		// Given: JPQL UPDATE query
 		DeclaredQuery query = DeclaredQuery.jpqlQuery("UPDATE User SET name = 'test'");
 		QueryEnhancer enhancer = QueryEnhancer.create(query);
 
-		// When: Unsorted (no sorting)
 		QueryEnhancer.QueryRewriteInformation rewriteInfo = new DefaultQueryRewriteInformation(
 				Sort.unsorted(), ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory()));
 
-		// Then: Should not throw exception
 		String result = enhancer.rewrite(rewriteInfo);
 		assertThat(result).isEqualTo("UPDATE User SET name = 'test'");
 	}

@@ -51,6 +51,31 @@ class JpaQueryEnhancerUnitTests {
 				.isEqualToIgnoringCase("SELECT some_alias FROM table_name some_alias");
 	}
 
+	@ParameterizedTest // GH-2856
+	@MethodSource("queryEnhancers")
+	@SuppressWarnings("NullableProblems")
+	void detectsQueryType(Function<String, JpaQueryEnhancer<QueryInformation>> enhancerFunction) {
+
+		JpaQueryEnhancer<QueryInformation> select = enhancerFunction.apply("SELECT some_alias FROM table_name some_alias");
+		assertThat(select.getQueryInformation().getStatementType()).isEqualTo(QueryInformation.StatementType.SELECT);
+
+		JpaQueryEnhancer<QueryInformation> from = enhancerFunction.apply("FROM table_name some_alias");
+		assertThat(from.getQueryInformation().getStatementType()).isEqualTo(QueryInformation.StatementType.SELECT);
+
+		JpaQueryEnhancer<QueryInformation> delete = enhancerFunction.apply("DELETE FROM table_name some_alias");
+		assertThat(delete.getQueryInformation().getStatementType()).isEqualTo(QueryInformation.StatementType.DELETE);
+
+		JpaQueryEnhancer<QueryInformation> update = enhancerFunction
+				.apply("UPDATE table_name some_alias SET some_alias.property = ?1");
+		assertThat(update.getQueryInformation().getStatementType()).isEqualTo(QueryInformation.StatementType.UPDATE);
+
+		if (((Object) select) instanceof JpaQueryEnhancer.HqlQueryParser) {
+
+			JpaQueryEnhancer<QueryInformation> insert = enhancerFunction.apply("INSERT Person(name) VALUES(?1)");
+			assertThat(insert.getQueryInformation().getStatementType()).isEqualTo(QueryInformation.StatementType.INSERT);
+		}
+	}
+
 	static Stream<Function<String, JpaQueryEnhancer<?>>> queryEnhancers() {
 		return Stream.of(JpaQueryEnhancer::forHql, JpaQueryEnhancer::forEql, JpaQueryEnhancer::forJpql);
 	}

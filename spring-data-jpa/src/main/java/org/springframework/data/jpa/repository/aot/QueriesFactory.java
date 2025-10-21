@@ -180,6 +180,10 @@ class QueriesFactory {
 					createNamedAotQuery(returnedType, selector, queryMethod.getNamedCountQueryName(), queryMethod, isNative));
 		}
 
+		if (queryMethod.isModifyingQuery()) {
+
+		}
+
 		String countProjection = query.getString("countProjection");
 		return AotQueries.withDerivedCountQuery(aotStringQuery, StringAotQuery::getQuery, countProjection, selector);
 	}

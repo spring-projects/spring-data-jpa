@@ -69,7 +69,7 @@ import org.springframework.util.StringUtils;
  * @author Yanming Zhou
  * @author Christoph Strobl
  * @author Diego Pedregal
- * @author kssumin
+ * @author Soomin Kim
  * @since 2.7.0
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
@@ -312,6 +312,11 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	}
 
 	@Override
+	public boolean isSelectQuery() {
+		return this.parsedType == ParsedType.SELECT;
+	}
+
+	@Override
 	public boolean hasConstructorExpression() {
 		return hasConstructorExpression;
 	}
@@ -337,27 +342,21 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
-		return doApplySorting(rewriteInformation.getSort(), primaryAlias);
-	}
 
-	private String doApplySorting(Sort sort, @Nullable String alias) {
+		Sort sort = rewriteInformation.getSort();
 		String queryString = query.getQueryString();
-		Assert.hasText(queryString, "Query must not be null or empty");
 
-		if (this.parsedType != ParsedType.SELECT) {
-			if (!sort.isUnsorted()) {
-				throw new IllegalStateException(String.format(
-						"Cannot apply sorting to %s statement. Sorting is only supported for SELECT statements.",
-						this.parsedType));
-			}
-			return queryString;
+		if (!isSelectQuery() && sort.isSorted()) {
+			throw new IllegalStateException(
+					"Cannot apply sorting to %s statement. Sorting is only supported for SELECT statements."
+							.formatted(this.parsedType));
 		}
 
 		if (sort.isUnsorted()) {
 			return queryString;
 		}
 
-		return applySorting(deserializeRequired(this.serialized, Select.class), sort, alias);
+		return applySorting(deserializeRequired(this.serialized, Select.class), sort, primaryAlias);
 	}
 
 	private String applySorting(@Nullable Select selectStatement, Sort sort, @Nullable String alias) {
@@ -393,8 +392,9 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (this.parsedType != ParsedType.SELECT) {
-			throw new IllegalStateException(String.format(
-					"Cannot derive count query for %s statement. Count queries are only supported for SELECT statements.",
+			throw new IllegalStateException(
+					"Cannot derive count query for %s statement. Count queries are only supported for SELECT statements."
+							.formatted(
 					this.parsedType));
 		}
 

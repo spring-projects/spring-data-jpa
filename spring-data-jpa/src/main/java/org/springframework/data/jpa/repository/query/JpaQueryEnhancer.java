@@ -41,7 +41,7 @@ import org.springframework.data.repository.query.ReturnedType;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
- * @author kssumin
+ * @author Soomin Kim
  * @since 3.1
  * @see JpqlQueryParser
  * @see HqlQueryParser
@@ -184,6 +184,11 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 		return queryInformation;
 	}
 
+	@Override
+	public boolean isSelectQuery() {
+		return this.queryInformation.isSelectStatement();
+	}
+
 	/**
 	 * Checks if the select clause has a new constructor instantiation in the JPA query.
 	 *
@@ -222,14 +227,16 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	@Override
 	public String rewrite(QueryRewriteInformation rewriteInformation) {
 
-		if (!queryInformation.isSelectStatement() && !rewriteInformation.getSort().isUnsorted()) {
-			throw new IllegalStateException(String.format(
-					"Cannot apply sorting to %s statement. Sorting is only supported for SELECT statements.",
-					queryInformation.getStatementType()));
+		Sort sort = rewriteInformation.getSort();
+
+		if (!queryInformation.isSelectStatement() && sort.isSorted()) {
+			throw new IllegalStateException(
+					"Cannot apply sorting to %s statement. Sorting is only supported for SELECT statements."
+							.formatted(queryInformation.getStatementType()));
 		}
 
 		return QueryRenderer.TokenRenderer.render(
-				sortFunction.apply(rewriteInformation.getSort(), this.queryInformation, rewriteInformation.getReturnedType())
+				sortFunction.apply(sort, this.queryInformation, rewriteInformation.getReturnedType())
 						.visit(context));
 	}
 
@@ -242,8 +249,9 @@ class JpaQueryEnhancer<Q extends QueryInformation> implements QueryEnhancer {
 	public String createCountQueryFor(@Nullable String countProjection) {
 
 		if (!queryInformation.isSelectStatement()) {
-			throw new IllegalStateException(String.format(
-					"Cannot derive count query for %s statement. Count queries are only supported for SELECT statements.",
+			throw new IllegalStateException(
+					"Cannot derive count query for %s statement. Count queries are only supported for SELECT statements."
+							.formatted(
 					queryInformation.getStatementType()));
 		}
 

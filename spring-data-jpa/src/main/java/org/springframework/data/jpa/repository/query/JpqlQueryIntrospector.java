@@ -15,79 +15,65 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.jspecify.annotations.Nullable;
-
 /**
  * {@link ParsedQueryIntrospector} for JPQL queries.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @author kssumin
+ * @author Soomin Kim
  */
-@SuppressWarnings({ "UnreachableCode", "ConstantValue" })
+@SuppressWarnings({ "UnreachableCode" })
 class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQueryIntrospector<QueryInformation> {
 
 	private final JpqlQueryRenderer renderer = new JpqlQueryRenderer();
-
-	private @Nullable String primaryFromAlias = null;
-	private @Nullable List<QueryToken> projection;
-	private boolean projectionProcessed;
-	private boolean hasConstructorExpression = false;
-	private QueryInformation.StatementType statementType = QueryInformation.StatementType.SELECT;
+	private final QueryInformationHolder introspection = new QueryInformationHolder();
 
 	@Override
 	public QueryInformation getParsedQueryInformation() {
-		return new QueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression, statementType);
+		return new QueryInformation(introspection);
 	}
 
 	@Override
 	public Void visitSelectQuery(JpqlParser.SelectQueryContext ctx) {
-		statementType = QueryInformation.StatementType.SELECT;
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
 		return super.visitSelectQuery(ctx);
 	}
 
 	@Override
 	public Void visitFromQuery(JpqlParser.FromQueryContext ctx) {
-		statementType = QueryInformation.StatementType.SELECT;
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
 		return super.visitFromQuery(ctx);
 	}
 
 	@Override
 	public Void visitUpdate_statement(JpqlParser.Update_statementContext ctx) {
-		statementType = QueryInformation.StatementType.UPDATE;
+
+		introspection.setStatementType(QueryInformation.StatementType.UPDATE);
 		return super.visitUpdate_statement(ctx);
 	}
 
 	@Override
 	public Void visitDelete_statement(JpqlParser.Delete_statementContext ctx) {
-		statementType = QueryInformation.StatementType.DELETE;
+
+		introspection.setStatementType(QueryInformation.StatementType.DELETE);
 		return super.visitDelete_statement(ctx);
 	}
 
 	@Override
 	public Void visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
 
-		if (!projectionProcessed) {
-			projection = captureSelectItems(ctx.select_item(), renderer);
-			projectionProcessed = true;
-		}
-
+		introspection.captureProjection(ctx.select_item(), renderer::visitSelect_item);
 		return super.visitSelect_clause(ctx);
 	}
 
 	@Override
 	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
-		if (primaryFromAlias == null && ctx.identification_variable() != null && !JpqlQueryRenderer.isSubquery(ctx)
+		if (ctx.identification_variable() != null && !JpqlQueryRenderer.isSubquery(ctx)
 				&& !JpqlQueryRenderer.isSetQuery(ctx)) {
-			primaryFromAlias = ctx.identification_variable().getText();
+			introspection.capturePrimaryAlias(ctx.identification_variable().getText());
 		}
 
 		return super.visitRange_variable_declaration(ctx);
@@ -96,23 +82,8 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	@Override
 	public Void visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
 
-		hasConstructorExpression = true;
+		introspection.constructorExpressionPresent();
 		return super.visitConstructor_expression(ctx);
-	}
-
-	private static List<QueryToken> captureSelectItems(List<JpqlParser.Select_itemContext> selections,
-			JpqlQueryRenderer itemRenderer) {
-
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-		for (JpqlParser.Select_itemContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelect_item(selection)).render()));
-		}
-		return selectItemTokens;
 	}
 
 }

@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -36,6 +37,10 @@ import org.springframework.util.StringUtils;
  */
 record AotQueries(AotQuery result, AotQuery count) {
 
+	public AotQueries(AotQuery query) {
+		this(query, AbsentCountQuery.INSTANCE);
+	}
+
 	/**
 	 * Derive a count query from the given query.
 	 */
@@ -44,6 +49,10 @@ record AotQueries(AotQuery result, AotQuery count) {
 
 		DeclaredQuery underlyingQuery = queryMapper.apply(query);
 		QueryEnhancer queryEnhancer = selector.select(underlyingQuery).create(underlyingQuery);
+
+		if (!queryEnhancer.isSelectQuery()) {
+			return new AotQueries(query);
+		}
 
 		String derivedCountQuery = queryEnhancer
 				.createCountQueryFor(StringUtils.hasText(countProjection) ? countProjection : null);
@@ -64,6 +73,25 @@ record AotQueries(AotQuery result, AotQuery count) {
 
 	public QueryMetadata toMetadata(boolean paging) {
 		return new AotQueryMetadata(paging);
+	}
+
+	private static class AbsentCountQuery extends AotQuery {
+
+		static final AbsentCountQuery INSTANCE = new AbsentCountQuery();
+
+		AbsentCountQuery() {
+			super(List.of());
+		}
+
+		@Override
+		public boolean isNative() {
+			return false;
+		}
+
+		@Override
+		public boolean hasConstructorExpressionOrDefaultProjection() {
+			return false;
+		}
 	}
 
 	/**

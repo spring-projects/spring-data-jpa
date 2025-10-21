@@ -21,7 +21,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ReturnedType;
 
 /**
- * This interface describes the API for enhancing a given Query.
+ * This interface describes the API for enhancing a given Query. Query enhancers understand the syntax of the query and
+ * can introspect queries to determine aliases and projections. Enhancers can also rewrite queries to apply sorting and
+ * create count queries if the underlying query is a {@link #isSelectQuery() SELECT} query.
  *
  * @author Diego Krupitza
  * @author Greg Turnquist
@@ -40,6 +42,14 @@ public interface QueryEnhancer {
 	 */
 	static QueryEnhancer create(DeclaredQuery query) {
 		return QueryEnhancerFactory.forQuery(query).create(query);
+	}
+
+	/**
+	 * @return whether the underlying query is a SELECT query.
+	 * @since 4.0
+	 */
+	default boolean isSelectQuery() {
+		return true;
 	}
 
 	/**
@@ -77,6 +87,7 @@ public interface QueryEnhancer {
 	 * @param rewriteInformation the rewrite information to apply.
 	 * @return the modified query string.
 	 * @since 4.0
+	 * @throws IllegalStateException if the underlying query is not a {@link #isSelectQuery() SELECT} query.
 	 */
 	String rewrite(QueryRewriteInformation rewriteInformation);
 
@@ -85,6 +96,7 @@ public interface QueryEnhancer {
 	 *
 	 * @param countProjection may be {@literal null}.
 	 * @return a query String to be used a count query for pagination. Guaranteed to be not {@literal null}.
+	 * @throws IllegalStateException if the underlying query is not a {@link #isSelectQuery() SELECT} query.
 	 */
 	String createCountQueryFor(@Nullable String countProjection);
 

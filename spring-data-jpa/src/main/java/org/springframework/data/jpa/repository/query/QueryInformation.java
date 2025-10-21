@@ -23,29 +23,21 @@ import org.jspecify.annotations.Nullable;
  * Value object capturing introspection details of a parsed query.
  *
  * @author Mark Paluch
- * @author kssumin
+ * @author Soomin Kim
  * @since 3.5
  */
 class QueryInformation {
 
 	private final @Nullable String alias;
-
 	private final List<QueryToken> projection;
-
 	private final boolean hasConstructorExpression;
-
 	private final StatementType statementType;
 
-	QueryInformation(@Nullable String alias, List<QueryToken> projection, boolean hasConstructorExpression) {
-		this(alias, projection, hasConstructorExpression, StatementType.SELECT);
-	}
-
-	QueryInformation(@Nullable String alias, List<QueryToken> projection, boolean hasConstructorExpression,
-			StatementType statementType) {
-		this.alias = alias;
-		this.projection = projection;
-		this.hasConstructorExpression = hasConstructorExpression;
-		this.statementType = statementType;
+	QueryInformation(QueryInformationHolder introspection) {
+		this.alias = introspection.getAlias();
+		this.projection = introspection.getProjection();
+		this.hasConstructorExpression = introspection.hasConstructorExpression();
+		this.statementType = introspection.getStatementType();
 	}
 
 	/**

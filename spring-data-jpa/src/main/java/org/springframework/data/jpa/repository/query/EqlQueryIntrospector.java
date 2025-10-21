@@ -15,79 +15,65 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.jspecify.annotations.Nullable;
-
 /**
  * {@link ParsedQueryIntrospector} for EQL queries.
  *
  * @author Mark Paluch
  * @author Christoph Strobl
- * @author kssumin
+ * @author Soomin Kim
  */
 @SuppressWarnings("UnreachableCode")
 class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIntrospector<QueryInformation> {
 
 	private final EqlQueryRenderer renderer = new EqlQueryRenderer();
-
-	private @Nullable String primaryFromAlias = null;
-	private @Nullable List<QueryToken> projection;
-	private boolean projectionProcessed;
-	private boolean hasConstructorExpression = false;
-	private QueryInformation.StatementType statementType = QueryInformation.StatementType.SELECT;
+	private final QueryInformationHolder introspection = new QueryInformationHolder();
 
 	@Override
 	public QueryInformation getParsedQueryInformation() {
-		return new QueryInformation(primaryFromAlias, projection == null ? Collections.emptyList() : projection,
-				hasConstructorExpression, statementType);
+		return new QueryInformation(introspection);
 	}
 
 	@Override
 	public Void visitSelectQuery(EqlParser.SelectQueryContext ctx) {
-		statementType = QueryInformation.StatementType.SELECT;
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
 		return super.visitSelectQuery(ctx);
 	}
 
 	@Override
 	public Void visitFromQuery(EqlParser.FromQueryContext ctx) {
-		statementType = QueryInformation.StatementType.SELECT;
+
+		introspection.setStatementType(QueryInformation.StatementType.SELECT);
 		return super.visitFromQuery(ctx);
 	}
 
 	@Override
 	public Void visitUpdate_statement(EqlParser.Update_statementContext ctx) {
-		statementType = QueryInformation.StatementType.UPDATE;
+
+		introspection.setStatementType(QueryInformation.StatementType.UPDATE);
 		return super.visitUpdate_statement(ctx);
 	}
 
 	@Override
 	public Void visitDelete_statement(EqlParser.Delete_statementContext ctx) {
-		statementType = QueryInformation.StatementType.DELETE;
+
+		introspection.setStatementType(QueryInformation.StatementType.DELETE);
 		return super.visitDelete_statement(ctx);
 	}
 
 	@Override
 	public Void visitSelect_clause(EqlParser.Select_clauseContext ctx) {
 
-		if (!projectionProcessed) {
-			projection = captureSelectItems(ctx.select_item(), renderer);
-			projectionProcessed = true;
-		}
-
+		introspection.captureProjection(ctx.select_item(), renderer::visitSelect_item);
 		return super.visitSelect_clause(ctx);
 	}
 
 	@Override
 	public Void visitRange_variable_declaration(EqlParser.Range_variable_declarationContext ctx) {
 
-		if (primaryFromAlias == null && ctx.identification_variable() != null && !EqlQueryRenderer.isSubquery(ctx)
+		if (ctx.identification_variable() != null && !EqlQueryRenderer.isSubquery(ctx)
 				&& !EqlQueryRenderer.isSetQuery(ctx)) {
-			primaryFromAlias = ctx.identification_variable().getText();
+			introspection.capturePrimaryAlias(ctx.identification_variable().getText());
 		}
 
 		return super.visitRange_variable_declaration(ctx);
@@ -96,23 +82,8 @@ class EqlQueryIntrospector extends EqlBaseVisitor<Void> implements ParsedQueryIn
 	@Override
 	public Void visitConstructor_expression(EqlParser.Constructor_expressionContext ctx) {
 
-		hasConstructorExpression = true;
+		introspection.constructorExpressionPresent();
 		return super.visitConstructor_expression(ctx);
-	}
-
-	private static List<QueryToken> captureSelectItems(List<EqlParser.Select_itemContext> selections,
-			EqlQueryRenderer itemRenderer) {
-
-		List<QueryToken> selectItemTokens = new ArrayList<>(selections.size() * 2);
-		for (EqlParser.Select_itemContext selection : selections) {
-
-			if (!selectItemTokens.isEmpty()) {
-				selectItemTokens.add(TOKEN_COMMA);
-			}
-
-			selectItemTokens.add(QueryTokens.token(QueryRenderer.from(itemRenderer.visitSelect_item(selection)).render()));
-		}
-		return selectItemTokens;
 	}
 
 }
