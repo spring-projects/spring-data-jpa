@@ -17,9 +17,9 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
-import org.springframework.data.jpa.repository.EntityGraph;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -93,18 +93,6 @@ public class JpaEntityGraph {
 	 */
 	public List<String> getAttributePaths() {
 		return attributePaths;
-	}
-
-	/**
-	 * Return {@literal true} if this {@link JpaEntityGraph} needs to be generated on-the-fly.
-	 *
-	 * @return {@literal true} if {@link #attributePaths} is not empty.
-	 * @since 1.9
-	 * @deprecated since 3.5 as the used evaluation does not represent whether a {@link JpaEntityGraph} is dynamic or not.
-	 */
-	@Deprecated(since = "3.5", forRemoval = true)
-	public boolean isAdHocEntityGraph() {
-		return !attributePaths.isEmpty();
 	}
 
 	@Override

@@ -683,17 +683,6 @@ public abstract class QueryUtils {
 	}
 
 	/**
-	 * Returns whether the given query contains named parameters.
-	 *
-	 * @param query can be {@literal null} or empty.
-	 * @return whether the given query contains named parameters.
-	 */
-	@Deprecated
-	static boolean hasNamedParameter(@Nullable String query) {
-		return StringUtils.hasText(query) && NAMED_PARAMETER.matcher(query).find();
-	}
-
-	/**
 	 * Turns the given {@link Sort} into {@link jakarta.persistence.criteria.Order}s.
 	 *
 	 * @param sort the {@link Sort} instance to be transformed into JPA {@link jakarta.persistence.criteria.Order}s.

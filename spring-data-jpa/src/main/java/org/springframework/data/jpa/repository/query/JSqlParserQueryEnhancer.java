@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.JSqlParserUtils.*;
 import static org.springframework.data.jpa.repository.query.QueryUtils.*;
 
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.parser.ParseException;
@@ -588,6 +588,45 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			return type.cast(deserialize);
 		}
 		throw new IllegalStateException("Failed to deserialize object type");
+	}
+
+	/**
+	 * Generates a count function call, based on the {@code countFields}.
+	 *
+	 * @param countFields the non-empty list of fields that are used for counting
+	 * @param distinct if it should be a distinct count
+	 * @return the generated count function call
+	 */
+	private static Function getJSqlCount(List<String> countFields, boolean distinct) {
+
+		List<Expression> countColumns = new ArrayList<>(countFields.size());
+		for (String countField : countFields) {
+			Column column = new Column(countField);
+			countColumns.add(column);
+		}
+
+		ExpressionList<Expression> countExpression = new ExpressionList<>(countColumns);
+
+		return new Function() //
+				.withName("count") //
+				.withParameters(countExpression) //
+				.withDistinct(distinct);
+	}
+
+	/**
+	 * Generates a lower function call, based on the {@code column}.
+	 *
+	 * @param column the non-empty column to use as param for lower
+	 * @return the generated lower function call
+	 */
+	private static Function getJSqlLower(String column) {
+
+		List<Expression> expressions = Collections.singletonList(new Column(column));
+		ExpressionList<Expression> lowerParamExpression = new ExpressionList<>(expressions);
+
+		return new Function() //
+				.withName("lower") //
+				.withParameters(lowerParamExpression);
 	}
 
 }
