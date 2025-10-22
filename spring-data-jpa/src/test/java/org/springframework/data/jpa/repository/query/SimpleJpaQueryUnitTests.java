@@ -99,7 +99,6 @@ class SimpleJpaQueryUnitTests {
 	private ProjectionFactory factory = new SpelAwareProxyProjectionFactory();
 
 	@BeforeEach
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void setUp() throws SecurityException, NoSuchMethodException {
 
 		when(em.getMetamodel()).thenReturn(metamodel);
@@ -148,7 +147,6 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void discoversNativeQuery() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findNativeByLastname", String.class);
@@ -166,7 +164,6 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	@Test // GH-3155
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void discoversNativeQueryFromNativeQueryInterface() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByLastnameNativeAnnotation", String.class);
@@ -184,7 +181,6 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	@Test // DATAJPA-352
-	@SuppressWarnings("unchecked")
 	void doesNotValidateCountQueryIfNotPagingMethod() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByAnnotatedQuery");
@@ -346,7 +342,7 @@ class SimpleJpaQueryUnitTests {
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
 
 		AbstractJpaQuery jpaQuery = new SimpleJpaQuery(queryMethod, em,
-				queryMethod.getDeclaredQuery("select u from User u"),
+				queryMethod.getDeclaredQuery("select u from User /*some comment*/ u"),
 				queryMethod.getDeclaredQuery("select count(u.id) from #{#entityName} u"), CONFIG);
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));

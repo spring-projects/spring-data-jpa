@@ -281,10 +281,10 @@ class DefaultEntityQueryUnitTests {
 		assertThat(query.getQueryString()).isEqualTo(
 				"select u from User u where u.firstname like ?1 or u.firstname like ?2 or u.firstname like ?2 or u.firstname like ?1");
 
-		query = new TestEntityQuery("select u from User u where u.firstname like %?1 or u.firstname =?1", false);
+		query = new TestEntityQuery("select u from User u where u.firstname like %?1 or u.firstname = ?1", false);
 
 		assertThat(query.hasParameterBindings()).isTrue();
-		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like ?1 or u.firstname =?2");
+		assertThat(query.getQueryString()).isEqualTo("select u from User u where u.firstname like ?1 or u.firstname = ?2");
 	}
 
 	@Test // GH-3041

@@ -20,6 +20,8 @@ import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.util.Lazy;
+
 /**
  * Encapsulation of a JPA query string, typically returning entities or DTOs. Provides access to parameter bindings.
  * <p>
@@ -40,11 +42,13 @@ import org.jspecify.annotations.Nullable;
 class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 
 	private final PreprocessedQuery query;
+	private final Lazy<String> queryString;
 	private final QueryEnhancer queryEnhancer;
 
 	DefaultEntityQuery(PreprocessedQuery query, QueryEnhancerFactory queryEnhancerFactory) {
 		this.query = query;
 		this.queryEnhancer = queryEnhancerFactory.create(query);
+		this.queryString = Lazy.of(() -> queryEnhancer.getQuery().getQueryString());
 	}
 
 	@Override
@@ -59,7 +63,7 @@ class DefaultEntityQuery implements EntityQuery, DeclaredQuery {
 
 	@Override
 	public String getQueryString() {
-		return query.getQueryString();
+		return queryString.get();
 	}
 
 	@Override
