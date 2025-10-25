@@ -82,7 +82,7 @@ public class PartTreeQueryCacheUnitTests {
 
 	@ParameterizedTest
 	@FieldSource("cacheInput")
-	void cacheGetWithccessor(Sort sort, JpaParametersParameterAccessor accessor) {
+	void cacheGetWithAccessor(Sort sort, JpaParametersParameterAccessor accessor) {
 
 		JpaQueryCreator queryCreator = Mockito.mock(JpaQueryCreator.class);
 		assertThat(cache.put(sort, StubJpaParameterParameterAccessor.accessor("spring", "data"), queryCreator)).isNull();

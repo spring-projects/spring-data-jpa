@@ -102,7 +102,7 @@ class DefaultJpaContextIntegrationTests {
 	}
 
 	@Test // DATAJPA-669
-	void returnsEntitymanagerForUniqueType() {
+	void returnsEntityManagerForUniqueType() {
 		assertThat(jpaContext.getEntityManagerByManagedType(Category.class)).isEqualTo(firstEm);
 	}
 

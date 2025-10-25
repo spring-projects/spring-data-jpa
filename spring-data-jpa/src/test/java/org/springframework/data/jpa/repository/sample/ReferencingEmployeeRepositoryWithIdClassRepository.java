@@ -30,5 +30,5 @@ import java.util.List;
 public interface ReferencingEmployeeRepositoryWithIdClassRepository extends JpaRepository<ReferencingIdClassExampleEmployee, Long> {
 
 	List<ReferencingIdClassExampleEmployee> findByEmployee_EmpId(Long employeeId);
-	List<ReferencingIdClassExampleEmployee> findByEmployee_Department_DepartmentId(Long departementId);
+	List<ReferencingIdClassExampleEmployee> findByEmployee_Department_DepartmentId(Long departmentId);
 }

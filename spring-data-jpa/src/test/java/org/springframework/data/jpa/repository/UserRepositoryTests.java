@@ -451,7 +451,7 @@ class UserRepositoryTests {
 	@Test
 	void testOverwritingFinder() {
 
-		repository.findByOverrridingMethod();
+		repository.findByOverridingMethod();
 	}
 
 	@Test

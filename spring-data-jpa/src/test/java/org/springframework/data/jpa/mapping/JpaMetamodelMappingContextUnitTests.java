@@ -32,7 +32,7 @@ import org.springframework.data.annotation.Version;
 class JpaMetamodelMappingContextUnitTests {
 
 	@Test // DATAJPA-775
-	void jpaPersistentEntityRejectsSprignDataAtVersionAnnotation() {
+	void jpaPersistentEntityRejectsSpringDataAtVersionAnnotation() {
 
 		Metamodel metamodel = mock(Metamodel.class);
 
