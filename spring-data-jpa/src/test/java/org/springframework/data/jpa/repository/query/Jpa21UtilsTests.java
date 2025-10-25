@@ -115,7 +115,7 @@ class Jpa21UtilsTests {
 	}
 
 	@Test // DATAJPA-1041, DATAJPA-1075
-	void shouldIgnoreIntermedeateSubGraphNodesThatAreNotNeeded() {
+	void shouldIgnoreIntermediateSubGraphNodesThatAreNotNeeded() {
 
 		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
 

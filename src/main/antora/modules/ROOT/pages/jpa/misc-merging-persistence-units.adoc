@@ -3,7 +3,7 @@
 
 Spring supports having multiple persistence units. Sometimes, however, you might want to modularize your application but still make sure that all these modules run inside a single persistence unit. To enable that behavior, Spring Data JPA offers a `PersistenceUnitManager` implementation that automatically merges persistence units based on their name, as shown in the following example:
 
-.Using MergingPersistenceUnitmanager
+.Using MergingPersistenceUnitManager
 ====
 [source, xml]
 ----
