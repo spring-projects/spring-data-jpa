@@ -121,7 +121,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 
 		assertThat(user).isNotNull();
 		assertThat(util.isLoaded(user, "colleagues")) //
-				.describedAs("colleages should be fetched with 'user.detail' fetchgraph") //
+				.describedAs("colleagues should be fetched with 'user.detail' fetchgraph") //
 				.isTrue();
 	}
 
@@ -137,7 +137,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 
 		assertThat(user).isNotNull();
 		assertThat(util.isLoaded(user, "colleagues")) //
-				.describedAs("colleages should be fetched with 'user.detail' fetchgraph") //
+				.describedAs("colleagues should be fetched with 'user.detail' fetchgraph") //
 				.isTrue();
 	}
 
@@ -154,7 +154,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 		assertThat(user).isNotNull();
 
 		assertThat(util.isLoaded(user, "colleagues")) //
-				.describedAs("colleages should be fetched with 'user.detail' fetchgraph") //
+				.describedAs("colleagues should be fetched with 'user.detail' fetchgraph") //
 				.isTrue();
 		assertThat(util.isLoaded(user, "colleagues")).isTrue();
 

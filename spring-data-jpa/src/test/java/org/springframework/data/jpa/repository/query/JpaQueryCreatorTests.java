@@ -170,7 +170,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(ORDER) //
 				.forTree(Order.class, "countOrderByCountry") //
-				.returing(Long.class) //
+				.returning(Long.class) //
 				.withParameters("AU") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT COUNT(o) FROM %s o WHERE o.country = ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
@@ -182,7 +182,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(ORDER) //
 				.forTree(Order.class, "countOrderByLineItemsQuantityGreaterThan") //
-				.returing(Long.class) //
+				.returning(Long.class) //
 				.withParameterTypes(Integer.class) //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT COUNT(o) FROM %s o LEFT JOIN o.lineItems l WHERE l.quantity > ?1",
@@ -195,7 +195,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(ORDER) //
 				.forTree(Order.class, "countDistinctOrderByCountry") //
-				.returing(Long.class) //
+				.returning(Long.class) //
 				.withParameters("AU") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT COUNT(DISTINCT o) FROM %s o WHERE o.country = ?1",
@@ -205,47 +205,47 @@ class JpaQueryCreatorTests {
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void simplePropertyIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void simplePropertyIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByCountryIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("BB") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT o FROM %s o WHERE %s(o.country) = %s(?1)", DefaultJpaEntityMetadata.unqualify(Order.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
 	}
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void simplePropertyAllIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void simplePropertyAllIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameAndProductTypeAllIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("spring", "data") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) = %s(?1) AND %s(p.productType) = %s(?2)",
-						DefaultJpaEntityMetadata.unqualify(Product.class), ingnoreCaseTemplate.getIgnoreCaseOperator(),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator(),
-						ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
 	}
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void simplePropertyMixedCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void simplePropertyMixedCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameAndProductTypeIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("spring", "data") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE p.name = ?1 AND %s(p.productType) = %s(?2)",
 						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator(),
-						ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
 	}
 
@@ -426,16 +426,16 @@ class JpaQueryCreatorTests {
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void likeWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void likeWithIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameLikeIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
 						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -456,16 +456,16 @@ class JpaQueryCreatorTests {
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void notLikeWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void notLikeWithIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameNotLikeIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) NOT LIKE %s(?1) ESCAPE '\\'",
 						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -485,16 +485,16 @@ class JpaQueryCreatorTests {
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void startingWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void startingWithIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameStartingWithIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
 						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "spring%") //
 				.validateQuery();
 	}
@@ -514,16 +514,16 @@ class JpaQueryCreatorTests {
 
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void endingWithIgnoreCase(JpqlQueryTemplates ingnoreCaseTemplate) {
+	void endingWithIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProductByNameEndingWithIgnoreCase") //
-				.ingnoreCaseAs(ingnoreCaseTemplate) //
+				.ignoreCaseAs(ignoreCaseTemplate) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
 						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ingnoreCaseTemplate.getIgnoreCaseOperator(), ingnoreCaseTemplate.getIgnoreCaseOperator()) //
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring") //
 				.validateQuery();
 	}
@@ -607,7 +607,7 @@ class JpaQueryCreatorTests {
 	@Disabled("should we support this?")
 	@ParameterizedTest // GH-3588
 	@FieldSource("ignoreCaseTemplates")
-	void sortBySingleIngoreCase(JpqlQueryTemplates ingoreCase) {
+	void sortBySingleIgnoreCase(JpqlQueryTemplates ignoreCase) {
 
 		String jpql = queryCreator(ORDER) //
 				.forTree(Order.class, "findOrderByOrderByCountryAscAllIgnoreCase") //
@@ -615,7 +615,7 @@ class JpaQueryCreatorTests {
 
 		assertThat(jpql).isEqualTo("SELECT o FROM %s o ORDER BY %s(o.date) asc",
 				DefaultJpaEntityMetadata.unqualify(Order.class),
-				ingoreCase.getIgnoreCaseOperator());
+				ignoreCase.getIgnoreCaseOperator());
 	}
 
 	@Test // GH-3588
@@ -686,7 +686,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProjectionByNameIs") //
-				.returing(DtoProductProjection.class) //
+				.returning(DtoProductProjection.class) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT new %s(p.name, p.productType) FROM %s p WHERE p.name = ?1",
@@ -699,7 +699,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(ORDER) //
 				.forTree(Product.class, "findProjectionByNameIs") //
-				.returing(InterfaceProductProjection.class) //
+				.returning(InterfaceProductProjection.class) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.name name, p.productType productType FROM %s p WHERE p.name = ?1",
@@ -713,7 +713,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(PERSON) //
 				.forTree(Person.class, "findProjectionByFirstnameIs") //
-				.returing(resultType) //
+				.returning(resultType) //
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.id id, p.firstname firstname, p.lastname lastname FROM %s p WHERE p.firstname = ?1",
@@ -727,7 +727,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(PERSON) //
 				.forTree(Person.class, "deletePersonByFirstname") //
-				.returing(resultType) //
+				.returning(resultType) //
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
@@ -739,7 +739,7 @@ class JpaQueryCreatorTests {
 
 		queryCreator(PERSON) //
 				.forTree(Person.class, "existsPersonByFirstname") //
-				.returing(Long.class).withParameters("chris") //
+				.returning(Long.class).withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
@@ -905,7 +905,7 @@ class JpaQueryCreatorTests {
 				return validateQuery(tmm.entityManager());
 			}
 
-			throw new IllegalStateException("No EntityManager found, plase provide one via [verify(EntityManager)]");
+			throw new IllegalStateException("No EntityManager found, please provide one via [verify(EntityManager)]");
 		}
 
 		QueryCreatorTester validateQuery(EntityManager entityManager) {
@@ -922,7 +922,7 @@ class JpaQueryCreatorTests {
 
 	interface QueryCreatorBuilder {
 
-		QueryCreatorBuilder returing(ReturnedType returnedType);
+		QueryCreatorBuilder returning(ReturnedType returnedType);
 
 		QueryCreatorBuilder forTree(Class<?> root, String querySource);
 
@@ -930,7 +930,7 @@ class JpaQueryCreatorTests {
 
 		QueryCreatorBuilder withParameterTypes(Class<?>... argumentTypes);
 
-		QueryCreatorBuilder ingnoreCaseAs(JpqlQueryTemplates queryTemplate);
+		QueryCreatorBuilder ignoreCaseAs(JpqlQueryTemplates queryTemplate);
 
 		default <T> T as(Function<QueryCreatorBuilder, T> transformer) {
 			return transformer.apply(this);
@@ -946,7 +946,7 @@ class JpaQueryCreatorTests {
 
 		String render(@Nullable Sort sort);
 
-		QueryCreatorBuilder returing(Class<?> type);
+		QueryCreatorBuilder returning(Class<?> type);
 	}
 
 	private class DefaultCreatorBuilder implements QueryCreatorBuilder {
@@ -969,19 +969,19 @@ class JpaQueryCreatorTests {
 		}
 
 		@Override
-		public QueryCreatorBuilder returing(ReturnedType returnedType) {
+		public QueryCreatorBuilder returning(ReturnedType returnedType) {
 			this.returnedType = returnedType;
 			return this;
 		}
 
 		@Override
-		public QueryCreatorBuilder returing(Class<?> type) {
+		public QueryCreatorBuilder returning(Class<?> type) {
 
 			if (this.returnedType != null) {
-				return returing(ReturnedType.of(type, returnedType.getDomainType(), PROJECTION_FACTORY));
+				return returning(ReturnedType.of(type, returnedType.getDomainType(), PROJECTION_FACTORY));
 			}
 
-			return returing(ReturnedType.of(type, type, PROJECTION_FACTORY));
+			return returning(ReturnedType.of(type, type, PROJECTION_FACTORY));
 		}
 
 		@Override
@@ -1007,7 +1007,7 @@ class JpaQueryCreatorTests {
 		}
 
 		@Override
-		public QueryCreatorBuilder ingnoreCaseAs(JpqlQueryTemplates queryTemplate) {
+		public QueryCreatorBuilder ignoreCaseAs(JpqlQueryTemplates queryTemplate) {
 			this.queryTemplates = queryTemplate;
 			return this;
 		}

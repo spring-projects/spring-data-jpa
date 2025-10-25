@@ -77,7 +77,7 @@ class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
 	}
 
 	@Test // DATAJPA-1234, DATAJPA-1394
-	void rejectsMulitpleEntityPathResolvers() {
+	void rejectsMultipleEntityPathResolvers() {
 
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() -> {
 
