@@ -16,7 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 /**
- * A trivial component registered via {@literal appication-context.xml} to be called from SpEL.
+ * A trivial component registered via {@literal application-context.xml} to be called from SpEL.
  */
 public class GreetingsFrom {
 

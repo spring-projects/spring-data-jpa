@@ -42,7 +42,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 	}
 
 	@Override
-	public void findByOverrridingMethod() {
+	public void findByOverridingMethod() {
 		LOG.debug("A method overriding a finder was invoked");
 	}
 }

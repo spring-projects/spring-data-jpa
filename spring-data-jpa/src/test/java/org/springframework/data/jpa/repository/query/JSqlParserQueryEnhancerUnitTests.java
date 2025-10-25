@@ -251,7 +251,7 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 	}
 
 	@Test // GH-3869
-	void shouldWorkWithParenthesedSelect() {
+	void shouldWorkWithParenthesesSelect() {
 
 		DefaultEntityQuery query = new TestEntityQuery("(SELECT is_contained_in(:innerId, :outerId))", true);
 		QueryEnhancer queryEnhancer = QueryEnhancerFactory.forQuery(query).create(query);
