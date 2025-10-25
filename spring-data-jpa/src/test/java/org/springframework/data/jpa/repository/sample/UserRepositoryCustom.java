@@ -27,7 +27,7 @@ public interface UserRepositoryCustom {
 	/**
 	 * Method actually triggering a finder but being overridden.
 	 */
-	void findByOverrridingMethod();
+	void findByOverridingMethod();
 
 	/**
 	 * Some custom method to implement.
