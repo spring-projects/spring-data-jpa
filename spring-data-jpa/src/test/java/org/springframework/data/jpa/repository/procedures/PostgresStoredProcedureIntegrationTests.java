@@ -52,7 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Testcase to verify {@link org.springframework.jdbc.object.StoredProcedure}s work with Postgres.
@@ -325,9 +325,9 @@ class PostgresStoredProcedureIntegrationTests {
 
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start", destroyMethod = "stop")
-		public PostgreSQLContainer<?> container() {
+		public PostgreSQLContainer container() {
 
-			return new PostgreSQLContainer<>("postgres:15.3") //
+			return new PostgreSQLContainer("postgres:15.3") //
 					.withUsername("postgres");
 		}
 	}

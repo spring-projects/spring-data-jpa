@@ -33,7 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * Testcase to verify Vector Search work with Postgres (PGvector).
@@ -81,9 +81,9 @@ class PgVectorIntegrationTests extends AbstractVectorIntegrationTests {
 
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start", destroyMethod = "start")
-		public PostgreSQLContainer<?> container() {
+		public PostgreSQLContainer container() {
 
-			return new PostgreSQLContainer<>("pgvector/pgvector:pg17") //
+			return new PostgreSQLContainer("pgvector/pgvector:pg17") //
 					.withUsername("postgres").withReuse(true);
 		}
 

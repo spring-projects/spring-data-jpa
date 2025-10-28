@@ -150,7 +150,7 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>mysql</artifactId>
+			<artifactId>testcontainers-mysql</artifactId>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
@@ -170,7 +170,7 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
+			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -192,7 +192,7 @@
 
 		<dependency>
 			<groupId>org.testcontainers</groupId>
-			<artifactId>oracle-free</artifactId>
+			<artifactId>testcontainers-oracle-free</artifactId>
 			<scope>test</scope>
 		</dependency>
 

@@ -47,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.mysql.MySQLContainer;
 
 /**
  * Testcase to verify {@link org.springframework.jdbc.object.StoredProcedure}s work with MySQL.
@@ -256,9 +256,9 @@ class MySqlStoredProcedureIntegrationTests {
 
 		@SuppressWarnings("resource")
 		@Bean(initMethod = "start", destroyMethod = "stop")
-		public MySQLContainer<?> container() {
+		public MySQLContainer container() {
 
-			return new MySQLContainer<>("mysql:8.0.24") //
+			return new MySQLContainer("mysql:8.0.24") //
 					.withUsername("test") //
 					.withPassword("test") //
 					.withConfigurationOverride("");
