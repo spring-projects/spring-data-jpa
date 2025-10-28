@@ -44,6 +44,7 @@ import org.springframework.data.history.Revision;
 import org.springframework.data.history.RevisionMetadata;
 import org.springframework.data.history.RevisionSort;
 import org.springframework.data.history.Revisions;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.history.RevisionRepository;
@@ -166,6 +167,7 @@ public class EnversRevisionRepositoryImpl<T, ID, N extends Number & Comparable<N
 		List<AuditOrder> result = new ArrayList<>();
 		for (Sort.Order order : sort) {
 
+			QueryUtils.checkSortExpression(order);
 			AuditProperty<Object> property = AuditEntity.property(order.getProperty());
 			AuditOrder auditOrder = order.getDirection().isAscending() //
 					? property.asc() //

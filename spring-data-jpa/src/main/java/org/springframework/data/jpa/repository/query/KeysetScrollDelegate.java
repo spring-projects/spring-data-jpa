@@ -64,7 +64,10 @@ public class KeysetScrollDelegate {
 			Collection<String> projectionProperties, Sort sort) {
 
 		Collection<String> properties = new LinkedHashSet<>(projectionProperties);
-		sort.forEach(it -> properties.add(it.getProperty()));
+		sort.forEach(it -> {
+			QueryUtils.checkSortExpression(it);
+			properties.add(it.getProperty());
+		});
 		properties.addAll(entity.getIdAttributeNames());
 
 		return properties;
@@ -95,6 +98,7 @@ public class KeysetScrollDelegate {
 			int j = 0;
 			for (Order inner : sort) {
 
+				QueryUtils.checkSortExpression(order);
 				E propertyExpression = strategy.createExpression(inner.getProperty());
 				Object o = keysetValues.get(inner.getProperty());
 

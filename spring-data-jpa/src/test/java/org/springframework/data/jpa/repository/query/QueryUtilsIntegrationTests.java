@@ -50,6 +50,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.sample.Category;
@@ -356,6 +357,19 @@ class QueryUtilsIntegrationTests {
 		List<jakarta.persistence.criteria.Order> orders = QueryUtils.toOrders(sort, join, builder);
 
 		assertThat(orders).hasSize(1);
+	}
+
+	@Test //
+	void shouldReportCorrectException() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<User> query = builder.createQuery(User.class);
+		Root<User> root = query.from(User.class);
+
+		Sort sort = Sort.by(Direction.ASC, "LENGTH(username)");
+
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> QueryUtils.toOrders(sort, root, builder));
 	}
 
 	@Test // GH-3529, GH-3587

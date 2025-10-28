@@ -101,7 +101,6 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 
 		@Override
 		public Expression<Comparable> createExpression(String property) {
-
 			PropertyPath path = PropertyPath.from(property, from.getJavaType());
 			return QueryUtils.toExpressionRecursively(from, path);
 		}
@@ -164,6 +163,8 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 			if (value == null) {
 				return order.isAscending() ? where.isNull() : where.isNotNull();
 			}
+
+			QueryUtils.checkSortExpression(order);
 			return order.isAscending() ? where.gt(factory.capture(order.getProperty(), value))
 					: where.lt(factory.capture(order.getProperty(), value));
 		}

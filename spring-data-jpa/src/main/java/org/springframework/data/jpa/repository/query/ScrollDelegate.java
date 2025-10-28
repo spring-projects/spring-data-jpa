@@ -86,7 +86,8 @@ public class ScrollDelegate<T> {
 		IntFunction<ScrollPosition> positionFunction = value -> {
 
 			T object = resultsToUse.get(value);
-			Map<String, Object> keys = entity.getKeyset(sort.stream().map(Order::getProperty).toList(), object);
+			Map<String, Object> keys = entity
+					.getKeyset(sort.stream().peek(QueryUtils::checkSortExpression).map(Order::getProperty).toList(), object);
 
 			return ScrollPosition.of(keys, direction);
 		};

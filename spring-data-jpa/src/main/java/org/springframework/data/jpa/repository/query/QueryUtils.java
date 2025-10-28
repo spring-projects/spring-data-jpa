@@ -751,6 +751,8 @@ public abstract class QueryUtils {
 
 		Expression<?> expression;
 
+		checkSortExpression(order);
+
 		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
 			expression = new HqlOrderExpressionVisitor(cb, from, QueryUtils::toExpressionRecursively)
 					.createCriteriaExpression(order);
@@ -784,7 +786,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param order
 	 */
-	static void checkSortExpression(Order order) {
+	public static void checkSortExpression(Order order) {
 
 		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
 			return;

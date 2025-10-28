@@ -8,12 +8,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.NullHandling;
-import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -61,7 +59,7 @@ class JpaQueryTransformerSupport {
 
 		sort.forEach(order -> {
 
-			checkSortExpression(order);
+			QueryUtils.checkSortExpression(order);
 
 			StringBuilder builder = new StringBuilder();
 
@@ -92,23 +90,6 @@ class JpaQueryTransformerSupport {
 		});
 
 		return tokens;
-	}
-
-	/**
-	 * Check any given {@link JpaSort.JpaOrder#isUnsafe()} order for presence of at least one property offending the
-	 * {@link #PUNCTUATION_PATTERN} and throw an {@link Exception} indicating potential unsafe order by expression.
-	 *
-	 * @param order
-	 */
-	private void checkSortExpression(Sort.Order order) {
-
-		if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
-			return;
-		}
-
-		if (PUNCTUATION_PATTERN.matcher(order.getProperty()).find()) {
-			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
-		}
 	}
 
 	/**

@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.util.Assert;
@@ -228,6 +229,7 @@ public class Querydsl {
 
 		Assert.notNull(order, "Order must not be null");
 
+		QueryUtils.checkSortExpression(order);
 		PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
 		Expression<?> sortPropertyExpression = builder;
 
