@@ -1,9 +1,15 @@
 = Security Policy
 
-== Supported Versions
-
-Please see the https://spring.io/projects/spring-data-jpa[Spring Data JPA] project page for supported versions.
-
 == Reporting a Vulnerability
 
-Please don't raise security vulnerabilities here. Head over to https://pivotal.io/security to learn how to disclose them responsibly.
+Please, https://github.com/spring-projects/security-advisories/security/advisories/new[open a draft security advisory] if you need to disclose and discuss a security issue in private with the Spring Data team.
+Note that we only accept reports against https://spring.io/projects/spring-data#support[supported versions].
+
+For more details, check out our https://spring.io/security-policy[security policy].
+
+== JAR signing
+
+Spring Data JARs released on Maven Central are signed.
+You'll find more information about the key here: https://spring.io/GPG-KEY-spring.txt
+
+Versions released prior to 2023 may be signed with a different key.
