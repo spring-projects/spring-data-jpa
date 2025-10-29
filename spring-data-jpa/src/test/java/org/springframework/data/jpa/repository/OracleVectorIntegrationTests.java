@@ -84,7 +84,7 @@ class OracleVectorIntegrationTests extends AbstractVectorIntegrationTests {
 		@Bean(initMethod = "start", destroyMethod = "start")
 		public OracleContainer container() {
 
-			return new OracleContainer("gvenzl/oracle-free:23-slim") //
+			return new OracleContainer("gvenzl/oracle-free:slim-faststart") //
 					.withReuse(true)
 					.withCopyFileToContainer(MountableFile.forClasspathResource("/scripts/oracle-vector-initialize.sql"),
 							"/container-entrypoint-initdb.d/initialize.sql");
