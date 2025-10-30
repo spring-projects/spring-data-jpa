@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.core.PropertyPath;
 
 /**
  * Factory class to create an {@link EntityGraph} from a collection of property paths.

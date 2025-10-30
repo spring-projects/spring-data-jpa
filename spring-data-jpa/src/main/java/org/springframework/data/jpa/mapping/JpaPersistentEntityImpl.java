@@ -18,13 +18,14 @@ package org.springframework.data.jpa.mapping;
 import java.util.Comparator;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.annotation.Version;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.IdentifierAccessor;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.model.IdPropertyIdentifierAccessor;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**

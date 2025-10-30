@@ -28,8 +28,8 @@ import org.eclipse.persistence.internal.jpa.EJBQueryImpl;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -15,9 +15,8 @@
  */
 package org.springframework.data.jpa.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import jakarta.persistence.Access;
 import jakarta.persistence.AccessType;
@@ -42,9 +41,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
 import org.springframework.data.annotation.AccessType.Type;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.util.TypeInformation;
+import org.springframework.data.core.TypeInformation;
 
 /**
  * Unit tests for {@link JpaPersistentPropertyImpl}.

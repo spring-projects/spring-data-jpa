@@ -30,8 +30,8 @@ import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.util.Predicates;
 import org.springframework.lang.CheckReturnValue;
 import org.springframework.lang.Contract;

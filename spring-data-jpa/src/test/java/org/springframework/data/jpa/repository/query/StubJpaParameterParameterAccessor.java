@@ -15,16 +15,17 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.mockito.Mockito;
+
 import org.springframework.core.MethodParameter;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
-import org.springframework.data.util.TypeInformation;
 
 /**
  * @author Christoph Strobl

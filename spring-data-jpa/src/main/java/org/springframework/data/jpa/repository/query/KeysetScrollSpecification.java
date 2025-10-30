@@ -28,13 +28,13 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.core.PropertyPath;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.query.KeysetScrollDelegate.QueryStrategy;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
-import org.springframework.data.mapping.PropertyPath;
 
 /**
  * {@link Specification} to create scroll queries using keyset-scrolling.

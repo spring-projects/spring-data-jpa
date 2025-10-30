@@ -21,16 +21,16 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.core.TypeInformation;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.PersistentPropertyPaths;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
-import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 
 /**
