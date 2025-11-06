@@ -36,6 +36,7 @@ import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.util.Streamable;
 
 /**
  * @author Christoph Strobl
@@ -66,6 +67,8 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	List<User> findByLastnameStartingWith(String lastname, Sort sort, Limit limit);
 
 	List<User> findByLastnameStartingWith(String lastname, Pageable page);
+
+	Streamable<User> findStreamableByLastnameStartingWith(String lastname);
 
 	Page<User> findPageOfUsersByLastnameStartingWith(String lastname, Pageable page);
 
@@ -194,6 +197,8 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	// -------------------------------------------------------------------------
 
 	User deleteByEmailAddress(String username);
+
+	Streamable<User> deleteStreamableByEmailAddress(String username);
 
 	// cannot generate delete and return a domain object
 	@Modifying

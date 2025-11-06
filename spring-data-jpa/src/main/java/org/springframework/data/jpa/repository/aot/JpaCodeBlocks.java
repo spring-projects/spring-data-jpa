@@ -48,6 +48,7 @@ import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
 import org.springframework.data.repository.aot.generate.MethodReturn;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.data.util.Streamable;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
 import org.springframework.javapoet.TypeName;
@@ -703,8 +704,12 @@ class JpaCodeBlocks {
 						context.fieldNameOf(EntityManager.class));
 
 				if (collectionQuery) {
-					builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
 
+					if (isStreamable(methodReturn)) {
+						builder.addStatement("return ($1T) $1T.of($2L)", Streamable.class, context.localVariable("resultList"));
+					} else {
+						builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
+					}
 				} else if (returnCount) {
 					builder.addStatement("return $T.valueOf($L.size())",
 							ClassUtils.resolvePrimitiveIfNecessary(methodReturn.getActualReturnClass()),
@@ -770,7 +775,13 @@ class JpaCodeBlocks {
 				} else {
 
 					if (queryMethod.isCollectionQuery()) {
-						builder.addStatement("return ($T) $L.getResultList()", methodReturn.getTypeName(), queryVariableName);
+
+						if (isStreamable(methodReturn)) {
+							builder.addStatement("return ($T) $T.of($L.getResultList())", methodReturn.getTypeName(),
+									Streamable.class, queryVariableName);
+						} else {
+							builder.addStatement("return ($T) $L.getResultList()", methodReturn.getTypeName(), queryVariableName);
+						}
 					} else if (queryMethod.isStreamQuery()) {
 						builder.addStatement("return ($T) $L.getResultStream()", methodReturn.getTypeName(), queryVariableName);
 					} else if (queryMethod.isPageQuery()) {
@@ -798,6 +809,10 @@ class JpaCodeBlocks {
 			}
 
 			return builder.build();
+		}
+
+		private static boolean isStreamable(MethodReturn methodReturn) {
+			return methodReturn.toClass().equals(Streamable.class);
 		}
 
 		public static boolean returnsModifying(Class<?> returnType) {

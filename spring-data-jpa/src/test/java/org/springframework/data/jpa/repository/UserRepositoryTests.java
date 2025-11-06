@@ -75,6 +75,7 @@ import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExt
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
+import org.springframework.data.util.Streamable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -2145,6 +2146,15 @@ class UserRepositoryTests {
 		try (Stream<User> stream = repository.streamAllPaged(PageRequest.of(0, 2))) {
 			assertThat(stream).hasSize(2);
 		}
+	}
+
+	@Test // GH-4070
+	void supportsStreamableForPageableMethod() {
+
+		flushTestUsers();
+
+		Streamable<User> users = repository.readStreamableAllByFirstnameNotNull(PageRequest.of(0, 2));
+		assertThat(users).hasSize(2);
 	}
 
 	@Test // DATAJPA-218

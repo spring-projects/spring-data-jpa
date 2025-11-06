@@ -53,6 +53,7 @@ import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.querydsl.ListQuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.util.Streamable;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.types.Predicate;
@@ -532,6 +533,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-677
 	@Query("select u from User u")
 	Stream<User> streamAllPaged(Pageable pageable);
+
+	Streamable<User> readStreamableAllByFirstnameNotNull(Pageable pageable);
 
 	// DATAJPA-830
 	List<User> findByLastnameNotContaining(String part);

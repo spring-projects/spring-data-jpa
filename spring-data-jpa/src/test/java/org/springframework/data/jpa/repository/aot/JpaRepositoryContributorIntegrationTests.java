@@ -39,6 +39,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.util.Streamable;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -197,6 +198,13 @@ class JpaRepositoryContributorIntegrationTests {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", PageRequest.of(0, 2, Sort.by("emailAddress")));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
+	}
+
+	@Test // GH-3830
+	void testDerivedQueryMethodReturningStreamable() {
+
+		Streamable<User> users = fragment.findStreamableByLastnameStartingWith("S");
+		assertThat(users).extracting(User::getEmailAddress).hasSize(4).contains("han@smuggler.net", "kylo@new-empire.com");
 	}
 
 	@Test // GH-3830
@@ -527,11 +535,20 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
+	void shouldReturnStreamableDelete() {
+
+		Streamable<User> users = fragment.deleteStreamableByEmailAddress("yoda@jedi.org");
+
+		assertThat(users).hasSize(1);
+	}
+
+	@Test // GH-3830
 	void shouldOmitAnnotatedDeleteReturningDomainType() {
 
 		assertThatException().isThrownBy(() -> fragment.deleteAnnotatedQueryByEmailAddress("foo"))
 				.withRootCauseInstanceOf(NoSuchMethodException.class);
 	}
+
 
 	@Test // GH-3830
 	void shouldApplyModifying() {
