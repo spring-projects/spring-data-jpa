@@ -47,6 +47,7 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oliver Drotbohm
  * @since 4.0
  */
 class AotMetamodel implements Metamodel {
@@ -95,7 +96,7 @@ class AotMetamodel implements Metamodel {
 
 		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(),
 				Map.of(JdbcSettings.DIALECT, H2Dialect.class.getName(), //
-						JdbcSettings.ALLOW_METADATA_ON_BOOT, "false", //
+						JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
 						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
 						PersistenceSettings.JPA_CALLBACKS_ENABLED, false))
 								.build());
