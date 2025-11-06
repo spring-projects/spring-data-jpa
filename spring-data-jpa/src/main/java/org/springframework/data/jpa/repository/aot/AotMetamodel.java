@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.hibernate.cfg.JdbcSettings;
+import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.dialect.H2Dialect;
 import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
@@ -95,8 +96,9 @@ class AotMetamodel implements Metamodel {
 		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(),
 				Map.of(JdbcSettings.DIALECT, H2Dialect.class.getName(), //
 						JdbcSettings.ALLOW_METADATA_ON_BOOT, "false", //
-						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl()))
-				.build());
+						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
+						PersistenceSettings.JPA_CALLBACKS_ENABLED, false))
+								.build());
 	}
 
 	private Metamodel getMetamodel() {
