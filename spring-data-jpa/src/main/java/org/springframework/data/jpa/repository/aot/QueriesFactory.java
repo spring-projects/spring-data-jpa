@@ -54,7 +54,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Factory for {@link AotQueries}.
+ * Factory for {@link AotQueries}. Requires {@link EntityManagerFactory} for named query resolution and
+ * {@link Metamodel} for query derivation to navigate the entity model.
  *
  * @author Mark Paluch
  * @author Christoph Strobl

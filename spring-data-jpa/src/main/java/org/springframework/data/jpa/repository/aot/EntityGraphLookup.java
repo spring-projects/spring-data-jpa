@@ -42,13 +42,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 4.0
  */
-class EntityGraphLookup {
-
-	private final EntityManagerFactory entityManagerFactory;
-
-	public EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
-		this.entityManagerFactory = entityManagerFactory;
-	}
+record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
 
 	@SuppressWarnings("unchecked")
 	public @Nullable AotEntityGraph findEntityGraph(MergedAnnotation<EntityGraph> entityGraph,
