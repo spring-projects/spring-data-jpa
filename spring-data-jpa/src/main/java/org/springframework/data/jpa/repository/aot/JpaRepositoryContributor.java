@@ -15,16 +15,22 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.Converter;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.jspecify.annotations.Nullable;
 
@@ -59,10 +65,12 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Lazy;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -77,39 +85,31 @@ import org.springframework.util.StringUtils;
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
 
+	private final AotRepositoryContext context;
+	private final PersistenceUnitContext persistenceUnit;
 	private final Metamodel metamodel;
 	private final PersistenceUnitUtil persistenceUnitUtil;
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
-	private final AotRepositoryContext context;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
-		this(repositoryContext, new AotMetamodel(repositoryContext));
-	}
-
-	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceUnitInfo unitInfo) {
-		this(repositoryContext, new AotMetamodel(unitInfo));
-	}
-
-	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceManagedTypes managedTypes) {
-		this(repositoryContext, new AotMetamodel(managedTypes));
+		this(repositoryContext, PersistenceUnitContextFactory.from(repositoryContext).create());
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
-		this(repositoryContext, entityManagerFactory, entityManagerFactory.getMetamodel());
+		this(repositoryContext, PersistenceUnitContext.just(entityManagerFactory));
 	}
 
-	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, AotMetamodel metamodel) {
-		this(repositoryContext, metamodel.getEntityManagerFactory(), metamodel);
-	}
-
-	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory,
-			Metamodel metamodel) {
+	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceUnitContext persistenceUnit) {
 
 		super(repositoryContext);
 
-		this.metamodel = metamodel;
+		this.persistenceUnit = persistenceUnit;
+		this.metamodel = persistenceUnit.getMetamodel();
+
+		EntityManagerFactory entityManagerFactory = persistenceUnit.getEntityManagerFactory();
+
 		this.persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
 		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
@@ -258,8 +258,195 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 				});
 	}
 
-	public Metamodel getMetamodel() {
-		return metamodel;
+	public PersistenceUnitContext getPersistenceUnit() {
+		return persistenceUnit;
+	}
+
+	/**
+	 * Factory for deferred {@link PersistenceUnitContext} creation. Factory objects implement equality checks based on
+	 * their creation and can be used conveniently as cache keys.
+	 */
+	public static class PersistenceUnitContextFactory {
+
+		private final Supplier<? extends PersistenceUnitContext> factory;
+		private final Object key;
+
+		private PersistenceUnitContextFactory(Supplier<? extends PersistenceUnitContext> factory, Object key) {
+			this.factory = Lazy.of(factory);
+			this.key = key;
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link AotRepositoryContext} using Jakarta
+		 * Persistence-annotated classes.
+		 *
+		 * @param repositoryContext repository context providing classes.
+		 */
+		public static PersistenceUnitContextFactory from(AotRepositoryContext repositoryContext) {
+
+			List<String> typeNames = repositoryContext.getResolvedTypes().stream()
+					.filter(PersistenceUnitContextFactory::isJakartaAnnotated).map(Class::getName).toList();
+
+			return from(() -> new AotMetamodel(PersistenceManagedTypes.of(typeNames, List.of())), typeNames);
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceUnitInfo}.
+		 *
+		 * @param persistenceUnitInfo persistence unit info to use.
+		 */
+		public static PersistenceUnitContextFactory from(PersistenceUnitInfo persistenceUnitInfo) {
+			return from(() -> new AotMetamodel(persistenceUnitInfo), persistenceUnitInfo);
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceManagedTypes}.
+		 *
+		 * @param managedTypes managed types to use.
+		 */
+		public static PersistenceUnitContextFactory from(PersistenceManagedTypes managedTypes) {
+			return from(() -> new AotMetamodel(managedTypes), managedTypes);
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link EntityManagerFactory} and its {@link Metamodel}.
+		 *
+		 * @param entityManagerFactory the entity manager factory to use.
+		 */
+		public static PersistenceUnitContextFactory just(EntityManagerFactory entityManagerFactory) {
+			return new PersistenceUnitContextFactory(() -> new EntityManagerPersistenceUnitContext(entityManagerFactory),
+					entityManagerFactory.getMetamodel());
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link EntityManagerFactory} and its {@link Metamodel}.
+		 *
+		 * @param metamodel the metamodel to use.
+		 * @param entityManagerFactory the entity manager factory to use.
+		 */
+		public static PersistenceUnitContextFactory just(EntityManagerFactory entityManagerFactory, Metamodel metamodel) {
+			return new PersistenceUnitContextFactory(
+					() -> new EntityManagerPersistenceUnitContext(entityManagerFactory, metamodel), metamodel);
+		}
+
+		private static PersistenceUnitContextFactory from(Supplier<? extends AotMetamodel> metamodel, Object key) {
+			return new PersistenceUnitContextFactory(() -> new AotMetamodelContext(metamodel.get()), key);
+		}
+
+		private static boolean isJakartaAnnotated(Class<?> cls) {
+
+			return cls.isAnnotationPresent(Entity.class) //
+					|| cls.isAnnotationPresent(Embeddable.class) //
+					|| cls.isAnnotationPresent(MappedSuperclass.class) //
+					|| cls.isAnnotationPresent(Converter.class);
+		}
+
+		public PersistenceUnitContext create() {
+			return factory.get();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof PersistenceUnitContextFactory that)) {
+				return false;
+			}
+			return ObjectUtils.nullSafeEquals(key, that.key);
+		}
+
+		@Override
+		public int hashCode() {
+			return ObjectUtils.nullSafeHashCode(key);
+		}
+
+		@Override
+		public String toString() {
+			return "PersistenceUnitContextFactory{" + key + '}';
+		}
+
+	}
+
+	/**
+	 * Strategy interface representing a JPA PersistenceUnit providing access to {@link EntityManagerFactory} and
+	 * {@link Metamodel} for AOT repository generation.
+	 */
+	public interface PersistenceUnitContext {
+
+		/**
+		 * @return the entity manager factory.
+		 */
+		EntityManagerFactory getEntityManagerFactory();
+
+		/**
+		 * @return metamodel describing managed types used in the persistence unit.
+		 */
+		Metamodel getMetamodel();
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceUnitInfo}.
+		 *
+		 * @param persistenceUnitInfo persistence unit info to use.
+		 */
+		static PersistenceUnitContext from(PersistenceUnitInfo persistenceUnitInfo) {
+			return new AotMetamodelContext(new AotMetamodel(persistenceUnitInfo));
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceManagedTypes}.
+		 *
+		 * @param managedTypes managed types to use.
+		 */
+		static PersistenceUnitContext from(PersistenceManagedTypes managedTypes) {
+			return new AotMetamodelContext(new AotMetamodel(managedTypes));
+		}
+
+		/**
+		 * Create a {@code PersistenceUnitContext} from the given {@link EntityManagerFactory} and its {@link Metamodel}.
+		 *
+		 * @param entityManagerFactory the entity manager factory to use.
+		 */
+		static PersistenceUnitContext just(EntityManagerFactory entityManagerFactory) {
+			return new EntityManagerPersistenceUnitContext(entityManagerFactory);
+		}
+
+	}
+
+	/**
+	 * Persistence unit context backed by an {@link EntityManagerFactory}.
+	 */
+	record EntityManagerPersistenceUnitContext(EntityManagerFactory factory,
+			Metamodel metamodel) implements PersistenceUnitContext {
+
+		public EntityManagerPersistenceUnitContext(EntityManagerFactory factory) {
+			this(factory, factory.getMetamodel());
+		}
+
+		@Override
+		public Metamodel getMetamodel() {
+			return metamodel();
+		}
+
+		@Override
+		public EntityManagerFactory getEntityManagerFactory() {
+			return factory();
+		}
+
+	}
+
+	/**
+	 * Persistence unit context backed by an {@link AotMetamodel}.
+	 */
+	private record AotMetamodelContext(AotMetamodel metamodel) implements PersistenceUnitContext {
+
+		@Override
+		public EntityManagerFactory getEntityManagerFactory() {
+			return metamodel.getEntityManagerFactory();
+		}
+
+		@Override
+		public Metamodel getMetamodel() {
+			return metamodel;
+		}
+
 	}
 
 	record StoredProcedureMetadata(String procedure) implements QueryMetadata {
@@ -268,6 +455,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		public Map<String, Object> serialize() {
 			return Map.of("procedure", procedure());
 		}
+
 	}
 
 	record NamedStoredProcedureMetadata(String procedureName) implements QueryMetadata {
@@ -276,6 +464,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		public Map<String, Object> serialize() {
 			return Map.of("procedure-name", procedureName());
 		}
+
 	}
 
 	/**

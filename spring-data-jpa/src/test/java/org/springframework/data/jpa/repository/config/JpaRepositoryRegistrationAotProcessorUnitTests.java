@@ -131,7 +131,7 @@ class JpaRepositoryRegistrationAotProcessorUnitTests {
 		JpaRepositoryContributor contributor = new JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor()
 				.contributeAotRepository(new DummyAotRepositoryContext(context));
 
-		assertThat(contributor.getMetamodel().managedType(Person.class)).isNotNull();
+		assertThat(contributor.getPersistenceUnit().getMetamodel().managedType(Person.class)).isNotNull();
 	}
 
 	@Test // GH-3899

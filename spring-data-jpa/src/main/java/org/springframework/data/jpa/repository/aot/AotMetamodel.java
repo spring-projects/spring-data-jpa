@@ -37,7 +37,7 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.jspecify.annotations.Nullable;
-import org.springframework.data.repository.config.AotRepositoryContext;
+
 import org.springframework.data.util.Lazy;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
@@ -54,19 +54,6 @@ class AotMetamodel implements Metamodel {
 
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
-
-	public AotMetamodel(AotRepositoryContext repositoryContext) {
-		this(repositoryContext.getResolvedTypes().stream().filter(AotMetamodel::isJakartaAnnotated).map(Class::getName)
-				.toList(), null);
-	}
-
-	private static boolean isJakartaAnnotated(Class<?> cls) {
-
-		return cls.isAnnotationPresent(jakarta.persistence.Entity.class)
-				|| cls.isAnnotationPresent(jakarta.persistence.Embeddable.class)
-				|| cls.isAnnotationPresent(jakarta.persistence.MappedSuperclass.class)
-				|| cls.isAnnotationPresent(jakarta.persistence.Converter.class);
-	}
 
 	public AotMetamodel(PersistenceManagedTypes managedTypes) {
 		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl());
