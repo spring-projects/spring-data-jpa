@@ -19,7 +19,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
-import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -61,7 +60,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
-import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -77,45 +75,34 @@ import org.springframework.util.StringUtils;
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
 
+	private final AotRepositoryContext context;
+	private final EntityManagerFactory entityManagerFactory;
 	private final Metamodel metamodel;
 	private final PersistenceUnitUtil persistenceUnitUtil;
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
-	private final AotRepositoryContext context;
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
-		this(repositoryContext, new AotMetamodel(repositoryContext));
-	}
-
-	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceUnitInfo unitInfo) {
-		this(repositoryContext, new AotMetamodel(unitInfo));
-	}
-
-	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, PersistenceManagedTypes managedTypes) {
-		this(repositoryContext, new AotMetamodel(managedTypes));
+		this(repositoryContext, AotEntityManagerFactoryCreator.from(repositoryContext).getEntityManagerFactory());
 	}
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory) {
-		this(repositoryContext, entityManagerFactory, entityManagerFactory.getMetamodel());
-	}
-
-	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, AotMetamodel metamodel) {
-		this(repositoryContext, metamodel.getEntityManagerFactory(), metamodel);
-	}
-
-	private JpaRepositoryContributor(AotRepositoryContext repositoryContext, EntityManagerFactory entityManagerFactory,
-			Metamodel metamodel) {
 
 		super(repositoryContext);
 
-		this.metamodel = metamodel;
+		this.entityManagerFactory = entityManagerFactory;
+		this.metamodel = entityManagerFactory.getMetamodel();
 		this.persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
 		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
 				repositoryContext.getRequiredClassLoader());
 		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
 		this.context = repositoryContext;
+	}
+
+	public EntityManagerFactory getEntityManagerFactory() {
+		return entityManagerFactory;
 	}
 
 	@Override
@@ -258,16 +245,13 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 				});
 	}
 
-	public Metamodel getMetamodel() {
-		return metamodel;
-	}
-
 	record StoredProcedureMetadata(String procedure) implements QueryMetadata {
 
 		@Override
 		public Map<String, Object> serialize() {
 			return Map.of("procedure", procedure());
 		}
+
 	}
 
 	record NamedStoredProcedureMetadata(String procedureName) implements QueryMetadata {
@@ -276,6 +260,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		public Map<String, Object> serialize() {
 			return Map.of("procedure-name", procedureName());
 		}
+
 	}
 
 	/**

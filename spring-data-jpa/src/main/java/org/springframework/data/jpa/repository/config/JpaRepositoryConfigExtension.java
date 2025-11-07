@@ -60,6 +60,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.aot.AotEntityManagerFactoryCreator;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
@@ -75,6 +76,7 @@ import org.springframework.orm.jpa.AbstractEntityManagerFactoryBean;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ConcurrentLruCache;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -378,6 +380,9 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		private static final String MODULE_NAME = "jpa";
 
+		private final ConcurrentLruCache<AotEntityManagerFactoryCreator, EntityManagerFactory> factoryCache = new ConcurrentLruCache<>(
+				16, AotEntityManagerFactoryCreator::getEntityManagerFactory);
+
 		@Override
 		protected void configureTypeContributions(AotRepositoryContext repositoryContext,
 				GenerationContext generationContext) {
@@ -421,7 +426,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			if (managedTypes != null) {
 
 				log.debug("Using PersistenceManagedTypes for AOT repository generation");
-				return new JpaRepositoryContributor(repositoryContext, managedTypes);
+				return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(managedTypes));
 			}
 
 			ObjectProvider<PersistenceUnitInfo> infoProvider = beanFactory.getBeanProvider(PersistenceUnitInfo.class);
@@ -430,11 +435,16 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			if (unitInfo != null) {
 
 				log.debug("Using PersistenceUnitInfo for AOT repository generation");
-				return new JpaRepositoryContributor(repositoryContext, unitInfo);
+				return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(unitInfo));
 			}
 
 			log.debug("Using scanned types for AOT repository generation");
-			return new JpaRepositoryContributor(repositoryContext);
+			return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(repositoryContext));
+		}
+
+		private JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
+				AotEntityManagerFactoryCreator factory) {
+			return new JpaRepositoryContributor(repositoryContext, factoryCache.get(factory));
 		}
 
 	}
