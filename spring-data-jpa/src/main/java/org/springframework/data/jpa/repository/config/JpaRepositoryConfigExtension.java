@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.repository.config;
 
-import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.*;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_CONTEXT_BEAN_NAME;
+import static org.springframework.data.jpa.repository.config.BeanDefinitionNames.JPA_MAPPING_CONTEXT_BEAN_NAME;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -39,7 +40,6 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.aot.generate.GenerationContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
@@ -61,7 +61,9 @@ import org.springframework.dao.annotation.PersistenceExceptionTranslationPostPro
 import org.springframework.data.aot.AotContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
-import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor.PersistenceUnitContextFactory;
+import org.springframework.data.jpa.repository.aot.PersistenceUnitContexts;
+import org.springframework.data.jpa.repository.aot.PersistenceUnitContexts.PersistenceUnitContextFactory;
+import org.springframework.data.jpa.repository.aot.PersistenceUnitContext;
 import org.springframework.data.jpa.repository.support.DefaultJpaContext;
 import org.springframework.data.jpa.repository.support.JpaEvaluationContextExtension;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
@@ -380,7 +382,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		private static final String MODULE_NAME = "jpa";
 
-		private static final ConcurrentLruCache<PersistenceUnitContextFactory, JpaRepositoryContributor.PersistenceUnitContext> factoryCache = new ConcurrentLruCache<>(
+		private static final ConcurrentLruCache<PersistenceUnitContextFactory, PersistenceUnitContext> PERSISTENCE_UNIT_CACHE = new ConcurrentLruCache<>(
 				16, PersistenceUnitContextFactory::create);
 
 		@Override
@@ -410,8 +412,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				Optional<String> entityManagerFactoryRef = repositoryContext.getConfigurationSource()
 						.getAttribute("entityManagerFactoryRef");
 
-				log.debug(
-						"Using EntityManager '%s' for AOT repository generation".formatted(entityManagerFactoryRef.orElse("")));
+				if (log.isDebugEnabled()) {
+					log.debug(
+							"Using EntityManager '%s' for AOT repository generation".formatted(entityManagerFactoryRef.orElse("")));
+				}
 
 				EntityManagerFactory emf = entityManagerFactoryRef
 						.map(it -> beanFactory.getBean(it, EntityManagerFactory.class))
@@ -425,8 +429,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			if (managedTypes != null) {
 
-				log.debug("Using PersistenceManagedTypes for AOT repository generation");
-				return contribute(repositoryContext, PersistenceUnitContextFactory.from(managedTypes));
+				if (log.isDebugEnabled()) {
+					log.debug("Using PersistenceManagedTypes for AOT repository generation");
+				}
+				return contribute(repositoryContext, PersistenceUnitContexts.from(managedTypes));
 			}
 
 			ObjectProvider<PersistenceUnitInfo> infoProvider = beanFactory.getBeanProvider(PersistenceUnitInfo.class);
@@ -434,18 +440,21 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			if (unitInfo != null) {
 
-				log.debug("Using PersistenceUnitInfo for AOT repository generation");
-				return contribute(repositoryContext, PersistenceUnitContextFactory.from(unitInfo));
+				if (log.isDebugEnabled()) {
+					log.debug("Using PersistenceUnitInfo for AOT repository generation");
+				}
+				return contribute(repositoryContext, PersistenceUnitContexts.from(unitInfo));
 			}
 
-			log.debug("Using scanned types for AOT repository generation");
-			return contribute(repositoryContext, PersistenceUnitContextFactory.from(repositoryContext));
+			if (log.isDebugEnabled()) {
+				log.debug("Using scanned types for AOT repository generation");
+			}
+			return contribute(repositoryContext, PersistenceUnitContexts.from(repositoryContext));
 		}
 
 		private JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
-				PersistenceUnitContextFactory factory) {
+				PersistenceUnitContext persistenceUnitContext) {
 
-			JpaRepositoryContributor.PersistenceUnitContext persistenceUnitContext = factoryCache.get(factory);
 			return new JpaRepositoryContributor(repositoryContext, persistenceUnitContext);
 		}
 
