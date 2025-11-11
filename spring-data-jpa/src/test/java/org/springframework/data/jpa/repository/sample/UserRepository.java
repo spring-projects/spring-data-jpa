@@ -536,6 +536,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	Streamable<User> readStreamableAllByFirstnameNotNull(Pageable pageable);
 
+	Users readUsersByFirstnameNotNull(Pageable pageable);
+
 	// DATAJPA-830
 	List<User> findByLastnameNotContaining(String part);
 

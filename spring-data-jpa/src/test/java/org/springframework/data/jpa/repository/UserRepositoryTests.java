@@ -74,6 +74,7 @@ import org.springframework.data.jpa.repository.sample.NameOnlyRecord;
 import org.springframework.data.jpa.repository.sample.SampleEvaluationContextExtension.SampleSecurityContextHolder;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
+import org.springframework.data.jpa.repository.sample.Users;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.ContextConfiguration;
@@ -2154,6 +2155,15 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		Streamable<User> users = repository.readStreamableAllByFirstnameNotNull(PageRequest.of(0, 2));
+		assertThat(users).hasSize(2);
+	}
+
+	@Test // GH-4070
+	void supportsStreamableWrapper() {
+
+		flushTestUsers();
+
+		Users users = repository.readUsersByFirstnameNotNull(PageRequest.of(0, 2));
 		assertThat(users).hasSize(2);
 	}
 

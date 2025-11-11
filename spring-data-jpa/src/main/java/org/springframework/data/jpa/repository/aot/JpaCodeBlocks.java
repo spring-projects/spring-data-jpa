@@ -29,6 +29,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Score;
@@ -707,6 +709,12 @@ class JpaCodeBlocks {
 
 					if (isStreamable(methodReturn)) {
 						builder.addStatement("return ($1T) $1T.of($2L)", Streamable.class, context.localVariable("resultList"));
+					} else if (isStreamableWrapper(methodReturn) && canConvert(Streamable.class, methodReturn)) {
+
+						builder.addStatement(
+								"return ($1T) $2T.getSharedInstance().convert($3T.of($4L), $5T.valueOf($3T.class), $5T.valueOf($1T.class))",
+								methodReturn.toClass(), DefaultConversionService.class, Streamable.class,
+								context.localVariable("resultList"), TypeDescriptor.class);
 					} else {
 						builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
 					}
@@ -775,10 +783,14 @@ class JpaCodeBlocks {
 				} else {
 
 					if (queryMethod.isCollectionQuery()) {
-
 						if (isStreamable(methodReturn)) {
 							builder.addStatement("return ($T) $T.of($L.getResultList())", methodReturn.getTypeName(),
 									Streamable.class, queryVariableName);
+						} else if (isStreamableWrapper(methodReturn) && canConvert(Streamable.class, methodReturn)) {
+							builder.addStatement(
+									"return ($1T) $2T.getSharedInstance().convert($3T.of($4L.getResultList()), $5T.valueOf($3T.class), $5T.valueOf($1T.class))",
+									methodReturn.toClass(), DefaultConversionService.class, Streamable.class, queryVariableName,
+									TypeDescriptor.class);
 						} else {
 							builder.addStatement("return ($T) $L.getResultList()", methodReturn.getTypeName(), queryVariableName);
 						}
@@ -811,8 +823,16 @@ class JpaCodeBlocks {
 			return builder.build();
 		}
 
+		private boolean canConvert(Class<?> from, MethodReturn methodReturn) {
+			return DefaultConversionService.getSharedInstance().canConvert(from, methodReturn.toClass());
+		}
+
 		private static boolean isStreamable(MethodReturn methodReturn) {
 			return methodReturn.toClass().equals(Streamable.class);
+		}
+
+		private static boolean isStreamableWrapper(MethodReturn methodReturn) {
+			return !isStreamable(methodReturn) && Streamable.class.isAssignableFrom(methodReturn.toClass());
 		}
 
 		public static boolean returnsModifying(Class<?> returnType) {
