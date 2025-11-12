@@ -1,73 +1,19 @@
-= Ahead of Time Optimizations
+include::{commons}@data-commons::page$aot.adoc[]
 
-This chapter covers Spring Data's Ahead of Time (AOT) optimizations that build upon {spring-framework-docs}/core/aot.html[Spring's Ahead of Time Optimizations].
+[[aot.repositories.jpa]]
+== JPA Ahead of Time Repositories
 
-[[aot.bestpractices]]
-== Best Practices
+AOT repositories filter methods that are eligible for AOT processing.
+These are typically all query methods that are not backed by an xref:repositories/custom-implementations.adoc[implementation fragment].
 
-=== Annotate your Domain Types
-
-During application startup, Spring scans the classpath for domain classes for early processing of entities.
-By annotating your domain types with Spring Data-specific `@Table`, `@Document` or `@Entity` annotations you can aid initial entity scanning and ensure that those types are registered with `ManagedTypes` for Runtime Hints.
-Classpath scanning is not possible in native image arrangements and so Spring has to use `ManagedTypes` for the initial entity set.
-
-[[aot.hints]]
-== Runtime Hints
-
-Running an application as a native image requires additional information compared to a regular JVM runtime.
-Spring Data contributes {spring-framework-docs}/core/aot.html#aot.hints[Runtime Hints] during AOT processing for native image usage.
-These are in particular hints for:
-
-* Auditing
-* `ManagedTypes` to capture the outcome of class-path scans
-* Repositories
-** Reflection hints for entities, return types, and Spring Data annotations
-** Repository fragments
-** Querydsl `Q` classes
-** Kotlin Coroutine support
-* Web support (Jackson Hints for `PagedModel`)
-
-[[aot.repositories]]
-== Ahead of Time Repositories
-
-AOT Repositories are an extension to AOT processing by pre-generating eligible query method implementations.
-Query methods are opaque to developers regarding their underlying queries being executed in a query method call.
-AOT repositories contribute query method implementations based on derived, annotated, and named queries that are known at build-time.
-This optimization moves query method processing from runtime to build-time, which can lead to a significant performance improvement as query methods do not need to be analyzed reflectively upon each application start.
-
-The resulting AOT repository fragment follows the naming scheme of `<Repository FQCN>Impl__Aot` and is placed in the same package as the repository interface.
-You can find all queries in their String form for generated repository query methods.
-
-NOTE: Consider AOT repository classes an internal optimization.
-Do not use them directly in your code as generation and implementation details may change in future releases.
-
-=== Running with AOT Repositories
-
-AOT is a mandatory step to transform a Spring application to a native executable, so it is automatically enabled when running in this mode.
-When AOT is enabled (either for native compilation or by setting `spring.aot.enabled=true`), AOT repositories are automatically enabled by default.
-
-You can disable AOT repository generation entirely or only disable JPA AOT repositories:
-
-* Set the `spring.aot.repositories.enabled=false` property to disable generated repositories for all Spring Data modules.
-* Set the `spring.aot.jpa.repositories.enabled=false` property to disable only JPA AOT repositories.
-
-AOT repositories contribute configuration changes to the actual repository bean registration to register the generated repository fragment.
-
-NOTE: When AOT optimizations are included, some decisions that have been taken at build-time are hard-coded in the application setup.
-For instance, profiles that have been enabled at build-time are automatically enabled at runtime as well.
-Also, the Spring Data module implementing a repository is fixed.
-Changing the implementation requires AOT re-processing.
-
-NOTE: AOT processing avoids database access.
+[NOTE]
+====
+AOT processing avoids database access.
 Therefore, it initializes an in-memory Hibernate instance for metadata collection.
 Types for the Hibernate configuration are determined by our AOT metadata collector.
 We prefer using a `PersistentEntityTypes` bean if available and fall back to `PersistenceUnitInfo` or our own discovered types.
 If our type scanning is not sufficient for your arrangement, you can enable direct `EntityManagerFactory` usage by configuring the `spring.aot.jpa.repositories.use-entitymanager=true` property.
-
-=== Eligible Methods
-
-AOT repositories filter methods that are eligible for AOT processing.
-These are typically all query methods that are not backed by an xref:repositories/custom-implementations.adoc[implementation fragment].
+====
 
 **Supported Features**
 
@@ -85,7 +31,8 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 
 * Requires Hibernate for AOT processing.
 * `QueryRewriter` must be a no-args class. `QueryRewriter` beans are not yet supported.
-* Methods accepting `ScrollPosition` (e.g. `Keyset` pagination) are not yet supported
+* Methods accepting `ScrollPosition` (e.g. `Keyset` pagination) are not yet supported.
+* Custom Collection return types (e.g. `io.vavr.collection`, `"org.eclipse.collections`) are not yet supported.
 
 **Excluded methods**
 
@@ -93,119 +40,3 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 * Methods whose implementation would be overly complex
 ** Methods accepting `ScrollPosition` (e.g. `Keyset` pagination)
 ** Dynamic projections
-
-[[aot.repositories.json]]
-== Repository Metadata
-
-AOT processing introspects query methods and collects metadata about repository queries.
-Spring Data JPA stores this metadata in JSON files that are named like the repository interface and stored next to it (i.e. within the same package).
-Repository JSON Metadata contains details about queries and fragments.
-An example for the following repository is shown below:
-
-====
-[source,java]
-----
-interface UserRepository extends CrudRepository<User, Integer> {
-
-  List<User> findUserNoArgumentsBy();                                                  <1>
-
-  Page<User> findPageOfUsersByLastnameStartingWith(String lastname, Pageable page);    <2>
-
-  @Query("select u from User u where u.emailAddress = ?1")
-  User findAnnotatedQueryByEmailAddress(String emailAddress);                              <3>
-
-  User findByEmailAddress(String emailAddress);                                        <4>
-
-  @Procedure(value = "sp_add")
-  Integer providedProcedure(@Param("arg") Integer arg);                                <5>
-}
-----
-
-<1> Derived query without arguments.
-<2> Derived query using pagination.
-<3> Annotated query.
-<4> Named query.
-<5> Stored procedure with a provided procedure name.
-While stored procedure methods are included in JSON metadata, their method code blocks are not generated in AOT repositories.
-====
-
-[source,json]
-----
-{
-  "name": "com.acme.UserRepository",
-  "module": "JPA",
-  "type": "IMPERATIVE",
-  "methods": [
-    {
-      "name": "findUserNoArgumentsBy",
-      "signature": "public abstract java.util.List<com.acme.User> com.acme.UserRepository.findUserNoArgumentsBy()",
-      "query": {
-        "query": "SELECT u FROM com.acme.User u"
-      }
-    },
-    {
-      "name": "findPageOfUsersByLastnameStartingWith",
-      "signature": "public abstract org.springframework.data.domain.Page<com.acme.User> com.acme.UserRepository.findPageOfUsersByLastnameStartingWith(java.lang.String,org.springframework.data.domain.Pageable)",
-      "query": {
-        "query": "SELECT u FROM com.acme.User u WHERE u.lastname LIKE ?1 ESCAPE '\\'",
-        "count-query": "SELECT COUNT(u) FROM com.acme.User u WHERE u.lastname LIKE ?1 ESCAPE '\\'"
-      }
-    },
-    {
-      "name": "findAnnotatedQueryByEmailAddress",
-      "signature": "public abstract com.acme.User com.acme.UserRepository.findAnnotatedQueryByEmailAddress(java.lang.String)",
-      "query": {
-        "query": "select u from User u where u.emailAddress = ?1"
-      }
-    },
-    {
-      "name": "findByEmailAddress",
-      "signature": "public abstract com.acme.User com.acme.UserRepository.findByEmailAddress(java.lang.String)",
-      "query": {
-        "name": "User.findByEmailAddress",
-        "query": "SELECT u FROM User u WHERE u.emailAddress = ?1"
-      }
-    },
-    {
-      "name": "providedProcedure",
-      "signature": "public abstract java.lang.Integer com.acme.UserRepository.providedProcedure(java.lang.Integer)",
-      "query": {
-        "procedure": "sp_add"
-      }
-    },
-    {
-      "name": "count",
-      "signature": "public abstract long org.springframework.data.repository.CrudRepository.count()",
-      "fragment": {
-        "fragment": "org.springframework.data.jpa.repository.support.SimpleJpaRepository"
-      }
-    }
-  ]
-}
-----
-
-Queries may contain the following fields:
-
-* `query`: Query descriptor if the method is a query method.
-** `name`: Name of the named query if the query is a named one.
-** `query` the query used to obtain the query method result from `EntityManager`
-** `count-name`: Name of the named count query if the count query is a named one.
-** `count-query`: The count query used to obtain the count for query methods using pagination.
-** `procedure-name`: Name of the named stored procedure if the stored procedure is a named one.
-** `procedure`: Stored procedure name if the query method uses stored procedures.
-* `fragment`: Target fragment if the method call is delegated to a store (repository base class, functional fragment such as Querydsl) or user fragment.
-Fragments are either described with just `fragment` if there is no further interface or as `interface` and `fragment` tuple in case there is an interface (such as Querydsl or user-declared fragment interface).
-
-[NOTE]
-.Normalized Query Form
-====
-Static analysis of queries allows only a limited representation of runtime query behavior.
-Queries are represented in their normalized (pre-parsed and rewritten) form:
-
-* Value Expressions are replaced with bind markers.
-* Queries follow the specified query language (JPQL or native) and do not represent the final SQL query.
-Spring Data cannot derive the final SQL queries as this is database-specific and depends on the actual runtime environment and parameters (e.g. Entity Graphs, Lazy Loading).
-* Query Metadata does not reflect bind-value processing.
-`StartingWith`/`EndingWith` queries prepend/append the wildcard character `%` to the actual bind value.
-* Runtime Sort information cannot be incorporated in the query string itself as that detail is not known at build-time.
-====
