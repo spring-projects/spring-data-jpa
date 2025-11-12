@@ -676,7 +676,7 @@ class JpaQueryCreatorTests {
 				.withParameters(10, "spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p LEFT JOIN l.product2 join_0 WHERE p.name = ?1 AND join_0.name = ?2",
+						"SELECT o FROM %s o LEFT JOIN o.lineItems l LEFT JOIN l.product p LEFT JOIN l.product2 p_0 WHERE p.name = ?1 AND p_0.name = ?2",
 						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}

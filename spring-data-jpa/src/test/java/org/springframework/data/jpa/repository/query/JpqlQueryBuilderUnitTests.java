@@ -224,7 +224,7 @@ class JpqlQueryBuilderUnitTests {
 		String fragment = JpqlQueryBuilder.where(productName).eq(literal("ex30"))
 				.and(JpqlQueryBuilder.where(personName).eq(literal("cstrobl"))).render(ctx(entity));
 
-		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'cstrobl'");
+		assertThat(fragment).isEqualTo("p.name = 'ex30' AND p_0.name = 'cstrobl'");
 	}
 
 	@Test // GH-3989
@@ -310,8 +310,10 @@ class JpqlQueryBuilderUnitTests {
 
 	@jakarta.persistence.Entity
 	static class Person {
+
 		@Id Long id;
 		String name;
+
 	}
 
 	@jakarta.persistence.Entity(name = "my_product")

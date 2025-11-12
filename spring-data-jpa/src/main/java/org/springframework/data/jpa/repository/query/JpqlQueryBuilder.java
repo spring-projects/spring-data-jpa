@@ -138,10 +138,34 @@ public final class JpqlQueryBuilder {
 	private static String getAlias(String from, java.util.function.Predicate<String> predicate,
 			Supplier<String> fallback) {
 
-		char c = from.toLowerCase(Locale.ROOT).charAt(0);
-		String string = Character.toString(c);
-		if (Character.isJavaIdentifierPart(c) && predicate.test(string)) {
-			return string;
+		StringBuilder builder = new StringBuilder();
+
+		char[] charArray = from.toLowerCase(Locale.ROOT).toCharArray();
+		for (char c : charArray) {
+
+			if (Character.isJavaIdentifierPart(c)) {
+				builder.append(c);
+			} else {
+				break;
+			}
+		}
+
+		if (builder.isEmpty()) {
+			return fallback.get();
+		}
+
+		String identifier = builder.toString();
+		String firstChar = identifier.substring(0, 1);
+
+		if (predicate.test(firstChar)) {
+			return firstChar;
+		}
+
+		for (int i = 0; i < 10; i++) {
+			String candidate = firstChar + "_" + i;
+			if (predicate.test(candidate)) {
+				return candidate;
+			}
 		}
 
 		return fallback.get();

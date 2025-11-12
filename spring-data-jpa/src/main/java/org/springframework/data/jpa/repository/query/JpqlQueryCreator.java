@@ -20,15 +20,35 @@ import java.util.List;
 import org.springframework.data.domain.Sort;
 
 /**
+ * Strategy interface that allows implementations to create JPQL queries providing details about parameter bindings and
+ * the selection mechanism.
+ *
  * @author Mark Paluch
+ * @since 4.0
  */
 interface JpqlQueryCreator {
 
+	/**
+	 * @return whether the query uses a tuple query.
+	 */
 	boolean useTupleQuery();
 
+	/**
+	 * Create the JPQL query applying {@link Sort}.
+	 *
+	 * @param sort the sort order, can be {@link Sort#unsorted()}.
+	 * @return the rendered JPQL query.
+	 */
 	String createQuery(Sort sort);
 
+	/*
+	 * @return the parameter bindings.
+	 */
 	List<ParameterBinding> getBindings();
 
+	/**
+	 * @return parameter binder to use to bind parameters.
+	 */
 	ParameterBinder getBinder();
+
 }
