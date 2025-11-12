@@ -31,13 +31,13 @@ import java.util.function.Supplier;
 
 import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
-import org.hibernate.dialect.H2Dialect;
+import org.hibernate.cfg.QuerySettings;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.util.Lazy;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
@@ -82,11 +82,12 @@ class AotMetamodel implements Metamodel {
 	static Lazy<EntityManagerFactory> init(Supplier<PersistenceUnitInfoDescriptor> unitInfo) {
 
 		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(),
-				Map.of(JdbcSettings.DIALECT, H2Dialect.class.getName(), //
+				Map.of(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE, //
 						JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
 						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
+						QuerySettings.QUERY_STARTUP_CHECKING, false, //
 						PersistenceSettings.JPA_CALLBACKS_ENABLED, false))
-								.build());
+				.build());
 	}
 
 	private Metamodel getMetamodel() {
@@ -128,6 +129,15 @@ class AotMetamodel implements Metamodel {
 
 	public EntityManagerFactory getEntityManagerFactory() {
 		return entityManagerFactory.get();
+	}
+
+	/**
+	 * A {@link Dialect} to satisfy the bootstrap requirements of {@link JdbcSettings#DIALECT} during the AOT Phase. Printed
+	 * to log files (info level) when the {@link org.hibernate.engine.jdbc.env.spi.JdbcEnvironment} is created.
+	 */
+	@SuppressWarnings("deprecation")
+	static class SpringDataJpaAotDialect extends Dialect {
+		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect();
 	}
 
 }
