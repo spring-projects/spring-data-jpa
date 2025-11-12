@@ -18,18 +18,26 @@ package org.springframework.data.jpa.repository.query;
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.jpa.repository.query.JpqlQueryBuilder.*;
 
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.metamodel.EntityType;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.jpa.util.TestMetaModel;
 
 /**
  * Unit tests for {@link JpqlQueryBuilder}.
@@ -200,7 +208,7 @@ class JpqlQueryBuilderUnitTests {
 		String fragment = JpqlQueryBuilder.where(productName).eq(literal("ex30"))
 				.and(JpqlQueryBuilder.where(personName).eq(literal("ex40"))).render(ctx(entity));
 
-		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'ex40'");
+		assertThat(fragment).isEqualTo("p.name = 'ex30' AND p_0.name = 'ex40'");
 	}
 
 	@Test // GH-3588
@@ -217,6 +225,27 @@ class JpqlQueryBuilderUnitTests {
 				.and(JpqlQueryBuilder.where(personName).eq(literal("cstrobl"))).render(ctx(entity));
 
 		assertThat(fragment).isEqualTo("p.name = 'ex30' AND join_0.name = 'cstrobl'");
+	}
+
+	@Test // GH-3989
+	void shouldRenderJoinsWithSamePathSegmentCorrectly() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(WithCompositeId.class, CompositeId.class, Groups.class,
+				Group.class, Person.class);
+		Entity entity = entity(WithCompositeId.class);
+
+		EntityType<WithCompositeId> entityType = model.entity(WithCompositeId.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("id.groups.groups.id.person.id", WithCompositeId.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity().where(JpqlQueryBuilder.where(pas).isNotNull()).render();
+
+		assertThat(jpql).isEqualTo("SELECT w FROM JpqlQueryBuilderUnitTests$WithCompositeId w " //
+				+ "INNER JOIN w.id i_0 " //
+				+ "LEFT JOIN i_0.groups g " //
+				+ "LEFT JOIN g.groups g_0 " //
+				+ "INNER JOIN g_0.id i " //
+				+ "WHERE i.person.id IS NOT NULL");
+
 	}
 
 	static ContextualAssert contextual(RenderContext context) {
@@ -294,4 +323,41 @@ class JpqlQueryBuilderUnitTests {
 		String productType;
 
 	}
+
+	@jakarta.persistence.Entity
+	static class WithCompositeId {
+
+		@EmbeddedId CompositeId id;
+
+	}
+
+	@Embeddable
+	static class CompositeId {
+
+		@ManyToOne Groups groups;
+
+	}
+
+	@jakarta.persistence.Entity
+	static class Groups {
+
+		@Id long id;
+		@OneToMany Set<Group> groups = new HashSet<>();
+
+	}
+
+	@jakarta.persistence.Entity
+	static class Group {
+
+		@EmbeddedId GroupId id;
+
+	}
+
+	@Embeddable
+	static class GroupId {
+
+		@ManyToOne Person person;
+
+	}
+
 }

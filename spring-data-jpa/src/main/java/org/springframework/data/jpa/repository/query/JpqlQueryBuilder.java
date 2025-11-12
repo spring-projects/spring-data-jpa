@@ -44,6 +44,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Choi Wang Gyu
+ * @since 4.0
  */
 @SuppressWarnings("JavadocDeclaration")
 public final class JpqlQueryBuilder {
@@ -804,7 +805,7 @@ public final class JpqlQueryBuilder {
 				join(parent);
 			}
 
-			this.joins.put(join.joinType() + "_" + join.getName() + "_" + join.path(), join);
+			this.joins.put(join.joinType() + "_" + join.getPath(), join);
 			return this;
 		}
 
@@ -1001,6 +1002,14 @@ public final class JpqlQueryBuilder {
 		 */
 		String getName();
 
+		/**
+		 * Returns the path in dot-path notation to identify the origin uniquely. Entities typically return their entity
+		 * name while joins return a dot-path.
+		 *
+		 * @return the dot-path of this origin.
+		 */
+		String getPath();
+
 	}
 
 	/**
@@ -1026,6 +1035,11 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String getName() {
 			return entity;
+		}
+
+		@Override
+		public String getPath() {
+			return getName();
 		}
 
 		public String getAlias() {
@@ -1081,6 +1095,11 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String getName() {
 			return path;
+		}
+
+		@Override
+		public String getPath() {
+			return source.getPath() + "." + getName();
 		}
 
 		@Override
