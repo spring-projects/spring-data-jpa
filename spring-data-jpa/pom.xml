@@ -280,7 +280,6 @@
 		<dependency>
 			<groupId>org.jmolecules.integrations</groupId>
 			<artifactId>jmolecules-spring</artifactId>
-			<version>${jmolecules-integration}</version>
 			<scope>test</scope>
 		</dependency>
 
