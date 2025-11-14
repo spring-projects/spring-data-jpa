@@ -7,7 +7,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>3.4.12-SNAPSHOT</version>
+	<version>3.4.12</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -16,7 +16,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-jpa-parent</artifactId>
-		<version>3.4.12-SNAPSHOT</version>
+		<version>3.4.12</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
