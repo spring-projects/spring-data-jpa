@@ -22,7 +22,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Cedomir Igaly
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class HibernateJpaParametersParameterAccessorUnitTests {
 
 	@Autowired private EntityManager em;

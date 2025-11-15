@@ -35,7 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
+@ContextConfiguration("classpath:eclipselink-infrastructure.xml")
 class EclipseLinkJpaMetamodelEntityInformationIntegrationTests extends JpaMetamodelEntityInformationIntegrationTests {
 
 	@Override

@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Julia Lee
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class AbstractJpaQueryTests {
 
 	@PersistenceContext EntityManager em;

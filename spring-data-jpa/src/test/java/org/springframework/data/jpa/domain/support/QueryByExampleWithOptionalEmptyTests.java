@@ -64,7 +64,7 @@ class QueryByExampleWithOptionalEmptyTests {
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserWithOptionalFieldRepository.class)
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class JpaRepositoryConfig {}
 
 }

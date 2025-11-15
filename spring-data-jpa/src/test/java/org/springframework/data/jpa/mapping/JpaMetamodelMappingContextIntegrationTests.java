@@ -189,7 +189,7 @@ class JpaMetamodelMappingContextIntegrationTests {
 	}
 
 	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	@EnableJpaRepositories(basePackageClasses = CategoryRepository.class, //
 			includeFilters = @Filter(value = { CategoryRepository.class, ProductRepository.class },
 					type = FilterType.ASSIGNABLE_TYPE))

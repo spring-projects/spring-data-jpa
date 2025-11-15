@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @author Oliver Gierke
  */
 @Configuration
-@ImportResource("classpath:infrastructure.xml")
+@ImportResource("classpath:hibernate-infrastructure.xml")
 @EnableJpaRepositories
 public class SampleConfig {
 

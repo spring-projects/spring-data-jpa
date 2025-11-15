@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:eclipselink.xml", "classpath:config/namespace-application-context.xml" })
+@ContextConfiguration({ "classpath:eclipselink-infrastructure.xml" })
 class EclipseLinkGenericsIntegrationTests extends GenericsIntegrationTests {
 
 }

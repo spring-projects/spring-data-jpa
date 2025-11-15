@@ -67,7 +67,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml" })
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 @Transactional
 class QuerydslJpaPredicateExecutorUnitTests {
 

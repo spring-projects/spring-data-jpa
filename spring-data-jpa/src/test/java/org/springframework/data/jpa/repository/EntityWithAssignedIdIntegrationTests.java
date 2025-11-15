@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.EntityWithAssignedId;
 import org.springframework.data.jpa.repository.sample.EntityWithAssignedIdRepository;
@@ -31,7 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Drotbohm
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:config/namespace-application-context.xml")
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-infrastructure.xml" })
 @Transactional
 class EntityWithAssignedIdIntegrationTests {
 

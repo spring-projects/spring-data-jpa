@@ -58,7 +58,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 
 	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class Config {
 
 		@PersistenceContext EntityManager entityManager;
@@ -115,6 +115,6 @@ class JavaConfigUserRepositoryTests extends UserRepositoryTests {
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class JpaRepositoryConfig {}
 }
