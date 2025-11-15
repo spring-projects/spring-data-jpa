@@ -1,6 +1,5 @@
-[[faq]]
 [appendix]
-[[frequently-asked-questions]]
+[[faq]]
 = Frequently Asked Questions
 
 [[faq.common]]
