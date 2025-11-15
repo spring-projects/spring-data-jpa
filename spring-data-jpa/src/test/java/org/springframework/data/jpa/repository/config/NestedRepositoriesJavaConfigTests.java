@@ -49,6 +49,6 @@ class NestedRepositoriesJavaConfigTests {
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class, considerNestedRepositories = true)
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class Config {}
 }

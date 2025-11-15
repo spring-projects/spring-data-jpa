@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml" })
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 @Transactional
 class KeysetScrollSpecificationUnitTests {
 

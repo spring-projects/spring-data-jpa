@@ -56,7 +56,7 @@ class EntityManagerBeanDefinitionRegistrarPostProcessorIntegrationTests {
 
 	@Configuration
 	@Import(EntityManagerInjectionTarget.class)
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class Config {
 
 		@Autowired @Qualifier("entityManagerFactory") EntityManagerFactory emf;

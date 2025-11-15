@@ -31,11 +31,12 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  * @author Eberhard Wolff
  */
-@ContextConfiguration(locations = "classpath:config/namespace-application-context.xml", inheritLocations = false)
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-infrastructure.xml" },
+		inheritLocations = false)
 class NamespaceUserRepositoryTests extends UserRepositoryTests {
 
-	@Autowired
-	ListableBeanFactory beanFactory;
+	@Autowired ListableBeanFactory beanFactory;
 
 	@Test
 	void registersPostProcessors() {

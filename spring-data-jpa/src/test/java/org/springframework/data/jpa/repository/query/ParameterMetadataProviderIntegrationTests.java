@@ -49,7 +49,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @soundtrack Elephants Crossing - We are (Irrelephant)
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class ParameterMetadataProviderIntegrationTests {
 
 	@PersistenceContext EntityManager em;

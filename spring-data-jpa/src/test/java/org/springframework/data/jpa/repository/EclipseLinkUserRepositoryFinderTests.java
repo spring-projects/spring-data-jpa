@@ -25,7 +25,8 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Oliver Gierke
  * @author Greg Turnquist
  */
-@ContextConfiguration("classpath:eclipselink-h2.xml")
+@ContextConfiguration(value = { "classpath:config/namespace-application-context.xml", "classpath:eclipselink.xml",
+		"classpath:h2.xml", "classpath:infrastructure.xml" }, inheritLocations = false)
 class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled

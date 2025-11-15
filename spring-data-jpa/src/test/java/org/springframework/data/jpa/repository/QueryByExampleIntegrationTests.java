@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -47,7 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @since 3.0
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:hibernate.xml", "classpath:config/namespace-application-context.xml" })
+@ContextConfiguration({ "classpath:hibernate-infrastructure.xml",
+		"classpath:config/namespace-application-context.xml" })
 @Transactional
 class QueryByExampleIntegrationTests {
 

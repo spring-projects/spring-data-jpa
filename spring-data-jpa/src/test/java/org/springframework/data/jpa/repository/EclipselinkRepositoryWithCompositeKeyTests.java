@@ -29,7 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 class EclipselinkRepositoryWithCompositeKeyTests extends RepositoryWithCompositeKeyTests {
 
-	@ImportResource({ "classpath:infrastructure.xml", "classpath:eclipselink.xml" })
+	@ImportResource({ "classpath:hibernate-infrastructure.xml", "classpath:eclipselink.xml" })
 	static class TestConfig extends RepositoryWithIdClassKeyTests.Config {}
 
 	@Override

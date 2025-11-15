@@ -46,7 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Jens Schauder
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class JpaSortTests {
 
 	private static final @Nullable Attribute<?, ?> NULL_ATTRIBUTE = null;

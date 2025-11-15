@@ -90,7 +90,7 @@ class HibernateRepositoryTests {
 		assertThat(result.getTotalElements()).isEqualTo(3);
 	}
 
-	@ImportResource({ "classpath:infrastructure.xml" })
+	@ImportResource({ "classpath:hibernate-infrastructure.xml" })
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = HibernateRepositoryTests.class, considerNestedRepositories = true,
 			includeFilters = @ComponentScan.Filter(

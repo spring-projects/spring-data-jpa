@@ -107,7 +107,7 @@ class CustomNonBindableJpaParametersIntegrationTests {
 	}
 
 	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	@EnableJpaRepositories(considerNestedRepositories = true, basePackageClasses = ProductRepository.class, //
 			includeFilters = @ComponentScan.Filter(value = { ProductRepository.class }, type = FilterType.ASSIGNABLE_TYPE))
 	static class Config {

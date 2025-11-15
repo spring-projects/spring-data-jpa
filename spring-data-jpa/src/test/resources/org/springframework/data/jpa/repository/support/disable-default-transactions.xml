@@ -7,7 +7,7 @@
 		http://www.springframework.org/schema/data/jpa https://www.springframework.org/schema/data/jpa/spring-jpa.xsd
 		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd">
 
-	<import resource="classpath:infrastructure.xml" />
+	<import resource="classpath:hibernate-infrastructure.xml"/>
 	<import resource="classpath:tx-manager.xml" />
 	
 	<tx:annotation-driven />

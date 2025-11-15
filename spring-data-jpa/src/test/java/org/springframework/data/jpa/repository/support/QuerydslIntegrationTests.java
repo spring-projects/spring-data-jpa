@@ -43,7 +43,7 @@ import com.querydsl.jpa.JPQLQuery;
  * @author Marcus Voltolim
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml" })
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 @Transactional
 class QuerydslIntegrationTests {
 
