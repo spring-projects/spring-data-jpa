@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/data/jpa https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
-	<import resource="../infrastructure.xml" />
+	<import resource="../hibernate-infrastructure.xml"/>
 
 	<jpa:repositories base-package="org.springframework.**.repository.sample" consider-nested-repositories="true"/>
 

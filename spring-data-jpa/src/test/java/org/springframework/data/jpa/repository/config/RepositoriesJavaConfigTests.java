@@ -50,7 +50,7 @@ class RepositoriesJavaConfigTests {
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class)
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class Config {
 
 		@Autowired ApplicationContext context;

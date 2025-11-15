@@ -108,6 +108,6 @@ class RepositoryWithIdClassKeyTests {
 
 	}
 
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class TestConfig extends Config {}
 }

@@ -27,7 +27,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Limit;
@@ -61,7 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @see QueryLookupStrategy
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:config/namespace-application-context-h2.xml")
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-h2-infrastructure.xml" })
 @Transactional
 class UserRepositoryFinderTests {
 

@@ -28,7 +28,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Greg Turnquist
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class HibernateJpaMetamodelEntityInformationIntegrationTests extends JpaMetamodelEntityInformationIntegrationTests {
 
 	@Override

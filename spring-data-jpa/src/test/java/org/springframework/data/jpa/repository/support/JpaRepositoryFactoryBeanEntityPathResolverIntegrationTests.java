@@ -41,7 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class JpaRepositoryFactoryBeanEntityPathResolverIntegrationTests {
 
 	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class, //
 			includeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UserRepository.class))
 	static class BaseConfig {

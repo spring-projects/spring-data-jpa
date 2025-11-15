@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml" })
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 abstract class MetamodelIntegrationTests {
 
 	@PersistenceContext EntityManager em;

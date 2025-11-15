@@ -15,7 +15,7 @@
  */
 package org.springframework.data.jpa.repository;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Map;
 
@@ -34,7 +34,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:config/namespace-application-context.xml")
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-infrastructure.xml" })
 class SPR8954Tests {
 
 	@Autowired ApplicationContext context;
