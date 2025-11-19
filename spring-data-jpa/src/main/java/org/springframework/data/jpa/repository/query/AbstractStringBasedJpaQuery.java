@@ -161,7 +161,8 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		ReturnedType returnedType = processor.getReturnedType();
 		Class<?> returnedJavaType = returnedType.getReturnedType();
 
-		if (!returnedType.isProjecting() || returnedJavaType.isInterface() || query.isNative()) {
+		if (query.hasConstructorExpression() || !returnedType.isProjecting() || returnedJavaType.isInterface()
+				|| query.isNative()) {
 			return returnedType;
 		}
 

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.data.util.Lazy;
 
 /**
  * HQL Query Transformer that rewrites the query using constructor expressions.
@@ -40,21 +41,21 @@ import org.springframework.data.repository.query.ReturnedType;
 class DtoProjectionTransformerDelegate {
 
 	private final ReturnedType returnedType;
-	private final boolean applyRewriting;
+	private final Lazy<Boolean> applyRewriting;
 	private final List<QueryTokenStream> selectItems = new ArrayList<>();
 
 	public DtoProjectionTransformerDelegate(ReturnedType returnedType) {
 		this.returnedType = returnedType;
-		this.applyRewriting = returnedType.isProjecting() && !returnedType.getReturnedType().isInterface()
-				&& returnedType.needsCustomConstruction();
+		this.applyRewriting = Lazy.of(() -> returnedType.isProjecting() && !returnedType.getReturnedType().isInterface()
+				&& returnedType.needsCustomConstruction());
 	}
 
 	public boolean applyRewriting() {
-		return applyRewriting;
+		return applyRewriting.get();
 	}
 
 	public boolean canRewrite() {
-		return applyRewriting() && !selectItems.isEmpty();
+		return !selectItems.isEmpty() && applyRewriting();
 	}
 
 	public void appendSelectItem(QueryTokenStream selectItem) {

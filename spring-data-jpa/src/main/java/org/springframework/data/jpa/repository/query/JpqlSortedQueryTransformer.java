@@ -146,7 +146,7 @@ class JpqlSortedQueryTransformer extends JpqlQueryRenderer {
 
 		QueryTokenStream selectItem = super.visitSelect_expression(ctx);
 
-		if (dtoDelegate != null && dtoDelegate.applyRewriting() && ctx.constructor_expression() == null) {
+		if (ctx.constructor_expression() == null && dtoDelegate != null && dtoDelegate.applyRewriting()) {
 			dtoDelegate.appendSelectItem(selectItem);
 		}
 
