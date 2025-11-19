@@ -73,7 +73,6 @@ class TupleConverterUnitTests {
 	}
 
 	@Test // DATAJPA-984
-	@SuppressWarnings("unchecked")
 	void returnsSingleTupleElementIfItMatchesExpectedType() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
@@ -85,7 +84,6 @@ class TupleConverterUnitTests {
 	}
 
 	@Test // DATAJPA-1024
-	@SuppressWarnings("unchecked")
 	void returnsNullForSingleElementTupleWithNullValue() {
 
 		doReturn(Collections.singletonList(element)).when(tuple).getElements();
@@ -130,13 +128,15 @@ class TupleConverterUnitTests {
 		assertThat(result).isInstanceOf(WithPC.class);
 	}
 
-	@Test // GH-3076
+	@Test // GH-3076, GH-4088
 	void fallsBackToCompatibleConstructor() {
 
 		ReturnedType returnedType = spy(
 				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
 		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.isDtoProjection()).thenReturn(true);
 		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two", "three"));
+		when(returnedType.hasInputProperties()).thenReturn(true);
 
 		doReturn(List.of(element, element, element)).when(tuple).getElements();
 		when(tuple.get(eq(0))).thenReturn("one");
@@ -163,13 +163,15 @@ class TupleConverterUnitTests {
 		assertThat(result.three).isEqualTo(97);
 	}
 
-	@Test // GH-3076
+	@Test // GH-3076, GH-4088
 	void acceptsConstructorWithCastableType() {
 
 		ReturnedType returnedType = spy(
 				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
 		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.isDtoProjection()).thenReturn(true);
 		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two", "three", "four"));
+		when(returnedType.hasInputProperties()).thenReturn(true);
 
 		doReturn(List.of(element, element, element, element)).when(tuple).getElements();
 		when(tuple.get(eq(0))).thenReturn("one");
@@ -185,13 +187,15 @@ class TupleConverterUnitTests {
 		assertThat(result.four).isEqualTo(2, offset(0.1d));
 	}
 
-	@Test // GH-3076
+	@Test // GH-3076, GH-4088
 	void failsForNonResolvableConstructor() {
 
 		ReturnedType returnedType = spy(
 				ReturnedType.of(MultipleConstructors.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
 		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.isDtoProjection()).thenReturn(true);
 		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two"));
+		when(returnedType.hasInputProperties()).thenReturn(true);
 
 		doReturn(List.of(element, element)).when(tuple).getElements();
 		when(tuple.get(eq(0))).thenReturn(1);

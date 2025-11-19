@@ -291,7 +291,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			return null;
 		}
 
-		return returnedType.isProjecting() && returnedType.getReturnedType().isInterface()
+		return returnedType.isInterfaceProjection()
 				&& !getMetamodel().isJpaManaged(returnedType.getReturnedType()) //
 						? Tuple.class //
 						: null;
@@ -362,7 +362,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 			this.type = type;
 			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
-			this.dtoProjection = type.isProjecting() && !type.getReturnedType().isInterface()
+			this.dtoProjection = type.isDtoProjection()
 					&& type.needsCustomConstruction();
 
 			if (this.dtoProjection) {

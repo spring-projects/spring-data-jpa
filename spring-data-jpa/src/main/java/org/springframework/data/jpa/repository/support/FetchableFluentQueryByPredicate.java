@@ -231,7 +231,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		if (returnedType.needsCustomConstruction()) {
 
 			Collection<String> requiredSelection;
-			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
+			if (scrollPosition instanceof KeysetScrollPosition && returnedType.isInterfaceProjection()) {
 				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
 			} else {
 				requiredSelection = inputProperties;
@@ -240,7 +240,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			PathBuilder<?> builder = new PathBuilder<>(entityPath.getType(), entityPath.getMetadata());
 			Expression<?>[] projection = requiredSelection.stream().map(builder::get).toArray(Expression[]::new);
 
-			if (returnedType.getReturnedType().isInterface()) {
+			if (returnedType.isInterfaceProjection()) {
 				query.select(new JakartaTuple(projection));
 			} else {
 				query.select(new DtoProjection(returnedType.getReturnedType(), projection));
