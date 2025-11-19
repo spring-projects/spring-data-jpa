@@ -114,7 +114,7 @@ class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 
 		if (returnedType.isProjecting()) {
 
-			if (returnedType.getReturnedType().isInterface()) {
+			if (returnedType.isInterfaceProjection()) {
 				return Tuple.class;
 			}
 

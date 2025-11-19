@@ -807,7 +807,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query;
 
-		boolean interfaceProjection = returnedType.getReturnedType().isInterface();
+		boolean interfaceProjection = returnedType.isInterfaceProjection();
 
 		if (returnedType.needsCustomConstruction() && (inputProperties.isEmpty() || !interfaceProjection)) {
 			inputProperties = returnedType.getInputProperties();

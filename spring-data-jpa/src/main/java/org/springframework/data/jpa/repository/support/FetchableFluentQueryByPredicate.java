@@ -25,6 +25,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Page;
@@ -51,7 +53,6 @@ import com.querydsl.core.types.Visitor;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPQLSerializer;
 import com.querydsl.jpa.impl.AbstractJPAQuery;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable implementation of {@link FetchableFluentQuery} based on a Querydsl {@link Predicate}. All methods that
@@ -231,7 +232,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 		if (returnedType.needsCustomConstruction()) {
 
 			Collection<String> requiredSelection;
-			if (scrollPosition instanceof KeysetScrollPosition && returnedType.getReturnedType().isInterface()) {
+			if (scrollPosition instanceof KeysetScrollPosition && returnedType.isInterfaceProjection()) {
 				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
 			} else {
 				requiredSelection = inputProperties;
@@ -240,7 +241,7 @@ class FetchableFluentQueryByPredicate<S, R> extends FluentQuerySupport<S, R> imp
 			PathBuilder<?> builder = new PathBuilder<>(entityPath.getType(), entityPath.getMetadata());
 			Expression<?>[] projection = requiredSelection.stream().map(builder::get).toArray(Expression[]::new);
 
-			if (returnedType.getReturnedType().isInterface()) {
+			if (returnedType.isInterfaceProjection()) {
 				query.select(new JakartaTuple(projection));
 			} else {
 				query.select(new DtoProjection(returnedType.getReturnedType(), projection));
