@@ -46,7 +46,7 @@ class DtoProjectionTransformerDelegate {
 
 	public DtoProjectionTransformerDelegate(ReturnedType returnedType) {
 		this.returnedType = returnedType;
-		this.applyRewriting = Lazy.of(() -> returnedType.isProjecting() && !returnedType.getReturnedType().isInterface()
+		this.applyRewriting = Lazy.of(() -> returnedType.isDtoProjection()
 				&& returnedType.needsCustomConstruction());
 	}
 

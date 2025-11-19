@@ -154,8 +154,7 @@ class QueriesFactory {
 		StringAotQuery aotStringQuery = StringAotQuery.of(entityQuery);
 		String countQuery = query.getString("countQuery");
 
-		if (returnedType.isProjecting() && returnedType.hasInputProperties()
-				&& !returnedType.getReturnedType().isInterface()) {
+		if (returnedType.isDtoProjection() && returnedType.hasInputProperties()) {
 
 			QueryProvider rewritten = entityQuery.rewrite(new QueryEnhancer.QueryRewriteInformation() {
 				@Override
@@ -328,7 +327,7 @@ class QueriesFactory {
 
 		if (returnedType.isProjecting()) {
 
-			if (returnedType.getReturnedType().isInterface()) {
+			if (returnedType.isInterfaceProjection()) {
 
 				if (query.hasConstructorExpressionOrDefaultProjection()) {
 					return result;

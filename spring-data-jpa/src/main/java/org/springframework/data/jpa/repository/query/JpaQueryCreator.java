@@ -165,7 +165,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	}
 
 	public boolean useTupleQuery() {
-		return returnedType.needsCustomConstruction() && returnedType.getReturnedType().isInterface();
+		return returnedType.needsCustomConstruction() && returnedType.isInterfaceProjection();
 	}
 
 	/**
