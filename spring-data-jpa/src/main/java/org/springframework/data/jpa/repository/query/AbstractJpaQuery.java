@@ -161,7 +161,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 		ResultProcessor withDynamicProjection = method.getResultProcessor().withDynamicProjection(accessor);
 		return withDynamicProjection.processResult(result,
-				new TupleConverter(withDynamicProjection.getReturnedType(), method.isNativeQuery()));
+				new LazyTupleConverter(withDynamicProjection.getReturnedType(), method.isNativeQuery()));
 	}
 
 	private JpaParametersParameterAccessor obtainParameterAccessor(Object[] values) {
@@ -313,6 +313,23 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	 */
 	protected abstract Query doCreateCountQuery(JpaParametersParameterAccessor accessor);
 
+	/**
+	 * Lazy variant of {@link TupleConverter} to avoid early instantiation.
+	 */
+	private static class LazyTupleConverter implements Converter<Object, Object> {
+
+		private final Lazy<TupleConverter> delegate;
+
+		public LazyTupleConverter(ReturnedType type, boolean nativeQuery) {
+			this.delegate = Lazy.of(() -> new TupleConverter(type, nativeQuery));
+		}
+
+		@Override
+		public Object convert(Object source) {
+			return delegate.get().convert(source);
+		}
+	}
+
 	public static class TupleConverter implements Converter<Object, Object> {
 
 		private final ReturnedType type;
@@ -346,7 +363,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 			this.type = type;
 			this.tupleWrapper = nativeQuery ? FallbackTupleWrapper::new : UnaryOperator.identity();
 			this.dtoProjection = type.isProjecting() && !type.getReturnedType().isInterface()
-					&& !type.getInputProperties().isEmpty();
+					&& type.needsCustomConstruction();
 
 			if (this.dtoProjection) {
 				this.preferredConstructor = PreferredConstructorDiscoverer.discover(type.getReturnedType());
