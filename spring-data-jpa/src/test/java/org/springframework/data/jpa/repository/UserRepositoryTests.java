@@ -418,7 +418,7 @@ class UserRepositoryTests {
 	 * Tests cascading on {@literal merge} operation.
 	 */
 	@Test
-	void testMergingCascadesCollegueas() {
+	void testMergingCascadesColleagues() {
 
 		firstUser.addColleague(secondUser);
 		flushTestUsers();
@@ -752,13 +752,18 @@ class UserRepositoryTests {
 		assertThat(repository.findBySpringDataNamedQuery("Gierke")).containsOnly(firstUser);
 	}
 
-	@Test // DATADOC-86
+	@Test // DATADOC-86, GH-4096
 	void readsPageWithGroupByClauseCorrectly() {
 
 		flushTestUsers();
 
+		repository.saveAndFlush(new User("Foo", "raymond", "foo@gmail.com"));
+
 		Page<String> result = repository.findByLastnameGrouped(PageRequest.of(0, 10));
 		assertThat(result.getTotalPages()).isOne();
+
+		assertThat(repository.findByLastnameGrouped(PageRequest.of(0, 3))).hasSize(3);
+		assertThat(repository.findByLastnameGrouped(PageRequest.of(1, 2))).hasSize(2);
 	}
 
 	@Test

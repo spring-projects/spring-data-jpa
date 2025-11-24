@@ -15,12 +15,14 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -165,6 +167,24 @@ public class AotRepositoryFragmentSupport {
 		}
 
 		return source;
+	}
+
+	protected long getCount(Query query) {
+
+		List<?> totals = query.getResultList();
+
+		if (totals.size() == 1) {
+			Object result = totals.get(0);
+
+			if (result instanceof Number n) {
+				return n.longValue();
+			}
+
+			return CONVERSION_SERVICE.convert(result, Long.class);
+		}
+
+		// group by count
+		return totals.size();
 	}
 
 	protected <T> @Nullable T convertOne(@Nullable Object result, boolean nativeQuery, Class<T> projection) {

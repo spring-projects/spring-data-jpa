@@ -226,7 +226,7 @@ class JpaCodeBlocks {
 				builder.add(createQuery(true, countQueryVariableName, countQueryStringNameVariableName, queryRewriterName,
 						queries.count(), null, pageable,
 						queryHints ? this.queryHints : MergedAnnotation.missing(), null, Long.class));
-				builder.addStatement("return ($T) $L.getSingleResult()", Long.class, countQueryVariableName);
+				builder.addStatement("return getCount($L)", countQueryVariableName);
 
 				// end control flow does not work well with lambdas
 				builder.unindent();
