@@ -19,6 +19,7 @@ import jakarta.persistence.QueryHint;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Limit;
@@ -45,6 +46,8 @@ import org.springframework.data.util.Streamable;
 interface UserRepository extends CrudRepository<User, Integer> {
 
 	List<User> findUserNoArgumentsBy();
+
+	Set<User> findUserSetBy();
 
 	User findOneByEmailAddress(String emailAddress);
 
@@ -148,6 +151,10 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	// -------------------------------------------------------------------------
 
 	List<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname);
+
+	Set<UserDtoProjection> findUserProjectionSetByLastnameStartingWith(String lastname);
+
+	Streamable<UserDtoProjection> findUserProjectionStreamableByLastnameStartingWith(String lastname);
 
 	Page<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname, Pageable page);
 
