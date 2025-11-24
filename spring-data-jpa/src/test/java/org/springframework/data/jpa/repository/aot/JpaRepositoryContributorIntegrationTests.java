@@ -21,6 +21,7 @@ import jakarta.persistence.EntityManager;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.hibernate.proxy.HibernateProxy;
@@ -105,9 +106,16 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderWithoutArguments() {
+	void testDerivedQueryWithoutArguments() {
 
 		List<User> users = fragment.findUserNoArgumentsBy();
+		assertThat(users).hasSize(7).hasOnlyElementsOfType(User.class);
+	}
+
+	@Test // GH-4094
+	void testDerivedQueryAsSet() {
+
+		Set<User> users = fragment.findUserSetBy();
 		assertThat(users).hasSize(7).hasOnlyElementsOfType(User.class);
 	}
 
@@ -119,7 +127,7 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testFindDerivedFinderOptionalEntity() {
+	void testFindDerivedQueryOptionalEntity() {
 
 		Optional<User> user = fragment.findOptionalOneByEmailAddress("yoda@jedi.org");
 		assertThat(user).isNotNull().containsInstanceOf(User.class)
@@ -141,7 +149,7 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderReturningList() {
+	void testDerivedQueryReturningList() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S");
 		assertThat(users).extracting(User::getEmailAddress).containsExactlyInAnyOrder("luke@jedi.org", "vader@empire.com",
@@ -157,14 +165,14 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testLimitedDerivedFinder() {
+	void testLimitedDerivedQuery() {
 
 		List<User> users = fragment.findTop2ByLastnameStartingWith("S");
 		assertThat(users).hasSize(2);
 	}
 
 	@Test // GH-3830
-	void testSortedDerivedFinder() {
+	void testSortedDerivedQuery() {
 
 		List<User> users = fragment.findByLastnameStartingWithOrderByEmailAddress("S");
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com",
@@ -172,14 +180,14 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderWithLimitArgument() {
+	void testDerivedQueryWithLimitArgument() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Limit.of(2));
 		assertThat(users).hasSize(2);
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderWithSort() {
+	void testDerivedQueryWithSort() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Sort.by("emailAddress"));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com",
@@ -187,14 +195,14 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderWithSortAndLimit() {
+	void testDerivedQueryWithSortAndLimit() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", Sort.by("emailAddress"), Limit.of(2));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderReturningListWithPageable() {
+	void testDerivedQueryReturningListWithPageable() {
 
 		List<User> users = fragment.findByLastnameStartingWith("S", PageRequest.of(0, 2, Sort.by("emailAddress")));
 		assertThat(users).extracting(User::getEmailAddress).containsExactly("han@smuggler.net", "kylo@new-empire.com");
@@ -208,7 +216,7 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderReturningPage() {
+	void testDerivedQueryReturningPage() {
 
 		Page<User> page = fragment.findPageOfUsersByLastnameStartingWith("S",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
@@ -220,7 +228,7 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderReturningSlice() {
+	void testDerivedQueryReturningSlice() {
 
 		Slice<User> slice = fragment.findSliceOfUserByLastnameStartingWith("S",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
@@ -374,15 +382,31 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
-	void testDerivedFinderReturningListOfProjections() {
+	void testDerivedQueryReturningListOfProjections() {
 
 		List<UserDtoProjection> users = fragment.findUserProjectionByLastnameStartingWith("S");
 		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
+	@Test // GH-4094
+	void testDerivedQueryReturningSetOfProjections() {
+
+		Set<UserDtoProjection> users = fragment.findUserProjectionSetByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
+	@Test // GH-4094
+	void testDerivedQueryReturningStreamableOfProjections() {
+
+		Streamable<UserDtoProjection> users = fragment.findUserProjectionStreamableByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
 	@Test // GH-3830
-	void testDerivedFinderReturningPageOfProjections() {
+	void testDerivedQueryReturningPageOfProjections() {
 
 		Page<UserDtoProjection> page = fragment.findUserProjectionByLastnameStartingWith("S",
 				PageRequest.of(0, 2, Sort.by("emailAddress")));
