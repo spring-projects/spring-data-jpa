@@ -491,7 +491,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				case NOT_LIKE:
 
 					PartTreeParameterBinding parameter = provider.next(part, String.class);
-					JpqlQueryBuilder.Expression parameterExpression = potentiallyIgnoreCase(part.getProperty(),
+					JpqlQueryBuilder.Expression parameterExpression = potentiallyIgnoreCase(part.getProperty().getLeafProperty(),
 							placeholder(parameter));
 
 					// Predicate like = builder.like(propertyExpression, parameterExpression, escape.getEscapeCharacter());
@@ -512,7 +512,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 						return type.equals(SIMPLE_PROPERTY) ? where.isNull() : where.isNotNull();
 					}
 
-					JpqlQueryBuilder.Expression expression = potentiallyIgnoreCase(property, placeholder(simple));
+					JpqlQueryBuilder.Expression expression = potentiallyIgnoreCase(property.getLeafProperty(),
+							placeholder(simple));
 					return type.equals(SIMPLE_PROPERTY) ? whereIgnoreCase.eq(expression) : whereIgnoreCase.neq(expression);
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
@@ -624,7 +625,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		 * @return
 		 */
 		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.Origin source, PropertyPath path) {
-			return potentiallyIgnoreCase(path, JpqlQueryBuilder.expression(source, path));
+			return potentiallyIgnoreCase(path.getLeafProperty(), JpqlQueryBuilder.expression(source, path));
 		}
 
 		/**
@@ -635,7 +636,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		 * @return
 		 */
 		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.PathExpression path) {
-			return potentiallyIgnoreCase(path.getPropertyPath(), path);
+			return potentiallyIgnoreCase(path.getPropertyPath().getLeafProperty(), path);
 		}
 
 		/**

@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -67,7 +69,7 @@ import org.springframework.data.util.Lazy;
 class JpaQueryCreatorTests {
 
 	private static final TestMetaModel ORDER = TestMetaModel.hibernateModel(Order.class, LineItem.class, Product.class);
-	private static final TestMetaModel PERSON = TestMetaModel.hibernateModel(Person.class);
+	private static final TestMetaModel PERSON = TestMetaModel.hibernateModel(Person.class, EmailAddress.class);
 	private static final TestMetaModel REFERENCE_IDS = TestMetaModel.hibernateModel(
 			ReferencingEmbeddedIdExampleEmployee.class, EmbeddedIdExampleEmployee.class, EmbeddedIdExampleEmployeePK.class,
 			EmbeddedIdExampleDepartment.class);
@@ -716,7 +718,8 @@ class JpaQueryCreatorTests {
 				.returning(resultType) //
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p.id id, p.firstname firstname, p.lastname lastname FROM %s p WHERE p.firstname = ?1",
+				.expectJpql(
+						"SELECT p.id id, p.emailAddress emailAddress, p.firstname firstname, p.lastname lastname FROM %s p WHERE p.firstname = ?1",
 						DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
@@ -766,6 +769,18 @@ class JpaQueryCreatorTests {
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
 						"SELECT r FROM ReferencingEmbeddedIdExampleEmployee r LEFT JOIN r.employee e LEFT JOIN e.department d WHERE d.name = ?1") //
+				.validateQuery();
+	}
+
+	@Test // GH-4087
+	void considersLeafPropertyTypeForIgnoreCase() {
+
+		queryCreator(PERSON) //
+				.forTree(Person.class, "findByEmailAddress_EmailIgnoreCase") //
+				.withParameters("foo") //
+				.as(QueryCreatorTester::create) //
+				.expectJpql(
+						"SELECT p FROM JpaQueryCreatorTests$Person p INNER JOIN p.emailAddress e WHERE UPPER(e.email) = UPPER(?1)") //
 				.validateQuery();
 	}
 
@@ -838,6 +853,13 @@ class JpaQueryCreatorTests {
 		@Id Long id;
 		String firstname;
 		String lastname;
+
+		@Embedded EmailAddress emailAddress;
+	}
+
+	@Embeddable
+	static class EmailAddress {
+		String email;
 	}
 
 	@jakarta.persistence.Entity
