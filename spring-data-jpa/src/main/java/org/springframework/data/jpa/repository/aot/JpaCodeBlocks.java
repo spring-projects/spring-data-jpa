@@ -559,23 +559,22 @@ class JpaCodeBlocks {
 
 			CodeBlock.Builder builder = CodeBlock.builder();
 
+			String entityGraphVariable = context.localVariable("entityGraph");
 			if (StringUtils.hasText(entityGraph.name())) {
 
 				builder.addStatement("$T<?> $L = $L.getEntityGraph($S)", jakarta.persistence.EntityGraph.class,
-						context.localVariable("entityGraph"),
-						context.fieldNameOf(EntityManager.class), entityGraph.name());
+						entityGraphVariable, context.fieldNameOf(EntityManager.class), entityGraph.name());
 			} else {
 
-				builder.addStatement("$T<$T> $L = $L.createEntityGraph($T.class)",
-						jakarta.persistence.EntityGraph.class, context.getDomainType(),
-						context.localVariable("entityGraph"),
-						context.fieldNameOf(EntityManager.class), context.getDomainType());
+				builder.addStatement("$T<$T> $L = $L.createEntityGraph($T.class)", jakarta.persistence.EntityGraph.class,
+						context.getDomainType(), entityGraphVariable, context.fieldNameOf(EntityManager.class),
+						context.getDomainType());
 
 				for (String attributePath : entityGraph.attributePaths()) {
 
 					String[] pathComponents = StringUtils.delimitedListToStringArray(attributePath, ".");
 
-					StringBuilder chain = new StringBuilder(context.localVariable("entityGraph"));
+					StringBuilder chain = new StringBuilder(entityGraphVariable);
 					for (int i = 0; i < pathComponents.length; i++) {
 
 						if (i < pathComponents.length - 1) {
@@ -587,10 +586,9 @@ class JpaCodeBlocks {
 
 					builder.addStatement(chain.toString(), (Object[]) pathComponents);
 				}
-
-				builder.addStatement("$L.setHint($S, $L)", queryVariableName, entityGraph.type().getKey(),
-						context.localVariable("entityGraph"));
 			}
+
+			builder.addStatement("$L.setHint($S, $L)", queryVariableName, entityGraph.type().getKey(), entityGraphVariable);
 
 			return builder.build();
 		}
