@@ -662,13 +662,12 @@ class JpaRepositoryContributorIntegrationTests {
 				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
 	}
 
-	@Test // GH-3830
+	@Test // GH-3830, GH-4097
 	void shouldApplyNamedEntityGraph() {
 
 		User chewie = fragment.findWithNamedEntityGraphByFirstname("Chewbacca");
 
-		assertThat(chewie.getManager()).isInstanceOf(HibernateProxy.class);
-		assertThat(chewie.getRoles()).isNotInstanceOf(HibernateProxy.class);
+		assertThat(chewie.getManager()).isNotInstanceOf(HibernateProxy.class);
 	}
 
 	@Test // GH-3830

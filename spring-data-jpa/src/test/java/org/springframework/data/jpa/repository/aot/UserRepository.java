@@ -251,7 +251,7 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@QueryHints(value = { @QueryHint(name = "jakarta.persistence.cache.storeMode", value = "foo") }, forCounting = false)
 	List<User> findHintedByLastname(String lastname);
 
-	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.overview")
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.detail")
 	User findWithNamedEntityGraphByFirstname(String firstname);
 
 	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
