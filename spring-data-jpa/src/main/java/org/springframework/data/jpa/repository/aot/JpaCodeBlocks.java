@@ -656,7 +656,7 @@ class JpaCodeBlocks {
 					: TypeName.get(context.getDomainType());
 			builder.add("\n");
 
-			if (modifying.isPresent()) {
+			if (modifying.isPresent() && !(aotQuery instanceof StringAotQuery.DerivedAotQuery)) {
 
 				if (modifying.getBoolean("flushAutomatically")) {
 					builder.addStatement("this.$L.flush()", context.fieldNameOf(EntityManager.class));

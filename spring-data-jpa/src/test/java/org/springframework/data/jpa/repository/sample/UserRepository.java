@@ -307,6 +307,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
 
+	@Modifying
+	User deleteModifyingByLastname(String lastname);
+
 	User deleteOneByLastname(String lastname);
 
 	Optional<User> deleteOneOptionalByLastname(String lastname);

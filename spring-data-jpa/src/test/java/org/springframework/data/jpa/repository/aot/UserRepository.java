@@ -205,6 +205,11 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	User deleteByEmailAddress(String username);
 
+	@Modifying
+	User deleteByEmailAddressAndIdIsNotNull(String email);
+
+	int deleteAndReturnCountByEmailAddress(String username);
+
 	Streamable<User> deleteStreamableByEmailAddress(String username);
 
 	// cannot generate delete and return a domain object

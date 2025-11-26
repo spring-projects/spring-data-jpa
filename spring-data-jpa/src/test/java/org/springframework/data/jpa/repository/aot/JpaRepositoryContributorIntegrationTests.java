@@ -558,6 +558,31 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(yodaShouldBeGone).isNull();
 	}
 
+	@Test // GH-4102
+	void testDerivedDeleteSingleWithModifying() {
+
+		User user = fragment.deleteByEmailAddressAndIdIsNotNull("yoda@jedi.org");
+		assertThat(user).isNotNull().extracting(User::getEmailAddress).isEqualTo("yoda@jedi.org");
+
+		Object yodaShouldBeGone = em
+				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
+				.getSingleResultOrNull();
+		assertThat(yodaShouldBeGone).isNull();
+	}
+
+	@Test // GH-4102
+	void testDerivedDeleteAndReturnCount() {
+
+		int count = fragment.deleteAndReturnCountByEmailAddress("yoda@jedi.org");
+
+		assertThat(count).isEqualTo(1);
+
+		Object yodaShouldBeGone = em
+				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
+				.getSingleResultOrNull();
+		assertThat(yodaShouldBeGone).isNull();
+	}
+
 	@Test // GH-3830
 	void shouldReturnStreamableDelete() {
 

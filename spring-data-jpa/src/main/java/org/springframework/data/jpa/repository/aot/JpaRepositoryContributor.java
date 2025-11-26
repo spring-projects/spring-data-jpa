@@ -207,7 +207,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 					.metadataOnly(aotQueries.toMetadata(queryMethod.isPageQuery()));
 		}
 
-		if (queryMethod.isModifyingQuery()) {
+		if (queryMethod.isModifyingQuery() && !(aotQueries.result() instanceof StringAotQuery.DerivedAotQuery)) {
 
 			TypeInformation<?> returnType = getRepositoryInformation().getReturnType(method);
 

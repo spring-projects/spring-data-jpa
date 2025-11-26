@@ -173,7 +173,7 @@ abstract class StringAotQuery extends AotQuery {
 	 *
 	 * @author Mark Paluch
 	 */
-	private static class DerivedAotQuery extends StringAotQuery {
+	static class DerivedAotQuery extends StringAotQuery {
 
 		private final String queryString;
 		private final Limit limit;
