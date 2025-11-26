@@ -1621,6 +1621,15 @@ class UserRepositoryTests {
 				.isThrownBy(() -> repository.deleteOneByLastname(firstUser.getLastname()));
 	}
 
+	@Test // GH-4102
+	void deleteOneModifying() {
+
+		flushTestUsers();
+
+		User user = repository.deleteModifyingByLastname(firstUser.getLastname());
+		assertThat(user).isEqualTo(firstUser);
+	}
+
 	@Test // DATAJPA-460
 	void deleteByShouldRemoveElementsMatchingDerivedQuery() {
 
