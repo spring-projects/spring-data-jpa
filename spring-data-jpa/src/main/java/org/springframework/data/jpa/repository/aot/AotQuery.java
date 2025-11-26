@@ -67,6 +67,14 @@ abstract class AotQuery {
 	}
 
 	/**
+	 * @return whether the query is derived.
+	 * @since 4.0.1
+	 */
+	public boolean isDerived() {
+		return false;
+	}
+
+	/**
 	 * @return whether the query a delete query.
 	 */
 	public boolean isDelete() {
@@ -81,23 +89,29 @@ abstract class AotQuery {
 	}
 
 	/**
-	 * @return {@literal true} if the query uses value expressions.
-	 */
-	public boolean hasExpression() {
-
-		for (ParameterBinding parameterBinding : parameterBindings) {
-			if (parameterBinding.getOrigin().isExpression()) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * @return {@literal true} if query is expected to return the declared method type directly; {@literal false} if the
 	 *         result requires projection post-processing. See also {@code NativeJpaQuery#getTypeToQueryFor}.
 	 */
 	public abstract boolean hasConstructorExpressionOrDefaultProjection();
+
+	/**
+	 * Extension to describe a named query.
+	 *
+	 * @since 4.0.1
+	 */
+	interface NamedQuery {
+
+		/**
+		 * @return the query name.
+		 */
+		String getQueryName();
+
+		/**
+		 * @return {@literal true} if the query is managed (e.g. defined in an {@code orm.xml} or via {@code @NamedQuery});
+		 *         {@literal false} otherwise
+		 */
+		boolean isManaged();
+
+	}
 
 }

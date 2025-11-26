@@ -207,14 +207,8 @@ class QueriesFactory {
 		}
 
 		String countProjection = query.isPresent() ? query.getString("countProjection") : null;
-		return AotQueries.withDerivedCountQuery(aotQuery, it -> {
-
-			if (it instanceof StringAotQuery sq) {
-				return sq.getQuery();
-			}
-
-			return ((NamedAotQuery) aotQuery).getQuery();
-		}, countProjection, selector);
+		return AotQueries.withDerivedCountQuery(aotQuery, it -> ((StringAotQuery) aotQuery).getQuery(), countProjection,
+				selector);
 	}
 
 	private AotQuery createNamedAotQuery(ReturnedType returnedType, QueryEnhancerSelector selector, String queryName,
@@ -225,7 +219,7 @@ class QueriesFactory {
 			String queryString = namedQueries.getQuery(queryName);
 
 			DeclaredQuery query = isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString);
-			return StringAotQuery.named(queryName, EntityQuery.create(query, selector));
+			return StringAotQuery.named(queryName, EntityQuery.create(query, selector), false);
 		}
 
 		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryName);
@@ -249,7 +243,7 @@ class QueriesFactory {
 
 		DeclaredQuery query = isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString);
 
-		return NamedAotQuery.named(namedQuery.getName(), EntityQuery.create(query, selector));
+		return StringAotQuery.named(namedQuery.getName(), EntityQuery.create(query, selector), true);
 	}
 
 	private @Nullable TypedQueryReference<?> getNamedQuery(ReturnedType returnedType, String queryName) {

@@ -110,34 +110,22 @@ record AotQueries(AotQuery result, AotQuery count) {
 
 			Map<String, Object> serialized = new LinkedHashMap<>();
 
-			if (result() instanceof NamedAotQuery nq) {
-
-				serialized.put("name", nq.getName());
-				serialized.put("query", nq.getQueryString());
+			if (result() instanceof AotQuery.NamedQuery nq) {
+				serialized.put("name", nq.getQueryName());
 			}
 
 			if (result() instanceof StringAotQuery sq) {
 				serialized.put("query", sq.getQueryString());
 			}
 
-			if (result() instanceof StringAotQuery.NamedStringAotQuery nsq) {
-				serialized.put("name", nsq.getQueryName());
-			}
-
 			if (paging) {
 
-				if (count() instanceof NamedAotQuery nq) {
-
-					serialized.put("count-name", nq.getName());
-					serialized.put("count-query", nq.getQueryString());
+				if (count() instanceof AotQuery.NamedQuery nq) {
+					serialized.put("count-name", nq.getQueryName());
 				}
 
 				if (count() instanceof StringAotQuery sq) {
 					serialized.put("count-query", sq.getQueryString());
-				}
-
-				if (count() instanceof StringAotQuery.NamedStringAotQuery nsq) {
-					serialized.put("count-name", nsq.getQueryName());
 				}
 			}
 
