@@ -59,8 +59,8 @@ abstract class StringAotQuery extends AotQuery {
 	 * Creates a new named (via {@link org.springframework.data.repository.core.NamedQueries}) {@code StringAotQuery} from
 	 * a {@link EntityQuery}. Parses the query into {@link PreprocessedQuery}.
 	 */
-	static StringAotQuery named(String queryName, EntityQuery query) {
-		return new NamedStringAotQuery(queryName, query);
+	static StringAotQuery named(String queryName, EntityQuery query, boolean managed) {
+		return new NamedStringAotQuery(queryName, query, managed);
 	}
 
 	/**
@@ -148,22 +148,25 @@ abstract class StringAotQuery extends AotQuery {
 
 	}
 
-	static class NamedStringAotQuery extends DeclaredAotQuery {
+	private static class NamedStringAotQuery extends DeclaredAotQuery implements NamedQuery {
 
 		private final String queryName;
+		private final boolean managed;
 
-		NamedStringAotQuery(String queryName, EntityQuery entityQuery) {
+		NamedStringAotQuery(String queryName, EntityQuery entityQuery, boolean managed) {
 			super(entityQuery);
 			this.queryName = queryName;
+			this.managed = managed;
 		}
 
-		NamedStringAotQuery(String queryName, PreprocessedQuery query, boolean constructorExpressionOrDefaultProjection) {
-			super(query, constructorExpressionOrDefaultProjection);
-			this.queryName = queryName;
-		}
-
+		@Override
 		public String getQueryName() {
 			return queryName;
+		}
+
+		@Override
+		public boolean isManaged() {
+			return managed;
 		}
 
 	}
@@ -173,7 +176,7 @@ abstract class StringAotQuery extends AotQuery {
 	 *
 	 * @author Mark Paluch
 	 */
-	static class DerivedAotQuery extends StringAotQuery {
+	private static class DerivedAotQuery extends StringAotQuery {
 
 		private final String queryString;
 		private final Limit limit;
@@ -207,6 +210,11 @@ abstract class StringAotQuery extends AotQuery {
 		@Override
 		public Limit getLimit() {
 			return limit;
+		}
+
+		@Override
+		public boolean isDerived() {
+			return true;
 		}
 
 		@Override
