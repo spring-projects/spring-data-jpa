@@ -26,7 +26,6 @@ import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -45,9 +44,12 @@ import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.query.common.TemporalUnit;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Lazy;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
+import org.springframework.util.CollectionUtils;
 
 /**
  * AOT metamodel implementation that uses Hibernate to build the metamodel.
@@ -59,6 +61,17 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
  */
 class AotMetamodel implements Metamodel {
 
+	private static final Logger log = LoggerFactory.getLogger(AotMetamodel.class);
+	
+	/**
+	 * Collection of know properties causing problems during AOT if set differntly
+	 */
+	private static final Map<String, Object> FAILSAFE_AOT_PROPERTIES = Map.of( //
+			JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
+			JdbcSettings.CONNECTION_PROVIDER, NoOpConnectionProvider.INSTANCE, //
+			QuerySettings.QUERY_STARTUP_CHECKING, false, //
+			PersistenceSettings.JPA_CALLBACKS_ENABLED, false //
+	);
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
 
@@ -89,18 +102,37 @@ class AotMetamodel implements Metamodel {
 
 	static Lazy<EntityManagerFactory> init(Supplier<PersistenceUnitInfoDescriptor> unitInfo,
 			Map<String, Object> jpaProperties) {
+		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(), initProperties(jpaProperties)).build());
+	}
 
-		Map<String, Object> properties = new LinkedHashMap<>();
-		properties.putAll(Map.of(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE, //
-				JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
-				JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
-				QuerySettings.QUERY_STARTUP_CHECKING, false, //
-				PersistenceSettings.JPA_CALLBACKS_ENABLED, false));
+	static Map<String, Object> initProperties(Map<String, Object> jpaProperties) {
 
+		Map<String, Object> properties = CollectionUtils
+				.newLinkedHashMap(jpaProperties.size() + FAILSAFE_AOT_PROPERTIES.size() + 1);
+
+		// we allow explicit Dialect Overrides, but put in a default one to avoid potential db access
+		properties.put(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE);
+
+		// apply user defined properties
 		properties.putAll(jpaProperties);
 
-		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(), properties)
-				.build());
+		// override properties known to cause trouble
+		applyPropertyOverrides(properties);
+
+		return properties;
+	}
+
+	private static void applyPropertyOverrides(Map<String, Object> properties) {
+
+		for (Map.Entry<String, Object> entry : FAILSAFE_AOT_PROPERTIES.entrySet()) {
+
+			if (log.isDebugEnabled() && properties.containsKey(entry.getKey())) {
+				log.debug("Overriding property [%s] with value [%s] for AOT Repository processing.".formatted(entry.getKey(),
+						entry.getValue()));
+			}
+
+			properties.put(entry.getKey(), entry.getValue());
+		}
 	}
 
 	private Metamodel getMetamodel() {
@@ -180,6 +212,16 @@ class AotMetamodel implements Metamodel {
 			return "datediff(?1,?2,?3)";
 		}
 
+	}
+
+	static class NoOpConnectionProvider extends UserSuppliedConnectionProviderImpl {
+
+		static final NoOpConnectionProvider INSTANCE = new NoOpConnectionProvider();
+
+		@Override
+		public String toString() {
+			return "NoOpConnectionProvider";
+		}
 	}
 
 }
