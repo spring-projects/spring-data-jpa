@@ -408,7 +408,6 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
 			Environment environment = repositoryContext.getEnvironment();
-			JpaProperties properties = new JpaProperties(environment);
 			boolean useEntityManager = environment.getProperty(USE_ENTITY_MANAGER, Boolean.class, false);
 
 			if (useEntityManager) {
@@ -425,6 +424,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 				return new JpaRepositoryContributor(repositoryContext, emf);
 			}
 
+			JpaProperties properties = new JpaProperties(environment);
 			ObjectProvider<PersistenceManagedTypes> managedTypesProvider = beanFactory
 					.getBeanProvider(PersistenceManagedTypes.class);
 			PersistenceManagedTypes managedTypes = managedTypesProvider.getIfUnique();
@@ -466,18 +466,14 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			this.jpaProperties = new LinkedHashMap<>();
 
-			String implicitStrategy = environment.getProperty("spring.jpa.hibernate.naming.implicitStrategy");
-			if (implicitStrategy == null) {
-				implicitStrategy = environment.getProperty("spring.jpa.hibernate.naming.implicit-strategy");
-			}
+			String implicitStrategy = getFirstAvailable(environment, "spring.jpa.hibernate.naming.implicitStrategy",
+					"spring.jpa.hibernate.naming.implicit-strategy");
 			if (StringUtils.hasText(implicitStrategy)) {
 				jpaProperties.put(MappingSettings.IMPLICIT_NAMING_STRATEGY, implicitStrategy);
 			}
 
-			String physicalStrategy = environment.getProperty("spring.jpa.hibernate.naming.physicalStrategy");
-			if (physicalStrategy == null) {
-				physicalStrategy = environment.getProperty("spring.jpa.hibernate.naming.physical-strategy");
-			}
+			String physicalStrategy = getFirstAvailable(environment, "spring.jpa.hibernate.naming.physicalStrategy",
+					"spring.jpa.hibernate.naming.physical-strategy");
 			if (StringUtils.hasText(physicalStrategy)) {
 				jpaProperties.put(MappingSettings.PHYSICAL_NAMING_STRATEGY, physicalStrategy);
 			}
@@ -497,6 +493,18 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 					}
 				});
 			}
+		}
+
+		@Nullable
+		String getFirstAvailable(Environment environment, String... propertyNames) {
+
+			for (String propertyName : propertyNames) {
+				String value = environment.getProperty(propertyName);
+				if (value != null) {
+					return value;
+				}
+			}
+			return null;
 		}
 
 		public Map<String, Object> getJpaProperties() {
