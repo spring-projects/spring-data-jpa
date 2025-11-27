@@ -43,6 +43,7 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.query.common.TemporalUnit;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,6 +181,7 @@ class AotMetamodel implements Metamodel {
 	 * A {@link Dialect} to satisfy the bootstrap requirements of {@link JdbcSettings#DIALECT} during the AOT Phase. Printed
 	 * to log files (info level) when the {@link org.hibernate.engine.jdbc.env.spi.JdbcEnvironment} is created.
 	 */
+	@NullUnmarked
 	@SuppressWarnings("deprecation")
 	static class SpringDataJpaAotDialect extends Dialect {
 
