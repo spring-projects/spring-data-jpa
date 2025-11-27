@@ -33,6 +33,8 @@ import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.sequence.ANSISequenceSupport;
+import org.hibernate.dialect.sequence.SequenceSupport;
 import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
@@ -137,7 +139,14 @@ class AotMetamodel implements Metamodel {
 	 */
 	@SuppressWarnings("deprecation")
 	static class SpringDataJpaAotDialect extends Dialect {
+
 		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect();
+
+		@Override
+		public SequenceSupport getSequenceSupport() {
+			return ANSISequenceSupport.INSTANCE;
+		}
+
 	}
 
 }
