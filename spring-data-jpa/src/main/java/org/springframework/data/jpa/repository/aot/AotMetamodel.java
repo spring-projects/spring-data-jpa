@@ -26,6 +26,7 @@ import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.net.URL;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -61,11 +62,12 @@ class AotMetamodel implements Metamodel {
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
 
-	public AotMetamodel(PersistenceManagedTypes managedTypes) {
-		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl());
+	public AotMetamodel(PersistenceManagedTypes managedTypes, Map<String, Object> jpaProperties) {
+		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl(), jpaProperties);
 	}
 
-	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl) {
+	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl,
+			Map<String, Object> jpaProperties) {
 
 		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(
 				managedTypes.getClass().getClassLoader());
@@ -78,21 +80,26 @@ class AotMetamodel implements Metamodel {
 
 			persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
 			return new PersistenceUnitInfoDescriptor(persistenceUnitInfo.asStandardPersistenceUnitInfo());
-		});
+		}, jpaProperties);
 	}
 
-	public AotMetamodel(PersistenceUnitInfo unitInfo) {
-		this.entityManagerFactory = init(() -> new PersistenceUnitInfoDescriptor(unitInfo));
+	public AotMetamodel(PersistenceUnitInfo unitInfo, Map<String, Object> jpaProperties) {
+		this.entityManagerFactory = init(() -> new PersistenceUnitInfoDescriptor(unitInfo), jpaProperties);
 	}
 
-	static Lazy<EntityManagerFactory> init(Supplier<PersistenceUnitInfoDescriptor> unitInfo) {
+	static Lazy<EntityManagerFactory> init(Supplier<PersistenceUnitInfoDescriptor> unitInfo,
+			Map<String, Object> jpaProperties) {
 
-		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(),
-				Map.of(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE, //
-						JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
-						JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
-						QuerySettings.QUERY_STARTUP_CHECKING, false, //
-						PersistenceSettings.JPA_CALLBACKS_ENABLED, false))
+		Map<String, Object> properties = new LinkedHashMap<>();
+		properties.putAll(Map.of(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE, //
+				JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
+				JdbcSettings.CONNECTION_PROVIDER, new UserSuppliedConnectionProviderImpl(), //
+				QuerySettings.QUERY_STARTUP_CHECKING, false, //
+				PersistenceSettings.JPA_CALLBACKS_ENABLED, false));
+
+		properties.putAll(jpaProperties);
+
+		return Lazy.of(() -> new EntityManagerFactoryBuilderImpl(unitInfo.get(), properties)
 				.build());
 	}
 

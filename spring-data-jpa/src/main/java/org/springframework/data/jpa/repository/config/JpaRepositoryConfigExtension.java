@@ -35,7 +35,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.hibernate.cfg.MappingSettings;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +57,8 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.dao.DataAccessException;
@@ -403,6 +408,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			ConfigurableListableBeanFactory beanFactory = repositoryContext.getBeanFactory();
 			Environment environment = repositoryContext.getEnvironment();
+			JpaProperties properties = new JpaProperties(environment);
 			boolean useEntityManager = environment.getProperty(USE_ENTITY_MANAGER, Boolean.class, false);
 
 			if (useEntityManager) {
@@ -426,7 +432,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			if (managedTypes != null) {
 
 				log.debug("Using PersistenceManagedTypes for AOT repository generation");
-				return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(managedTypes));
+				return contribute(repositoryContext,
+						AotEntityManagerFactoryCreator.from(managedTypes, properties.getJpaProperties()));
 			}
 
 			ObjectProvider<PersistenceUnitInfo> infoProvider = beanFactory.getBeanProvider(PersistenceUnitInfo.class);
@@ -435,16 +442,65 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 			if (unitInfo != null) {
 
 				log.debug("Using PersistenceUnitInfo for AOT repository generation");
-				return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(unitInfo));
+				return contribute(repositoryContext,
+						AotEntityManagerFactoryCreator.from(unitInfo, properties.getJpaProperties()));
 			}
 
 			log.debug("Using scanned types for AOT repository generation");
-			return contribute(repositoryContext, AotEntityManagerFactoryCreator.from(repositoryContext));
+			return contribute(repositoryContext,
+					AotEntityManagerFactoryCreator.from(repositoryContext, properties.getJpaProperties()));
 		}
 
 		private JpaRepositoryContributor contribute(AotRepositoryContext repositoryContext,
 				AotEntityManagerFactoryCreator factory) {
 			return new JpaRepositoryContributor(repositoryContext, factoryCache.get(factory));
+		}
+
+	}
+
+	static class JpaProperties {
+
+		private final Map<String, Object> jpaProperties;
+
+		public JpaProperties(Environment environment) {
+
+			this.jpaProperties = new LinkedHashMap<>();
+
+			String implicitStrategy = environment.getProperty("spring.jpa.hibernate.naming.implicitStrategy");
+			if (implicitStrategy == null) {
+				implicitStrategy = environment.getProperty("spring.jpa.hibernate.naming.implicit-strategy");
+			}
+			if (StringUtils.hasText(implicitStrategy)) {
+				jpaProperties.put(MappingSettings.IMPLICIT_NAMING_STRATEGY, implicitStrategy);
+			}
+
+			String physicalStrategy = environment.getProperty("spring.jpa.hibernate.naming.physicalStrategy");
+			if (physicalStrategy == null) {
+				physicalStrategy = environment.getProperty("spring.jpa.hibernate.naming.physical-strategy");
+			}
+			if (StringUtils.hasText(physicalStrategy)) {
+				jpaProperties.put(MappingSettings.PHYSICAL_NAMING_STRATEGY, physicalStrategy);
+			}
+
+			if (environment instanceof ConfigurableEnvironment ce) {
+
+				ce.getPropertySources().forEach(propertySource -> {
+
+					if (propertySource instanceof EnumerablePropertySource<?> eps) {
+
+						String prefix = "spring.jpa.properties.";
+						Map<String, Object> partialProperties = Stream.of(eps.getPropertyNames())
+								.filter(propertyName -> propertyName.startsWith(prefix))
+								.collect(Collectors.toMap(k -> k.substring(prefix.length()), propertySource::getProperty));
+
+						jpaProperties.putAll(partialProperties);
+					}
+				});
+			}
+		}
+
+		public Map<String, Object> getJpaProperties() {
+			return jpaProperties;
 		}
 
 	}
