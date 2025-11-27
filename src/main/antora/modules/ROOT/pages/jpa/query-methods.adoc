@@ -365,7 +365,6 @@ Depending on what you're doing with your `QueryRewriter`, it may be advisable to
 NOTE: In a CDI-based environment, Spring Data JPA will search the `BeanManager` for instances of your implementation of
 `QueryRewriter`.
 
-[[jpa.query-methods.at-query.projections]]
 [[jpa.query-methods.sorting]]
 == Using Sort
 
@@ -410,7 +409,7 @@ Throws Exception.
 * When used with derived Queries or String-based Queries, the order string is appended to the query.
 * When used with Query by Example or Specifications (that use `CriteriaQuery`), order expressions are parsed and added to the `CriteriaQuery` as expressions.
 Query expressions can contain function calls, various clauses (such as `CASE WHEN`, arithmetic expressions) or property paths.
-Order translation does not support subquery expressions, `TREAT` and `CAST`.`
+Order translation does not support subquery expressions, `TREAT` and `CAST`.
 
 [[jpa.query-methods.paging]]
 
