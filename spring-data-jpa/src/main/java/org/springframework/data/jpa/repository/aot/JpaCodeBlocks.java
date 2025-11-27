@@ -645,7 +645,7 @@ class JpaCodeBlocks {
 			TypeName typeToRead = isProjecting ? methodReturn.getActualTypeName() : TypeName.get(context.getDomainType());
 			builder.add("\n");
 
-			if (modifying.isPresent() && !aotQuery.isDerived()) {
+			if (modifying.isPresent() && aotQuery !=null && !aotQuery.isDerived()) {
 
 				if (modifying.getBoolean("flushAutomatically")) {
 					builder.addStatement("this.$L.flush()", context.fieldNameOf(EntityManager.class));
