@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.metamodel.EmbeddableType;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
@@ -33,12 +34,15 @@ import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
 import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.pagination.LimitHandler;
+import org.hibernate.dialect.pagination.OffsetFetchLimitHandler;
 import org.hibernate.dialect.sequence.ANSISequenceSupport;
 import org.hibernate.dialect.sequence.SequenceSupport;
 import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
+import org.hibernate.query.common.TemporalUnit;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.util.Lazy;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
@@ -142,9 +146,31 @@ class AotMetamodel implements Metamodel {
 
 		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect();
 
+		public boolean isCurrentTimestampSelectStringCallable() {
+			return false;
+		}
+
+		public String getCurrentTimestampSelectString() {
+			return "call current_timestamp()";
+		}
+
+		@Override
+		public LimitHandler getLimitHandler() {
+			return OffsetFetchLimitHandler.INSTANCE;
+		}
+
 		@Override
 		public SequenceSupport getSequenceSupport() {
 			return ANSISequenceSupport.INSTANCE;
+		}
+
+		@Override
+		@SuppressWarnings("deprecation")
+		public String timestampdiffPattern(TemporalUnit unit, TemporalType fromTemporalType, TemporalType toTemporalType) {
+			if (unit == null) {
+				return "(?3-?2)";
+			}
+			return "datediff(?1,?2,?3)";
 		}
 
 	}
