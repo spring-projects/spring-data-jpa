@@ -43,6 +43,8 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.query.common.TemporalUnit;
+import org.hibernate.sql.ast.SqlAstTranslatorFactory;
+import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -203,6 +205,12 @@ class AotMetamodel implements Metamodel {
 		@Override
 		public SequenceSupport getSequenceSupport() {
 			return ANSISequenceSupport.INSTANCE;
+		}
+
+		@Override
+		public SqlAstTranslatorFactory getSqlAstTranslatorFactory() {
+			// javadoc implies null would trigger default which is not the case
+			return new StandardSqlAstTranslatorFactory();
 		}
 
 		@Override
