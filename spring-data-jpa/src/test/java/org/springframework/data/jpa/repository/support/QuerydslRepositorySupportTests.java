@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration({ "classpath:infrastructure.xml" })
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 @Transactional
 class QuerydslRepositorySupportTests {
 

@@ -22,7 +22,6 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.sample.Country;
 import org.springframework.data.jpa.domain.sample.Customer;
@@ -37,7 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(locations = "classpath:config/namespace-application-context-h2.xml")
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-h2-infrastructure.xml" })
 @Transactional
 class CustomerRepositoryProjectionTests {
 

@@ -53,7 +53,7 @@ import org.springframework.test.context.ContextConfiguration;
 class AotUserRepositoryTests extends UserRepositoryTests {
 
 	@Configuration
-	@ImportResource("classpath:/infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class Config {
 
 		@PersistenceContext EntityManager entityManager;

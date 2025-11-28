@@ -49,7 +49,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @soundtrack Henrik Freischlader Trio - Nobody Else To Blame (Openness)
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class AbstractStringBasedJpaQueryIntegrationTests {
 
 	private static final JpaQueryConfiguration CONFIG = new JpaQueryConfiguration(QueryRewriterProvider.simple(),

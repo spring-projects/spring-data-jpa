@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	   xsi:schemaLocation="http://www.springframework.org/schema/jdbc https://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="abstractVendorAdaptor" abstract="true">
+		<property name="generateDdl" value="true"/>
+		<property name="database" value="HSQL"/>
+	</bean>
+
+	<jdbc:embedded-database id="dataSource" type="HSQL" generate-name="true">
+		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/hsqldb-init.sql"/>
+		<jdbc:script execution="INIT" separator="/;" location="classpath:scripts/schema-stored-procedures.sql"/>
+	</jdbc:embedded-database>
+
+</beans>
