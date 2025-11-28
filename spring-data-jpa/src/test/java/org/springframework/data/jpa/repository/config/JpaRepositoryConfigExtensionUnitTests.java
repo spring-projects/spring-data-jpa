@@ -23,7 +23,9 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
+import org.hibernate.cfg.MappingSettings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -38,9 +40,11 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension.JpaProperties;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
+import org.springframework.mock.env.MockEnvironment;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
 
 /**
@@ -147,6 +151,40 @@ class JpaRepositoryConfigExtensionUnitTests {
 
 		assertThat(new JpaRepositoryConfigExtension().getRepositoryAotProcessor())
 				.isEqualTo(JpaRepositoryConfigExtension.JpaRepositoryRegistrationAotProcessor.class);
+	}
+
+	@Test // GH-4092
+	void collectsWellKnownPropertyNames() {
+
+		MockEnvironment environment = new MockEnvironment()
+				.withProperty("spring.jpa.hibernate.naming.implicit-strategy", "Implicit")
+				.withProperty("spring.jpa.hibernate.naming.physical-strategy", "Physical");
+
+		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
+
+		assertThat(jpaProperties).containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "Implicit");
+		assertThat(jpaProperties).containsEntry(MappingSettings.PHYSICAL_NAMING_STRATEGY, "Physical");
+
+		environment = new MockEnvironment().withProperty("spring.jpa.hibernate.naming.implicitStrategy", "Implicit")
+				.withProperty("spring.jpa.hibernate.naming.physicalStrategy", "Physical");
+
+		jpaProperties = new JpaProperties(environment).getJpaProperties();
+
+		assertThat(jpaProperties).containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "Implicit");
+		assertThat(jpaProperties).containsEntry(MappingSettings.PHYSICAL_NAMING_STRATEGY, "Physical");
+	}
+
+	@Test // GH-4092
+	void collectsJpaPropertyNames() {
+
+		MockEnvironment environment = new MockEnvironment()
+				.withProperty("spring.jpa.properties." + MappingSettings.IMPLICIT_NAMING_STRATEGY, "Implicit")
+				.withProperty("spring.jpa.properties.foo", "bar");
+
+		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
+
+		assertThat(jpaProperties).containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "Implicit");
+		assertThat(jpaProperties).containsEntry("foo", "bar");
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,

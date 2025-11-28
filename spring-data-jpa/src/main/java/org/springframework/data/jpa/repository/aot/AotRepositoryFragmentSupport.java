@@ -169,6 +169,7 @@ public class AotRepositoryFragmentSupport {
 		return source;
 	}
 
+	@SuppressWarnings("NullAway")
 	protected long getCount(Query query) {
 
 		List<?> totals = query.getResultList();

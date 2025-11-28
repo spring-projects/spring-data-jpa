@@ -23,6 +23,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import org.springframework.data.repository.config.AotRepositoryContext;
@@ -60,11 +61,26 @@ public class AotEntityManagerFactoryCreator {
 	 * @param repositoryContext repository context providing classes.
 	 */
 	public static AotEntityManagerFactoryCreator from(AotRepositoryContext repositoryContext) {
+		return from(repositoryContext, Map.of());
+	}
+
+	/**
+	 * Create a {@code PersistenceUnitContext} from the given {@link AotRepositoryContext} using Jakarta
+	 * Persistence-annotated classes.
+	 * <p>
+	 * The underlying {@link jakarta.persistence.metamodel.Metamodel} requires Hibernate to build metamodel information.
+	 *
+	 * @param repositoryContext repository context providing classes.
+	 * @param jpaProperties JPA properties to apply.
+	 * @since 4.0.1
+	 */
+	public static AotEntityManagerFactoryCreator from(AotRepositoryContext repositoryContext,
+			Map<String, Object> jpaProperties) {
 
 		List<String> typeNames = repositoryContext.getResolvedTypes().stream()
 				.filter(AotEntityManagerFactoryCreator::isJakartaAnnotated).map(Class::getName).toList();
 
-		return from(PersistenceManagedTypes.of(typeNames, List.of()), typeNames);
+		return from(PersistenceManagedTypes.of(typeNames, List.of()), typeNames, jpaProperties);
 	}
 
 	/**
@@ -75,7 +91,21 @@ public class AotEntityManagerFactoryCreator {
 	 * @param persistenceUnitInfo persistence unit info to use.
 	 */
 	public static AotEntityManagerFactoryCreator from(PersistenceUnitInfo persistenceUnitInfo) {
-		return from(() -> new AotMetamodel(persistenceUnitInfo), persistenceUnitInfo);
+		return from(persistenceUnitInfo, Map.of());
+	}
+
+	/**
+	 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceUnitInfo}.
+	 * <p>
+	 * The underlying {@link jakarta.persistence.metamodel.Metamodel} requires Hibernate to build metamodel information.
+	 *
+	 * @param persistenceUnitInfo persistence unit info to use.
+	 * @param jpaProperties JPA properties to apply.
+	 * @since 4.0.1
+	 */
+	public static AotEntityManagerFactoryCreator from(PersistenceUnitInfo persistenceUnitInfo,
+			Map<String, Object> jpaProperties) {
+		return from(() -> new AotMetamodel(persistenceUnitInfo, jpaProperties), persistenceUnitInfo);
 	}
 
 	/**
@@ -86,11 +116,26 @@ public class AotEntityManagerFactoryCreator {
 	 * @param managedTypes managed types to use.
 	 */
 	public static AotEntityManagerFactoryCreator from(PersistenceManagedTypes managedTypes) {
-		return from(managedTypes, managedTypes);
+		return from(managedTypes, managedTypes, Map.of());
 	}
 
-	private static AotEntityManagerFactoryCreator from(PersistenceManagedTypes managedTypes, Object cacheKey) {
-		return from(() -> new AotMetamodel(managedTypes), cacheKey);
+	/**
+	 * Create a {@code PersistenceUnitContext} from the given {@link PersistenceManagedTypes}.
+	 * <p>
+	 * The underlying {@link jakarta.persistence.metamodel.Metamodel} requires Hibernate to build metamodel information.
+	 *
+	 * @param managedTypes managed types to use.
+	 * @param jpaProperties JPA properties to apply.
+	 * @since 4.0.1
+	 */
+	public static AotEntityManagerFactoryCreator from(PersistenceManagedTypes managedTypes,
+			Map<String, Object> jpaProperties) {
+		return from(managedTypes, managedTypes, jpaProperties);
+	}
+
+	private static AotEntityManagerFactoryCreator from(PersistenceManagedTypes managedTypes, Object cacheKey,
+			Map<String, Object> jpaProperties) {
+		return from(() -> new AotMetamodel(managedTypes, jpaProperties), cacheKey);
 	}
 
 	/**
