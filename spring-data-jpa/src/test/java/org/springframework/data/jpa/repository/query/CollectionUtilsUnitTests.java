@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link CollectionUtils}.
  *
  * @author Mark Paluch
+ * @author qkrtkdwns3410
  */
 class CollectionUtilsUnitTests {
 
@@ -42,5 +43,15 @@ class CollectionUtilsUnitTests {
 		assertThat(CollectionUtils.getLast(2, List.of(1, 2, 3))).containsExactly(2, 3);
 		assertThat(CollectionUtils.getLast(2, List.of(1, 2))).containsExactly(1, 2);
 		assertThat(CollectionUtils.getLast(2, List.of(1))).containsExactly(1);
+	}
+
+	@Test // GH-4108
+	void getFirstShouldRejectNullList() {
+		assertThatIllegalArgumentException().isThrownBy(() -> CollectionUtils.getFirst(2, null));
+	}
+
+	@Test // GH-4108
+	void getLastShouldRejectNullList() {
+		assertThatIllegalArgumentException().isThrownBy(() -> CollectionUtils.getLast(2, null));
 	}
 }
