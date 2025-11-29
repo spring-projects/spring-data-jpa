@@ -17,12 +17,19 @@ package org.springframework.data.jpa.repository.query;
 
 import java.util.List;
 
+import org.springframework.util.Assert;
+
 /**
  * Utility methods to obtain sublists.
  *
  * @author Mark Paluch
+ * @author qkrtkdwns3410
  */
 class CollectionUtils {
+
+	private CollectionUtils() {
+		// prevent instantiation
+	}
 
 	/**
 	 * Return the first {@code count} items from the list.
@@ -33,6 +40,7 @@ class CollectionUtils {
 	 * @param <T> the element type of the lists.
 	 */
 	public static <T> List<T> getFirst(int count, List<T> list) {
+		Assert.notNull(list, "List must not be null");
 
 		if (count > 0 && list.size() > count) {
 			return list.subList(0, count);
@@ -50,9 +58,10 @@ class CollectionUtils {
 	 * @param <T> the element type of the lists.
 	 */
 	public static <T> List<T> getLast(int count, List<T> list) {
+		Assert.notNull(list, "List must not be null");
 
 		if (count > 0 && list.size() > count) {
-			return list.subList(list.size() - (count), list.size());
+			return list.subList(list.size() - count, list.size());
 		}
 
 		return list;
