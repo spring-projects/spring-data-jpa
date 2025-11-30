@@ -33,10 +33,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.core.PropertyPath;
 import org.springframework.data.core.PropertyReferenceException;
@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Jinmyeong Kim
+ * @author Sangjun Park
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
 		implements JpqlQueryCreator {
@@ -490,7 +491,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				case LIKE:
 				case NOT_LIKE:
 
-					PartTreeParameterBinding parameter = provider.next(part, String.class);
+					PartTreeParameterBinding parameter = provider.next(part, String.class, Pattern.class);
 					JpqlQueryBuilder.Expression parameterExpression = potentiallyIgnoreCase(part.getProperty().getLeafProperty(),
 							placeholder(parameter));
 

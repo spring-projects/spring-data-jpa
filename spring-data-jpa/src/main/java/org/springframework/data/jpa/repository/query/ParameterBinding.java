@@ -24,10 +24,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.Vector;
 import org.springframework.data.expression.ValueExpression;
@@ -48,6 +48,7 @@ import org.springframework.util.StringUtils;
  * @author Thomas Darimont
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Sangjun Park
  */
 public class ParameterBinding {
 
@@ -274,6 +275,11 @@ public class ParameterBinding {
 				return value;
 			}
 
+			// Pattern -> SQL LIKE conversion
+			if (Pattern.class.isAssignableFrom(parameterType) && value instanceof Pattern pattern) {
+				return convertPatternToLike(pattern);
+			}
+
 			if (String.class.equals(parameterType) && !noWildcards) {
 
 				return switch (type) {
@@ -288,7 +294,6 @@ public class ParameterBinding {
 					? potentiallyIgnoreCase(ignoreCase, toCollection(value)) //
 					: value;
 		}
-
 
 		@SuppressWarnings("unchecked")
 		@Contract("false, _ -> param2; _, null -> null; true, !null -> new")
@@ -330,6 +335,53 @@ public class ParameterBinding {
 			}
 
 			return Collections.singleton(value);
+		}
+
+		/**
+		 * Pattern to detect unsupported regex syntax that cannot be converted to SQL LIKE.
+		 * <p>
+		 * Unsupported patterns include:
+		 * <ul>
+		 * <li>Character classes: {@code [...]}</li>
+		 * <li>Groups: {@code (...)}</li>
+		 * <li>Quantifiers: {@code {n,m}}</li>
+		 * <li>Alternation: {@code |}</li>
+		 * <li>Optional: {@code ?}</li>
+		 * <li>One or more (standalone): {@code +}</li>
+		 * <li>Character shortcuts: {@code \d, \D, \w, \W, \s, \S}</li>
+		 * <li>Word boundary: {@code \b}</li>
+		 * </ul>
+		 */
+		private static final Pattern UNSUPPORTED_REGEX_SYNTAX = Pattern
+				.compile("\\[|]|\\(|\\)|\\{|}|\\||\\?|(?<!\\.)\\+|\\\\[dDwWsSbB]");
+
+		/**
+		 * Converts a Java regex {@link Pattern} to an SQL LIKE pattern.
+		 * <p>
+		 * Supported conversions:
+		 * <ul>
+		 * <li>{@code .*} → {@code %} (matches any sequence)</li>
+		 * <li>{@code .+} → {@code _%} (matches one or more characters)</li>
+		 * <li>{@code .} → {@code _} (matches single character)</li>
+		 * <li>{@code ^} (start anchor) → removed</li>
+		 * <li>{@code $} (end anchor) → removed</li>
+		 * </ul>
+		 *
+		 * @param pattern the regex pattern to convert.
+		 * @return the SQL LIKE pattern string.
+		 * @throws IllegalArgumentException if the pattern contains unsupported regex syntax.
+		 */
+		private String convertPatternToLike(Pattern pattern) {
+			String regex = pattern.pattern();
+
+			if (UNSUPPORTED_REGEX_SYNTAX.matcher(regex).find()) {
+				throw new IllegalArgumentException(String.format(
+						"Unsupported regex pattern '%s'. Only '^', '$', '.', '.*', '.+', and literal characters are supported for LIKE conversion.",
+						regex));
+			}
+
+			return regex.replace(".*", "%").replace(".+", "_%").replace(".", "_").replaceFirst("^\\^", "")
+					.replaceFirst("\\$$", "");
 		}
 	}
 
