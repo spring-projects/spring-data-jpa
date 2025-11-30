@@ -20,13 +20,13 @@ import static org.springframework.data.jpa.repository.query.ParameterBinding.*;
 import jakarta.persistence.criteria.CriteriaBuilder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScoringFunction;
@@ -53,6 +53,7 @@ import org.springframework.util.ClassUtils;
  * @author Yuriy Tsarkov
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Sangjun Park
  */
 public class ParameterMetadataProvider {
 
@@ -173,6 +174,29 @@ public class ParameterMetadataProvider {
 	}
 
 	/**
+	 * Builds a new {@link PartTreeParameterBinding} for given {@link Part} accepting any of the given types.
+	 *
+	 * @param <T> type parameter for the returned {@link PartTreeParameterBinding}.
+	 * @param part must not be {@literal null}.
+	 * @param allowedTypes must not be {@literal null}.
+	 * @return a new {@link PartTreeParameterBinding} for the given types.
+	 */
+	<T> PartTreeParameterBinding next(Part part, Class<?>... allowedTypes) {
+
+		Parameter parameter = parameters.next();
+		Class<?> actualType = parameter.getType();
+
+		for (Class<?> allowedType : allowedTypes) {
+			if (ClassUtils.isAssignable(allowedType, actualType)) {
+				return next(part, actualType, parameter);
+			}
+		}
+
+		throw new IllegalArgumentException(String.format("No allowed type found for parameter %s. Allowed types: %s",
+				parameter, Arrays.toString(allowedTypes)));
+	}
+
+	/**
 	 * Builds a new {@link PartTreeParameterBinding} for the given type and name.
 	 *
 	 * @param <T> type parameter for the returned {@link PartTreeParameterBinding}.
@@ -203,8 +227,8 @@ public class ParameterMetadataProvider {
 
 		/* identifier refers to bindable parameters, not _all_ parameters index */
 		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(origin);
-		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier,
-				methodParameter, reifiedType, part, value, templates, escape);
+		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier, methodParameter, reifiedType,
+				part, value, templates, escape);
 
 		// PartTreeParameterBinding is more expressive than a potential ParameterBinding for Vector.
 		bindings.add(binding);

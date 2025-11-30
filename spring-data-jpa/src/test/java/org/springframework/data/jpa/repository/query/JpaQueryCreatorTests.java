@@ -33,14 +33,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.FieldSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
@@ -65,6 +67,7 @@ import org.springframework.data.util.Lazy;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Sangjun Park
  */
 class JpaQueryCreatorTests {
 
@@ -349,6 +352,35 @@ class JpaQueryCreatorTests {
 				.expectJpql("SELECT p FROM %s p WHERE p.name LIKE ?1 ESCAPE '\\'",
 						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", parameterValue) //
+				.validateQuery();
+	}
+
+	static List<Arguments> likeWithPatternParameters() {
+		return List.of(
+				// LIKE tests
+				Arguments.of("findProductByNameLike", ".*spring.*", "%spring%", "LIKE"),
+				Arguments.of("findProductByNameLike", "^spring.*", "spring%", "LIKE"),
+				Arguments.of("findProductByNameLike", ".*spring$", "%spring", "LIKE"),
+				Arguments.of("findProductByNameLike", "^spring$", "spring", "LIKE"),
+				Arguments.of("findProductByNameLike", ".+spring.+", "_%spring_%", "LIKE"),
+				Arguments.of("findProductByNameLike", "^.+spring", "_%spring", "LIKE"),
+				// NOT LIKE tests
+				Arguments.of("findProductByNameNotLike", ".*spring.*", "%spring%", "NOT LIKE"),
+				Arguments.of("findProductByNameNotLike", "^spring.*", "spring%", "NOT LIKE"),
+				Arguments.of("findProductByNameNotLike", ".*spring$", "%spring", "NOT LIKE"));
+	}
+
+	@ParameterizedTest
+	@MethodSource("likeWithPatternParameters")
+	void likeAndNotLikeWithPattern(String methodName, String regex, String expectedLike, String likeOperator) {
+
+		queryCreator(ORDER) //
+				.forTree(Product.class, methodName) //
+				.withParameters(Pattern.compile(regex)) //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name " + likeOperator + " ?1 ESCAPE '\\'",
+						DefaultJpaEntityMetadata.unqualify(Product.class)) //
+				.expectPlaceholderValue("?1", expectedLike) //
 				.validateQuery();
 	}
 
