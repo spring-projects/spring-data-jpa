@@ -1,35 +1,126 @@
 [[specifications]]
 = Specifications
 
-JPA 2 introduces a criteria API that you can use to build queries programmatically. By writing a `criteria`, you define the where clause of a query for a domain class. Taking another step back, these criteria can be regarded as a predicate over the entity that is described by the JPA criteria API constraints.
-
-Spring Data JPA takes the concept of a specification from Eric Evans' book, "`Domain Driven Design`", following the same semantics and providing an API to define such specifications with the JPA criteria API. To support specifications, you can extend your repository interface with the `JpaSpecificationExecutor` interface, as follows:
+JPA's Criteria API lets you build queries programmatically.
+Spring Data JPA `Specification` provides a small, focused API to express predicates over entities and reuse them across repositories.
+Based on the concept of a specification from Eric Evans' book "`Domain Driven Design`", specifications follow the same semantics providing an API to define criteria using JPA.
+To support specifications, you can extend your repository interface with the `JpaSpecificationExecutor` interface, as follows:
 
 [source, java]
 ----
 public interface CustomerRepository extends CrudRepository<Customer, Long>, JpaSpecificationExecutor<Customer> {
- …
 }
 ----
 
-The additional interface has methods that let you run specifications in a variety of ways. For example, the `findAll` method returns all entities that match the specification, as shown in the following example:
+A specification is a predicate over an entity expressed with the Criteria API.
+Spring Data JPA offers two entry points:
+
+* <<predicate-specification,`PredicateSpecification`>>: A flexible, query-type-agnostic interface introduced with Spring Data JPA 4.0.
+* <<specification-interfaces,`Specification`>> (and `UpdateSpecification`, `DeleteSpecification`): Query-bound variants.
+
+[[predicate-specification]]
+== PredicateSpecification
+
+The `PredicateSpecification` interface is defined with a minimal set of dependencies allowing broad functional composition:
 
 [source, java]
 ----
-List<T> findAll(Specification<T> spec);
+public interface PredicateSpecification<T> {
+  Predicate toPredicate(From<?, T> from, CriteriaBuilder builder);
+}
 ----
 
-The `Specification` interface is defined as follows:
+Specifications can easily be used to build an extensible set of predicates and used with `JpaRepository` removing the need to declare a query (method) for every needed combination as shown in the following example:
 
-[source, java]
+.Specifications for a Customer
+====
+[source,java]
+----
+class CustomerSpecs {
+
+  static PredicateSpecification<Customer> isLongTermCustomer() {
+    return (from, builder) -> {
+      LocalDate date = LocalDate.now().minusYears(2);
+      return builder.lessThan(from.get(Customer_.createdAt), date);
+    };
+  }
+
+  static PredicateSpecification<Customer> hasSalesOfMoreThan(MonetaryAmount value) {
+    return (from, builder) -> {
+      // build predicate for sales > value
+    };
+  }
+}
+----
+
+The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
+So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`.
+Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
+====
+
+Use a specification directly with a repository:
+
+[source,java]
+----
+List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
+----
+
+Specifications become most valuable when composed:
+
+[source,java]
+----
+MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
+List<Customer> customers = customerRepository.findAll(
+  isLongTermCustomer().or(hasSalesOfMoreThan(amount))
+);
+----
+
+[[specification-interfaces]]
+== `Specification`, `UpdateSpecification`, `DeleteSpecification`
+
+The javadoc:org.springframework.data.jpa.domain.Specification[] interface has been available for a much longer time and is tied a particular query type (select, update, delete) as per Criteria API restrictions.
+The three specification interfaces are defined as follows:
+
+[tabs]
+======
+Specification::
++
+====
+[source,java,indent=0,subs="verbatim,quotes",role="primary"]
 ----
 public interface Specification<T> {
   Predicate toPredicate(Root<T> root, CriteriaQuery<?> query,
             CriteriaBuilder builder);
 }
 ----
+====
 
-Specifications can easily be used to build an extensible set of predicates on top of an entity that then can be combined and used with `JpaRepository` without the need to declare a query (method) for every needed combination, as shown in the following example:
+UpdateSpecification::
++
+====
+[source,java,indent=0,subs="verbatim,quotes",role="secondary"]
+----
+public interface UpdateSpecification<T> {
+  Predicate toPredicate(Root<T> root, CriteriaUpdate<T> update,
+            CriteriaBuilder builder);
+}
+----
+====
+
+DeleteSpecification::
++
+====
+[source,java,indent=0,subs="verbatim,quotes",role="tertiary"]
+----
+public interface DeleteSpecification<T> {
+  Predicate toPredicate(Root<T> root, CriteriaDelete<T> delete,
+            CriteriaBuilder builder);
+}
+----
+====
+======
+
+`Specification` objects can be constructed either directly or by reusing `PredicateSpecification` instances, as shown in the following example:
 
 .Specifications for a Customer
 ====
@@ -37,16 +128,20 @@ Specifications can easily be used to build an extensible set of predicates on to
 ----
 public class CustomerSpecs {
 
+  public static UpdateSpecification<Customer> updateLastnameByFirstnameAndLastname(String newLastName, String currentFirstname, String currentLastname) {
+    return UpdateSpecification<User> updateLastname = UpdateSpecification.<User> update((root, update, criteriaBuilder) -> {
+      update.set("lastname", newLastName);
+    }).where(hasFirstname(currentFirstname).and(hasLastname(currentLastname)));
+  }
 
-  public static Specification<Customer> isLongTermCustomer() {
-    return (root, query, builder) -> {
-      LocalDate date = LocalDate.now().minusYears(2);
-      return builder.lessThan(root.get(Customer_.createdAt), date);
+  public static PredicateSpecification<Customer> hasFirstname(String firstname) {
+    return (root, builder) -> {
+      return builder.equal(from.get("firstname"), value);
     };
   }
 
-  public static Specification<Customer> hasSalesOfMoreThan(MonetaryAmount value) {
-    return (root, query, builder) -> {
+  public static PredicateSpecification<Customer> hasLastname(String lastname) {
+    return (root, builder) -> {
       // build query here
     };
   }
@@ -54,46 +149,59 @@ public class CustomerSpecs {
 ----
 ====
 
-The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.0/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
-So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`.
-Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
-So a client might use a `Specification` as follows:
+[[specification-fluent]]
+== Fluent API
 
-.Using a simple Specification
+`JpaSpecificationExecutor` defines fluent query methods for flexible execution of queries based on `Specification` instances:
+
+1. For `PredicateSpecification`: `findBy(PredicateSpecification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
+2. For `Specification`: `findBy(Specification<T> spec, Function<? super SpecificationFluentQuery<S>, R> queryFunction)`
+
+As with other methods, it executes a query derived from a `Specification`.
+However, the query function allows you to take control over aspects of query execution that you cannot dynamically control otherwise.
+You do so by invoking the various intermediate and terminal methods of `SpecificationFluentQuery`.
+
+**Intermediate methods**
+
+* `sortBy`: Apply an ordering for your result.
+Repeated method calls append each `Sort` (note that `page(Pageable)` using a sorted `Pageable` overrides any previous sort order).
+* `limit`: Limit the result count.
+* `as`: Specify the type to be read or projected to.
+* `project`: Limit the queries properties.
+
+**Terminal methods**
+
+* `first`, `firstValue`: Return the first value. `first` returns an `Optional<T>` or `Optional.empty()` if the query did not yield any result. `firstValue` is its nullable variant without the need to use `Optional`.
+* `one`, `oneValue`: Return the one value. `one` returns an `Optional<T>` or `Optional.empty()` if the query did not yield any result. `oneValue` is its nullable variant without the need to use `Optional`.
+Throws `IncorrectResultSizeDataAccessException` if more than one match found.
+* `all`: Return all results as a `List<T>`.
+* `page(Pageable)`: Return all results as a `Page<T>`.
+* `slice(Pageable)`: Return all results as a `Slice<T>`.
+* `scroll(ScrollPosition)`: Use scrolling (offset, keyset) to retrieve results as a `Window<T>`.
+* `stream()`: Return a `Stream<T>` to process results lazily.
+The stream is stateful and must be closed after use.
+* `count` and `exists`: Return the count of matching entities or whether any match exists.
+
+NOTE: Intermediate and terminal methods must be invoked within the query function.
+
+.Use the fluent API to get a projected `Page`, ordered by `lastname`
 ====
-[source, java]
+[source,java]
 ----
-List<Customer> customers = customerRepository.findAll(isLongTermCustomer());
+Page<CustomerProjection> page = repository.findBy(spec,
+    q -> q.as(CustomerProjection.class)
+          .page(PageRequest.of(0, 20, Sort.by("lastname")))
+);
 ----
 ====
 
-Why not create a query for this kind of data access? Using a single `Specification` does not gain a lot of benefit over a plain query declaration. The power of specifications really shines when you combine them to create new `Specification` objects. You can achieve this through the default methods of `Specification` we provide to build expressions similar to the following:
-
-.Combined Specifications
+.Use the fluent API to get the last of potentially many results, ordered by `lastname`
 ====
-[source, java]
+[source,java]
 ----
-MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
-List<Customer> customers = customerRepository.findAll(
-  isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
+Optional<Customer> match = repository.findBy(spec,
+    q -> q.sortBy(Sort.by("lastname").descending())
+          .first()
+);
 ----
-
-`Specification` offers some "`glue-code`" default methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
 ====
-
-And with JPA 2.1, the `CriteriaBuilder` API introduced `CriteriaDelete`. This is provided through `JpaSpecificationExecutor`'s `delete(Specification)` API.
-
-.Using a `Specification` to delete entries.
-====
-[source, java]
-----
-Specification<User> ageLessThan18 = (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), 18)
-
-userRepository.delete(ageLessThan18);
-----
-The `Specification` builds up a criteria where the `age` field (cast as an integer) is less than `18`.
-Passed on to the `userRepository`, it will use JPA's `CriteriaDelete` feature to generate the right `DELETE` operation.
-It then returns the number of entities deleted.
-====
-
-
