@@ -16,6 +16,16 @@ Dependency Injection :: Pattern to hand a component's dependency to the componen
 
 EclipseLink :: Object relational mapper implementing JPA - link:$$https://www.eclipse.org/eclipselink/$$[https://www.eclipse.org/eclipselink/]
 
+EntityManager :: JPA interface used to interact with the persistence context. It provides methods to perform operations such as persisting, merging, removing, and querying entities. For more information, see link:$$https://en.wikipedia.org/wiki/Jakarta_Persistence#EntityManager$$[https://en.wikipedia.org/wiki/Jakarta_Persistence#EntityManager].
+
+JPQL :: Jakarta Persistence Query Language - An object-oriented query language similar to SQL but operates on entity objects rather than database tables. For more information, see link:$$https://en.wikipedia.org/wiki/Jakarta_Persistence_Query_Language$$[https://en.wikipedia.org/wiki/Jakarta_Persistence_Query_Language].
+
+Persistence Context :: A set of entity instances managed by the EntityManager. Entities within the persistence context are automatically synchronized with the database. For more information, see link:$$https://en.wikipedia.org/wiki/Jakarta_Persistence#Persistence_context$$[https://en.wikipedia.org/wiki/Jakarta_Persistence#Persistence_context].
+
+Query Methods :: Repository methods that derive queries from their method names, eliminating the need to write explicit queries for simple cases.
+
+Repository :: Central interface in Spring Data for generic CRUD operations on a specific type. Provides methods like save, findById, findAll, and delete.
+
 Hibernate :: Object relational mapper implementing JPA - link:$$https://hibernate.org/$$[https://hibernate.org/]
 
 JPA :: Jakarta Persistence API
