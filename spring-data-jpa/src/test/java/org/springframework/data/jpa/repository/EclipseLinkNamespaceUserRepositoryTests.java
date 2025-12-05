@@ -34,9 +34,9 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Moritz Becker
  * @author Andrey Kovalev
  * @author Krzysztof Krason
+ * @author Mark Paluch
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
-@Disabled("hsqldb seems to hang on this test class without leaving a surefire report")
 class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
 	/**
@@ -103,30 +103,6 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	void bindsNativeQueryResultsToProjectionByName() {}
 
 	/**
-	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
-	 */
-	@Override
-	void findByEmptyArrayOfIntegers() {}
-
-	/**
-	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
-	 */
-	@Override
-	void findByAgeWithEmptyArrayOfIntegersOrFirstName() {}
-
-	/**
-	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
-	 */
-	@Override
-	void findByEmptyCollectionOfIntegers() {}
-
-	/**
-	 * Ignores the test. Reconsider once https://bugs.eclipse.org/bugs/show_bug.cgi?id=533240 is fixed.
-	 */
-	@Override
-	void findByEmptyCollectionOfStrings() {}
-
-	/**
 	 * Ignores the test for EclipseLink.
 	 */
 	@Override
@@ -165,4 +141,120 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Override
 	@Test // DATAJPA-1303
 	void findByElementCollectionInAttributeIgnoreCaseWithNulls() {}
+
+	@Disabled("Binding collections to IN predicates not supported")
+	@Override
+	@Test
+	void invokesQueryWithVarargsParametersCorrectly() {}
+
+	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
+	@Override
+	@Test
+	void insertStatementModifyingQueryWithParamsWorks() {}
+
+	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
+	@Override
+	@Test
+	void bindsSpELParameterOnlyUsedInCountQuery() {}
+
+	@Disabled
+	@Override
+	@Test
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsNamedParameters() {}
+
+	@Disabled
+	@Override
+	@Test
+	public void allowsExecutingPageableMethodWithUnpagedArgument() {}
+
+	@Disabled("No Tuples support in EclipseLink")
+	@Override
+	@Test
+	public void supportsProjectionsWithNativeQueriesAndUnderscoresColumnNameToCamelCaseProperty() {}
+
+	@Disabled
+	@Override
+	@Test
+	public void findByFluentExampleWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithInterfaceBasedProjection() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithDtoProjection() {}
+
+	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
+	@Override
+	@Test
+	public void modifyingUpdateNativeQueryWorksWithJSQLParser() {}
+
+	@Disabled("EclipseLink treats id as keyword")
+	@Override
+	@Test
+	public void scrollByPredicateKeysetWithInterfaceProjection() {}
+
+	@Disabled("EclipseLink treats id as keyword")
+	@Override
+	@Test
+	public void executesDerivedExistsQuery() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentExampleWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentExampleWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentPredicateWithProjectionAndPageRequest() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentPredicateWithProjectionAndAll() {}
+
+	@Disabled("Binding collections to IN predicates not supported")
+	@Override
+	@Test
+	public void findByCollectionWithPageRequest() {}
+
+	@Disabled("Binding collections to IN predicates not supported")
+	@Override
+	@Test
+	public void findByCollectionWithPageable() {}
+
+	@Disabled("EclipseLink does not support records")
+	@Override
+	@Test
+	public void supportsRecordsWithNativeQueries() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {}
+
 }

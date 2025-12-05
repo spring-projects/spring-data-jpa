@@ -41,6 +41,7 @@ import java.util.function.BiFunction;
 
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
@@ -50,6 +51,8 @@ import org.springframework.data.core.PropertyPath;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Parses the content of {@link JpaSort#unsafe(String...)} as an HQL {@literal sortExpression} and renders that into a
@@ -61,6 +64,9 @@ import org.springframework.util.Assert;
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
 class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
+
+	private static final boolean HIBERNATE_PRESENT = ClassUtils.isPresent(
+			"org.hibernate.query.criteria.HibernateCriteriaBuilder", HqlOrderExpressionVisitor.class.getClassLoader());
 
 	private static final DateTimeFormatter DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive()
 			.append(ISO_LOCAL_DATE).optionalStart().appendLiteral(' ').optionalEnd().optionalStart().appendLiteral('T')
@@ -225,22 +231,53 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 						? cb.notLike(condition, match) //
 						: cb.notLike(condition, match, escape);
 			}
-		} else if (ctx.ILIKE() != null && cb instanceof HibernateCriteriaBuilder) {
+		} else if (ctx.ILIKE() != null) {
 
-			HibernateCriteriaBuilder hcb = (HibernateCriteriaBuilder) cb;
+			if (HIBERNATE_PRESENT) {
+				if (cb instanceof HibernateCriteriaBuilder hcb) {
 
-			if (ctx.NOT() == null) {
-				return escape == null //
-						? hcb.ilike(condition, match) //
-						: hcb.ilike(condition, match, escape);
-			} else {
-				return escape == null //
-						? hcb.notIlike(condition, match) //
-						: hcb.notIlike(condition, match, escape);
+					if (ctx.NOT() == null) {
+						return escape == null //
+								? hcb.ilike(condition, match) //
+								: hcb.ilike(condition, match, escape);
+					} else {
+						return escape == null //
+								? hcb.notIlike(condition, match) //
+								: hcb.notIlike(condition, match, escape);
+					}
+				}
 			}
+
+			throw new UnsupportedOperationException(
+					"ILIKE pattern [%s] not supported by %s ".formatted(renderContext(ctx), cb));
 		} else {
-			throw new UnsupportedOperationException("Unsupported string pattern: " + ctx.getText());
+			throw new UnsupportedOperationException("Unsupported string matching pattern: " + renderContext(ctx).trim());
 		}
+	}
+
+	private static String renderContext(ParserRuleContext ctx) {
+
+		if (ctx.children == null) {
+			return "";
+		}
+
+		StringBuilder builder = new StringBuilder();
+		for (ParseTree child : ctx.children) {
+
+			String text = "";
+			if (child instanceof TerminalNode) {
+				text = child.getText();
+			} else if (child instanceof ParserRuleContext) {
+				text = renderContext((ParserRuleContext) child);
+			}
+
+			if (!builder.isEmpty() && StringUtils.hasText(text)) {
+				builder.append(" ");
+			}
+			builder.append(text);
+		}
+
+		return builder.toString();
 	}
 
 	@Override

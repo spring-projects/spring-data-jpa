@@ -3304,7 +3304,7 @@ class UserRepositoryTests {
 		repository.saveAllAndFlush(List.of(firstUser, secondUser, thirdUser, fourthUser));
 
 		assertThat(
-				repository.findAll(JpaSort.unsafe("case when firstname ilike 'O%' escape '^' then 'A' else firstname end")))
+				repository.findAll(JpaSort.unsafe("case when firstname like 'O%' escape '^' then 'A' else firstname end")))
 				.containsExactly(firstUser, thirdUser, secondUser, fourthUser);
 	}
 
