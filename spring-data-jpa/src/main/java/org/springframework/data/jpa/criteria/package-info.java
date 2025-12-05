@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.repository.sample;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
- * @author Oliver Gierke
+ * JPA Criteria Query support.
  */
-@Configuration
-@ImportResource("classpath:hibernate-infrastructure.xml")
-@EnableJpaRepositories
-public class SampleConfig {
-
-}
+@org.jspecify.annotations.NullMarked
+package org.springframework.data.jpa.criteria;

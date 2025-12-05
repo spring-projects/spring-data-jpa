@@ -26,7 +26,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Wonchul Heo
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class JpaParametersParameterAccessorTests {
 
 	@PersistenceContext private EntityManager em;

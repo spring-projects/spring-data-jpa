@@ -65,7 +65,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @author Mark Paluch
  */
-@ImportResource("classpath:/infrastructure.xml")
+@ImportResource("classpath:hibernate-infrastructure.xml")
 public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
 
 	private final Class<?> repositoryInterface;

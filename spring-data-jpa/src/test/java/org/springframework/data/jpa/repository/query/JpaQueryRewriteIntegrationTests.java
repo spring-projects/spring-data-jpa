@@ -237,7 +237,7 @@ class JpaQueryRewriteIntegrationTests {
 	}
 
 	@Configuration
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	@EnableJpaRepositories(considerNestedRepositories = true, basePackageClasses = UserRepositoryWithRewriter.class, //
 			includeFilters = @ComponentScan.Filter(value = { UserRepositoryWithRewriter.class },
 					type = FilterType.ASSIGNABLE_TYPE),

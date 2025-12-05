@@ -6,8 +6,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/data/repository https://www.springframework.org/schema/data/repository/spring-repository.xsd
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/data/jpa https://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
-	
-	<import resource="../infrastructure.xml" />
+
+	<import resource="../hibernate-infrastructure.xml"/>
 	
 	<jpa:repositories base-package="org.springframework.data.jpa.repository.sample" query-lookup-strategy="create-if-not-found">
 		<repository:include-filter type="assignable" expression="org.springframework.data.jpa.repository.sample.RoleRepository" />

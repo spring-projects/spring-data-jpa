@@ -78,7 +78,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jakub Soltys
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class QueryUtilsIntegrationTests {
 
 	@PersistenceContext EntityManager em;
