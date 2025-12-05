@@ -20,14 +20,9 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
-import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.ParameterBinding.BindingIdentifier;
 import org.springframework.data.jpa.repository.query.ParameterBinding.ParameterOrigin;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -42,54 +37,34 @@ import org.springframework.data.repository.query.parser.Part;
  */
 class ParameterBindingUnitTests {
 
-	static ParameterBinding hibernateCollectionBinding = new ParameterBinding.PartTreeParameterBinding(
+	static ParameterBinding collectionBinding = new ParameterBinding.PartTreeParameterBinding(
 			BindingIdentifier.of("foo"), ParameterOrigin.ofParameter("foo"), Collection.class,
-			new Part("name", TestEntity.class), null, JpqlQueryTemplates.UPPER, EscapeCharacter.DEFAULT,
-			PersistenceProvider.HIBERNATE);
-
-	static ParameterBinding eclipselinkCollectionBinding = new ParameterBinding.PartTreeParameterBinding(
-			BindingIdentifier.of("foo"), ParameterOrigin.ofParameter("foo"), Collection.class,
-			new Part("name", TestEntity.class), null, JpqlQueryTemplates.UPPER, EscapeCharacter.DEFAULT,
-			PersistenceProvider.ECLIPSELINK);
+			new Part("name", TestEntity.class), null, JpqlQueryTemplates.UPPER, EscapeCharacter.DEFAULT);
 
 	@Test // GH-4112
-	void shouldPrepareEmptyListForHibernate() {
+	void shouldPrepareEmptyList() {
 
-		assertThat(hibernateCollectionBinding.prepare(List.of())).isEqualTo(List.of());
-		assertThat(hibernateCollectionBinding.prepare(new Integer[0])).isEqualTo(List.of());
+		assertThat(collectionBinding.prepare(List.of())).isEqualTo(List.of());
+		assertThat(collectionBinding.prepare(new Integer[0])).isEqualTo(List.of());
 	}
 
 	@Test // GH-4112
-	void shouldPrepareEmptyListToNullForEclipselink() {
+	void shouldPrepareListToCollection() {
 
-		assertThat(eclipselinkCollectionBinding.prepare(List.of())).isNull();
-		assertThat(eclipselinkCollectionBinding.prepare(new Integer[0])).isNull();
+		assertThat(collectionBinding.prepare(List.of("foo"))).isEqualTo(List.of("foo"));
+		assertThat(collectionBinding.prepare(new Integer[] { 1, 2, 3 })).isEqualTo(List.of(1, 2, 3));
 	}
 
-	@ParameterizedTest // GH-4112
-	@MethodSource("bindings")
-	void shouldPrepareListToCollection(ParameterBinding binding) {
-
-		assertThat(binding.prepare(List.of("foo"))).isEqualTo(List.of("foo"));
-		assertThat(binding.prepare(new Integer[] { 1, 2, 3 })).isEqualTo(List.of(1, 2, 3));
+	@Test // GH-4112
+	void shouldPrepareValueToSingleElementCollection() {
+		assertThat(collectionBinding.prepare("foo")).isEqualTo(Set.of("foo"));
 	}
 
-	@ParameterizedTest // GH-4112
-	@MethodSource("bindings")
-	void shouldPrepareValueToSingleElementCollection(ParameterBinding binding) {
-		assertThat(binding.prepare("foo")).isEqualTo(Set.of("foo"));
+	@Test // GH-4112
+	void shouldPrepareNull() {
+		assertThat(collectionBinding.prepare(null)).isNull();
 	}
 
-	@ParameterizedTest // GH-4112
-	@MethodSource("bindings")
-	void shouldPrepareNull(ParameterBinding binding) {
-		assertThat(binding.prepare(null)).isNull();
-	}
-
-	static Stream<Arguments.ArgumentSet> bindings() {
-		return Stream.of(Arguments.argumentSet("Hibernate", hibernateCollectionBinding),
-				Arguments.argumentSet("EclipseLink", eclipselinkCollectionBinding));
-	}
 
 	private record TestEntity(String name) {
 

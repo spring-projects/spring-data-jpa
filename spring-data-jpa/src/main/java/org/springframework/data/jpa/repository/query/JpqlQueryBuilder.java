@@ -1476,7 +1476,8 @@ public final class JpqlQueryBuilder {
 			Expression predicate = this.predicate;
 			String rendered = predicate.render(context);
 
-			return (hasParenthesis(rendered) ? "%s %s %s" : "%s %s (%s)").formatted(path.render(context), operator, rendered);
+			return ((hasParenthesis(rendered) || predicate instanceof ParameterExpression) ? "%s %s %s" : "%s %s (%s)")
+					.formatted(path.render(context), operator, rendered);
 		}
 
 		@Override
