@@ -72,7 +72,7 @@ public class ParameterMetadataProvider {
 	private int bindMarker;
 
 	/**
-	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
+	 * Creates a new {@code ParameterMetadataProvider} from the given {@link CriteriaBuilder} and
 	 * {@link ParametersParameterAccessor}.
 	 *
 	 * @param accessor must not be {@literal null}.
@@ -115,7 +115,7 @@ public class ParameterMetadataProvider {
 	}
 
 	/**
-	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
+	 * Creates a new {@code ParameterMetadataProvider} from the given {@link CriteriaBuilder} an {@link Iterable} of all
 	 * bindable parameter values, and {@link Parameters}.
 	 *
 	 * @param bindableParameterValues may be {@literal null}.
