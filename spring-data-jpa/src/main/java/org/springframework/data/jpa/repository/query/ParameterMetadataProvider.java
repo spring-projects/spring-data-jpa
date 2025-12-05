@@ -226,7 +226,7 @@ public class ParameterMetadataProvider {
 		/* identifier refers to bindable parameters, not _all_ parameters index */
 		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(origin);
 		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier,
-				methodParameter, reifiedType, part, value, templates, escape, persistenceProvider);
+				methodParameter, reifiedType, part, value, templates, escape);
 
 		// PartTreeParameterBinding is more expressive than a potential ParameterBinding for Vector.
 		bindings.add(binding);

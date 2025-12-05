@@ -385,7 +385,7 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameIn") //
 				.withParameters(List.of("spring", "data")) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name IN (?1)", DefaultJpaEntityMetadata.unqualify(Product.class)) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name IN ?1", DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", List.of("spring", "data")) //
 				.validateQuery();
 	}
@@ -397,7 +397,7 @@ class JpaQueryCreatorTests {
 				.forTree(Product.class, "findProductByNameNotIn") //
 				.withParameters(List.of("spring", "data")) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p FROM %s p WHERE p.name NOT IN (?1)", DefaultJpaEntityMetadata.unqualify(Product.class)) //
+				.expectJpql("SELECT p FROM %s p WHERE p.name NOT IN ?1", DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.expectPlaceholderValue("?1", List.of("spring", "data")) //
 				.validateQuery();
 	}

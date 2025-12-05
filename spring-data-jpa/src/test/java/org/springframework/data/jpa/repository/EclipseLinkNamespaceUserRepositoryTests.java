@@ -52,12 +52,6 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
 
 	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477 is resolved.
-	 */
-	@Override
-	void findByElementCollectionAttribute() {}
-
-	/**
 	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
 	 */
 	@Override
@@ -141,11 +135,6 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Override
 	@Test // DATAJPA-1303
 	void findByElementCollectionInAttributeIgnoreCaseWithNulls() {}
-
-	@Disabled("Binding collections to IN predicates not supported")
-	@Override
-	@Test
-	void invokesQueryWithVarargsParametersCorrectly() {}
 
 	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
 	@Override
@@ -236,16 +225,6 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Override
 	@Test
 	public void findByFluentPredicateWithProjectionAndAll() {}
-
-	@Disabled("Binding collections to IN predicates not supported")
-	@Override
-	@Test
-	public void findByCollectionWithPageRequest() {}
-
-	@Disabled("Binding collections to IN predicates not supported")
-	@Override
-	@Test
-	public void findByCollectionWithPageable() {}
 
 	@Disabled("EclipseLink does not support records")
 	@Override

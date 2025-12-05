@@ -229,16 +229,9 @@ public class ParameterBinding {
 		private final boolean ignoreCase;
 		private final boolean noWildcards;
 		private final @Nullable Object value;
-		private final PersistenceProvider persistenceProvider;
 
 		public PartTreeParameterBinding(BindingIdentifier identifier, ParameterOrigin origin, Class<?> parameterType,
 				Part part, @Nullable Object value, JpqlQueryTemplates templates, EscapeCharacter escape) {
-			this(identifier, origin, parameterType, part, value, templates, escape, PersistenceProvider.GENERIC_JPA);
-		}
-
-		PartTreeParameterBinding(BindingIdentifier identifier, ParameterOrigin origin, Class<?> parameterType, Part part,
-				@Nullable Object value, JpqlQueryTemplates templates, EscapeCharacter escape,
-				PersistenceProvider persistenceProvider) {
 
 			super(identifier, origin);
 
@@ -246,7 +239,6 @@ public class ParameterBinding {
 			this.templates = templates;
 			this.escape = escape;
 			this.value = value;
-			this.persistenceProvider = persistenceProvider;
 			this.type = value == null
 					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
 							? Type.IS_NULL
@@ -293,7 +285,7 @@ public class ParameterBinding {
 			}
 
 			return Collection.class.isAssignableFrom(parameterType) //
-					? potentiallyIgnoreCase(ignoreCase, toCollection(value, persistenceProvider)) //
+					? potentiallyIgnoreCase(ignoreCase, toCollection(value)) //
 					: value;
 		}
 
@@ -316,26 +308,23 @@ public class ParameterBinding {
 		/**
 		 * Returns the given argument as {@link Collection} which means it will return it as is if it's a
 		 * {@link Collection}, turn an array into an {@link ArrayList} or simply wrap any other value into a single-element
-		 * {@link Collection} by default. {@link PersistenceProvider#HIBERNATE} translates empty collections to disjunctions
-		 * to avoid syntax errors.
+		 * {@link Collection} by default.
 		 *
 		 * @param value the value to be converted to a {@link Collection}.
-		 * @param provider the persistence provider to use.
 		 * @return the object itself as a {@link Collection} or a {@link Collection} constructed from the value.
 		 */
-		private static @Nullable Collection<?> toCollection(@Nullable Object value, PersistenceProvider provider) {
+		private static @Nullable Collection<?> toCollection(@Nullable Object value) {
 
 			if (value == null) {
 				return null;
 			}
 
 			if (value instanceof Collection<?> collection) {
-				return provider == PersistenceProvider.HIBERNATE || !collection.isEmpty() ? collection : null;
+				return collection;
 			}
 
 			if (ObjectUtils.isArray(value)) {
-				Object[] array = ObjectUtils.toObjectArray(value);
-				return provider == PersistenceProvider.HIBERNATE || !ObjectUtils.isEmpty(array) ? Arrays.asList(array) : null;
+				return Arrays.asList(ObjectUtils.toObjectArray(value));
 			}
 
 			return Collections.singleton(value);
