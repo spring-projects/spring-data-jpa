@@ -31,6 +31,7 @@ import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.OffsetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.DeleteExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ExistsExecution;
@@ -71,6 +72,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final EntityManager em;
 	private final EscapeCharacter escape;
 	private final Lazy<JpaEntityInformation<?, ?>> entityInformation;
+	private final PersistenceProvider persistenceProvider;
 
 	/**
 	 * Creates a new {@link PartTreeJpaQuery}.
@@ -96,6 +98,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.em = em;
 		this.escape = escape;
 		this.parameters = method.getParameters();
+		this.persistenceProvider = PersistenceProvider.fromEntityManager(em);
 
 		Class<?> domainClass = method.getEntityInformation().getJavaType();
 		this.entityInformation = Lazy.of(() -> JpaEntityInformationSupport.getEntityInformation(domainClass, em));
@@ -293,7 +296,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			EntityManager entityManager = getEntityManager();
 			ResultProcessor processor = getQueryMethod().getResultProcessor();
 
-			ParameterMetadataProvider provider = new ParameterMetadataProvider(accessor, escape, templates);
+			ParameterMetadataProvider provider = new ParameterMetadataProvider(accessor, escape, templates,
+					persistenceProvider);
 			ReturnedType returnedType = processor.withDynamicProjection(accessor).getReturnedType();
 
 			if (accessor.getScrollPosition() instanceof KeysetScrollPosition keyset) {
@@ -390,7 +394,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 				return cached;
 			}
 
-			ParameterMetadataProvider provider = new ParameterMetadataProvider(accessor, escape, templates);
+			ParameterMetadataProvider provider = new ParameterMetadataProvider(accessor, escape, templates,
+					persistenceProvider);
 			JpaCountQueryCreator creator = new JpaCountQueryCreator(tree,
 					getQueryMethod().getResultProcessor().getReturnedType(), provider, templates, entityInformation.get(),
 					em.getMetamodel());

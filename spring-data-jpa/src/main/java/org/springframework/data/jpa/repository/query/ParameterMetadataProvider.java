@@ -67,6 +67,7 @@ public class ParameterMetadataProvider {
 	private final EscapeCharacter escape;
 	private final JpqlQueryTemplates templates;
 	private final JpaParameters jpaParameters;
+	private final PersistenceProvider persistenceProvider;
 	private int position;
 	private int bindMarker;
 
@@ -80,19 +81,37 @@ public class ParameterMetadataProvider {
 	 */
 	public ParameterMetadataProvider(JpaParametersParameterAccessor accessor, EscapeCharacter escape,
 			JpqlQueryTemplates templates) {
-		this(accessor.iterator(), accessor, accessor.getParameters(), escape, templates);
+		this(accessor.iterator(), accessor, accessor.getParameters(), escape, templates, PersistenceProvider.GENERIC_JPA);
 	}
 
 	/**
-	 * Creates a new {@link ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
+	 * Creates a new {@code ParameterMetadataProvider} from the given {@link CriteriaBuilder},
+	 * {@link ParametersParameterAccessor}, and {@link PersistenceProvider}.
+	 *
+	 * @param accessor must not be {@literal null}.
+	 * @param escape must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
+	 * @param persistenceProvider must not be {@literal null}.
+	 * @since 4.0.1
+	 */
+	ParameterMetadataProvider(JpaParametersParameterAccessor accessor, EscapeCharacter escape,
+			JpqlQueryTemplates templates, PersistenceProvider persistenceProvider) {
+		this(accessor.iterator(), accessor, accessor.getParameters(), escape, templates, persistenceProvider);
+	}
+
+	/**
+	 * Creates a new {@code ParameterMetadataProvider} from the given {@link CriteriaBuilder} and {@link Parameters} with
 	 * support for parameter value customizations via {@link PersistenceProvider}.
+	 * <p>
+	 * Uses {@link PersistenceProvider#HIBERNATE} as provider since this constructor is used in contexts where no special
+	 * handling is required.
 	 *
 	 * @param parameters must not be {@literal null}.
 	 * @param escape must not be {@literal null}.
 	 * @param templates must not be {@literal null}.
 	 */
 	public ParameterMetadataProvider(JpaParameters parameters, EscapeCharacter escape, JpqlQueryTemplates templates) {
-		this(null, null, parameters, escape, templates);
+		this(null, null, parameters, escape, templates, PersistenceProvider.HIBERNATE);
 	}
 
 	/**
@@ -103,10 +122,12 @@ public class ParameterMetadataProvider {
 	 * @param parameters must not be {@literal null}.
 	 * @param escape must not be {@literal null}.
 	 * @param templates must not be {@literal null}.
+	 * @param persistenceProvider must not be {@literal null}.
 	 */
 	private ParameterMetadataProvider(@Nullable Iterator<Object> bindableParameterValues,
 			@Nullable JpaParametersParameterAccessor accessor, JpaParameters parameters, EscapeCharacter escape,
-			JpqlQueryTemplates templates) {
+			JpqlQueryTemplates templates, PersistenceProvider persistenceProvider) {
+
 		Assert.notNull(parameters, "Parameters must not be null");
 		Assert.notNull(escape, "EscapeCharacter must not be null");
 		Assert.notNull(templates, "JpqlQueryTemplates must not be null");
@@ -118,6 +139,7 @@ public class ParameterMetadataProvider {
 		this.bindableParameterValues = bindableParameterValues;
 		this.escape = escape;
 		this.templates = templates;
+		this.persistenceProvider = persistenceProvider;
 	}
 
 	JpaParameters getParameters() {
@@ -204,7 +226,7 @@ public class ParameterMetadataProvider {
 		/* identifier refers to bindable parameters, not _all_ parameters index */
 		MethodInvocationArgument methodParameter = ParameterOrigin.ofParameter(origin);
 		PartTreeParameterBinding binding = new PartTreeParameterBinding(bindingIdentifier,
-				methodParameter, reifiedType, part, value, templates, escape);
+				methodParameter, reifiedType, part, value, templates, escape, persistenceProvider);
 
 		// PartTreeParameterBinding is more expressive than a potential ParameterBinding for Vector.
 		bindings.add(binding);
