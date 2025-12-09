@@ -32,7 +32,7 @@
 		<eclipselink-next>4.0.8-SNAPSHOT</eclipselink-next>
 		<hibernate>6.6.38.Final</hibernate>
 		<hibernate-62>6.2.38.Final</hibernate-62>
-		<hibernate-66-snapshots>6.6.38-SNAPSHOT</hibernate-66-snapshots>
+		<hibernate-66-snapshots>6.6.39-SNAPSHOT</hibernate-66-snapshots>
 		<hibernate-70>7.0.10.Final</hibernate-70>
 		<hibernate-70-snapshots>7.0.0-SNAPSHOT</hibernate-70-snapshots>
 		<hsqldb>2.7.4</hsqldb>
@@ -70,8 +70,8 @@
 			</properties>
 			<repositories>
 				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
 					<releases>
 						<enabled>false</enabled>
 					</releases>
@@ -87,8 +87,8 @@
 			</properties>
 			<repositories>
 				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
 					<releases>
 						<enabled>false</enabled>
 					</releases>
@@ -103,8 +103,8 @@
 			</properties>
 			<repositories>
 				<repository>
-					<id>sonatype-oss</id>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
 					<releases>
 						<enabled>false</enabled>
 					</releases>
