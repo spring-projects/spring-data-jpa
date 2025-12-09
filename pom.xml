@@ -30,8 +30,8 @@
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.0-B11</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.1.7.Final</hibernate>
-		<hibernate-71-snapshots>7.1.8-SNAPSHOT</hibernate-71-snapshots>
+		<hibernate>7.1.11.Final</hibernate>
+		<hibernate-71-snapshots>7.1.12-SNAPSHOT</hibernate-71-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
