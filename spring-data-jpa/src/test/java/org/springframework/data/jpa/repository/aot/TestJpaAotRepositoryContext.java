@@ -48,18 +48,16 @@ import org.springframework.data.repository.core.support.RepositoryComposition;
 public class TestJpaAotRepositoryContext<T> extends AotRepositoryContextSupport {
 
 	private final AotRepositoryInformation repositoryInformation;
-	private final Class<T> repositoryInterface;
 	private final RepositoryConfigurationSource configurationSource;
 
 	public TestJpaAotRepositoryContext(BeanFactory beanFactory, Class<T> repositoryInterface,
 			@Nullable RepositoryComposition composition,
 			RepositoryConfigurationSource configurationSource) {
 		super(AotContext.from(beanFactory));
-		this.repositoryInterface = repositoryInterface;
+
 		this.configurationSource = configurationSource;
 
 		RepositoryMetadata metadata = AnnotationRepositoryMetadata.getMetadata(repositoryInterface);
-
 		RepositoryComposition.RepositoryFragments fragments = JpaRepositoryFragmentsContributor.DEFAULT.describe(metadata);
 
 		this.repositoryInformation = new AotRepositoryInformation(metadata, SimpleJpaRepository.class,
