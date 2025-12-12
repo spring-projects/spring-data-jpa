@@ -28,7 +28,7 @@
 
 	<properties>
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
-		<eclipselink>5.0.0-B11</eclipselink>
+		<eclipselink>5.0.0-B13</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
 		<hibernate>7.1.11.Final</hibernate>
 		<hibernate-71-snapshots>7.1.12-SNAPSHOT</hibernate-71-snapshots>
