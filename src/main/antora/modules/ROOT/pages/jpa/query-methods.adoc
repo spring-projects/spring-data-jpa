@@ -277,7 +277,7 @@ In the preceding example, the `LIKE` delimiter character (`%`) is recognized, an
 
 Using the `@NativeQuery` annotation allows running native queries, as shown in the following example:
 
-.Declare a native query at the query method using @Query
+.Declare a native query at the query method using `@NativeQuery`
 ====
 [source, java]
 ----
