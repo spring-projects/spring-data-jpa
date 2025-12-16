@@ -194,7 +194,7 @@ In the preceding example, the `LIKE` delimiter character (`%`) is recognized, an
 
 Using the `@NativeQuery` annotation allows running native queries, as shown in the following example:
 
-.Declare a native query at the query method using @Query
+.Declare a native query at the query method using `@NativeQuery`
 ====
 [source, java]
 ----
@@ -296,7 +296,7 @@ That is, you can make any alterations at the last moment.
 Query rewriting applies to the actual query and, when applicable, to count queries.
 Count queries are optimized and therefore, either not necessary or a count is obtained through other means, such as derived from a Hibernate `SelectionQuery` if there is an enclosing transaction.
 
-.Declare a QueryRewriter using `@Query`
+.Declare a QueryRewriter using `@Query` and `@NativeQuery`
 ====
 [source,java]
 ----
