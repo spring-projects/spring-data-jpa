@@ -146,6 +146,18 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByFirstnameNotIn(Collection<String> firstnames);
 
+	List<User> findByColleaguesRolesIsEmpty();
+
+	List<User> findByColleaguesRolesIsNotEmpty();
+
+	List<User> findByManagerColleaguesRolesIsNotEmpty();
+
+	List<User> findByColleaguesRolesContaining(Role role);
+
+	List<User> findByColleaguesRolesNotContaining(Role role);
+
+	List<User> findByColleaguesRolesIsEmptyAndAttributesIsNotEmpty();
+
 	// DATAJPA-292
 	@Query("select u from User u where u.firstname like ?1%")
 	List<User> findByFirstnameLike(String firstname);
