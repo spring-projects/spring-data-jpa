@@ -28,7 +28,7 @@ Any nested properties resolving to joins select the entire nested property causi
 
 === String-based queries
 
-Support for string-based queries covers both, JPQL queries(`@Query`) and native queries (`@NativeQuery`).
+Support for string-based queries covers both JPQL queries (`@Query`) and native queries (`@NativeQuery`).
 
 ==== JPQL Queries
 
