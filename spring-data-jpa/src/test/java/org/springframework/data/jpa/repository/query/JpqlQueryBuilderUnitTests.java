@@ -248,6 +248,83 @@ class JpqlQueryBuilderUnitTests {
 
 	}
 
+	@Test // GH-4110
+	void referencesCollectionViaJoin() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(Race.class, Groups.class, Group.class, GroupId.class,
+				Person.class);
+		Entity entity = entity(Race.class);
+
+		EntityType<Race> entityType = model.entity(Race.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("lineup.groups", Race.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity().where(JpqlQueryBuilder.where(pas).isNotEmpty()).render();
+
+		assertThat(jpql).isEqualTo(
+				"SELECT r FROM JpqlQueryBuilderUnitTests$Race r LEFT JOIN r.lineup l WHERE l.groups IS NOT EMPTY");
+	}
+
+	@Test // GH-4110
+	void referencesCollectionViaMultipleJoins() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(TestUser.class, TestRole.class);
+		Entity entity = entity(TestUser.class);
+
+		EntityType<TestUser> entityType = model.entity(TestUser.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("manager.colleagues.roles", TestUser.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity().where(JpqlQueryBuilder.where(pas).isEmpty()).render();
+
+		assertThat(jpql).isEqualTo(
+				"SELECT t FROM JpqlQueryBuilderUnitTests$TestUser t LEFT JOIN t.manager m LEFT JOIN m.colleagues c WHERE c.roles IS EMPTY");
+	}
+
+	@Test // GH-4110
+	void referencesCollectionViaJoinWithMemberOf() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(TestUser.class, TestRole.class);
+		Entity entity = entity(TestUser.class);
+
+		EntityType<TestUser> entityType = model.entity(TestUser.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("colleagues.roles", TestUser.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity()
+				.where(JpqlQueryBuilder.where(pas).memberOf(JpqlQueryBuilder.parameter("?1"))).render();
+
+		assertThat(jpql).isEqualTo(
+				"SELECT t FROM JpqlQueryBuilderUnitTests$TestUser t LEFT JOIN t.colleagues c WHERE ?1 MEMBER OF c.roles");
+	}
+
+	@Test // GH-4110
+	void directCollectionPropertyDoesNotCreateJoin() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(TestUser.class, TestRole.class);
+		Entity entity = entity(TestUser.class);
+
+		EntityType<TestUser> entityType = model.entity(TestUser.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("roles", TestUser.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity().where(JpqlQueryBuilder.where(pas).isEmpty()).render();
+
+		assertThat(jpql).isEqualTo("SELECT t FROM JpqlQueryBuilderUnitTests$TestUser t WHERE t.roles IS EMPTY");
+	}
+
+	@Test // GH-4110
+	void collectionWithAdditionalPathSegments() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(TestUser.class, TestRole.class);
+		Entity entity = entity(TestUser.class);
+
+		EntityType<TestUser> entityType = model.entity(TestUser.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("colleagues.roles.name", TestUser.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity()
+				.where(JpqlQueryBuilder.where(pas).eq(literal("ADMIN"))).render();
+
+		assertThat(jpql).isEqualTo(
+				"SELECT t FROM JpqlQueryBuilderUnitTests$TestUser t LEFT JOIN t.colleagues c LEFT JOIN c.roles r WHERE r.name = 'ADMIN'");
+	}
+
 	static ContextualAssert contextual(RenderContext context) {
 		return new ContextualAssert(context);
 	}
@@ -349,6 +426,13 @@ class JpqlQueryBuilderUnitTests {
 	}
 
 	@jakarta.persistence.Entity
+	static class Race {
+
+		@Id long id;
+		@OneToMany Set<Groups> lineup;
+	}
+
+	@jakarta.persistence.Entity
 	static class Group {
 
 		@EmbeddedId GroupId id;
@@ -360,6 +444,22 @@ class JpqlQueryBuilderUnitTests {
 
 		@ManyToOne Person person;
 
+	}
+
+	@jakarta.persistence.Entity
+	static class TestUser {
+
+		@Id long id;
+		@ManyToOne TestUser manager;
+		@OneToMany Set<TestUser> colleagues = new HashSet<>();
+		@OneToMany Set<TestRole> roles = new HashSet<>();
+	}
+
+	@jakarta.persistence.Entity
+	static class TestRole {
+
+		@Id long id;
+		String name;
 	}
 
 }
