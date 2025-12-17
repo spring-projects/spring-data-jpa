@@ -97,6 +97,11 @@ class JpqlUtils {
 				throw new IllegalStateException("Binding property is null");
 			}
 
+			// this is a reference to a collection property (eg. for an is empty check)
+			if (nextAttribute.isCollection() && !nextProperty.hasNext()) {
+				return new JpqlQueryBuilder.PathAndOrigin(nextProperty, joinSource, false);
+			}
+
 			return toExpressionRecursively(metamodel, joinSource, (Bindable<?>) nextAttribute, nextProperty, isForSelection,
 					requiresOuterJoin);
 		}

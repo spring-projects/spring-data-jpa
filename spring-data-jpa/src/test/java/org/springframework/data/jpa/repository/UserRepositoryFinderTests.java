@@ -167,6 +167,17 @@ class UserRepositoryFinderTests {
 		assertThat(result).containsExactly(oliver);
 	}
 
+	@Test // GH-4110
+	void executesQueryWithEmptyOnCollection() {
+
+		dave.addColleague(oliver);
+		userRepository.save(dave);
+		userRepository.save(oliver);
+
+		assertThat(userRepository.findByColleaguesRolesIsEmpty()).containsExactly(dave, carter);
+		assertThat(userRepository.findByColleaguesRolesIsNotEmpty()).containsExactlyInAnyOrder(oliver);
+	}
+
 	@Test // DATAJPA-92
 	void findsByLastnameIgnoringCase() {
 

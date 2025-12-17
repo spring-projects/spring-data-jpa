@@ -248,6 +248,22 @@ class JpqlQueryBuilderUnitTests {
 
 	}
 
+	@Test // GH-4110
+	void referencesCollectionViaJoin() {
+
+		TestMetaModel model = TestMetaModel.hibernateModel(Race.class, Groups.class, Group.class, GroupId.class,
+				Person.class);
+		Entity entity = entity(Race.class);
+
+		EntityType<Race> entityType = model.entity(Race.class);
+		JpqlQueryBuilder.PathExpression pas = JpqlUtils.toExpressionRecursively(model, entity, entityType,
+				PropertyPath.from("lineup.groups", Race.class));
+		String jpql = JpqlQueryBuilder.selectFrom(entity).entity().where(JpqlQueryBuilder.where(pas).isNotEmpty()).render();
+
+		assertThat(jpql).isEqualTo(
+				"SELECT r FROM JpqlQueryBuilderUnitTests$Race r LEFT JOIN r.lineup l WHERE l.groups IS NOT EMPTY");
+	}
+
 	static ContextualAssert contextual(RenderContext context) {
 		return new ContextualAssert(context);
 	}
@@ -346,6 +362,13 @@ class JpqlQueryBuilderUnitTests {
 		@Id long id;
 		@OneToMany Set<Group> groups = new HashSet<>();
 
+	}
+
+	@jakarta.persistence.Entity
+	static class Race {
+
+		@Id long id;
+		@OneToMany Set<Groups> lineup;
 	}
 
 	@jakarta.persistence.Entity

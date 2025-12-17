@@ -481,7 +481,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				case NOT_CONTAINING:
 
 					if (property.getLeafProperty().isCollection()) {
-						where = JpqlQueryBuilder.where(entity, property);
+
+						if (!property.hasNext()) {
+							where = JpqlQueryBuilder.where(entity, property);
+						}
 
 						return type.equals(NOT_CONTAINING) ? where.notMemberOf(placeholder(provider.next(part)))
 								: where.memberOf(placeholder(provider.next(part)));
@@ -522,7 +525,10 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 						throw new IllegalArgumentException("IsEmpty / IsNotEmpty can only be used on collection properties");
 					}
 
-					where = JpqlQueryBuilder.where(entity, property);
+					if (!property.hasNext()) {
+						where = JpqlQueryBuilder.where(entity, property);
+					}
+
 					return type.equals(IS_NOT_EMPTY) ? where.isNotEmpty() : where.isEmpty();
 				case WITHIN:
 				case NEAR:
