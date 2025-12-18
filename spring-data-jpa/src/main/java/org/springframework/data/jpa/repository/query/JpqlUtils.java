@@ -89,15 +89,17 @@ class JpqlUtils {
 
 				// except its a collection type on the root
 				if (from instanceof EntityType<?> && property.isCollection()) {
-					return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+					Attribute<?, ?> nextAttribute = resolveAttribute(metamodel, from, property);
+					if(nextAttribute != null && nextAttribute.isAssociation()) {
+						return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+					}
 				}
 				return new JpqlQueryBuilder.PathAndOrigin(property, joinSource, true);
 			}
 
 			PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null");
 
-			ManagedType<?> managedTypeForModel = getManagedTypeForModel(from);
-			Attribute<?, ?> nextAttribute = getModelForPath(metamodel, property, managedTypeForModel, from);
+			Attribute<?, ?> nextAttribute = resolveAttribute(metamodel, from, property);
 
 			if (nextAttribute == null) {
 				throw new IllegalStateException("Binding property is null");
@@ -110,6 +112,13 @@ class JpqlUtils {
 
 			return toExpressionRecursively(metamodel, joinSource, (Bindable<?>) nextAttribute, nextProperty, isForSelection,
 					requiresOuterJoin);
+		}
+
+		private static @Nullable Attribute<?, ?> resolveAttribute(Metamodel metamodel, Bindable<?> from,
+				PropertyPath property) {
+
+			ManagedType<?> managedType = getManagedTypeForModel(from);
+			return getModelForPath(metamodel, property, managedType, from);
 		}
 
 		private static @Nullable Attribute<?, ?> getModelForPath(@Nullable Metamodel metamodel, PropertyPath path,
@@ -148,8 +157,7 @@ class JpqlUtils {
 			}
 
 			private @Nullable Attribute<?, ?> resolveAttribute(PropertyPath propertyPath) {
-				ManagedType<?> managedType = getManagedTypeForModel(bindable);
-				return getModelForPath(metamodel, propertyPath, managedType, bindable);
+				return JpqlExpressionFactory.resolveAttribute(metamodel, bindable, propertyPath);
 			}
 
 			@Override
