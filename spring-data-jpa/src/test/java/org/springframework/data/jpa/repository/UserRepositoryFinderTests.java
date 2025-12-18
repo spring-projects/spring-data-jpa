@@ -178,6 +178,51 @@ class UserRepositoryFinderTests {
 		assertThat(userRepository.findByColleaguesRolesIsNotEmpty()).containsExactlyInAnyOrder(oliver);
 	}
 
+	@Test // GH-4110
+	void executesQueryWithEmptyOnCollectionViaMultipleJoins() {
+
+		carter.setManager(dave);
+		dave.addColleague(oliver);
+		dave.addColleague(carter);
+		userRepository.save(dave);
+		userRepository.save(carter);
+		userRepository.save(oliver);
+
+		userRepository.save(oliver);
+
+		assertThat(userRepository.findByManagerColleaguesRolesIsNotEmpty()).containsExactly(carter);
+	}
+
+	@Test // GH-4110
+	void executesQueryWithContainingOnCollectionViaJoin() {
+
+		dave.addColleague(oliver);
+		oliver.addRole(singer);
+		userRepository.save(dave);
+		userRepository.save(oliver);
+
+		assertThat(userRepository.findByColleaguesRolesContaining(singer)).containsExactlyInAnyOrder(dave, oliver);
+		assertThat(userRepository.findByColleaguesRolesNotContaining(drummer)).containsExactlyInAnyOrder(dave, carter, oliver);
+	}
+
+	@Test // GH-4110
+	void executesQueryWithMultipleCollectionPredicates() {
+
+		dave.addColleague(oliver);
+		dave.getAttributes().add("test");
+		userRepository.save(dave);
+		userRepository.save(oliver);
+
+		assertThat(userRepository.findByColleaguesRolesIsEmptyAndAttributesIsNotEmpty())
+				.containsExactlyInAnyOrder(dave);
+	}
+
+	@Test // GH-4110
+	void executesQueryWithEmptyOnCollectionWithNoColleagues() {
+
+		assertThat(userRepository.findByColleaguesRolesIsEmpty()).containsExactly(dave, carter, oliver);
+	}
+
 	@Test // DATAJPA-92
 	void findsByLastnameIgnoringCase() {
 
