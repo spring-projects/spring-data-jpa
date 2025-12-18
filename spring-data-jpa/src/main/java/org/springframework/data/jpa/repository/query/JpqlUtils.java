@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Bindable;
+import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
@@ -85,6 +86,11 @@ class JpqlUtils {
 
 			// if it's a leaf, return the join
 			if (isLeafProperty) {
+
+				// except its a collection type on the root
+				if (from instanceof EntityType<?> && property.isCollection()) {
+					return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+				}
 				return new JpqlQueryBuilder.PathAndOrigin(property, joinSource, true);
 			}
 
