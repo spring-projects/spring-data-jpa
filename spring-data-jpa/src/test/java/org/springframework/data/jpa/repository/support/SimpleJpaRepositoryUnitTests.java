@@ -60,6 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Greg Turnquist
  * @author Yanming Zhou
  * @author Ariel Morelli Andres
+ * @author Byungju Ju
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -182,7 +183,19 @@ class SimpleJpaRepositoryUnitTests {
 		verify(em).merge(attachedUser);
 	}
 
-	@Test // DATAJPA-1535
+	@Test // GH-4125
+	void persistGetsCalledWhenEntityIsNew() {
+
+		User user = new User();
+
+		when(information.isNew(user)).thenReturn(true);
+
+		repo.save(user);
+
+		verify(em).persist(user);
+	}
+
+    @Test // DATAJPA-1535
 	void doNothingWhenNewInstanceGetsDeleted() {
 
 		User newUser = new User();
