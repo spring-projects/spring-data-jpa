@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.persistence.Embeddable;
@@ -49,6 +51,7 @@ public class JpaMetamodel {
 
 	private final Lazy<Collection<Class<?>>> managedTypes;
 	private final Lazy<Collection<Class<?>>> jpaEmbeddables;
+	private final Lazy<Collection<Class<?>>> basicTypes;
 
 	/**
 	 * Creates a new {@link JpaMetamodel} for the given JPA {@link Metamodel}.
@@ -71,6 +74,16 @@ public class JpaMetamodel {
 				.filter(Objects::nonNull)
 				.filter(it -> AnnotatedElementUtils.isAnnotated(it, Embeddable.class))
 				.collect(StreamUtils.toUnmodifiableSet()));
+
+		this.basicTypes = Lazy.of(() -> {
+			if (metamodel instanceof org.hibernate.metamodel.model.domain.JpaMetamodel hibernateMetamodel) {
+				Set<Class<?>> result = new HashSet<>();
+				hibernateMetamodel.getTypeConfiguration().getJavaTypeRegistry()
+						.forEachDescriptor(d -> result.add(d.getJavaTypeClass()));
+				return result;
+			}
+			return Set.of();
+		});
 	}
 
 	public static JpaMetamodel of(Metamodel metamodel) {
@@ -153,5 +166,10 @@ public class JpaMetamodel {
 		return entityType.getSingularAttributes().stream() //
 				.filter(SingularAttribute::isId) //
 				.findFirst();
+	}
+
+	public boolean isBasicType(Class<?> type) {
+		Assert.notNull(type, "Type must not be null");
+		return basicTypes.get().contains(type);
 	}
 }
