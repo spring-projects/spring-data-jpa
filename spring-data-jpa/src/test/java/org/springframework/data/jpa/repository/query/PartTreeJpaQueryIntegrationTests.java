@@ -65,7 +65,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Christoph Strobl
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class PartTreeJpaQueryIntegrationTests {
 
 	private static String PROPERTY = "h.target." + getQueryProperty();

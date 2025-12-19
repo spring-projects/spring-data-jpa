@@ -34,6 +34,6 @@ class JavaConfigDefaultTransactionDisablingIntegrationTests extends DefaultTrans
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = UserRepository.class, enableDefaultTransactions = false)
 	@EnableTransactionManagement
-	@ImportResource({ "classpath:infrastructure.xml", "classpath:tx-manager.xml" })
+	@ImportResource({ "classpath:hibernate-infrastructure.xml", "classpath:tx-manager.xml" })
 	static class Config {}
 }

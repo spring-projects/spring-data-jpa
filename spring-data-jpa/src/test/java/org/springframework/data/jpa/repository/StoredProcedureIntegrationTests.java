@@ -150,6 +150,6 @@ class StoredProcedureIntegrationTests {
 			includeFilters = { @Filter(pattern = ".*DummyRepository", type = FilterType.REGEX) })
 	static abstract class Config {}
 
-	@ImportResource("classpath:infrastructure.xml")
+	@ImportResource("classpath:hibernate-infrastructure.xml")
 	static class TestConfig extends Config {}
 }

@@ -9,11 +9,6 @@
 	<bean id="vendorAdaptor" class="org.springframework.data.jpa.repository.CustomEclipseLinkJpaVendorAdapter" parent="abstractVendorAdaptor" />
 
 	<util:properties id="jpaProperties">
-		<prop key="jakarta.persistence.jdbc.driver">org.hsqldb.jdbcDriver</prop>
-		<prop key="jakarta.persistence.jdbc.url">jdbc:hsqldb:mem:hades</prop>
-		<prop key="jakarta.persistence.jdbc.user">sa</prop>
-		<prop key="jakarta.persistence.jdbc.password"></prop>
-		<prop key="jakarta.persistence.ddl-generation">create-tables</prop>
 		<prop key="eclipselink.weaving.internal">false</prop>
 		<prop key="eclipselink.logging.level">SEVERE</prop>
 	</util:properties>

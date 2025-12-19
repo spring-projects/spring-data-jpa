@@ -22,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
  *
  * @author Oliver Gierke
  */
-@ContextConfiguration(locations = "classpath:config/namespace-application-context.xml")
+@ContextConfiguration(
+		locations = { "classpath:config/namespace-application-context.xml", "classpath:hibernate-infrastructure.xml" })
 class RepositoryConfigTests extends AbstractRepositoryConfigTests {
 }

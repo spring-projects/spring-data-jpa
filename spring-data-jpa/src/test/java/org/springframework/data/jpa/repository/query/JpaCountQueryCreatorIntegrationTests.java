@@ -44,7 +44,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Jens Schauder
  */
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration("classpath:infrastructure.xml")
+@ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class JpaCountQueryCreatorIntegrationTests {
 
 	@PersistenceContext EntityManager entityManager;

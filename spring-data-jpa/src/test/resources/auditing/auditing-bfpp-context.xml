@@ -7,7 +7,7 @@
 
     <!-- Needed to check that the BFPP only adds depends-on if spring-configured is activated -->
     <context:spring-configured />
-    
-    <import resource="../infrastructure.xml" />
+
+	<import resource="../hibernate-infrastructure.xml"/>
 
 </beans>

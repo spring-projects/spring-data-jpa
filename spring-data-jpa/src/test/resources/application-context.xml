@@ -6,7 +6,7 @@
 		http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<!-- Database setup -->
-	<import resource="infrastructure.xml" />
+	<import resource="hibernate-infrastructure.xml"/>
 
 	<!-- Configure a DAO for User class -->
 	<bean id="userDao" class="org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean">
