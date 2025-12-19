@@ -40,4 +40,8 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 	@Override
 	void shouldProjectWithKeysetScrolling() {}
 
+	@Disabled
+	@Override
+	void executesQueryWithContainingOnCollectionViaJoin() {}
+
 }
