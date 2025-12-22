@@ -167,7 +167,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Configures a custom {@link CrudMethodMetadata} to be used to detect {@link LockModeType}s and query hints to be
 	 * applied to queries.
 	 *
-	 * @param metadata
+	 * @param metadata custom {@link CrudMethodMetadata} to be used, can be {@literal null}.
 	 */
 	@Override
 	public void setRepositoryMethodMetadata(CrudMethodMetadata metadata) {
@@ -203,7 +203,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	@Transactional
-	@SuppressWarnings("unchecked")
 	public void delete(T entity) {
 
 		Assert.notNull(entity, ENTITY_MUST_NOT_BE_NULL);
@@ -334,13 +333,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Class<T> domainType = getDomainClass();
 
 		if (metadata == null) {
-			return Optional.ofNullable(entityManager.find(domainType, id));
+			return Optional.of(entityManager.find(domainType, id));
 		}
 
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.ofNullable(
+		return Optional.of(
 				type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
@@ -458,7 +457,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Optional<T> findOne(Specification<T> spec) {
-		return Optional.ofNullable(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResultOrNull());
+		return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResultOrNull());
 	}
 
 	@Override
@@ -473,6 +472,8 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable) {
+
+		spec = spec == null ? Specification.unrestricted() : spec;
 
 		TypedQuery<T> query = getQuery(spec, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
@@ -752,7 +753,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param spec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 */
-	protected TypedQuery<T> getQuery(@Nullable Specification<T> spec, Pageable pageable) {
+	protected TypedQuery<T> getQuery(Specification<T> spec, Pageable pageable) {
 		return getQuery(spec, getDomainClass(), pageable.getSort());
 	}
 
@@ -784,7 +785,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 */
-	protected <S extends T> TypedQuery<S> getQuery(@Nullable Specification<S> spec, Class<S> domainClass, Sort sort) {
+	protected <S extends T> TypedQuery<S> getQuery(Specification<S> spec, Class<S> domainClass, Sort sort) {
 		return getQuery(ReturnedType.of(domainClass, domainClass, projectionFactory), spec, domainClass, sort,
 				Collections.emptySet(), null);
 	}
