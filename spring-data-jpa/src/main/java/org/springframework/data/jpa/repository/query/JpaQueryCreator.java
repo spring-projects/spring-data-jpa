@@ -69,6 +69,7 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Jinmyeong Kim
+ * @author Oualid Bouh
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
 		implements JpqlQueryCreator {
@@ -299,7 +300,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 			List<JpqlQueryBuilder.Expression> paths = new ArrayList<>(requiredSelection.size());
 			for (String selection : requiredSelection) {
 				paths.add(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
-						PropertyPath.from(selection, returnedType.getDomainType()), true));
+						PropertyPath.from(selection, returnedType.getDomainType()), true).as(selection));
 			}
 
 			JpqlQueryBuilder.Expression distance = null;

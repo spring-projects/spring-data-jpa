@@ -65,6 +65,7 @@ import org.springframework.data.util.Lazy;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oualid Bouh
  */
 class JpaQueryCreatorTests {
 
@@ -75,6 +76,9 @@ class JpaQueryCreatorTests {
 			EmbeddedIdExampleDepartment.class);
 
 	static List<JpqlQueryTemplates> ignoreCaseTemplates = List.of(JpqlQueryTemplates.LOWER, JpqlQueryTemplates.UPPER);
+
+	private static final TestMetaModel ORDER_WITH_RELATIONS = TestMetaModel.hibernateModel(
+			OrderWithRelations.class, Customer.class, Supplier.class);
 
 	@Test // GH-3588
 	void simpleProperty() {
@@ -1130,5 +1134,46 @@ class JpaQueryCreatorTests {
 			}
 			return queryCreator(partTree, returnedType, metamodel, queryTemplates, parameterAccessor.get());
 		}
+	}
+
+	@Test // GH-4135
+	void interfaceProjectionWithMultipleJoinsShouldGenerateUniqueAliases() {
+
+		queryCreator(ORDER_WITH_RELATIONS)
+				.forTree(OrderWithRelations.class, "findProjectionById")
+				.returning(OrderSummaryProjection.class)
+				.withParameters(1L)
+				.as(QueryCreatorTester::create)
+				.expectJpql(
+						"SELECT o.id id, c.id customerId, s.id supplierId, c.name customerName, s.name supplierName FROM %s o LEFT JOIN o.customer c LEFT JOIN o.supplier s WHERE o.id = ?1",
+						DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class))
+				.validateQuery();
+	}
+
+	@jakarta.persistence.Entity
+	static class OrderWithRelations {
+		@Id Long id;
+		@ManyToOne Customer customer;
+		@ManyToOne Supplier supplier;
+	}
+
+	@jakarta.persistence.Entity
+	static class Customer {
+		@Id Long id;
+		String name;
+	}
+
+	@jakarta.persistence.Entity
+	static class Supplier {
+		@Id Long id;
+		String name;
+	}
+
+	interface OrderSummaryProjection {
+		Long getId();
+		Long getCustomerId();      // → customer.id
+		Long getSupplierId();      // → supplier.id
+		String getCustomerName();  // → customer.name
+		String getSupplierName();  // → supplier.name
 	}
 }
