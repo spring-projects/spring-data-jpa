@@ -26,11 +26,13 @@ import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,6 +82,7 @@ class SimpleJpaRepositoryUnitTests {
 	@Mock CrudMethodMetadata metadata;
 	@Mock EntityGraph<User> entityGraph;
 	@Mock org.springframework.data.jpa.repository.EntityGraph entityGraphAnnotation;
+	@Mock SingularAttribute idAttribute;
 
 	@BeforeEach
 	void setUp() {
@@ -261,5 +264,33 @@ class SimpleJpaRepositoryUnitTests {
 
 	private static String formatName(Method method) {
 		return method.toString().replaceAll("public ", "").replaceAll(SimpleJpaRepository.class.getName() + ".", "");
+	}
+
+	@Test // GH-4134
+	@SuppressWarnings({"unchecked"})
+	void existsByIdReturnsTrueWhenEntityExists() {
+
+		when(information.getIdAttribute()).thenReturn(idAttribute);
+		when(information.getEntityName()).thenReturn("User");
+		when(information.getIdAttributeNames()).thenReturn(List.of("id"));
+		when(information.hasCompositeId()).thenReturn(false);
+		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+		when(countQuery.getSingleResult()).thenReturn(1L);
+
+		assertThat(repo.existsById(1)).isTrue();
+	}
+
+	@Test // GH-4134
+	@SuppressWarnings({"unchecked"})
+	void existsByIdReturnsFalseWhenEntityDoesNotExist() {
+
+		when(information.getIdAttribute()).thenReturn(idAttribute);
+		when(information.getEntityName()).thenReturn("User");
+		when(information.getIdAttributeNames()).thenReturn(List.of("id"));
+		when(information.hasCompositeId()).thenReturn(false);
+		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+		when(countQuery.getSingleResult()).thenReturn(0L);
+
+		assertThat(repo.existsById(1)).isFalse();
 	}
 }
