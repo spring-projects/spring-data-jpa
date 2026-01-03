@@ -277,7 +277,10 @@ class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
 		when(countQuery.getSingleResult()).thenReturn(1L);
 
-		assertThat(repo.existsById(1)).isTrue();
+		boolean result = repo.existsById(1);
+
+		verify(countQuery).getSingleResult();
+		assertThat(result).isTrue();
 	}
 
 	@Test // GH-4134
@@ -291,6 +294,9 @@ class SimpleJpaRepositoryUnitTests {
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
 		when(countQuery.getSingleResult()).thenReturn(0L);
 
-		assertThat(repo.existsById(1)).isFalse();
+		boolean result = repo.existsById(1);
+
+		verify(countQuery).getSingleResult();
+		assertThat(result).isFalse();
 	}
 }
