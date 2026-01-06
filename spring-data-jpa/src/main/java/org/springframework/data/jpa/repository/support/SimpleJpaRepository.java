@@ -77,7 +77,6 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ProxyUtils;
 import org.springframework.data.util.Streamable;
-import org.springframework.lang.Contract;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -471,13 +470,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	@Override
-	public Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable) {
+	public Page<T> findAll(Specification<T> spec, Specification<T> countSpec, Pageable pageable) {
 
-		spec = spec == null ? Specification.unrestricted() : spec;
+		Specification<T> specToUse = spec == null ? Specification.unrestricted() : spec;
+		Specification<T> countSpecToUse = countSpec == null ? Specification.unrestricted() : countSpec;
 
-		TypedQuery<T> query = getQuery(spec, pageable);
+		TypedQuery<T> query = getQuery(specToUse, pageable);
 		return pageable.isUnpaged() ? new PageImpl<>(query.getResultList())
-				: readPage(query, getDomainClass(), pageable, countSpec);
+				: readPage(query, getDomainClass(), pageable, countSpecToUse);
 	}
 
 	@Override
@@ -714,7 +714,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * {@link Specification}.
 	 *
 	 * @param query must not be {@literal null}.
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 * @deprecated use {@link #readPage(TypedQuery, Class, Pageable, Specification)} instead
 	 */
@@ -730,11 +730,10 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param query must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param spec must not be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable can be {@link Pageable#unpaged()}.
 	 */
-	@Contract("_, _, _, null -> fail")
 	protected <S extends T> Page<S> readPage(TypedQuery<S> query, Class<S> domainClass, Pageable pageable,
-			@Nullable Specification<S> spec) {
+			Specification<S> spec) {
 
 		Assert.notNull(spec, "Specification must not be null");
 
@@ -794,13 +793,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * Creates a {@link TypedQuery} for the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param returnedType must not be {@literal null}.
-	 * @param spec can be {@literal null}.
+	 * @param spec must not be {@literal null}.
 	 * @param domainClass must not be {@literal null}.
 	 * @param sort must not be {@literal null}.
 	 * @param inputProperties must not be {@literal null}.
 	 * @param scrollPosition must not be {@literal null}.
 	 */
-	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec,
+	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, Specification<S> spec,
 			Class<S> domainClass, Sort sort, Collection<String> inputProperties, @Nullable ScrollPosition scrollPosition) {
 
 		Assert.notNull(spec, "Specification must not be null");
@@ -1075,11 +1074,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	}
 
 	private ProjectionFactory getProjectionFactory() {
-
-		if (projectionFactory == null) {
-			projectionFactory = new SpelAwareProxyProjectionFactory();
-		}
-
 		return projectionFactory;
 	}
 
