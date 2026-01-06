@@ -333,13 +333,13 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		Class<T> domainType = getDomainClass();
 
 		if (metadata == null) {
-			return Optional.of(entityManager.find(domainType, id));
+			return Optional.ofNullable(entityManager.find(domainType, id));
 		}
 
 		LockModeType type = metadata.getLockModeType();
 		Map<String, Object> hints = getHints();
 
-		return Optional.of(
+		return Optional.ofNullable(
 				type == null ? entityManager.find(domainType, id, hints) : entityManager.find(domainType, id, type, hints));
 	}
 
@@ -457,7 +457,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 	@Override
 	public Optional<T> findOne(Specification<T> spec) {
-		return Optional.of(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResultOrNull());
+		return Optional.ofNullable(getQuery(spec, Sort.unsorted()).setMaxResults(2).getSingleResultOrNull());
 	}
 
 	@Override
