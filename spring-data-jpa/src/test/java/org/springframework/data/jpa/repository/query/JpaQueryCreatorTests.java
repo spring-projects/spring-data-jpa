@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -77,8 +78,8 @@ class JpaQueryCreatorTests {
 
 	static List<JpqlQueryTemplates> ignoreCaseTemplates = List.of(JpqlQueryTemplates.LOWER, JpqlQueryTemplates.UPPER);
 
-	private static final TestMetaModel ORDER_WITH_RELATIONS = TestMetaModel.hibernateModel(
-			OrderWithRelations.class, Customer.class, Supplier.class);
+	private static final TestMetaModel ORDER_WITH_RELATIONS = TestMetaModel.hibernateModel(OrderWithRelations.class,
+			Customer.class, Supplier.class);
 
 	@Test // GH-3588
 	void simpleProperty() {
@@ -249,9 +250,8 @@ class JpaQueryCreatorTests {
 				.withParameters("spring", "data") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE p.name = ?1 AND %s(p.productType) = %s(?2)",
-						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator(),
-						ignoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.validateQuery();
 	}
 
@@ -440,8 +440,8 @@ class JpaQueryCreatorTests {
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
-						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -470,8 +470,8 @@ class JpaQueryCreatorTests {
 				.withParameters("%spring%") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) NOT LIKE %s(?1) ESCAPE '\\'",
-						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring%") //
 				.validateQuery();
 	}
@@ -499,8 +499,8 @@ class JpaQueryCreatorTests {
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
-						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "spring%") //
 				.validateQuery();
 	}
@@ -528,8 +528,8 @@ class JpaQueryCreatorTests {
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT p FROM %s p WHERE %s(p.name) LIKE %s(?1) ESCAPE '\\'",
-						DefaultJpaEntityMetadata.unqualify(Product.class),
-						ignoreCaseTemplate.getIgnoreCaseOperator(), ignoreCaseTemplate.getIgnoreCaseOperator()) //
+						DefaultJpaEntityMetadata.unqualify(Product.class), ignoreCaseTemplate.getIgnoreCaseOperator(),
+						ignoreCaseTemplate.getIgnoreCaseOperator()) //
 				.expectPlaceholderValue("?1", "%spring") //
 				.validateQuery();
 	}
@@ -620,8 +620,7 @@ class JpaQueryCreatorTests {
 				.render();
 
 		assertThat(jpql).isEqualTo("SELECT o FROM %s o ORDER BY %s(o.date) asc",
-				DefaultJpaEntityMetadata.unqualify(Order.class),
-				ignoreCase.getIgnoreCaseOperator());
+				DefaultJpaEntityMetadata.unqualify(Order.class), ignoreCase.getIgnoreCaseOperator());
 	}
 
 	@Test // GH-3588
@@ -759,8 +758,7 @@ class JpaQueryCreatorTests {
 				.forTree(ReferencingEmbeddedIdExampleEmployee.class, "findByEmployee_EmployeePk_EmployeeId") //
 				.withParameters(1L) //
 				.as(QueryCreatorTester::create) //
-				.expectJpql(
-						"SELECT r FROM ReferencingEmbeddedIdExampleEmployee r WHERE r.employee.employeePk.employeeId = ?1") //
+				.expectJpql("SELECT r FROM ReferencingEmbeddedIdExampleEmployee r WHERE r.employee.employeePk.employeeId = ?1") //
 				.validateQuery();
 	}
 
@@ -1137,43 +1135,47 @@ class JpaQueryCreatorTests {
 	}
 
 	@Test // GH-4135
-	void interfaceProjectionWithMultipleJoinsShouldGenerateUniqueAliases() {
+	void interfaceProjectionShouldGenerateUniqueSelectionAliases() {
 
-		queryCreator(ORDER_WITH_RELATIONS)
-				.forTree(OrderWithRelations.class, "findProjectionById")
-				.returning(OrderSummaryProjection.class)
-				.withParameters(1L)
-				.as(QueryCreatorTester::create)
+		queryCreator(ORDER_WITH_RELATIONS).forTree(OrderWithRelations.class, "findProjectionById")
+				.returning(OrderSummaryProjection.class) //
+				.withParameters(1L) //
+				.as(QueryCreatorTester::create) //
 				.expectJpql(
 						"SELECT o.id id, c.id customerId, s.id supplierId, c.name customerName, s.name supplierName FROM %s o LEFT JOIN o.customer c LEFT JOIN o.supplier s WHERE o.id = ?1",
 						DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class))
 				.validateQuery();
 	}
 
-	@jakarta.persistence.Entity
+	@Entity
 	static class OrderWithRelations {
 		@Id Long id;
 		@ManyToOne Customer customer;
 		@ManyToOne Supplier supplier;
 	}
 
-	@jakarta.persistence.Entity
+	@Entity
 	static class Customer {
 		@Id Long id;
 		String name;
 	}
 
-	@jakarta.persistence.Entity
+	@Entity
 	static class Supplier {
 		@Id Long id;
 		String name;
 	}
 
 	interface OrderSummaryProjection {
+
 		Long getId();
-		Long getCustomerId();      // → customer.id
-		Long getSupplierId();      // → supplier.id
-		String getCustomerName();  // → customer.name
-		String getSupplierName();  // → supplier.name
+
+		Long getCustomerId(); // customer.id
+
+		Long getSupplierId(); // supplier.id
+
+		String getCustomerName(); // customer.name
+
+		String getSupplierName(); // supplier.name
 	}
 }
