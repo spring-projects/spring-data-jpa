@@ -106,15 +106,13 @@ public interface JpaSpecificationExecutor<T> {
 	 * <p>
 	 * Supports counting the total number of entities matching the {@link Specification}.
 	 *
-	 * @param spec can be {@literal null}, if no {@link Specification} is given all entities matching {@code <T>} will be
-	 *          selected.
-	 * @param countSpec can be {@literal null}，if no {@link Specification} is given all entities matching {@code <T>} will
-	 *          be counted.
+	 * @param spec must not be {@literal null}.
+	 * @param countSpec must not be {@literal null}.
 	 * @param pageable must not be {@literal null}.
 	 * @return never {@literal null}.
 	 * @since 3.5
 	 */
-	Page<T> findAll(@Nullable Specification<T> spec, @Nullable Specification<T> countSpec, Pageable pageable);
+	Page<T> findAll(Specification<T> spec, Specification<T> countSpec, Pageable pageable);
 
 	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
@@ -201,7 +199,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * This method uses {@link jakarta.persistence.criteria.CriteriaDelete Criteria API bulk delete} that maps directly to
 	 * database delete operations. The persistence context is not synchronized with the result of the bulk delete.
 	 *
-	 * @param spec the {@link UpdateSpecification} to use for the delete query must not be {@literal null}.
+	 * @param spec the {@link UpdateSpecification} to use for the delete query, must not be {@literal null}.
 	 * @return the number of entities deleted.
 	 * @since 3.0
 	 * @see DeleteSpecification#unrestricted()
@@ -216,7 +214,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * requires the query function to return a query result and not the {@link FluentQuery} object itself to ensure the
 	 * query is executed inside the {@code findBy(…)} method.
 	 *
-	 * @param spec must not be null.
+	 * @param spec predicate specification, must not be {@literal null}.
 	 * @param queryFunction the query function defining projection, sorting, and the result type
 	 * @return all entities matching the given Example.
 	 * @since 4.0
@@ -234,7 +232,7 @@ public interface JpaSpecificationExecutor<T> {
 	 * requires the query function to return a query result and not the {@link FluentQuery} object itself to ensure the
 	 * query is executed inside the {@code findBy(…)} method.
 	 *
-	 * @param spec must not be null.
+	 * @param spec query specification, must not be {@literal null}.
 	 * @param queryFunction the query function defining projection, sorting, and the result type
 	 * @return all entities matching the given specification.
 	 * @since 3.0
