@@ -1,5 +1,4 @@
-[[glossary]]
-[appendix, glossary]
+[glossary]
 [[glossary]]
 = Glossary
 :page-section-summary-toc: 1
