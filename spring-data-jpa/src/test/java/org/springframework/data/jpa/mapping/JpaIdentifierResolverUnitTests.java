@@ -82,7 +82,8 @@ class JpaIdentifierResolverUnitTests {
 
         stubCompositeIdBasic();
 
-        JpaIdentifierResolver<CompositeEntity> resolver = new JpaIdentifierResolver<>(type,
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        JpaIdentifierResolver resolver = new JpaIdentifierResolver((IdentifiableType) type,
             PersistenceProvider.GENERIC_JPA, persistenceUnitUtil);
 
         CompositeEntity entity = new CompositeEntity(null, null, "extra");
@@ -227,6 +228,21 @@ class JpaIdentifierResolverUnitTests {
     }
 
     @Test
+    void readsIdentifierForNonEntityProjection() {
+
+        stubSingleIdWithJavaType();
+
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        JpaIdentifierResolver resolver = new JpaIdentifierResolver((IdentifiableType) type,
+            PersistenceProvider.GENERIC_JPA, persistenceUnitUtil);
+
+        ProjectionDto dto = new ProjectionDto("dto-id");
+
+        assertThat(resolver.getId(dto)).isEqualTo("dto-id");
+        verify(persistenceUnitUtil, never()).getIdentifier(any());
+    }
+
+    @Test
     void exposesIdentifierMetadata() {
 
         stubSingleIdWithMetadata();
@@ -289,6 +305,15 @@ class JpaIdentifierResolverUnitTests {
         CompositeId(String first, String second) {
             this.first = first;
             this.second = second;
+        }
+    }
+
+    static class ProjectionDto {
+
+        final String id;
+
+        ProjectionDto(String id) {
+            this.id = id;
         }
     }
 

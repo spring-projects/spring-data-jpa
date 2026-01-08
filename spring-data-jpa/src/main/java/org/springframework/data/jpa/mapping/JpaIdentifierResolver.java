@@ -137,9 +137,18 @@ public final class JpaIdentifierResolver<T> {
 				return t.get(idMetadata.getSimpleIdAttribute().getName());
 			}
 
-			if (idMetadata.getJavaType().isInstance(entity)) {
+			Class<?> entityType = idMetadata.getJavaType();
+			if (entityType != null && entityType.isInstance(entity)) {
 				return persistenceUnitUtil.getIdentifier(entity);
 			}
+
+			return new DirectFieldAccessFallbackBeanWrapper(entity)
+					.getPropertyValue(idMetadata.getSimpleIdAttribute().getName());
+		}
+
+		Class<?> entityType = idMetadata.getJavaType();
+		if (entityType != null && !entityType.isInstance(entity)) {
+			return null;
 		}
 
 		// otherwise, check if the complex id type has any partially filled fields
