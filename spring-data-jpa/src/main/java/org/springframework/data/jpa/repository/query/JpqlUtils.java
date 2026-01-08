@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  * Utilities to create JPQL expressions, derived from {@link QueryUtils}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class JpqlUtils {
 
@@ -90,7 +91,7 @@ class JpqlUtils {
 				// except its a collection type on the root
 				if (from instanceof EntityType<?> && property.isCollection()) {
 					Attribute<?, ?> nextAttribute = resolveAttribute(metamodel, from, property);
-					if(nextAttribute != null && nextAttribute.isAssociation()) {
+					if (nextAttribute != null && nextAttribute.isAssociation()) {
 						return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
 					}
 				}

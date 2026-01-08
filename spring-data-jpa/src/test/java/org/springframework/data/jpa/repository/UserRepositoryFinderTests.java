@@ -219,7 +219,6 @@ class UserRepositoryFinderTests {
 
 	@Test // GH-4110
 	void executesQueryWithEmptyOnCollectionWithNoColleagues() {
-
 		assertThat(userRepository.findByColleaguesRolesIsEmpty()).containsExactly(dave, carter, oliver);
 	}
 

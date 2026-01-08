@@ -652,15 +652,16 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		 *
 		 * @return
 		 */
-		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(PropertyPath path,
+		private JpqlQueryBuilder.Expression potentiallyIgnoreCase(PropertyPath path,
 				JpqlQueryBuilder.Expression expressionValue) {
 
 			switch (part.shouldIgnoreCase()) {
 
 				case ALWAYS:
 
-					Assert.isTrue(canUpperCase(path), "Unable to ignore case of " + path.getType().getName()
-							+ " types, the property '" + part.getProperty().getSegment() + "' must reference a String");
+					Assert.isTrue(canUpperCase(path),
+							() -> "Unable to ignore case of %s types, the property '%s' must reference a String"
+									.formatted(path.getType().getName(), part.getProperty().getSegment()));
 					return JpqlQueryBuilder.function(templates.getIgnoreCaseOperator(), expressionValue);
 
 				case WHEN_POSSIBLE:
