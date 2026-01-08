@@ -120,10 +120,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 		@Override
 		public @Nullable Object getIdentifier() {
-
-			return proxyIdAccessor.shouldUseAccessorFor(bean) //
-					? proxyIdAccessor.getIdentifierFrom(bean)//
-					: super.getIdentifier();
+			return JpaIdentifierResolver.getProxyAwareIdentifier(bean, proxyIdAccessor, super::getIdentifier);
 		}
 	}
 }

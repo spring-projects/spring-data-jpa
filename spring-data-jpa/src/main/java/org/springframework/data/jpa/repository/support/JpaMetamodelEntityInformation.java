@@ -15,32 +15,23 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import jakarta.persistence.IdClass;
 import jakarta.persistence.PersistenceUnitUtil;
-import jakarta.persistence.Tuple;
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
-import jakarta.persistence.metamodel.Type;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanWrapper;
-import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.data.jpa.mapping.JpaIdentifierResolver;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -60,11 +51,9 @@ import org.springframework.util.Assert;
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
-	private final IdMetadata<T> idMetadata;
 	private final Optional<SingularAttribute<? super T, ?>> versionAttribute;
-	private final Metamodel metamodel;
 	private final @Nullable String entityName;
-	private final PersistenceUnitUtil persistenceUnitUtil;
+	private final JpaIdentifierResolver<T> identifierResolver;
 
 	/**
 	 * Creates a new {@link JpaMetamodelEntityInformation} for the given domain class and {@link Metamodel}.
@@ -79,7 +68,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		super(domainClass);
 
 		Assert.notNull(metamodel, "Metamodel must not be null");
-		this.metamodel = metamodel;
+		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
 
 		ManagedType<T> type = metamodel.managedType(domainClass);
 
@@ -93,11 +82,10 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
 
-		this.idMetadata = new IdMetadata<>(identifiableType, PersistenceProvider.fromMetamodel(metamodel));
+		this.identifierResolver = new JpaIdentifierResolver<>(identifiableType, persistenceProvider, persistenceUnitUtil);
 		this.versionAttribute = findVersionAttribute(identifiableType, metamodel);
 
 		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
-		this.persistenceUnitUtil = persistenceUnitUtil;
 	}
 
 	/**
@@ -113,13 +101,12 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		super(new JpaMetamodelEntityMetadata<>(entityType));
 
-		this.metamodel = metamodel;
+		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
 		this.entityName = entityType.getName();
-		this.idMetadata = new IdMetadata<>(entityType, PersistenceProvider.fromMetamodel(metamodel));
+		this.identifierResolver = new JpaIdentifierResolver<>(entityType, persistenceProvider, persistenceUnitUtil);
 		this.versionAttribute = findVersionAttribute(entityType, metamodel);
 
 		Assert.notNull(persistenceUnitUtil, "PersistenceUnitUtil must not be null");
-		this.persistenceUnitUtil = persistenceUnitUtil;
 	}
 
 	@Override
@@ -169,80 +156,34 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	@SuppressWarnings("unchecked")
 	public @Nullable ID getId(T entity) {
-
-		// check if this is a proxy. If so use Proxy mechanics to access the id.
-		PersistenceProvider persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
-
-		if (persistenceProvider.shouldUseAccessorFor(entity)) {
-			return (ID) persistenceProvider.getIdentifierFrom(entity);
-		}
-
-		// If it's a simple type, then immediately delegate to the provider
-		if (idMetadata.hasSimpleId()) {
-
-			if (entity instanceof Tuple t) {
-				return (ID) t.get(idMetadata.getSimpleIdAttribute().getName());
-			}
-
-			if (getJavaType().isInstance(entity)) {
-				return (ID) persistenceUnitUtil.getIdentifier(entity);
-			}
-		}
-
-		// otherwise, check if the complex id type has any partially filled fields
-		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
-		boolean partialIdValueFound = false;
-
-		for (SingularAttribute<? super T, ?> attribute : idMetadata) {
-
-			Object propertyValue = entityWrapper.getPropertyValue(attribute.getName());
-
-			if (idMetadata.hasSimpleId()) {
-				return (ID) propertyValue;
-			}
-
-			if (propertyValue != null) {
-				partialIdValueFound = true;
-			}
-		}
-
-		return partialIdValueFound ? (ID) persistenceUnitUtil.getIdentifier(entity) : null;
+		return (ID) identifierResolver.getId(entity);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public Class<ID> getIdType() {
-		return (Class<ID>) idMetadata.getType();
+		return (Class<ID>) identifierResolver.getIdType();
 	}
 
 	@Override
 	public SingularAttribute<? super T, ?> getIdAttribute() {
-		return idMetadata.getSimpleIdAttribute();
+		return identifierResolver.getIdAttribute();
 	}
 
 	@Override
 	public boolean hasCompositeId() {
-		return !idMetadata.hasSimpleId();
+		return identifierResolver.hasCompositeId();
 	}
 
 	@Override
 	public Collection<String> getIdAttributeNames() {
-
-		List<String> attributeNames = new ArrayList<>(idMetadata.attributes.size());
-
-		for (SingularAttribute<? super T, ?> attribute : idMetadata.attributes) {
-			attributeNames.add(attribute.getName());
-		}
-
-		return attributeNames;
+		return identifierResolver.getIdAttributeNames();
 	}
 
 	@Override
 	public @Nullable Object getCompositeIdAttributeValue(Object id, String idAttribute) {
-
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id");
-
-		return new DirectFieldAccessFallbackBeanWrapper(id).getPropertyValue(idAttribute);
+		return identifierResolver.getCompositeIdAttributeValue(id, idAttribute);
 	}
 
 	@Override
@@ -260,113 +201,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 	@Override
 	public Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity) {
-
-		Function<String, Object> getter = getPropertyValueFunction(entity);
-
-		Map<String, Object> keyset = new LinkedHashMap<>();
-
-		if (hasCompositeId()) {
-			for (String idAttributeName : getIdAttributeNames()) {
-				keyset.put(idAttributeName, getter.apply(idAttributeName));
-			}
-		} else {
-			keyset.put(getIdAttribute().getName(), getId(entity));
-		}
-
-		for (String propertyPath : propertyPaths) {
-			keyset.put(propertyPath, getter.apply(propertyPath));
-		}
-
-		return keyset;
-	}
-
-	private Function<String, Object> getPropertyValueFunction(Object entity) {
-
-		if (entity instanceof Tuple t) {
-			return t::get;
-		}
-
-		// TODO: Proxy handling requires more elaborate refactoring, see
-		// https://github.com/spring-projects/spring-data-jpa/issues/2784
-		BeanWrapper entityWrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
-
-		return entityWrapper::getPropertyValue;
-	}
-
-	/**
-	 * Simple value object to encapsulate id specific metadata.
-	 *
-	 * @author Oliver Gierke
-	 * @author Thomas Darimont
-	 */
-	private static class IdMetadata<T> implements Iterable<SingularAttribute<? super T, ?>> {
-
-		private final IdentifiableType<T> type;
-		private final Set<SingularAttribute<? super T, ?>> idClassAttributes;
-		private final Set<SingularAttribute<? super T, ?>> attributes;
-		private @Nullable Class<?> idType;
-
-		IdMetadata(IdentifiableType<T> source, PersistenceProvider persistenceProvider) {
-
-			this.type = source;
-			this.idClassAttributes = persistenceProvider.getIdClassAttributes(source);
-			this.attributes = source.hasSingleIdAttribute()
-					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
-					: source.getIdClassAttributes();
-		}
-
-		boolean hasSimpleId() {
-			return idClassAttributes.isEmpty() && attributes.size() == 1;
-		}
-
-		public Class<?> getType() {
-
-			if (idType != null) {
-				return idType;
-			}
-
-			// lazy initialization of idType field with tolerable benign data-race
-			this.idType = tryExtractIdTypeWithFallbackToIdTypeLookup();
-
-			if (this.idType == null) {
-				throw new IllegalStateException("Cannot resolve Id type from " + type);
-			}
-
-			return this.idType;
-		}
-
-		private @Nullable Class<?> tryExtractIdTypeWithFallbackToIdTypeLookup() {
-
-			try {
-
-				Class<?> idClassType = lookupIdClass(type);
-				if (idClassType != null) {
-					return idClassType;
-				}
-
-				Type<?> idType = type.getIdType();
-				return idType == null ? null : idType.getJavaType();
-			} catch (IllegalStateException e) {
-				// see https://hibernate.onjira.com/browse/HHH-6951
-				return null;
-			}
-		}
-
-		private static @Nullable Class<?> lookupIdClass(IdentifiableType<?> type) {
-
-			IdClass annotation = type.getJavaType() != null
-					? AnnotationUtils.findAnnotation(type.getJavaType(), IdClass.class)
-					: null;
-			return annotation == null ? null : annotation.value();
-		}
-
-		SingularAttribute<? super T, ?> getSimpleIdAttribute() {
-			return attributes.iterator().next();
-		}
-
-		@Override
-		public Iterator<SingularAttribute<? super T, ?>> iterator() {
-			return attributes.iterator();
-		}
+		return identifierResolver.getKeyset(propertyPaths, entity);
 	}
 }
