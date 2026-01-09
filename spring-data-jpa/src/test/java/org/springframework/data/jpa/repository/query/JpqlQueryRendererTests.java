@@ -1482,4 +1482,40 @@ class JpqlQueryRendererTests {
 		assertQuery("SELECT name, lastname from Person JOIN department");
 	}
 
+	@Test // GH-4142
+	void generalCaseExpressionWithoutElseShouldWork() {
+
+		assertQuery("""
+				SELECT e.name,
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				    END
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-4142
+	void simpleCaseExpressionWithoutElseShouldWork() {
+
+		assertQuery("""
+				SELECT e.name,
+				    CASE e.rating WHEN 1 THEN e.salary * 1.1
+				                  WHEN 2 THEN e.salary * 1.05
+				    END
+				FROM Employee e
+				""");
+	}
+
+	@Test // GH-4142
+	void updateCaseExpressionWithoutElseShouldWork() {
+
+		assertQuery("""
+				UPDATE Employee e
+				SET e.salary =
+				    CASE WHEN e.rating = 1 THEN e.salary * 1.1
+				         WHEN e.rating = 2 THEN e.salary * 1.05
+				    END
+				""");
+	}
+
 }
