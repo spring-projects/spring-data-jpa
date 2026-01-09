@@ -604,7 +604,7 @@ case_expression
     ;
 
 general_case_expression
-    : CASE when_clause (when_clause)* ELSE scalar_expression END
+    : CASE when_clause (when_clause)* (ELSE scalar_expression)? END
     ;
 
 when_clause
@@ -612,7 +612,7 @@ when_clause
     ;
 
 simple_case_expression
-    : CASE case_operand simple_when_clause (simple_when_clause)* ELSE scalar_expression END
+    : CASE case_operand simple_when_clause (simple_when_clause)* (ELSE scalar_expression)? END
     ;
 
 case_operand
