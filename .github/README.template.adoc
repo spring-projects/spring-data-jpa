@@ -1,0 +1,97 @@
+= Spring Data JPA image:https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Develocity", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data JPA Parent"]
+
+Spring Data JPA, part of the larger https://projects.spring.io/spring-data[Spring Data] family, makes it easy to implement JPA-based repositories.
+This module deals with enhanced support for JPA-based data access layers.
+It makes it easier to build Spring-powered applications that use data access technologies.
+
+Implementing a data access layer of an application has been cumbersome for quite a while.
+Too much boilerplate code has to be written to execute simple queries as well as perform pagination, and auditing.
+Spring Data JPA aims to significantly improve the implementation of data access layers by reducing the effort to the amount that’s actually needed.
+As a developer you write your repository interfaces, including custom finder methods, and Spring will provide the implementation automatically.
+
+== Features
+
+* Implementation of CRUD methods for JPA Entities
+* Dynamic query generation from query method names
+* Transparent triggering of JPA NamedQueries by query methods
+* Implementation domain base classes providing basic properties
+* Support for transparent auditing (created, last changed)
+* Possibility to integrate custom repository code
+* Easy Spring integration with custom namespace
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/code-of-conduct.adoc[]
+
+== Getting Started
+
+Here is a quick teaser of an application using Spring Data Repositories in Java:
+
+[source,java]
+----
+public interface PersonRepository extends CrudRepository<Person, Long> {
+
+  List<Person> findByLastname(String lastname);
+
+  List<Person> findByFirstnameLike(String firstname);
+}
+
+@Service
+public class MyService {
+
+  private final PersonRepository repository;
+
+  public MyService(PersonRepository repository) {
+    this.repository = repository;
+  }
+
+  public void doWork() {
+
+    repository.deleteAll();
+
+    Person person = new Person();
+    person.setFirstname("Oliver");
+    person.setLastname("Gierke");
+    repository.save(person);
+
+    List<Person> lastNameResults = repository.findByLastname("Gierke");
+    List<Person> firstNameResults = repository.findByFirstnameLike("Oli%");
+ }
+}
+
+@Configuration
+@EnableJpaRepositories("com.acme.repositories")
+class AppConfig {
+
+  @Bean
+  public DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2).build();
+  }
+
+  @Bean
+  public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
+    return new JpaTransactionManager(emf);
+  }
+
+  @Bean
+  public JpaVendorAdapter jpaVendorAdapter() {
+    HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
+    jpaVendorAdapter.setDatabase(Database.H2);
+    jpaVendorAdapter.setGenerateDdl(true);
+    return jpaVendorAdapter;
+  }
+
+  @Bean
+  public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    LocalContainerEntityManagerFactoryBean lemfb = new LocalContainerEntityManagerFactoryBean();
+    lemfb.setDataSource(dataSource());
+    lemfb.setJpaVendorAdapter(jpaVendorAdapter());
+    lemfb.setPackagesToScan("com.acme");
+    return lemfb;
+  }
+}
+----
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/dependencies.adoc[]
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/getting-help.adoc[]
+
+include::https://raw.githubusercontent.com/spring-projects/spring-data-build/refs/heads/main/etc/readme/license.adoc[]
