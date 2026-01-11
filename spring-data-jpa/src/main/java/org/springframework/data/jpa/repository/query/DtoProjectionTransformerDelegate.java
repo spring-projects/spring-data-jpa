@@ -36,6 +36,7 @@ import org.springframework.data.util.Lazy;
  * </ul>
  *
  * @author Mark Paluch
+ * @author HeeHoon Hong
  * @since 3.5
  */
 class DtoProjectionTransformerDelegate {

@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.QueryMethod;
  * Support class for unit tests for {@link DtoProjectionTransformerDelegate}.
  *
  * @author Mark Paluch
+ * @author HeeHoon Hong
  */
 abstract class AbstractDtoQueryTransformerUnitTests<P extends JpaQueryEnhancer<? extends QueryInformation>> {
 
