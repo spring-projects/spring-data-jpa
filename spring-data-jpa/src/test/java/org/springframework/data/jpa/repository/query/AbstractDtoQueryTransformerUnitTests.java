@@ -56,7 +56,7 @@ abstract class AbstractDtoQueryTransformerUnitTests<P extends JpaQueryEnhancer<?
 		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.AbstractDtoQueryTransformerUnitTests$MyRecord(p.name) from Person p");
+				"SELECT p.name from Person p");
 	}
 
 	@Test // GH-3076
@@ -99,7 +99,7 @@ abstract class AbstractDtoQueryTransformerUnitTests<P extends JpaQueryEnhancer<?
 		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.AbstractDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar, sum(p.age)) from Person p");
+				"SELECT p.foo, p.bar, sum(p.age) from Person p");
 	}
 
 	@Test // GH-3895
@@ -110,7 +110,7 @@ abstract class AbstractDtoQueryTransformerUnitTests<P extends JpaQueryEnhancer<?
 		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.AbstractDtoQueryTransformerUnitTests$MyRecord(sum(p.age), p.foo, p.bar) from Person p");
+				"SELECT sum(p.age) As age, p.foo as foo, p.bar AS bar from Person p");
 	}
 
 	@Test // GH-3895
@@ -122,7 +122,7 @@ abstract class AbstractDtoQueryTransformerUnitTests<P extends JpaQueryEnhancer<?
 		QueryTokenStream visit = getTransformer(parser).visit(parser.getContext());
 
 		assertThat(QueryRenderer.TokenRenderer.render(visit)).isEqualTo(
-				"SELECT new org.springframework.data.jpa.repository.query.AbstractDtoQueryTransformerUnitTests$MyRecord(p.foo, p.bar, cast(p.age as INTEGER), (SELECT b.foo FROM Bar AS b)) from Person p");
+				"SELECT p.foo as foo, p.bar AS bar, cast(p.age as INTEGER) As age, (SELECT b.foo FROM Bar AS b) from Person p");
 	}
 
 	private JpaQueryMethod getMethod(String name, Class<?>... parameterTypes) {

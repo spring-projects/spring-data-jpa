@@ -55,7 +55,20 @@ class DtoProjectionTransformerDelegate {
 	}
 
 	public boolean canRewrite() {
-		return !selectItems.isEmpty() && applyRewriting();
+
+		if (selectItems.isEmpty() || !applyRewriting()) {
+			return false;
+		}
+
+		// Avoid rewriting if the selection list is already expanded and the target type is a record
+		// to leverage JPA 4.0 implicit DTO mapping.
+		boolean expansion = selectItems.size() == 1 && selectItems.get(0).size() == 1;
+
+		if (!expansion && returnedType.getReturnedType().isRecord()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	public void appendSelectItem(QueryTokenStream selectItem) {
