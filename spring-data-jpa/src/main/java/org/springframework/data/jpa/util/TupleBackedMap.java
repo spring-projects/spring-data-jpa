@@ -49,7 +49,7 @@ public class TupleBackedMap implements Map<String, Object> {
 	}
 
 	/**
-	 * Creates a underscore-aware {@link Tuple} wrapper applying {@link JdbcUtils#convertPropertyNameToUnderscoreName}
+	 * Creates an underscore-aware {@link Tuple} wrapper applying {@link JdbcUtils#convertPropertyNameToUnderscoreName}
 	 * conversion to leniently look up properties from query results whose columns follow snake-case syntax.
 	 *
 	 * @param delegate the tuple to wrap.
