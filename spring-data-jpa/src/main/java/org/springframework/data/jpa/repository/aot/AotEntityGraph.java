@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.EntityGraph;
 
 /**
- * AOT representation of an resolved entity graph. The graph can be either named or defined by attribute paths in case
+ * AOT representation of a resolved entity graph. The graph can be either named or defined by attribute paths in case
  * the named entity graph cannot be looked up.
  *
  * @author Mark Paluch
