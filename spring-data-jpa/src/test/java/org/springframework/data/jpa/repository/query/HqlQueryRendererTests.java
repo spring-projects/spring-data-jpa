@@ -15,14 +15,11 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -40,12 +37,13 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Oscar Fanchin
  * @since 3.1
  */
-class HqlQueryRendererTests {
+class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 
 	/**
 	 * Parse the query using {@link HqlParser} then run it through the query-preserving {@link HqlQueryRenderer}.
 	 */
-	static String parseWithoutChanges(String query) {
+	@Override
+	String parseWithoutChanges(String query) {
 
 		JpaQueryEnhancer.HqlQueryParser parser = JpaQueryEnhancer.HqlQueryParser.parseQuery(query);
 
@@ -57,136 +55,10 @@ class HqlQueryRendererTests {
 		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
 	}
 
-	private void assertQuery(String query) {
-
-		String slimmedDownQuery = reduceWhitespace(query);
-		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
-	}
-
-	private String reduceWhitespace(String original) {
-
-		return original //
-				.replaceAll("[ \\t\\n]{1,}", " ") //
-				.trim();
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#range-variable-declarations
-	 */
-	@Test
-	void rangeVariableDeclarations() {
-
-		assertQuery("""
-				SELECT DISTINCT o1
-				FROM Order o1, Order o2
-				WHERE o1.quantity > o2.quantity AND
-				o2.customer.lastname = 'Smith' AND
-				o2.customer.firstname = 'John'
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#path-expressions
-	 */
-	@Test
-	void pathExpressionsExample1() {
-
-		assertQuery("""
-				SELECT i.name, VALUE(p)
-				FROM Item i JOIN i.photos p
-				WHERE KEY(p) LIKE '%egret'
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#path-expressions
-	 */
-	@Test
-	void pathExpressionsExample2() {
-
-		assertQuery("""
-				SELECT i.name, p
-				FROM Item i JOIN i.photos p
-				WHERE KEY(p) LIKE '%egret'
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#path-expressions
-	 */
-	@Test
-	void pathExpressionsExample3() {
-
-		assertQuery("""
-				SELECT p.vendor
-				FROM Employee e JOIN e.contactInfo.phones p
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#path-expressions
-	 */
-	@Test
-	void pathExpressionsExample4() {
-
-		assertQuery("""
-				SELECT p.vendor
-				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
-				WHERE e.contactInfo.address.zipcode = '95054'
-				""");
-	}
-
-	@Test
-	void pathExpressionSyntaxExample1() {
-
-		assertQuery("""
-				SELECT DISTINCT l.product
-				FROM Order AS o JOIN o.lineItems l LEFT JOIN l.product p
-				""");
-	}
-
 	@Test // GH-3711, GH-2970
 	void entityTypeReference() {
 
-		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				""");
-
-		assertQuery("""
-				SELECT TYPE(?0)
-				FROM Employee e
-				""");
-
-		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (Exempt, Contractor)
-				""");
-
-		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN (:empType1, :empType2)
-				""");
-
-		assertQuery("""
-				SELECT e
-				FROM Employee e
-				WHERE TYPE(e) IN :empTypes
-				""");
-
-		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) <> Exempt
-				""");
-
-		assertQuery("""
-				SELECT TYPE(e)
-				FROM Employee e
-				WHERE TYPE(e) != Exempt
-				""");
+		super.entityTypeReference();
 
 		assertQuery("""
 				SELECT TYPE(e)
@@ -228,15 +100,6 @@ class HqlQueryRendererTests {
 
 		assertQuery("""
 				SELECT VERSION(e)
-				FROM Employee e
-				""");
-	}
-
-	@Test // GH-3711
-	void treatedNavigablePath() {
-
-		assertQuery("""
-				SELECT TREAT(e as Integer).foo
 				FROM Employee e
 				""");
 	}
@@ -455,11 +318,7 @@ class HqlQueryRendererTests {
 	@Test // GH-3689
 	void substring() {
 
-		assertQuery("select substring(c.number, 1, 2) " + //
-				"from Call c");
-
-		assertQuery("select substring(c.number, 1) " + //
-				"from Call c");
+		super.substring();
 
 		assertQuery("select substring(c.number, 1, position('/0' in c.number)) " + //
 				"from Call c");
@@ -562,58 +421,6 @@ class HqlQueryRendererTests {
 		assertQuery("select c.callerId from Call c GROUP BY ROLLUP(state, province)");
 	}
 
-	@Test
-	void pathExpressionsNamedParametersExample() {
-
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE c.status = :stat
-				""");
-	}
-
-	@Test
-	void betweenExpressionsExample() {
-
-		assertQuery("""
-				SELECT t
-				FROM CreditCard c JOIN c.transactionHistory t
-				WHERE c.holder.name = 'John Doe' AND INDEX(t) BETWEEN 0 AND 9
-				""");
-	}
-
-	@Test
-	void isEmptyExample() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.lineItems IS EMPTY
-				""");
-	}
-
-	@Test
-	void memberOfExample() {
-
-		assertQuery("""
-				SELECT p
-				FROM Person p
-				WHERE 'Joe' MEMBER OF p.nicknames
-				""");
-	}
-
-	@Test
-	void existsSubSelectExample1() {
-
-		assertQuery("""
-				SELECT DISTINCT emp
-				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
-				 FROM Employee spouseEmp
-				  WHERE spouseEmp = emp.spouse)
-				""");
-	}
-
 	@Test // GH-3689
 	void everyAll() {
 
@@ -689,164 +496,6 @@ class HqlQueryRendererTests {
 	}
 
 	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
-	 */
-	@Test
-	void joinExample1() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order AS o JOIN o.lineItems AS l
-				WHERE l.shipped = FALSE
-				""");
-	}
-
-	/**
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
-	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#identification-variables
-	 */
-	@Test
-	void joinExample2() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l JOIN l.product p
-				WHERE p.productType = 'office_supplies'
-				""");
-	}
-
-	@Test
-	void joinsExample1() {
-
-		assertQuery("""
-				SELECT c FROM Customer c, Employee e WHERE c.hatsize = e.shoesize
-				""");
-	}
-
-	@Test
-	void joinsExample2() {
-
-		assertQuery("""
-				SELECT c FROM Customer c JOIN c.orders o WHERE c.status = 1
-				""");
-	}
-
-	@Test
-	void joinsInnerExample() {
-
-		assertQuery("""
-				SELECT c FROM Customer c INNER JOIN c.orders o WHERE c.status = 1
-				""");
-	}
-
-	@Test
-	void joinsInExample() {
-
-		assertQuery("""
-				SELECT OBJECT(c) FROM Customer c, IN(c.orders) o WHERE c.status = 1
-				""");
-	}
-
-	@Test
-	void doubleJoinExample() {
-
-		assertQuery("""
-				SELECT p.vendor
-				FROM Employee e JOIN e.contactInfo c JOIN c.phones p
-				WHERE c.address.zipcode = '95054'
-				""");
-	}
-
-	@Test
-	void leftJoinExample() {
-
-		assertQuery("""
-				SELECT s.name, COUNT(p)
-				FROM Suppliers s LEFT JOIN s.products p
-				GROUP BY s.name
-				""");
-	}
-
-	@Test
-	void leftJoinOnExample() {
-
-		assertQuery("""
-				SELECT s.name, COUNT(p)
-				FROM Suppliers s LEFT JOIN s.products p
-				 ON p.status = 'inStock'
-				GROUP BY s.name
-				""");
-	}
-
-	@Test
-	void leftJoinWhereExample() {
-
-		assertQuery("""
-				SELECT s.name, COUNT(p)
-				FROM Suppliers s LEFT JOIN s.products p
-				WHERE p.status = 'inStock'
-				GROUP BY s.name
-				""");
-	}
-
-	@Test
-	void leftJoinFetchExample() {
-
-		assertQuery("""
-				SELECT d
-				FROM Department d LEFT JOIN FETCH d.employees
-				WHERE d.deptno = 1
-				""");
-	}
-
-	@Test
-	void collectionMemberExample() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l
-				WHERE l.product.productType = 'office_supplies'
-				""");
-	}
-
-	@Test
-	void collectionMemberInExample() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o, IN(o.lineItems) l
-				WHERE l.product.productType = 'office_supplies'
-				""");
-	}
-
-	@Test
-	void fromClauseExample() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order AS o JOIN o.lineItems l JOIN l.product p
-				""");
-	}
-
-	@Test
-	void fromClauseDowncastingExample1() {
-
-		assertQuery("""
-				SELECT b.name, b.ISBN
-				FROM Order o JOIN TREAT(o.product AS Book) b
-				""");
-	}
-
-	@Test
-	void fromClauseDowncastingExample2() {
-
-		assertQuery("""
-				SELECT e FROM Employee e JOIN TREAT(e.projects AS LargeProject) lp
-				WHERE lp.budget > 1000
-				""");
-	}
-
-	/**
 	 * @see #fromClauseDowncastingExample3fixed()
 	 */
 	@Test
@@ -867,94 +516,6 @@ class HqlQueryRendererTests {
 				""");
 	}
 
-	@Test
-	void fromClauseDowncastingExample4() {
-
-		assertQuery("""
-				SELECT e FROM Employee e
-				WHERE TREAT(e AS Exempt).vacationDays > 10
-				 OR TREAT(e AS Contractor).hours > 100
-				""");
-	}
-
-	@Test
-	void allExample() {
-
-		assertQuery("""
-				SELECT emp
-				FROM Employee emp
-				WHERE emp.salary > ALL (SELECT m.salary
-				 FROM Manager m
-				 WHERE m.department = emp.department)
-				""");
-	}
-
-	@Test
-	void existsSubSelectExample2() {
-
-		assertQuery("""
-				SELECT DISTINCT emp
-				FROM Employee emp
-				WHERE EXISTS (SELECT spouseEmp
-				 FROM Employee spouseEmp
-				 WHERE spouseEmp = emp.spouse)
-				""");
-	}
-
-	@Test
-	void subselectNumericComparisonExample1() {
-
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE (SELECT AVG(o.price) FROM c.orders o) > 100
-				""");
-	}
-
-	@Test
-	void subselectNumericComparisonExample2() {
-
-		assertQuery("""
-				SELECT goodCustomer
-				FROM Customer goodCustomer
-				WHERE goodCustomer.balanceOwed < (SELECT AVG(c.balanceOwed) / 2.0 FROM Customer c)
-				""");
-	}
-
-	@Test
-	void indexExample() {
-
-		assertQuery("""
-				SELECT w.name
-				FROM Course c JOIN c.studentWaitlist w
-				WHERE c.name = 'Calculus'
-				AND INDEX(w) = 0
-				""");
-	}
-
-	/**
-	 * @see #functionInvocationExampleWithCorrection()
-	 */
-	@Test
-	void functionInvocationExample() {
-
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
-				""");
-	}
-
-	@Test
-	void functionInvocationExampleWithCorrection() {
-
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit) = TRUE
-				""");
-	}
-
 	@ParameterizedTest // GH-3628
 	@ValueSource(strings = { "is true", "is not true", "is false", "is not false" })
 	void functionInvocationWithIsBoolean(String booleanComparison) {
@@ -962,80 +523,6 @@ class HqlQueryRendererTests {
 		assertQuery("""
 				from RoleTmpl where find_in_set(:appId, appIds) %s
 				""".formatted(booleanComparison));
-	}
-
-	@Test
-	void updateCaseExample1() {
-
-		assertQuery("""
-				UPDATE Employee e
-				SET e.salary =
-					CASE WHEN e.rating = 1 THEN e.salary * 1.1
-				WHEN e.rating = 2 THEN e.salary * 1.05
-				ELSE e.salary * 1.01
-				 END
-				""");
-	}
-
-	@Test
-	void updateCaseExample2() {
-
-		assertQuery("""
-				UPDATE Employee e
-				SET e.salary =
-				 CASE e.rating WHEN 1 THEN e.salary * 1.1
-				WHEN 2 THEN e.salary * 1.05
-				ELSE e.salary * 1.01
-				 END
-				""");
-	}
-
-	@Test
-	void selectCaseExample1() {
-
-		assertQuery("""
-				SELECT e.name,
-				 CASE TYPE(e) WHEN Exempt THEN 'Exempt'
-				  WHEN Contractor THEN 'Contractor'
-				  WHEN Intern THEN 'Intern'
-				  ELSE 'NonExempt'
-				 END
-				FROM Employee e
-				WHERE e.dept.name = 'Engineering'
-				""");
-	}
-
-	@Test
-	void selectCaseExample2() {
-
-		assertQuery("""
-				SELECT e.name,
-				 f.name,
-				 CONCAT(CASE WHEN f.annualMiles > 50000 THEN 'Platinum '
-				 WHEN f.annualMiles > 25000 THEN 'Gold '
-				 ELSE ''
-				  END,
-				 'Frequent Flyer')
-				FROM Employee e JOIN e.frequentFlierPlan f
-				""");
-	}
-
-	@Test
-	void collectionIsEmpty() {
-
-		assertQuery("""
-				DELETE
-				FROM Customer c
-				WHERE c.status = 'inactive'
-				AND c.orders IS EMPTY
-				""");
-
-		assertQuery("""
-				DELETE
-				FROM Customer c
-				WHERE c.status = 'inactive'
-				AND c.orders IS NOT EMPTY
-				""");
 	}
 
 	@Test // GH-3628
@@ -1108,369 +595,6 @@ class HqlQueryRendererTests {
 				 FROM Customer c2
 				  WHERE c2.orders %s c.orders)
 				""".formatted(distinctFrom));
-	}
-
-	@Test
-	void theRest5() {
-
-		assertQuery("""
-				SELECT c.status, AVG(c.filledOrderCount), COUNT(c)
-				FROM Customer c
-				GROUP BY c.status
-				HAVING c.status IN (1, 2)
-				""");
-	}
-
-	@Test
-	void theRest6() {
-
-		assertQuery("""
-				SELECT c.country, COUNT(c)
-				FROM Customer c
-				GROUP BY c.country
-				HAVING COUNT(c) > 30
-				""");
-	}
-
-	@Test
-	void theRest7() {
-
-		assertQuery("""
-				SELECT c, COUNT(o)
-				FROM Customer c JOIN c.orders o
-				GROUP BY c
-				HAVING COUNT(o) >= 5
-				""");
-	}
-
-	@Test
-	void shouldRenderHavingWithFunction() {
-
-		assertQuery("""
-				SELECT COUNT(f)
-				FROM FooEntity f
-				WHERE f.name IN ('Y', 'Basic', 'Remit')
-							AND f.size = 10
-				HAVING COUNT(f) > 0
-				""");
-	}
-
-	@Test
-	void theRest8() {
-
-		assertQuery("""
-				SELECT c.id, c.status
-				FROM Customer c JOIN c.orders o
-				WHERE o.count > 100
-				""");
-	}
-
-	@Test
-	void theRest9() {
-
-		assertQuery("""
-				SELECT v.location.street, KEY(i).title, VALUE(i)
-				FROM VideoStore v JOIN v.videoInventory i
-				WHERE v.location.zipcode = '94301' AND VALUE(i) > 0
-				""");
-	}
-
-	@Test
-	void theRest10() {
-
-		assertQuery("""
-				SELECT o.lineItems FROM Order AS o
-				""");
-	}
-
-	@Test
-	void theRest11() {
-
-		assertQuery("""
-				SELECT c, COUNT(l) AS itemCount
-				FROM Customer c JOIN c.Orders o JOIN o.lineItems l
-				WHERE c.address.state = 'CA'
-				GROUP BY c
-				ORDER BY itemCount
-				""");
-	}
-
-	@Test
-	void theRest12() {
-
-		assertQuery("""
-				SELECT NEW com.acme.example.CustomerDetails(c.id, c.status, o.count)
-				FROM Customer c JOIN c.orders o
-				WHERE o.count > 100
-				""");
-	}
-
-	@Test
-	void theRest13() {
-
-		assertQuery("""
-				SELECT e.address AS addr
-				FROM Employee e
-				""");
-	}
-
-	@Test
-	void theRest14() {
-
-		assertQuery("""
-				SELECT AVG(o.quantity) FROM Order o
-				""");
-	}
-
-	@Test
-	void theRest15() {
-
-		assertQuery("""
-				SELECT SUM(l.price)
-				FROM Order o JOIN o.lineItems l JOIN o.customer c
-				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-				""");
-	}
-
-	@Test
-	void theRest16() {
-
-		assertQuery("""
-				SELECT COUNT(o) FROM Order o
-				""");
-	}
-
-	@Test
-	void theRest17() {
-
-		assertQuery("""
-				SELECT COUNT(l.price)
-				FROM Order o JOIN o.lineItems l JOIN o.customer c
-				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-				""");
-	}
-
-	@Test
-	void theRest18() {
-
-		assertQuery("""
-				SELECT COUNT(l)
-				FROM Order o JOIN o.lineItems l JOIN o.customer c
-				WHERE c.lastname = 'Smith' AND c.firstname = 'John' AND l.price IS NOT NULL
-				""");
-	}
-
-	@Test
-	void theRest19() {
-
-		assertQuery("""
-				SELECT o
-				FROM Customer c JOIN c.orders o JOIN c.address a
-				WHERE a.state = 'CA'
-				ORDER BY o.quantity DESC, o.totalcost
-				""");
-	}
-
-	@Test
-	void theRest20() {
-
-		assertQuery("""
-				SELECT o.quantity, a.zipcode
-				FROM Customer c JOIN c.orders o JOIN c.address a
-				WHERE a.state = 'CA'
-				ORDER BY o.quantity, a.zipcode
-				""");
-	}
-
-	@Test
-	void theRest21() {
-
-		assertQuery("""
-				SELECT o.quantity, o.cost * 1.08 AS taxedCost, a.zipcode
-				FROM Customer c JOIN c.orders o JOIN c.address a
-				WHERE a.state = 'CA' AND a.county = 'Santa Clara'
-				ORDER BY o.quantity, taxedCost, a.zipcode
-				""");
-	}
-
-	@Test
-	void theRest22() {
-
-		assertQuery("""
-				SELECT AVG(o.quantity) as q, a.zipcode
-				FROM Customer c JOIN c.orders o JOIN c.address a
-				WHERE a.state = 'CA'
-				GROUP BY a.zipcode
-				ORDER BY q DESC
-				""");
-	}
-
-	@Test
-	void theRest23() {
-
-		assertQuery("""
-				SELECT p.product_name
-				FROM Order o JOIN o.lineItems l JOIN l.product p JOIN o.customer c
-				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-				ORDER BY p.price
-				""");
-	}
-
-	/**
-	 * This query is specifically dubbed illegal in the spec, but apparently works with Hibernate.
-	 */
-	@Test
-	void theRest24() {
-
-		assertQuery("""
-				SELECT p.product_name
-				FROM Order o, IN(o.lineItems) l JOIN o.customer c
-				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-				ORDER BY o.quantity
-				""");
-	}
-
-	@Test
-	void theRest25() {
-
-		assertQuery("""
-				DELETE
-				FROM Customer c
-				WHERE c.status = 'inactive'
-				""");
-	}
-
-	@Test
-	void theRest26() {
-
-		assertQuery("""
-				DELETE
-				FROM Customer c
-				WHERE c.status = 'inactive'
-				AND c.orders IS EMPTY
-				""");
-	}
-
-	@Test
-	void theRest27() {
-
-		assertQuery("""
-				UPDATE Customer c
-				SET c.status = 'outstanding'
-				WHERE c.balance < 10000
-				""");
-	}
-
-	@Test
-	void theRest28() {
-
-		assertQuery("""
-				UPDATE Employee e
-				SET e.address.building = 22
-				WHERE e.address.building = 14
-				AND e.address.city = 'Santa Clara'
-				AND e.project = 'Jakarta EE'
-				""");
-	}
-
-	@Test
-	void theRest29() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				""");
-	}
-
-	@Test
-	void theRest30() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.shippingAddress.state = 'CA'
-				""");
-	}
-
-	@Test
-	void theRest31() {
-
-		assertQuery("""
-				SELECT DISTINCT o.shippingAddress.state
-				FROM Order o
-				""");
-	}
-
-	@Test
-	void theRest32() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l
-				""");
-	}
-
-	@Test
-	void theRest33() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.lineItems IS NOT EMPTY
-				""");
-	}
-
-	@Test
-	void theRest34() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.lineItems IS EMPTY
-				""");
-	}
-
-	@Test
-	void theRest35() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l
-				WHERE l.shipped = FALSE
-				""");
-	}
-
-	@Test
-	void theRest36() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE
-				NOT (o.shippingAddress.state = o.billingAddress.state AND
-				o.shippingAddress.city = o.billingAddress.city AND
-				o.shippingAddress.street = o.billingAddress.street)
-				""");
-	}
-
-	@Test
-	void theRest37() {
-
-		assertQuery("""
-				SELECT o
-				FROM Order o
-				WHERE o.shippingAddress <> o.billingAddress
-				""");
-	}
-
-	@Test
-	void theRest38() {
-
-		assertQuery("""
-				SELECT DISTINCT o
-				FROM Order o JOIN o.lineItems l
-				WHERE l.product.name = ?1
-				""");
 	}
 
 	@Test // GH-3689
@@ -2070,22 +1194,6 @@ class HqlQueryRendererTests {
 				""");
 	}
 
-	@Test // GH-3711
-	void ceilingFunctionShouldWork() {
-		assertQuery("select ceiling(1.5) from Element a");
-	}
-
-	@Test // GH-3711
-	void lnFunctionShouldWork() {
-		assertQuery("select ln(7.5) from Element a");
-	}
-
-	@Test // GH-4013
-	void minMaxFunctionsShouldWork() {
-		assertQuery("SELECT MAX(MIN(MOD(e.salary, 10))), e.address.city FROM Employee e");
-		assertQuery("SELECT MIN(MOD(e.salary, 10)), e.address.city FROM Employee e");
-	}
-
 	@Test // GH-2981
 	void cteWithClauseShouldWork() {
 
@@ -2122,33 +1230,6 @@ class HqlQueryRendererTests {
 						""");
 	}
 
-	@Test // GH-2982
-	void floorShouldBeValidEntityName() {
-
-		assertQuery("""
-				SELECT f
-				FROM Floor f
-				WHERE f.name = :name
-				""");
-
-		assertQuery("""
-				SELECT r
-				FROM Room r
-				JOIN r.floor f
-				WHERE f.name = :name
-				""");
-	}
-
-	@Test // GH-2994
-	void queryWithSignShouldWork() {
-		assertQuery("select t.sign from TestEntity t");
-	}
-
-	@Test // GH-3028
-	void queryWithValueShouldWork() {
-		assertQuery("select t.value from TestEntity t");
-	}
-
 	@Test // GH-3024
 	void castFunctionWithFqdnShouldWork() {
 		assertQuery("SELECT o FROM Order o WHERE CAST(:userId AS java.util.UUID) IS NULL OR o.user.id = :userId");
@@ -2182,20 +1263,6 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = OFFSET DATETIME 2012-01-03 09:00:00-1:01");
 	}
 
-	@Test
-	void literals() {
-
-		assertQuery("SELECT e FROM  Employee e WHERE e.name = 'Bob'");
-		assertQuery("SELECT e FROM  Employee e WHERE e.names = [e.firstName, e.lastName]");
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234");
-		assertQuery("SELECT e FROM  Employee e WHERE e.id = 1234L");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14F");
-		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
-		assertQuery("SELECT e FROM  Employee e WHERE e.active = TRUE");
-		assertQuery("SELECT e FROM  Employee e WHERE e.gender = org.acme.Gender.MALE");
-		assertQuery("UPDATE Employee e SET e.manager = NULL WHERE e.manager = :manager");
-	}
-
 	@ParameterizedTest // GH-3711
 	@ValueSource(strings = { "1", "1_000", "1L", "1_000L", "1bi", "1.1f", "2.2d", "2.2bd" })
 	void numberLiteralsShouldWork(String literal) {
@@ -2208,28 +1275,6 @@ class HqlQueryRendererTests {
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = {0xDE, 0xAD, 0xBE, 0xEF}");
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = X'DEADBEEF'");
 		assertQuery("SELECT ce.id FROM CalendarEvent ce WHERE ce.value = x'deadbeef'");
-	}
-
-	@Test // GH-3040
-	void escapeClauseShouldWork() {
-		assertQuery("select t.name from SomeDbo t where t.name LIKE :name escape '\\\\'");
-		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE '\\\\'");
-		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE ?1");
-		assertQuery("SELECT e FROM SampleEntity e WHERE LOWER(e.label) LIKE LOWER(?1) ESCAPE :param");
-	}
-
-	@Test // GH-3062, GH-3056
-	void typeShouldBeAValidParameter() {
-
-		assertQuery("select e from Employee e where e.type = :_type");
-		assertQuery("select te from TestEntity te where te.type = :type");
-	}
-
-	@Test // GH-3496
-	void lateralShouldBeAValidParameter() {
-
-		assertQuery("select e from Employee e where e.lateral = :_lateral");
-		assertQuery("select te from TestEntity te where te.lateral = :lateral");
 	}
 
 	@Test // GH-3099
@@ -2257,63 +1302,6 @@ class HqlQueryRendererTests {
 				where b.situacao = :situacao
 				and CTM_UTLRAW_NLSSORT_LOWER(b.nome) like lower(:nome)
 				order by CTM_UTLRAW_NLSSORT_LOWER(b.nome) ASC
-				""");
-	}
-
-	@Test // GH-3128
-	void newShouldBeLegalAsPartOfAStateFieldPathExpression() {
-
-		assertQuery("""
-				SELECT j
-				FROM AgentUpdateTask j
-				WHERE j.creationTimestamp < :date
-				AND (j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.NEW
-					OR
-					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.STARTED
-					OR
-					j.status = com.ca.apm.acc.configserver.core.domain.jobs.AgentUpdateTaskStatus.QUEUED)
-				ORDER BY j.id
-				""");
-	}
-
-	@Test // GH-3143
-	void powerShouldBeLegalInAQuery() {
-		assertQuery("select e.power.id from MyEntity e");
-	}
-
-	@Test // GH-3136
-	void doublePipeShouldBeValidAsAStringConcatOperator() {
-
-		assertQuery("""
-				select e.name || ' ' || e.title
-				from Employee e
-				""");
-	}
-
-	@Test // GH-3136
-	void additionalStringOperationsShouldWork() {
-
-		assertQuery("""
-				select
-					replace(e.name, 'Baggins', 'Proudfeet'),
-					left(e.role, 4),
-					right(e.home, 5),
-					cast(e.distance_from_home, int)
-				from Employee e
-				""");
-	}
-
-	@Test // GH-3136
-	void combinedSelectStatementsShouldWork() {
-
-		assertQuery("""
-				select e from Employee e where e.last_name = 'Baggins'
-				intersect
-				select e from Employee e where e.first_name = 'Samwise'
-				union
-				select e from Employee e where e.home = 'The Shire'
-				except
-				select e from Employee e where e.home = 'Isengard'
 				""");
 	}
 
@@ -2371,32 +1359,6 @@ class HqlQueryRendererTests {
 					"select p from Payment p where length(p.cardNumber) between +16 and -20" })
 	void signedLiteralShouldWork(String query) {
 		assertQuery(query);
-	}
-
-	@ParameterizedTest // GH-3342
-	@ValueSource(strings = { "select -count(u) from User u", "select +1 * (-count(u)) from User u" })
-	void signedExpressionsShouldWork(String query) {
-		assertQuery(query);
-	}
-
-	@ParameterizedTest // GH-3451
-	@MethodSource("reservedWords")
-	void entityNameWithPackageContainingReservedWord(String reservedWord) {
-
-		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
-		assertQuery(source);
-	}
-
-	@ParameterizedTest // GH-3136
-	@ValueSource(strings = { "LEFT", "RIGHT" })
-	void leftRightStringFunctions(String keyword) {
-		assertQuery("SELECT %s(e.name, 3) FROM Employee e".formatted(keyword));
-	}
-
-	@Test // GH-3136
-	void replaceStringFunctions() {
-		assertQuery("SELECT REPLACE(e.name, 'o', 'a') FROM Employee e");
-		assertQuery("SELECT REPLACE(e.name, ' ', '_') FROM Employee e");
 	}
 
 	@Test
