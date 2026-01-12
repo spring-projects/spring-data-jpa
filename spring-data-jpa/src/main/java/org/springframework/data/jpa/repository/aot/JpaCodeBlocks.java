@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
@@ -27,7 +28,6 @@ import java.util.Set;
 import java.util.function.LongSupplier;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.convert.TypeDescriptor;
@@ -94,6 +94,7 @@ class JpaCodeBlocks {
 		private final String parameterNames;
 		private final String queryVariableName;
 		private @Nullable AotQueries queries;
+		private @Nullable LockModeType lockModeType;
 		private MergedAnnotation<QueryHints> queryHints = MergedAnnotation.missing();
 		private @Nullable AotEntityGraph entityGraph;
 		private @Nullable String sqlResultSetMapping;
@@ -125,6 +126,11 @@ class JpaCodeBlocks {
 			if (nativeQuery.isPresent()) {
 				this.sqlResultSetMapping = nativeQuery.getString("sqlResultSetMapping");
 			}
+			return this;
+		}
+
+		public QueryBlockBuilder lockMode(@Nullable LockModeType lock) {
+			this.lockModeType = lock;
 			return this;
 		}
 
@@ -213,7 +219,7 @@ class JpaCodeBlocks {
 			}
 
 			builder.add(createQuery(false, queryVariableName, queryStringVariableName, queryRewriterName, queries.result(),
-					this.sqlResultSetMapping, pageable, this.queryHints, this.entityGraph, this.queryReturnType));
+					this.sqlResultSetMapping, pageable, this.lockModeType, this.queryHints, this.entityGraph, this.queryReturnType));
 
 			builder.add(applyLimits(queries.result().isExists(), pageable));
 
@@ -224,7 +230,7 @@ class JpaCodeBlocks {
 				boolean queryHints = this.queryHints.isPresent() && this.queryHints.getBoolean("forCounting");
 
 				builder.add(createQuery(true, countQueryVariableName, countQueryStringNameVariableName, queryRewriterName,
-						queries.count(), null, pageable, queryHints ? this.queryHints : MergedAnnotation.missing(), null,
+						queries.count(), null, pageable, lockModeType, queryHints ? this.queryHints : MergedAnnotation.missing(), null,
 						Long.class));
 				builder.addStatement("return getCount($L)", countQueryVariableName);
 
@@ -334,13 +340,17 @@ class JpaCodeBlocks {
 
 		private CodeBlock createQuery(boolean count, String queryVariableName, @Nullable String queryStringNameVariableName,
 				@Nullable String queryRewriterName, AotQuery query, @Nullable String sqlResultSetMapping,
-				@Nullable String pageable, MergedAnnotation<QueryHints> queryHints, @Nullable AotEntityGraph entityGraph,
-				@Nullable Class<?> queryReturnType) {
+				@Nullable String pageable, @Nullable LockModeType lockModeType, MergedAnnotation<QueryHints> queryHints,
+				@Nullable AotEntityGraph entityGraph, @Nullable Class<?> queryReturnType) {
 
 			Builder builder = CodeBlock.builder();
 
 			builder.add(doCreateQuery(count, queryVariableName, queryStringNameVariableName, queryRewriterName, query,
 					sqlResultSetMapping, pageable, queryReturnType));
+
+			if (!count && lockModeType != null) {
+				builder.addStatement("$L.setLockMode($T.$L)", queryVariableName, LockModeType.class, lockModeType.toString());
+			}
 
 			if (entityGraph != null) {
 				builder.add(applyEntityGraph(entityGraph, queryVariableName));
@@ -597,7 +607,6 @@ class JpaCodeBlocks {
 
 			return hintsBuilder.build();
 		}
-
 	}
 
 	static class QueryExecutionBlockBuilder {
@@ -645,7 +654,7 @@ class JpaCodeBlocks {
 			TypeName typeToRead = isProjecting ? methodReturn.getActualTypeName() : TypeName.get(context.getDomainType());
 			builder.add("\n");
 
-			if (modifying.isPresent() && aotQuery !=null && !aotQuery.isDerived()) {
+			if (modifying.isPresent() && aotQuery != null && !aotQuery.isDerived()) {
 
 				if (modifying.getBoolean("flushAutomatically")) {
 					builder.addStatement("this.$L.flush()", context.fieldNameOf(EntityManager.class));
