@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
@@ -36,6 +37,7 @@ import org.springframework.data.core.TypeInformation;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -229,6 +231,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 					MergedAnnotation<QueryHints> queryHints = context.getAnnotation(QueryHints.class);
 					MergedAnnotation<EntityGraph> entityGraph = context.getAnnotation(EntityGraph.class);
 					MergedAnnotation<Modifying> modifying = context.getAnnotation(Modifying.class);
+					MergedAnnotation<Lock> lock = context.getAnnotation(Lock.class);
 
 					AotEntityGraph aotEntityGraph = entityGraphLookup.findEntityGraph(entityGraph, getRepositoryInformation(),
 							returnedType, queryMethod);
@@ -236,6 +239,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 					body.add(JpaCodeBlocks.queryBuilder(context, queryMethod).filter(aotQueries)
 							.queryReturnType(QueriesFactory.getQueryReturnType(aotQueries.result(), returnedType, context))
 							.nativeQuery(nativeQuery).queryHints(queryHints).entityGraph(aotEntityGraph)
+							.lockMode(lock.isPresent() ? lock.getEnum("value", LockModeType.class) : null)
 							.queryRewriter(query.isPresent() ? query.getClass("queryRewriter") : null).build());
 
 					body.add(JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result())
