@@ -9,7 +9,7 @@ image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-jpa%2F1.11.x&su
 Since this pipeline is purely Docker-based, it's easy to:
 
 * Debug what went wrong on your local machine.
-* Test out a a tweak to your test routine before sending it out.
+* Test out a tweak to your test routine before sending it out.
 * Experiment against a new image before submitting your pull request.
 
 All of these use cases are great reasons to essentially run what the CI server does on your local machine.

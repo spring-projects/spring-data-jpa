@@ -152,7 +152,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 
 		/*
 		 * Note that we cannot use File.pathSeparator here since resourcePath uses a forward slash path ('/') separator
-		 * being an URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator).
+		 * being a URI, while basePackagePathComponent has system dependent separator (on windows it's the backslash separator).
 		 *
 		 * See DATAJPA-407.
 		 */
