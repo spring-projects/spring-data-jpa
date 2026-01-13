@@ -26,6 +26,9 @@
 		<class>org.springframework.data.jpa.domain.sample.Owner</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
+		<class>org.springframework.data.jpa.domain.sample.Trade</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeOrder</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeItem</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="second">
@@ -47,6 +50,9 @@
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
+		<class>org.springframework.data.jpa.domain.sample.Trade</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeOrder</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeItem</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 </persistence>

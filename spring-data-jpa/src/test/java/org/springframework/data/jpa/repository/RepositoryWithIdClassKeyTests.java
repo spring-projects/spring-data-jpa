@@ -28,6 +28,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Item;
 import org.springframework.data.jpa.domain.sample.ItemId;
 import org.springframework.data.jpa.domain.sample.ItemSite;
@@ -98,6 +99,25 @@ class RepositoryWithIdClassKeyTests {
 		Window<Item> next = itemRepository.findBy((root, query, criteriaBuilder) -> {
 			return criteriaBuilder.isNotNull(root.get("name"));
 		}, q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
+
+		assertThat(next).containsOnly(item2);
+	}
+
+	@Test
+	void shouldScrollWithKeysetNullable() {
+
+		Item item1 = new Item(1, 1, null);
+		Item item2 = new Item(2, 1, "a");
+
+		itemRepository.saveAllAndFlush(Arrays.asList(item1, item2));
+
+		Window<Item> first = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(Sort.by("name")).scroll(ScrollPosition.keyset()));
+
+		assertThat(first).containsOnly(item1);
+
+		Window<Item> next = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
 
 		assertThat(next).containsOnly(item2);
 	}
