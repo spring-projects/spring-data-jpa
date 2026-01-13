@@ -104,6 +104,11 @@ class JpaEntityInformationSupportUnitTests {
 		}
 
 		@Override
+		public Collection<String> getIdAttributePaths() {
+			return Collections.emptySet();
+		}
+
+		@Override
 		public boolean hasCompositeId() {
 			return false;
 		}

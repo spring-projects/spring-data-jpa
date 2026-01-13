@@ -68,7 +68,7 @@ public class KeysetScrollDelegate {
 			QueryUtils.checkSortExpression(it);
 			properties.add(it.getProperty());
 		});
-		properties.addAll(entity.getIdAttributeNames());
+		properties.addAll(entity.getIdAttributePaths());
 
 		return properties;
 	}
@@ -143,7 +143,7 @@ public class KeysetScrollDelegate {
 		Collection<String> sortById;
 		Sort sortToUse;
 		if (entity.hasCompositeId()) {
-			sortById = new ArrayList<>(entity.getIdAttributeNames());
+			sortById = new ArrayList<>(entity.getIdAttributePaths());
 		} else {
 			sortById = new ArrayList<>(1);
 			sortById.add(entity.getRequiredIdAttribute().getName());
