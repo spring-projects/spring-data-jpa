@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Nabil Fawwaz Elqayyim
  * @since 4.0
  */
 public final class PreprocessedQuery implements DeclaredQuery {
@@ -247,6 +248,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 
 			String resultingQuery = parsedQuery.getQueryString();
 			Matcher matcher = PARAMETER_BINDING_PATTERN.matcher(resultingQuery);
+			java.util.BitSet commentPositions = findCommentPositions(resultingQuery);
 
 			ParameterBindings parameterBindings = new ParameterBindings(bindings, it -> checkAndRegister(it, bindings));
 			int currentIndex = 0;
@@ -255,7 +257,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 
 			while (matcher.find()) {
 
-				if (parsedQuery.isQuoted(matcher.start())) {
+				if (parsedQuery.isQuoted(matcher.start()) || commentPositions.get(matcher.start())) {
 					continue;
 				}
 
@@ -625,4 +627,68 @@ public final class PreprocessedQuery implements DeclaredQuery {
 		}
 	}
 
+    private static java.util.BitSet findCommentPositions(String query) {
+		int queryLen = query.length();
+        java.util.BitSet isComment = new java.util.BitSet(queryLen);
+        boolean inBlockComment = false;
+        boolean inLineComment = false;
+        boolean inString = false;
+
+        for (int i = 0; i < queryLen; i++) {
+            char c = query.charAt(i);
+            char next = (i + 1 < queryLen) ? query.charAt(i + 1) : '\0';
+
+            // String Literal State: Comment markers are treated as normal characters
+            if (inString) {
+                if (c == '\'') {
+                    // Handle SQL-style escaped quotes: ''
+                    if (next == '\'') {
+                        i++;
+                    } else {
+                        inString = false;
+                    }
+                }
+                continue;
+            }
+
+            // Block Comment State: Identify positions within /* ... */
+            if (inBlockComment) {
+                isComment.set(i);
+                if (c == '*' && next == '/') {
+                    isComment.set(i + 1);
+                    inBlockComment = false;
+                    i++;
+                }
+                continue;
+            }
+
+            // Line Comment State: Identify positions within -- or //
+            if (inLineComment) {
+                isComment.set(i);
+                // End line comment state on newline or carriage return
+                if (c == '\n' || c == '\r') {
+                    inLineComment = false;
+                }
+                continue;
+            }
+
+            // Entering States: Check for quotes or comment markers
+            if (c == '\'') {
+                inString = true;
+            } else if (c == '/' && next == '*') {
+                // Start of block comment
+                inBlockComment = true;
+                isComment.set(i);
+                isComment.set(i + 1);
+                i++;
+            } else if ((c == '-' && next == '-') || (c == '/' && next == '/')) {
+                // Start of line comment (both SQL-style '--' and Java-style '//')
+                inLineComment = true;
+                isComment.set(i);
+                isComment.set(i + 1);
+                i++;
+            }
+        }
+        return isComment;
+    }
 }
