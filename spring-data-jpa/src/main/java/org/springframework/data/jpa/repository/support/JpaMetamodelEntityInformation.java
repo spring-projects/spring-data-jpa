@@ -46,6 +46,7 @@ import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -321,9 +322,14 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		}
 
 		private static <X> Set<SingularAttribute<? super X, ?>> findAttributes(IdentifiableType<X> source) {
-			return source.hasSingleIdAttribute()
-					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
-					: source.getIdClassAttributes();
+			if (source.hasSingleIdAttribute()) {
+				for (SingularAttribute<? super X, ?> attribute : source.getSingularAttributes()) {
+					if (attribute.isId()) {
+						return Collections.singleton(attribute);
+					}
+				}
+			}
+			return source.getIdClassAttributes();
 		}
 
 		private static <X> List<String> findAttributePaths(IdentifiableType<X> source, @Nullable String prefix) {

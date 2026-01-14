@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = HierarchicalIdClassRepositoryTests.TestConfig.class)
 @Transactional
 public class HierarchicalIdClassRepositoryTests {
-	
+
 	@Autowired private TradeRepository tradeRepository;
 
 	@Autowired private TradeItemRepository tradeItemRepository;
@@ -92,5 +92,5 @@ public class HierarchicalIdClassRepositoryTests {
 
 	@ImportResource("classpath:infrastructure.xml")
 	static class TestConfig extends Config {}
-	
+
 }

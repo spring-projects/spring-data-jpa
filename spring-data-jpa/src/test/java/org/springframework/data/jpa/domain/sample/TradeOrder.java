@@ -15,13 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.List;
 
@@ -35,12 +29,17 @@ import java.util.List;
 @IdClass(TradeOrderId.class)
 public class TradeOrder {
 
-	@Id @ManyToOne
-	Trade trade;
+	@Id
+	@ManyToOne
+	@JoinColumn(name = "trade_id", referencedColumnName = "id")
+	private Trade trade;
 
-	@Id Integer number;
+	@Id
+	@Column(name = "number")
+	private Integer number;
 
-	@OneToMany(mappedBy = "tradeOrder", cascade = CascadeType.ALL) List<TradeItem> tradeItems;
+	@OneToMany(mappedBy = "tradeOrder", cascade = CascadeType.ALL)
+	private List<TradeItem> tradeItems;
 
 	public TradeOrder() {}
 

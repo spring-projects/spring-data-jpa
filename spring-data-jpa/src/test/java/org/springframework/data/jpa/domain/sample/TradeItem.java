@@ -15,12 +15,7 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 /**
  * @author James Bodkin
@@ -32,11 +27,18 @@ import jakarta.persistence.Table;
 @IdClass(TradeItemId.class)
 public class TradeItem {
 
-	@Id @ManyToOne TradeOrder tradeOrder;
+	@Id
+	@ManyToOne
+	@JoinColumn(name = "trade_id", referencedColumnName = "trade_id")
+	@JoinColumn(name = "trade_order_id", referencedColumnName = "number")
+	private TradeOrder tradeOrder;
 
-	@Id Integer number;
+	@Id
+	@Column(name = "number")
+	private Integer number;
 
-	@Column String type;
+	@Column(name = "type")
+	private String type;
 
 	public TradeItem() {}
 
