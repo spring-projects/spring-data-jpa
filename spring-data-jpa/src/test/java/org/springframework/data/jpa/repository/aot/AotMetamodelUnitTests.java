@@ -56,16 +56,19 @@ class AotMetamodelUnitTests {
 				.containsEntry("jpa.bla.bla", "42");
 	}
 
-	@Test // GH-4092
+	@Test // GH-4092, GH-4130
 	void preventsPropertyOverrides/* for cases we know cause trouble */() {
 
 		assertThat(AotMetamodel.initProperties(Map.of(//
 				"hibernate.boot.allow_jdbc_metadata_access", "true", //
 				"hibernate.connection.provider_class", "DatasourceConnectionProviderImpl", //
 				"hibernate.jpa_callbacks.enabled", "true", //
-				"hibernate.query.startup_check", "true"))).containsEntry("hibernate.boot.allow_jdbc_metadata_access", false) //
+				"hibernate.query.startup_check", "true",
+				"jakarta.persistence.schema-generation.database.action", "create-drop"
+		))).containsEntry("hibernate.boot.allow_jdbc_metadata_access", false) //
 				.containsEntry("hibernate.connection.provider_class", NoOpConnectionProvider.INSTANCE) //
 				.containsEntry("hibernate.jpa_callbacks.enabled", false) //
-				.containsEntry("hibernate.query.startup_check", false);
+				.containsEntry("hibernate.query.startup_check", false) //
+				.containsEntry("jakarta.persistence.schema-generation.database.action", "none");
 	}
 }
