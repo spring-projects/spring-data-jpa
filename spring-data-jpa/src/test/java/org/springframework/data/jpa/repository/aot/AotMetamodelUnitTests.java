@@ -15,11 +15,12 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+
 import org.springframework.data.jpa.repository.aot.AotMetamodel.NoOpConnectionProvider;
 import org.springframework.data.jpa.repository.aot.AotMetamodel.SpringDataJpaAotDialect;
 
@@ -38,7 +39,7 @@ class AotMetamodelUnitTests {
 	}
 
 	@Test // GH-4092
-	void intializesPropertiesWithDefaults() {
+	void initializesPropertiesWithDefaults() {
 
 		assertThat(AotMetamodel.initProperties(Map.of())) //
 				.containsEntry("hibernate.dialect", SpringDataJpaAotDialect.INSTANCE) //
@@ -63,7 +64,7 @@ class AotMetamodelUnitTests {
 				"hibernate.boot.allow_jdbc_metadata_access", "true", //
 				"hibernate.connection.provider_class", "DatasourceConnectionProviderImpl", //
 				"hibernate.jpa_callbacks.enabled", "true", //
-				"hibernate.query.startup_check", "true",
+				"hibernate.query.startup_check", "true", //
 				"jakarta.persistence.schema-generation.database.action", "create-drop"
 		))).containsEntry("hibernate.boot.allow_jdbc_metadata_access", false) //
 				.containsEntry("hibernate.connection.provider_class", NoOpConnectionProvider.INSTANCE) //
