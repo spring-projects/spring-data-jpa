@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
+import org.hibernate.cfg.SchemaToolingSettings;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.dialect.pagination.OffsetFetchLimitHandler;
@@ -73,7 +74,8 @@ class AotMetamodel implements Metamodel {
 			JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
 			JdbcSettings.CONNECTION_PROVIDER, NoOpConnectionProvider.INSTANCE, //
 			QuerySettings.QUERY_STARTUP_CHECKING, false, //
-			PersistenceSettings.JPA_CALLBACKS_ENABLED, false //
+			PersistenceSettings.JPA_CALLBACKS_ENABLED, false, //
+			SchemaToolingSettings.JAKARTA_HBM2DDL_DATABASE_ACTION, "none" // has also precedence over HBM2DDL_AUTO
 	);
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
 	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
