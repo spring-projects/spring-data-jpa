@@ -66,6 +66,9 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.domain.sample.Trade</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeOrder</class>
+		<class>org.springframework.data.jpa.domain.sample.TradeItem</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 	</persistence-unit>
 	<persistence-unit name="querydsl">
