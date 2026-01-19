@@ -1,0 +1,29 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main, 4.0.x, 3.5.x, 'issue/**' ]
+
+permissions: read-all
+
+jobs:
+  build-java:
+    strategy:
+      matrix:
+        java-version: [ base, main ]
+    name: Build project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Java and Maven
+        uses: spring-projects/spring-data-release/actions/setup-maven@main
+        with:
+          java-version: ${{ matrix.java-version }}
+          develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
+      - name: Build
+        run: ./mvnw -Dsort -B -U -Pall-dbs clean dependency:list verify
+      - name: Test Summary
+        uses: test-summary/action@v2.2
+        with:
+          paths: '**/TEST-*.xml'
+        if: always()
