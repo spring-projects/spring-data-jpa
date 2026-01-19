@@ -1,0 +1,26 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main, 4.0.x, 3.5.x, 'issue/**' ]
+
+permissions: read-all
+
+jobs:
+  build-java:
+    strategy:
+      matrix:
+        java-version: [ base, main ]
+    name: Build project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Java and Maven
+        uses: spring-projects/spring-data-release/actions/setup-maven@main
+        with:
+          java-version: ${{ matrix.java-version }}
+          develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
+      - name: Build
+        uses: spring-projects/spring-data-release/actions/maven-build@main
+        with:
+          additional-options: -Pall-dbs
