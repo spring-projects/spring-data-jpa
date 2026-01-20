@@ -747,7 +747,7 @@ class JpaQueryCreatorTests {
 				.forTree(Person.class, "existsPersonByFirstname") //
 				.returning(Long.class).withParameters("chris") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
+				.expectJpql("SELECT p.id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
 

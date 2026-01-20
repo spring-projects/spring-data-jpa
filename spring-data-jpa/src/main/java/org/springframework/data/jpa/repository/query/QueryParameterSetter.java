@@ -214,14 +214,10 @@ interface QueryParameterSetter {
 			this.parameters = query.getParameters();
 
 			// DATAJPA-1172
-			// Since EclipseLink doesn't reliably report whether a query has parameters
-			// we simply try to set the parameters and ignore possible failures.
-			// this is relevant for native queries with SpEL expressions, where the method parameters don't have to match the
-			// parameters in the query.
+			// EclipseLink can under-report query parameters (Hermes parser); allow binding by index regardless.
 			// https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915
 
-			this.registerExcessParameters = query.getParameters().size() == 0
-					&& unwrapClass(query).getName().startsWith("org.eclipse");
+			this.registerExcessParameters = unwrapClass(query).getName().startsWith("org.eclipse");
 		}
 
 		/**

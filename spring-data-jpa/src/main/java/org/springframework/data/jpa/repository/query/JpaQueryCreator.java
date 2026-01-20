@@ -345,14 +345,16 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 			if (entityType.hasSingleIdAttribute()) {
 
 				SingularAttribute<?, ?> id = entityType.getId(entityType.getIdType().getJavaType());
-				return selectStep.select(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
-						PropertyPath.from(id.getName(), returnedType.getDomainType()), true));
+				JpqlQueryBuilder.PathExpression path = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+						PropertyPath.from(id.getName(), returnedType.getDomainType()), true);
+				return selectStep.select(List.of(JpqlQueryBuilder.unaliased(path)));
 
 			} else {
 
-				List<JpqlQueryBuilder.PathExpression> paths = entityType.getIdClassAttributes().stream()//
+				List<JpqlQueryBuilder.Expression> paths = entityType.getIdClassAttributes().stream()//
 						.map(it -> JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
 								PropertyPath.from(it.getName(), returnedType.getDomainType()), true))
+						.map(JpqlQueryBuilder::unaliased)
 						.toList();
 				return selectStep.select(paths);
 			}

@@ -236,6 +236,13 @@ public final class JpqlQueryBuilder {
 		return new StringLiteralExpression(literal);
 	}
 
+	static Expression unaliased(Expression expression) {
+
+		Assert.notNull(expression, "Expression must not be null");
+
+		return expression instanceof AliasedExpression ? new UnaliasedExpression(expression) : expression;
+	}
+
 	/**
 	 * A parameter placeholder.
 	 *
@@ -783,6 +790,19 @@ public final class JpqlQueryBuilder {
 			return render(RenderContext.EMPTY);
 		}
 
+	}
+
+	record UnaliasedExpression(Expression delegate) implements Expression {
+
+		@Override
+		public String render(RenderContext context) {
+			return delegate.render(context);
+		}
+
+		@Override
+		public String toString() {
+			return render(RenderContext.EMPTY);
+		}
 	}
 
 	/**
