@@ -23,4 +23,4 @@ jobs:
       - name: Build
         uses: spring-projects/spring-data-release/actions/maven-build@main
         with:
-          run: ./mvnw -Dsort -B -U -Pall-dbs clean dependency:list verify
+          additional-options: -Pall-dbs
