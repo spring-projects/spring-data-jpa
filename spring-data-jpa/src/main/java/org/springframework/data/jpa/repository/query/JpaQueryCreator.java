@@ -288,7 +288,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 		if (returnedType.needsCustomConstruction()) {
 
-			Collection<String> requiredSelection = null;
+			boolean tupleQuery = useTupleQuery();
+			Collection<String> requiredSelection;
 			if (returnedType.getReturnedType().getPackageName().startsWith("java.util")
 					|| returnedType.getReturnedType().getPackageName().startsWith("jakarta.persistence")) {
 				requiredSelection = metamodel.managedType(returnedType.getDomainType()).getAttributes().stream()
@@ -299,8 +300,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 			List<JpqlQueryBuilder.Expression> paths = new ArrayList<>(requiredSelection.size());
 			for (String selection : requiredSelection) {
-				paths.add(JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
-						PropertyPath.from(selection, returnedType.getDomainType()), true).as(selection));
+				JpqlQueryBuilder.PathExpression expression = JpqlUtils.toExpressionRecursively(metamodel, entity, entityType,
+						PropertyPath.from(selection, returnedType.getDomainType()), true);
+				paths.add(tupleQuery ? expression.as(selection) : expression);
 			}
 
 			JpqlQueryBuilder.Expression distance = null;
@@ -308,7 +310,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				distance = getDistanceExpression();
 			}
 
-			if (useTupleQuery()) {
+			if (tupleQuery) {
 
 				if (searchQuery) {
 					paths.add((distance != null ? distance : JpqlQueryBuilder.literal(0)).as("distance"));
