@@ -186,11 +186,6 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Test
 	public void scrollByPredicateKeysetWithInterfaceProjection() {}
 
-	@Disabled("EclipseLink treats id as keyword")
-	@Override
-	@Test
-	public void executesDerivedExistsQuery() {}
-
 	@Disabled("Not spec-compliant")
 	@Override
 	@Test

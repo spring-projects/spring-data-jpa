@@ -521,8 +521,17 @@ public final class JpqlQueryBuilder {
 
 	}
 
+	/**
+	 * Interface specifying a selection that can be rendered to {@code String}.
+	 */
 	public interface Selection {
 
+		/**
+		 * Render the selection given {@link RenderContext} to string.
+		 *
+		 * @param context
+		 * @return the rendered selection.
+		 */
 		String render(RenderContext context);
 
 	}
@@ -658,7 +667,7 @@ public final class JpqlQueryBuilder {
 
 				builder.append(path.render(context));
 				if (!context.isConstructorContext() && path instanceof AliasedExpression ae) {
-					builder.append(" ").append(ae.getAlias());
+					builder.append(" AS ").append(ae.getAlias());
 				}
 			}
 
@@ -1541,7 +1550,7 @@ public final class JpqlQueryBuilder {
 	 * @param onTheJoin whether the path should target the join itself instead of matching {@link PropertyPath}.
 	 */
 	record PathAndOrigin(PropertyPath path, Origin origin,
-			boolean onTheJoin) implements PathExpression, AliasedExpression {
+			boolean onTheJoin) implements PathExpression {
 
 		@Override
 		public PropertyPath getPropertyPath() {
@@ -1556,11 +1565,6 @@ public final class JpqlQueryBuilder {
 			} else {
 				return context.getAlias(origin());
 			}
-		}
-
-		@Override
-		public String getAlias() {
-			return path().getSegment();
 		}
 
 	}

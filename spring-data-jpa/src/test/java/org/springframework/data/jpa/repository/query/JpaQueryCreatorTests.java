@@ -707,7 +707,7 @@ class JpaQueryCreatorTests {
 				.returning(InterfaceProductProjection.class) //
 				.withParameters("spring") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p.name name, p.productType productType FROM %s p WHERE p.name = ?1",
+				.expectJpql("SELECT p.name AS name, p.productType AS productType FROM %s p WHERE p.name = ?1",
 						DefaultJpaEntityMetadata.unqualify(Product.class)) //
 				.validateQuery();
 	}
@@ -722,7 +722,7 @@ class JpaQueryCreatorTests {
 				.withParameters("chris") //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT p.id id, p.emailAddress emailAddress, p.firstname firstname, p.lastname lastname FROM %s p WHERE p.firstname = ?1",
+						"SELECT p.id AS id, p.emailAddress AS emailAddress, p.firstname AS firstname, p.lastname AS lastname FROM %s p WHERE p.firstname = ?1",
 						DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
@@ -747,7 +747,7 @@ class JpaQueryCreatorTests {
 				.forTree(Person.class, "existsPersonByFirstname") //
 				.returning(Long.class).withParameters("chris") //
 				.as(QueryCreatorTester::create) //
-				.expectJpql("SELECT p.id id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
+				.expectJpql("SELECT p.id FROM %s p WHERE p.firstname = ?1", DefaultJpaEntityMetadata.unqualify(Person.class)) //
 				.validateQuery();
 	}
 
@@ -1142,7 +1142,7 @@ class JpaQueryCreatorTests {
 				.withParameters(1L) //
 				.as(QueryCreatorTester::create) //
 				.expectJpql(
-						"SELECT o.id id, c.id customerId, s.id supplierId, c.name customerName, s.name supplierName FROM %s o LEFT JOIN o.customer c LEFT JOIN o.supplier s WHERE o.id = ?1",
+						"SELECT o.id AS id, c.id AS customerId, s.id AS supplierId, c.name AS customerName, s.name AS supplierName FROM %s o LEFT JOIN o.customer c LEFT JOIN o.supplier s WHERE o.id = ?1",
 						DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class))
 				.validateQuery();
 	}

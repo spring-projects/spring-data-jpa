@@ -30,14 +30,6 @@ class EclipseLinkUserRepositoryFinderTests extends UserRepositoryFinderTests {
 
 	@Disabled
 	@Override
-	void executesNotInQueryCorrectly() {}
-
-	@Disabled
-	@Override
-	void executesInKeywordForPageCorrectly() {}
-
-	@Disabled
-	@Override
 	void shouldProjectWithKeysetScrolling() {}
 
 	@Disabled
