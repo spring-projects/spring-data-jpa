@@ -109,10 +109,12 @@ interface QueryParameterSetter {
 			} else {
 
 				Integer position = parameter.getPosition();
+				boolean canBindByPosition = query.hasPositionParameters()
+						? query.hasParameterPosition(position) || errorHandler == LENIENT || errorHandler == STRICT
+						: query.getParameters().size() >= position || errorHandler == LENIENT;
 
 				if (position != null //
-						&& (query.getParameters().size() >= position //
-								|| errorHandler == LENIENT //
+						&& (canBindByPosition //
 								|| query.registerExcessParameters())) {
 					query.setParameter(position, value);
 				}
@@ -163,11 +165,13 @@ interface QueryParameterSetter {
 			} else {
 
 				Integer position = parameter.getPosition();
+				boolean canBindByPosition = query.hasPositionParameters()
+						? query.hasParameterPosition(position) || errorHandler == LENIENT || errorHandler == STRICT
+						: query.getParameters().size() >= position || errorHandler == LENIENT;
 
 				if (position != null //
-						&& (query.getParameters().size() >= parameter.getPosition() //
-								|| query.registerExcessParameters() //
-								|| errorHandler == LENIENT)) {
+						&& (canBindByPosition //
+								|| query.registerExcessParameters())) {
 
 					query.setParameter(parameter.getPosition(), date, temporalType);
 				}
@@ -240,6 +244,25 @@ interface QueryParameterSetter {
 
 		public boolean registerExcessParameters() {
 			return this.registerExcessParameters;
+		}
+
+		boolean hasPositionParameters() {
+			for (Parameter<?> candidate : parameters) {
+				if (candidate.getPosition() != null) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		boolean hasParameterPosition(int position) {
+			for (Parameter<?> candidate : parameters) {
+				Integer candidatePosition = candidate.getPosition();
+				if (candidatePosition != null && candidatePosition == position) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/**

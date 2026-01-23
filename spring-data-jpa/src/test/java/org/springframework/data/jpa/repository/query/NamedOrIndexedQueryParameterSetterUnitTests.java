@@ -162,6 +162,30 @@ class NamedOrIndexedQueryParameterSetterUnitTests {
 
 	}
 
+	@Test // DATAJPA-4167
+	void setsParameterWhenQueryExposesOnlySecondPosition() {
+
+		Query query = mock(Query.class);
+		doReturn(Collections.singleton(new ParameterImpl(null, 2))).when(query).getParameters();
+
+		for (TemporalType temporalType : temporalTypes) {
+
+			QueryParameterSetter setter = QueryParameterSetter.create( //
+					firstValueExtractor, //
+					new ParameterImpl(null, 2), //
+					temporalType //
+			);
+
+			setter.setParameter(QueryParameterSetter.BindableQuery.from(query), methodArguments, STRICT);
+
+			if (temporalType == null) {
+				verify(query).setParameter(eq(2), any(Date.class));
+			} else {
+				verify(query).setParameter(eq(2), any(Date.class), eq(temporalType));
+			}
+		}
+	}
+
 	/**
 	 * This scenario happens when the only (name) parameter is part of an ORDER BY clause and gets stripped of for the
 	 * count query. Then the count query has no named parameter but the parameter provided has a {@literal null} position.
