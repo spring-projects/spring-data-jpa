@@ -809,10 +809,6 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		boolean interfaceProjection = returnedType.isInterfaceProjection();
 
-		if (returnedType.needsCustomConstruction() && (inputProperties.isEmpty() || !interfaceProjection)) {
-			inputProperties = returnedType.getInputProperties();
-		}
-
 		if (returnedType.needsCustomConstruction()) {
 			query = (CriteriaQuery) (interfaceProjection ? builder.createTupleQuery()
 					: builder.createQuery(returnedType.getReturnedType()));
@@ -825,6 +821,9 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		if (returnedType.needsCustomConstruction()) {
 
 			Collection<String> requiredSelection;
+			if (inputProperties.isEmpty()) {
+				inputProperties = returnedType.getInputProperties();
+			}
 
 			if (scrollPosition instanceof KeysetScrollPosition && interfaceProjection) {
 				requiredSelection = KeysetScrollDelegate.getProjectionInputProperties(entityInformation, inputProperties, sort);
