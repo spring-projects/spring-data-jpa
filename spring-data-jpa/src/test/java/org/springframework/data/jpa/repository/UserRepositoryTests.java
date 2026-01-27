@@ -2846,21 +2846,36 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		User prototype = new User();
-		prototype.setFirstname("v");
-
-		record MyProjection(String name) {
+		record MyProjection(String name, int age, boolean active) {
 
 		}
 
-		List<MyProjection> users = repository.findBy(
-				of(prototype,
-						matching().withIgnorePaths("age", "createdAt", "active").withMatcher("firstname",
-								GenericPropertyMatcher::contains)), //
-				q -> q.project("firstname").as(MyProjection.class).all());
+		List<MyProjection> users = repository.findBy(userHasFirstnameLike("Oliver"), //
+				q -> q.project("firstname", "age", "active").as(MyProjection.class).all());
 
-		assertThat(users).extracting(MyProjection::name).containsExactlyInAnyOrder(firstUser.getFirstname(),
-				thirdUser.getFirstname(), fourthUser.getFirstname());
+		assertThat(users).hasSize(1).extracting(MyProjection::name).contains(firstUser.getFirstname());
+	}
+
+	@Test // GH-4172
+	void findByFluentSpecificationWithDtoProjectionJoins() {
+
+		flushTestUsers();
+		firstUser.setManager(secondUser);
+		em.persist(firstUser);
+		em.flush();
+
+		record MyProjection(String name, int age, boolean active, String managerName, int managerAge) {
+		}
+
+		List<MyProjection> result = repository.findBy(userHasFirstnameLike("Oliver"), //
+				q -> q.project("firstname", "age", "active", "manager.firstname", "manager.age").as(MyProjection.class).all());
+
+		assertThat(result).hasSize(1);
+
+		MyProjection projection = result.get(0);
+		assertThat(projection.name()).isEqualTo(firstUser.getFirstname());
+		assertThat(projection.managerName()).isEqualTo(secondUser.getFirstname());
+		assertThat(projection.managerAge()).isEqualTo(secondUser.getAge());
 	}
 
 	@Test // GH-2274

@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -60,7 +61,7 @@ abstract class FluentQuerySupport<S, R> {
 		this.limit = limit;
 
 		if (properties != null) {
-			this.properties = new HashSet<>(properties);
+			this.properties = new LinkedHashSet<>(properties);
 		} else {
 			this.properties = Collections.emptySet();
 		}

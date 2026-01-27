@@ -788,13 +788,14 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	 * @param inputProperties must not be {@literal null}.
 	 * @param scrollPosition must not be {@literal null}.
 	 */
-	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec,
-			Class<S> domainClass, Sort sort, Collection<String> inputProperties, @Nullable ScrollPosition scrollPosition) {
+	private <S extends T> TypedQuery<S> getQuery(ReturnedType returnedType, @Nullable Specification<S> spec, Class<S> domainClass,
+			Sort sort, Collection<String> inputProperties, @Nullable ScrollPosition scrollPosition) {
 
 		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<S> query;
 
 		boolean interfaceProjection = returnedType.isInterfaceProjection();
+		boolean inputPropertiesPresent = !inputProperties.isEmpty();
 
 		if (returnedType.needsCustomConstruction()) {
 			query = (CriteriaQuery) (interfaceProjection ? builder.createTupleQuery()
@@ -822,15 +823,21 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			Set<String> topLevelProperties = new HashSet<>();
 			for (String property : requiredSelection) {
 
-				int separator = property.indexOf('.');
-				String topLevelProperty = separator == -1 ? property : property.substring(0, separator);
+				if (inputPropertiesPresent && !interfaceProjection) {
+					PropertyPath path = PropertyPath.from(property, returnedType.getDomainType());
+					selections.add(QueryUtils.toExpressionRecursively(root, path, true));
+				} else {
 
-				if (!topLevelProperties.add(topLevelProperty)) {
-					continue;
+					int separator = property.indexOf('.');
+					String topLevelProperty = separator == -1 ? property : property.substring(0, separator);
+
+					if (!topLevelProperties.add(topLevelProperty)) {
+						continue;
+					}
+
+					PropertyPath path = PropertyPath.from(topLevelProperty, returnedType.getDomainType());
+					selections.add(QueryUtils.toExpressionRecursively(root, path, true).alias(topLevelProperty));
 				}
-
-				PropertyPath path = PropertyPath.from(topLevelProperty, returnedType.getDomainType());
-				selections.add(QueryUtils.toExpressionRecursively(root, path, true).alias(topLevelProperty));
 			}
 
 			Class<?> typeToRead = returnedType.getReturnedType();
