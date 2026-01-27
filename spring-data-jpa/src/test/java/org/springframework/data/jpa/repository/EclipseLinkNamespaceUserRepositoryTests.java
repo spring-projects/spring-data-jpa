@@ -39,6 +39,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
+	@Disabled("EclipseLink does not support records, additionally, it does not support constructor creation using nested (join) properties")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithDtoProjectionJoins() {}
+
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
 	 */
