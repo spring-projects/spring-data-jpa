@@ -15,7 +15,8 @@
  */
 package org.springframework.data.jpa.criteria;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.type;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -26,10 +27,12 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Selection;
+
+import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.core.TypedPropertyPath;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -40,6 +43,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  * Integration tests for {@link Expressions}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @SpringJUnitConfig(locations = "classpath:hibernate-h2-infrastructure.xml")
 class ExpressionsTests {
@@ -54,75 +58,58 @@ class ExpressionsTests {
 	@Test // GH-4085
 	void shouldResolveTopLevelExpression() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
+		QueryExpression<User, Expression<String>> qe = expression(User.class,
+				from -> Expressions.get(from, User::getFirstname));
 
-		Expression<String> expression = Expressions.get(from, User::getFirstname);
-		assertThat(expression.getJavaType()).isEqualTo(String.class);
+		assertThat(qe.expression().getJavaType()).isEqualTo(String.class);
 	}
 
 	@Test // GH-4085
 	void shouldResolveNestedLevelExpression() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
-
-		Expression<Role> expression = Expressions.get(from,
-				TypedPropertyPath.of(User::getManager).thenMany(User::getRoles));
-		assertThat(expression.getJavaType()).isEqualTo(Role.class);
+		QueryExpression<User, Expression<Role>> qe = expression(User.class,
+				from -> Expressions.get(from, TypedPropertyPath.of(User::getManager).thenMany(User::getRoles)));
+		assertThat(qe.expression().getJavaType()).isEqualTo(Role.class);
 	}
 
 	@Test // GH-4085
 	void shouldSelectExpression() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
+		QueryExpression<User, Selection<String>> path = expression(User.class,
+				from -> Expressions.select(from, User::getFirstname));
 
-		Path<?> path = (Path<?>) Expressions.select(from, User::getFirstname);
-
-		assertThat(path.getJavaType()).isEqualTo(String.class);
-		assertThat(path.getParentPath()).isEqualTo(from);
+		assertThat(path.expression().getJavaType()).isEqualTo(String.class);
+		assertThat(path.expression()).asInstanceOf(type(Path.class)).extracting(Path::getParentPath).isEqualTo(path.root());
 	}
 
 	@Test // GH-4085
 	void shouldSelectJoinedExpression() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
+		QueryExpression<User, Selection<String>> path = expression(User.class,
+				from -> Expressions.select(from, TypedPropertyPath.of(User::getManager).then(User::getLastname)));
 
-		Path<?> path = (Path<?>) Expressions.select(from, TypedPropertyPath.of(User::getManager).then(User::getLastname));
-
-		assertThat(path.getParentPath()).isInstanceOf(Join.class);
+		assertThat(path.expression()).asInstanceOf(type(Path.class)).extracting(Path::getParentPath)
+				.isInstanceOf(Join.class);
 	}
 
 	@Test // GH-4085
 	void shouldJoin() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
+		QueryExpression<User, Join<User, User>> join = expression(User.class,
+				from -> Expressions.join(from, User::getManager));
 
-		Join<User, User> join = Expressions.join(from, User::getManager);
-
-		assertThat(join.getJavaType()).isEqualTo(User.class);
-		assertThat(join.getAttribute().getName()).isEqualTo("manager");
+		assertThat(join.expression().getJavaType()).isEqualTo(User.class);
+		assertThat(join.expression().getAttribute().getName()).isEqualTo("manager");
 	}
 
 	@Test // GH-4085
 	void shouldJoinWithType() {
 
-		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Object> query = cb.createQuery();
-		Root<User> from = query.from(User.class);
+		QueryExpression<User, Join<User, User>> join = expression(User.class,
+				from -> Expressions.join(from, JoinType.LEFT, it -> it.join(User::getManager)));
 
-		Join<User, User> join = Expressions.join(from, JoinType.LEFT, it -> it.join(User::getManager));
-
-		assertThat(join.getJavaType()).isEqualTo(User.class);
-		assertThat(join.getJoinType()).isEqualTo(JoinType.LEFT);
+		assertThat(join.expression().getJavaType()).isEqualTo(User.class);
+		assertThat(join.expression().getJoinType()).isEqualTo(JoinType.LEFT);
 	}
 
 	@Test // GH-4085
@@ -148,6 +135,22 @@ class ExpressionsTests {
 
 		assertThat(fetch.getAttribute().getName()).isEqualTo("manager");
 		assertThat(fetch.getJoinType()).isEqualTo(JoinType.LEFT);
+	}
+
+	<T, R, S extends Selection<R>> QueryExpression<T, S> expression(Class<T> type, Function<Root<T>, S> callable) {
+
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<Object> query = cb.createQuery();
+		Root<T> from = query.from(type);
+
+		QueryExpression<T, S> qe = new QueryExpression<>(from, callable.apply(from));
+
+		entityManager.createQuery(query); // validate the query
+		return qe;
+
+	}
+
+	private record QueryExpression<T, S>(Root<T> root, S expression) {
 	}
 
 }
