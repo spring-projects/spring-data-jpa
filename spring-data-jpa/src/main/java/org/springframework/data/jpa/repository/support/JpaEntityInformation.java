@@ -71,6 +71,12 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	Collection<String> getIdAttributeNames();
 
 	/**
+	 * Returns the attribute paths of the id attributes. If the entity has a composite id, then all id attribute paths are
+	 * returned. If the entity has a single id attribute then this single attribute path is returned.
+	 */
+	Collection<String> getIdAttributePaths();
+
+	/**
 	 * Extracts the value for the given id attribute from a composite id
 	 *
 	 * @param id the composite id from which to extract the attribute.
