@@ -77,10 +77,9 @@ public interface Specification<T> extends Serializable {
 	/**
 	 * Simple static factory method to add some syntactic sugar around a {@link Specification}.
 	 *
-	 * @implNote does not accept {@literal null} values since 4.0, use {@link #unrestricted()} instead of passing
-	 *           {@literal null} values.
 	 * @param <T> the type of the {@link Root} the resulting {@literal Specification} operates on.
-	 * @param spec can be {@literal null}.
+	 * @param spec does not accept {@literal null} values since 4.0, use {@link #unrestricted()} instead of passing
+	 *          {@literal null} values.
 	 * @return guaranteed to be not {@literal null}.
 	 * @since 2.0
 	 */

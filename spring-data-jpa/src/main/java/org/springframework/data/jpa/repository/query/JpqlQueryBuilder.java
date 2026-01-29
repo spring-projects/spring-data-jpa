@@ -485,7 +485,7 @@ public final class JpqlQueryBuilder {
 		 *
 		 * @param resultType
 		 * @param paths
-		 * @returninstanti
+		 * @return
 		 */
 		@CheckReturnValue
 		Select instantiate(String resultType, Collection<? extends JpqlQueryBuilder.Expression> paths);

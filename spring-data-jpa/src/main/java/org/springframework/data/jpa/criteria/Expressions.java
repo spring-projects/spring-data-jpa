@@ -47,11 +47,11 @@ import org.springframework.data.jpa.repository.query.QueryUtils;
  * Example:
  *
  * <pre class="code">
- * Root<User> root = criteriaQuery.from(User.class);
+ * Root&lt;User&gt; root = criteriaQuery.from(User.class);
  *
- * Expression<User> expr = Expressions.get(root, User::getManager);
+ * Expression&lt;User&gt; expr = Expressions.get(root, User::getManager);
  *
- * Join<User, Address> join = Expressions.join(root, JoinType.INNER, j -&gt; j.join(User::getAddress));
+ * Join&lt;User, Address&gt; join = Expressions.join(root, JoinType.INNER, j -&gt; j.join(User::getAddress));
  * </pre>
  *
  * @author Mark Paluch
