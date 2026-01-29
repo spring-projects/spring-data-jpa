@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Tuple;
@@ -46,6 +47,7 @@ import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -57,6 +59,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Yanming Zhou
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -265,12 +268,14 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 
 		Map<String, Object> keyset = new LinkedHashMap<>();
 
-		if (hasCompositeId()) {
-			for (String idAttributeName : getIdAttributeNames()) {
-				keyset.put(idAttributeName, getter.apply(idAttributeName));
+		if(!isKeysetQualified(propertyPaths)) {
+			if (hasCompositeId()) {
+				for (String idAttributeName : getIdAttributeNames()) {
+					keyset.put(idAttributeName, getter.apply(idAttributeName));
+				}
+			} else {
+				keyset.put(getIdAttribute().getName(), getId(entity));
 			}
-		} else {
-			keyset.put(getIdAttribute().getName(), getId(entity));
 		}
 
 		for (String propertyPath : propertyPaths) {
@@ -278,6 +283,52 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		}
 
 		return keyset;
+	}
+
+	@Override
+	public boolean isKeysetQualified(Iterable<String> propertyPaths) {
+
+		if (propertyPaths.iterator().hasNext()) {
+			for (String property : propertyPaths) {
+				if (isUnique(property)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	@Nullable
+	private boolean isUnique(String property) {
+
+		Class<?> clazz = getJavaType();
+
+		while (clazz != Object.class) {
+
+			try {
+				Column column =  clazz.getDeclaredField(property).getAnnotation(Column.class);
+				if (column != null) {
+					return column.unique();
+				}
+			} catch (NoSuchFieldException ex) {
+				// ignore
+			}
+
+			try {
+				String getter = "get" + StringUtils.capitalize(property);
+				Column column = clazz.getDeclaredMethod(getter).getAnnotation(Column.class);
+				if (column != null) {
+					return column.unique();
+				}
+			} catch (NoSuchMethodException ex) {
+				// ignore
+			}
+
+			clazz = clazz.getSuperclass();
+		}
+
+		return false;
 	}
 
 	private Function<String, Object> getPropertyValueFunction(Object entity) {
