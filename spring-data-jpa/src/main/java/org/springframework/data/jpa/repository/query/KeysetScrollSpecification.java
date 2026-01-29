@@ -112,7 +112,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 				return order.isAscending() ? cb.greaterThan(propertyExpression, compareValue)
 						: cb.lessThan(propertyExpression, compareValue);
 			}
-			return order.isAscending() ? cb.isNull(propertyExpression) : cb.isNotNull(propertyExpression);
+			return order.isAscending() ? cb.isNotNull(propertyExpression) : cb.isNull(propertyExpression);
 
 		}
 
@@ -161,7 +161,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
 			if (value == null) {
-				return order.isAscending() ? where.isNull() : where.isNotNull();
+				return order.isAscending() ? where.isNotNull() : where.isNull();
 			}
 
 			QueryUtils.checkSortExpression(order);
