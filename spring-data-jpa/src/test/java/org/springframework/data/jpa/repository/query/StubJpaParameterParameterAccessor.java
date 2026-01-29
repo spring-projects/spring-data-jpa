@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
 import org.mockito.Mockito;
 
 import org.springframework.core.MethodParameter;
@@ -49,11 +50,15 @@ public class StubJpaParameterParameterAccessor extends JpaParametersParameterAcc
 
 	static AccessorBuilder accessorFor(Class<?>... parameterTypes) {
 		return arguments -> accessor(parameterTypes, arguments);
-
 	}
 
 	interface AccessorBuilder {
 		JpaParametersParameterAccessor withValues(Object... arguments);
+	}
+
+	@Override
+	public @Nullable Object getBindableValue(int index) {
+		return getValues()[index];
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

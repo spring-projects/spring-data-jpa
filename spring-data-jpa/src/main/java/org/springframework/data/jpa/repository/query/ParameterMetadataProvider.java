@@ -214,12 +214,10 @@ public class ParameterMetadataProvider {
 		Class<T> reifiedType = Expression.class.equals(type) ? (Class<T>) Object.class : type;
 
 		Object value = bindableParameterValues == null ? PLACEHOLDER : bindableParameterValues.next();
+		Part.Type typeToUse = PartTreeParameterBinding.getType(part, value);
 		int currentPosition = ++position;
-		int currentBindMarker = ++bindMarker;
 
-		BindingIdentifier bindingIdentifier = parameter.getName().map(it -> BindingIdentifier.of(it, currentBindMarker))
-				.orElseGet(() -> BindingIdentifier.of(currentBindMarker));
-
+		BindingIdentifier bindingIdentifier = getBindingIdentifier(typeToUse, parameter);
 		BindingIdentifier origin = parameter.getName().map(it -> BindingIdentifier.of(it, currentPosition))
 				.orElseGet(() -> BindingIdentifier.of(currentPosition));
 
@@ -236,6 +234,17 @@ public class ParameterMetadataProvider {
 		}
 
 		return binding;
+	}
+
+	private BindingIdentifier getBindingIdentifier(Part.Type type, Parameter parameter) {
+
+		if (type == Part.Type.IS_NULL) {
+			return BindingIdentifier.of("null");
+		}
+
+		int currentBindMarker = ++bindMarker;
+		return parameter.getName().map(it -> BindingIdentifier.of(it, currentBindMarker))
+				.orElseGet(() -> BindingIdentifier.of(currentBindMarker));
 	}
 
 	/**

@@ -239,12 +239,16 @@ public class ParameterBinding {
 			this.templates = templates;
 			this.escape = escape;
 			this.value = value;
-			this.type = value == null
+			this.type = getType(part, value);
+			this.ignoreCase = Part.IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
+			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
+		}
+
+		static Type getType(Part part, @Nullable Object value) {
+			return value == null
 					&& (Type.SIMPLE_PROPERTY.equals(part.getType()) || Type.NEGATING_SIMPLE_PROPERTY.equals(part.getType()))
 							? Type.IS_NULL
 							: part.getType();
-			this.ignoreCase = Part.IgnoreCaseType.ALWAYS.equals(part.shouldIgnoreCase());
-			this.noWildcards = part.getProperty().getLeafProperty().isCollection();
 		}
 
 		/**
