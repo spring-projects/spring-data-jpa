@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Jens Schauder
  * @author Diego Krupitza
  * @author Mark Paluch
+ * @author Nabil Fawwaz Elqayyim
  */
 class PreprocessedQueryUnitTests {
 
@@ -52,4 +53,40 @@ class PreprocessedQueryUnitTests {
 				Arguments.argumentSet("no parameter", "select u from User u where u.email = u.email", false));
 	}
 
+	@ParameterizedTest // GH-4090
+	@MethodSource("commentParameters")
+	void shouldIgnoreMarkersInComments(String queryText, int expectedBindingCount, String description) {
+
+		// Use the official static factory method from the DeclaredQuery interface
+		DeclaredQuery declaredQuery = DeclaredQuery.jpqlQuery(queryText);
+		PreprocessedQuery preprocessed = PreprocessedQuery.parse(declaredQuery);
+
+		assertThat(preprocessed.getBindings())
+				.as(description)
+				.hasSize(expectedBindingCount);
+	}
+
+	static Stream<Arguments> commentParameters() {
+		return Stream.of(
+				// 1. Block Comment Scenarios
+				Arguments.of("SELECT e FROM Entity e /* block ? */ WHERE e.id = :id", 1, "Standard block comment"),
+				Arguments.of("SELECT e FROM Entity e /* asterisk * inside */ WHERE e.id = :id", 1, "Asterisk inside block comment"),
+
+				// 2. SQL-style Line Comment Scenarios
+				Arguments.of("SELECT e FROM Entity e -- line comment \n WHERE e.id = :id", 1, "SQL-style line comment with newline"),
+
+				// 3. Java-style Line Comment Scenarios
+				// This specific case turns the remaining yellow branches green.
+				Arguments.of("SELECT e FROM Entity e // java comment \r WHERE e.id = :id", 1, "Java-style line comment with carriage return"),
+
+				// 4. Mathematical Operators
+				// Ensures '/' and '-' are not always treated as comment starts.
+				Arguments.of("SELECT e FROM Entity e WHERE e.id / 2 = 1 AND e.id * 2 = :id", 1, "Slash and asterisk as operators"),
+				Arguments.of("SELECT e FROM Entity e WHERE e.id - 1 = :id", 1, "Hyphen as subtraction operator"),
+
+				// 5. String Literal and Escaping Scenarios
+				// Confirms that markers inside quotes are ignored and escaped quotes are handled.
+				Arguments.of("SELECT e FROM Entity e WHERE e.name = 'It''s a -- marker' AND e.id = :id", 1, "Markers inside string literals")
+		);
+	}
 }
