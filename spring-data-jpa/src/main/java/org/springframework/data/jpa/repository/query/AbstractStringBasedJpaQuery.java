@@ -156,7 +156,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		}
 
 		if ((known != null && !known) || returnedJavaType.isArray() || getMetamodel().isJpaManaged(returnedJavaType)
-				|| !returnedType.needsCustomConstruction()) {
+				|| getMetamodel().isBasicType(returnedJavaType) || !returnedType.needsCustomConstruction()) {
 			if (known == null) {
 				knownProjections.put(returnedJavaType, false);
 			}
