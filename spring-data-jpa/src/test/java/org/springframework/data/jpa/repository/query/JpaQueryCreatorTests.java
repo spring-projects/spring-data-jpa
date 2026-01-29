@@ -125,6 +125,18 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
+	@Test // GH-4171
+	void simplePropertyAndNull() {
+
+		queryCreator(ORDER) //
+				.forTree(Order.class, "findByIdAndCompleted") //
+				.withParameterTypes(Long.class, Boolean.class).withParameters(null, false) //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT o FROM %s o WHERE o.id IS NULL AND o.completed = ?1",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
+				.validateQuery();
+	}
+
 	@Test // GH-3588
 	void simpleAnd() {
 
@@ -826,6 +838,12 @@ class JpaQueryCreatorTests {
 	private JpaParametersParameterAccessor accessor(Class<?>... argumentTypes) {
 
 		return StubJpaParameterParameterAccessor.accessor(argumentTypes);
+	}
+
+	@Entity
+	class SampleEntity {
+		@Id Long id;
+		int isDeleted;
 	}
 
 	@jakarta.persistence.Entity
