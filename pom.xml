@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -40,7 +39,7 @@
 		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
 		<jsqlparser>5.2</jsqlparser>
 		<mysql-connector-java>9.2.0</mysql-connector-java>
-		<postgresql>42.7.7</postgresql>
+		<postgresql>42.7.9</postgresql>
 		<springdata.commons>3.5.9-SNAPSHOT</springdata.commons>
 		<vavr>0.10.3</vavr>
 
