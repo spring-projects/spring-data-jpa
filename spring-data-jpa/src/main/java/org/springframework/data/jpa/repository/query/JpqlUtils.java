@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.query;
 
 import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.Bindable;
-import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
@@ -69,7 +68,6 @@ class JpqlUtils {
 				Bindable<?> from, PropertyPath property, boolean isForSelection, boolean hasRequiredOuterJoin) {
 
 			String segment = property.getSegment();
-
 			boolean isLeafProperty = !property.hasNext();
 			BindablePathResolver resolver = new BindablePathResolver(metamodel, from);
 			boolean isRelationshipId = isRelationshipId(resolver, property);
@@ -87,28 +85,14 @@ class JpqlUtils {
 
 			// if it's a leaf, return the join
 			if (isLeafProperty) {
-
-				// except its a collection type on the root
-				if (from instanceof EntityType<?> && property.isCollection()) {
-					Attribute<?, ?> nextAttribute = resolveAttribute(metamodel, from, property);
-					if (nextAttribute != null && nextAttribute.isAssociation()) {
-						return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
-					}
-				}
 				return new JpqlQueryBuilder.PathAndOrigin(property, joinSource, true);
 			}
 
 			PropertyPath nextProperty = Objects.requireNonNull(property.next(), "An element of the property path is null");
-
 			Attribute<?, ?> nextAttribute = resolveAttribute(metamodel, from, property);
 
 			if (nextAttribute == null) {
 				throw new IllegalStateException("Binding property is null");
-			}
-
-			// this is a reference to a collection property (eg. for an is empty check)
-			if (nextAttribute.isCollection() && !nextProperty.hasNext()) {
-				return new JpqlQueryBuilder.PathAndOrigin(nextProperty, joinSource, false);
 			}
 
 			return toExpressionRecursively(metamodel, joinSource, (Bindable<?>) nextAttribute, nextProperty, isForSelection,

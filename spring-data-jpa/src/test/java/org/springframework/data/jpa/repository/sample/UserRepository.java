@@ -152,6 +152,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByManagerColleaguesRolesIsNotEmpty();
 
+	List<User> findByColleaguesRoles(Role role);
+
 	List<User> findByColleaguesRolesContaining(Role role);
 
 	List<User> findByColleaguesRolesNotContaining(Role role);
@@ -555,6 +557,9 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	// DATAJPA-830
 	List<User> findByLastnameNotContaining(String part);
+
+	// GH-4179
+	List<User> findByRoles(Role role);
 
 	// DATAJPA-829
 	List<User> findByRolesContaining(Role role);

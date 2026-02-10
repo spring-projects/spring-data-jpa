@@ -361,12 +361,12 @@ public final class JpqlQueryBuilder {
 
 			@Override
 			public Predicate isEmpty() {
-				return new LhsPredicate(rhs, "IS EMPTY");
+				return new CollectionLhsPredicate(rhs, "IS EMPTY");
 			}
 
 			@Override
 			public Predicate isNotEmpty() {
-				return new LhsPredicate(rhs, "IS NOT EMPTY");
+				return new CollectionLhsPredicate(rhs, "IS NOT EMPTY");
 			}
 
 			@Override
@@ -381,12 +381,12 @@ public final class JpqlQueryBuilder {
 
 			@Override
 			public Predicate memberOf(Expression value) {
-				return new MemberOfPredicate(rhs, "MEMBER OF", value);
+				return new CollectionOperatorPredicate(rhs, "MEMBER OF", value);
 			}
 
 			@Override
 			public Predicate notMemberOf(Expression value) {
-				return new MemberOfPredicate(rhs, "NOT MEMBER OF", value);
+				return new CollectionOperatorPredicate(rhs, "NOT MEMBER OF", value);
 			}
 
 			@Override
@@ -1421,7 +1421,13 @@ public final class JpqlQueryBuilder {
 
 	}
 
-	record MemberOfPredicate(Expression path, String operator, Expression predicate) implements Predicate {
+	record CollectionOperatorPredicate(Expression path, String operator, Expression predicate) implements Predicate {
+
+		CollectionOperatorPredicate {
+			if (path instanceof PathAndOrigin p && p.onTheJoin()) {
+				path = p.parent();
+			}
+		}
 
 		@Override
 		public String render(RenderContext context) {
@@ -1440,6 +1446,26 @@ public final class JpqlQueryBuilder {
 		@Override
 		public String render(RenderContext context) {
 			return "%s %s".formatted(path.render(context), predicate);
+		}
+
+		@Override
+		public String toString() {
+			return render(RenderContext.EMPTY);
+		}
+
+	}
+
+	record CollectionLhsPredicate(Expression path, String operator) implements Predicate {
+
+		CollectionLhsPredicate {
+			if (path instanceof PathAndOrigin p && p.onTheJoin()) {
+				path = p.parent();
+			}
+		}
+
+		@Override
+		public String render(RenderContext context) {
+			return "%s %s".formatted(path.render(context), operator);
 		}
 
 		@Override
@@ -1567,6 +1593,14 @@ public final class JpqlQueryBuilder {
 			}
 		}
 
+		public Expression parent() {
+
+			if (origin instanceof Join join) {
+				return new PathAndOrigin(path(), join.source(), false);
+			}
+
+			throw new IllegalStateException("Cannot obtain parent expression for non-join origin: " + origin);
+		}
 	}
 
 	/**
