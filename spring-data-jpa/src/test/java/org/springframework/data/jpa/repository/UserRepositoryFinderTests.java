@@ -206,6 +206,17 @@ class UserRepositoryFinderTests {
 	}
 
 	@Test // GH-4110
+	void executesQueryWithOnCollectionViaJoin() {
+
+		dave.addColleague(oliver);
+		oliver.addRole(singer);
+		userRepository.save(dave);
+		userRepository.save(oliver);
+
+		assertThat(userRepository.findByColleaguesRoles(singer)).containsExactlyInAnyOrder(dave, oliver);
+	}
+
+	@Test // GH-4110
 	void executesQueryWithMultipleCollectionPredicates() {
 
 		dave.addColleague(oliver);

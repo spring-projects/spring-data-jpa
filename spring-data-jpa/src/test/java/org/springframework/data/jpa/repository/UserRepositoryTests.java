@@ -3682,6 +3682,18 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
+	@Test // GH-4179
+	void collectionPropertyIs() {
+
+		firstUser.addRole(adminRole);
+		secondUser.addRole(adminRole);
+
+		flushTestUsers();
+		List<User> result = repository.findByRoles(adminRole);
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
 	@Test // GH-2593
 	void insertStatementModifyingQueryWorks() {
 		flushTestUsers();
