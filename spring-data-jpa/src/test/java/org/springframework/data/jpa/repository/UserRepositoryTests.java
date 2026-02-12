@@ -922,6 +922,8 @@ class UserRepositoryTests {
 		assertThat(repository.existsById(secondUser.getId())).isTrue();
 		assertThat(repository.existsById(thirdUser.getId())).isTrue();
 		assertThat(repository.existsById(fourthUser.getId())).isTrue();
+
+		em.clear();
 	}
 
 	private static <T> void assertSameElements(Collection<T> first, Collection<T> second) {
@@ -2914,10 +2916,8 @@ class UserRepositoryTests {
 	@Test // GH-4172
 	void findByFluentSpecificationWithDtoProjectionJoins() {
 
-		flushTestUsers();
 		firstUser.setManager(secondUser);
-		em.persist(firstUser);
-		em.flush();
+		flushTestUsers();
 
 		record MyProjection(String name, int age, boolean active, String managerName, int managerAge) {
 		}
@@ -3692,6 +3692,31 @@ class UserRepositoryTests {
 		List<User> result = repository.findByRoles(adminRole);
 
 		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4179
+	void countOnCollectionPropertyWithIs() {
+
+		firstUser.addColleague(secondUser);
+		thirdUser.addColleague(firstUser);
+
+		flushTestUsers();
+
+		assertThat(repository.countByColleagues(secondUser)).isOne();
+		assertThat(repository.countByColleaguesContaining(secondUser)).isOne();
+	}
+
+	@Test // GH-4179
+	void countOnNestedCollectionPropertyWithIs() {
+
+		firstUser.addColleague(secondUser);
+		firstUser.addColleague(thirdUser);
+
+		secondUser.addRole(adminRole);
+
+		flushTestUsers();
+
+		assertThat(repository.countByColleaguesRoles(adminRole)).isOne();
 	}
 
 	@Test // GH-2593

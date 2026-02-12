@@ -47,7 +47,8 @@ public final class JpaResultConverters {
 	 *
 	 * @author Thomas Darimont
 	 */
-	public enum BlobToByteArrayConverter implements Converter<Blob, byte[]> {
+	@SuppressWarnings("NullAway")
+	public enum BlobToByteArrayConverter implements Converter<Blob, byte @Nullable[]> {
 
 		INSTANCE;
 

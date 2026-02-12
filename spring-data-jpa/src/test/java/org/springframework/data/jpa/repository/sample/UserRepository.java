@@ -561,6 +561,15 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// GH-4179
 	List<User> findByRoles(Role role);
 
+	// GH-4179
+	long countByColleagues(User user);
+
+	// GH-4179
+	long countByColleaguesContaining(User user);
+
+	// GH-4179
+	long countByColleaguesRoles(Role Role);
+
 	// DATAJPA-829
 	List<User> findByRolesContaining(Role role);
 
