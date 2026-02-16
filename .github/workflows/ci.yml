@@ -1,6 +1,7 @@
 name: CI Build
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, 4.0.x, 3.5.x, 'issue/**' ]
 
@@ -10,17 +11,17 @@ jobs:
   build-java:
     strategy:
       matrix:
-        java-version: [ base, main ]
+        java-version: [ base, next ]
     name: Build project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - name: Setup Java and Maven
-        uses: spring-projects/spring-data-release/actions/setup-maven@main
+        uses: spring-projects/spring-data-build/actions/setup-maven@3.5.x
         with:
           java-version: ${{ matrix.java-version }}
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Build
-        uses: spring-projects/spring-data-release/actions/maven-build@main
+        uses: spring-projects/spring-data-build/actions/maven-build@3.5.x
         with:
           additional-options: -Pall-dbs
