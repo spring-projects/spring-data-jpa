@@ -113,8 +113,8 @@ class JpaRepositoryFactoryUnitTests {
 
 	/**
 	 * Asserts that the factory recognized configured predicateExecutor classes that contain custom method but no custom
-	 * implementation could be found. Furthremore the exception has to contain the name of the predicateExecutor interface
-	 * as for a large predicateExecutor configuration it's hard to find out where this error occured.
+	 * implementation could be found. Furthermore, the exception has to contain the name of the predicateExecutor interface
+	 * as for a large predicateExecutor configuration it's hard to find out where this error occurred.
 	 */
 	@Test
 	void capturesMissingCustomImplementationAndProvidesInterfacename() {

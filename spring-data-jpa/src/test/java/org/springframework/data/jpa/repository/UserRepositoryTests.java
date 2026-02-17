@@ -404,7 +404,7 @@ class UserRepositoryTests {
 	}
 
 	/**
-	 * Tests, that persisting a relationsship without cascade attributes throws a {@code DataAccessException}.
+	 * Tests, that persisting a relationship without cascade attributes throws a {@code DataAccessException}.
 	 */
 	@Test
 	void testPreventsCascadingRolePersisting() {
