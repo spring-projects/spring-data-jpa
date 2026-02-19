@@ -45,6 +45,7 @@ import org.springframework.data.jpa.util.TestMetaModel;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Choi Wang Gyu
+ * @author Jeongwon Ryu
  */
 class JpqlQueryBuilderUnitTests {
 
@@ -178,6 +179,41 @@ class JpqlQueryBuilderUnitTests {
 		Expression subqueryExpression = expression("(SELECT c.code FROM Country c WHERE c.active = true)");
 		ctx.assertThat(where.in(subqueryExpression))
 				.isEqualTo("o.country IN (SELECT c.code FROM Country c WHERE c.active = true)");
+	}
+
+	@Test
+	void chainedAndRendersWithoutExtraParentheses() {
+
+		Entity entity = entity(LineItem.class);
+
+		Join p = innerJoin(entity, "product");
+		Join p0 = innerJoin(entity, "product2");
+
+		PathAndOrigin aPath = path(p, "name");
+		PathAndOrigin bPath = path(p0, "name");
+
+		Predicate a = where(aPath).eq(literal("ex30"));
+		Predicate b = where(bPath).eq(literal("ex40"));
+		Predicate c = where(aPath).isNotNull();
+
+		String fragment = a.and(b).and(c).render(ctx(entity));
+
+		assertThat(fragment).isEqualTo("p.name = 'ex30' AND p_0.name = 'ex40' AND p.name IS NOT NULL");
+	}
+
+	@Test
+	void chainedOrRendersWithoutExtraParentheses() {
+
+		Entity entity = entity(Order.class);
+		PathAndOrigin id = path(entity, "id");
+
+		Predicate a = where(id).eq(literal("1"));
+		Predicate b = where(id).eq(literal("2"));
+		Predicate c = where(id).eq(literal("3"));
+
+		String fragment = a.or(b).or(c).render(ctx(entity));
+
+		assertThat(fragment).isEqualTo("o.id = '1' OR o.id = '2' OR o.id = '3'");
 	}
 
 	@Test // GH-3588

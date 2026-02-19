@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
@@ -44,6 +45,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Choi Wang Gyu
+ * @author Jeongwon Ryu
  * @since 4.0
  */
 @SuppressWarnings("JavadocDeclaration")
@@ -710,7 +712,23 @@ public final class JpqlQueryBuilder {
 		@Contract("_ -> new")
 		@CheckReturnValue
 		default Predicate or(Predicate other) {
-			return new OrPredicate(this, other);
+
+			// Flatten OR composition: Or([a,b]).or(c) -> Or([a,b,c])
+			List<Predicate> parts = new ArrayList<>();
+
+			if (this instanceof OrPredicate op) {
+				parts.addAll(op.parts());
+			} else {
+				parts.add(this);
+			}
+
+			if (other instanceof OrPredicate op) {
+				parts.addAll(op.parts());
+			} else {
+				parts.add(other);
+			}
+
+			return new OrPredicate(parts);
 		}
 
 		/**
@@ -721,8 +739,27 @@ public final class JpqlQueryBuilder {
 		 */
 		@Contract("_ -> new")
 		@CheckReturnValue
-		default Predicate and(Predicate other) { // don't like the structuring of this and the nest() thing
-			return new AndPredicate(this, other);
+		default Predicate and(Predicate other) {
+
+			// don't like the structuring of this and the nest() thing
+			//
+			// Flatten AND composition to avoid deep nesting:
+			// And([a,b]).and(c) -> And([a,b,c])
+			List<Predicate> parts = new ArrayList<>();
+
+			if (this instanceof AndPredicate ap) {
+				parts.addAll(ap.parts());
+			} else {
+				parts.add(this);
+			}
+
+			if (other instanceof AndPredicate ap) {
+				parts.addAll(ap.parts());
+			} else {
+				parts.add(other);
+			}
+
+			return new AndPredicate(parts);
 		}
 
 		/**
@@ -1526,32 +1563,68 @@ public final class JpqlQueryBuilder {
 
 	}
 
-	record AndPredicate(Predicate left, Predicate right) implements Predicate {
+	record AndPredicate(List<Predicate> parts) implements Predicate {
+
+		AndPredicate {
+
+			Assert.notEmpty(parts, "Predicate parts must not be empty");
+
+			// Flatten nested AND predicates to keep the internal representation normalized.
+			List<Predicate> flattened = new ArrayList<>(parts.size());
+			for (Predicate p : parts) {
+				if (p instanceof AndPredicate ap) {
+					flattened.addAll(ap.parts());
+				} else {
+					flattened.add(p);
+				}
+			}
+
+			parts = List.copyOf(flattened);
+		}
 
 		@Override
 		public String render(RenderContext context) {
-			return "%s AND %s".formatted(left.render(context), right.render(context));
+			return parts.stream()
+					.map(p -> p.render(context))
+					.collect(Collectors.joining(" AND "));
 		}
 
 		@Override
 		public String toString() {
 			return render(RenderContext.EMPTY);
 		}
-
 	}
 
-	record OrPredicate(Predicate left, Predicate right) implements Predicate {
+	record OrPredicate(List<Predicate> parts) implements Predicate {
+
+		OrPredicate {
+
+			Assert.notEmpty(parts, "Predicate parts must not be empty");
+
+			// Flatten nested OR predicates to keep the internal representation normalized.
+			List<Predicate> flattened = new ArrayList<>(parts.size());
+			for (Predicate p : parts) {
+				if (p instanceof OrPredicate op) {
+					flattened.addAll(op.parts());
+				} else {
+					flattened.add(p);
+				}
+			}
+
+			parts = List.copyOf(flattened);
+		}
 
 		@Override
 		public String render(RenderContext context) {
-			return "%s OR %s".formatted(left.render(context), right.render(context));
+			return parts.stream()
+					.map(p -> p.render(context))
+					.collect(Collectors.joining(" OR "));
 		}
 
 		@Override
 		public String toString() {
 			return render(RenderContext.EMPTY);
 		}
-
 	}
 
 	record NestedPredicate(Predicate delegate) implements Predicate {
