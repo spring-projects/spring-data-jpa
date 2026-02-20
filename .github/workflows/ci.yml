@@ -1,4 +1,4 @@
-name: CI 4.0.x
+name: CI Build
 
 on:
   workflow_dispatch:
