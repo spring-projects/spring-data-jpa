@@ -431,19 +431,7 @@ public final class JpqlQueryBuilder {
 	}
 
 	public static @Nullable Predicate or(List<Predicate> intermediate) {
-
-		Predicate predicate = null;
-
-		for (Predicate other : intermediate) {
-
-			if (predicate == null) {
-				predicate = other;
-			} else {
-				predicate = predicate.or(other);
-			}
-		}
-
-		return predicate;
+		return intermediate.isEmpty() ? null : OrPredicate.of(intermediate);
 	}
 
 	/**
@@ -712,23 +700,7 @@ public final class JpqlQueryBuilder {
 		@Contract("_ -> new")
 		@CheckReturnValue
 		default Predicate or(Predicate other) {
-
-			// Flatten OR composition: Or([a,b]).or(c) -> Or([a,b,c])
-			List<Predicate> parts = new ArrayList<>();
-
-			if (this instanceof OrPredicate op) {
-				parts.addAll(op.parts());
-			} else {
-				parts.add(this);
-			}
-
-			if (other instanceof OrPredicate op) {
-				parts.addAll(op.parts());
-			} else {
-				parts.add(other);
-			}
-
-			return new OrPredicate(parts);
+			return OrPredicate.of(this, other);
 		}
 
 		/**
@@ -740,26 +712,7 @@ public final class JpqlQueryBuilder {
 		@Contract("_ -> new")
 		@CheckReturnValue
 		default Predicate and(Predicate other) {
-
-			// don't like the structuring of this and the nest() thing
-			//
-			// Flatten AND composition to avoid deep nesting:
-			// And([a,b]).and(c) -> And([a,b,c])
-			List<Predicate> parts = new ArrayList<>();
-
-			if (this instanceof AndPredicate ap) {
-				parts.addAll(ap.parts());
-			} else {
-				parts.add(this);
-			}
-
-			if (other instanceof AndPredicate ap) {
-				parts.addAll(ap.parts());
-			} else {
-				parts.add(other);
-			}
-
-			return new AndPredicate(parts);
+			return AndPredicate.of(this, other);
 		}
 
 		/**
@@ -1566,20 +1519,40 @@ public final class JpqlQueryBuilder {
 	record AndPredicate(List<Predicate> parts) implements Predicate {
 
 		AndPredicate {
-
 			Assert.notEmpty(parts, "Predicate parts must not be empty");
+		}
 
-			// Flatten nested AND predicates to keep the internal representation normalized.
-			List<Predicate> flattened = new ArrayList<>(parts.size());
-			for (Predicate p : parts) {
-				if (p instanceof AndPredicate ap) {
-					flattened.addAll(ap.parts());
+		public static AndPredicate of(List<Predicate> predicates) {
+
+			if (predicates.size() == 1) {
+
+				Predicate predicate = predicates.get(0);
+				if (predicate instanceof AndPredicate ap) {
+					return ap;
+				}
+
+				return new AndPredicate(Collections.singletonList(predicate));
+			}
+
+			List<Predicate> flattened = new ArrayList<>(predicates.size());
+			for (Predicate p : predicates) {
+				if (p instanceof AndPredicate op) {
+					flattened.addAll(op.parts());
 				} else {
 					flattened.add(p);
 				}
 			}
 
-			parts = List.copyOf(flattened);
+			return new AndPredicate(flattened);
+		}
+
+		public static AndPredicate of(Predicate predicate, Predicate other) {
+			return of(List.of(predicate, other));
+		}
+
+		@Override
+		public Predicate and(Predicate other) {
+			return of(this, other);
 		}
 
 		@Override
@@ -1598,12 +1571,17 @@ public final class JpqlQueryBuilder {
 	record OrPredicate(List<Predicate> parts) implements Predicate {
 
 		OrPredicate {
-
 			Assert.notEmpty(parts, "Predicate parts must not be empty");
+		}
 
-			// Flatten nested OR predicates to keep the internal representation normalized.
-			List<Predicate> flattened = new ArrayList<>(parts.size());
-			for (Predicate p : parts) {
+		public static OrPredicate of(List<Predicate> predicates) {
+
+			if (predicates.size() == 1) {
+				return new OrPredicate(Collections.singletonList(predicates.get(0)));
+			}
+
+			List<Predicate> flattened = new ArrayList<>(predicates.size());
+			for (Predicate p : predicates) {
 				if (p instanceof OrPredicate op) {
 					flattened.addAll(op.parts());
 				} else {
@@ -1611,7 +1589,11 @@ public final class JpqlQueryBuilder {
 				}
 			}
 
-			parts = List.copyOf(flattened);
+			return new OrPredicate(flattened);
+		}
+
+		public static OrPredicate of(Predicate predicate, Predicate other) {
+			return of(List.of(predicate, other));
 		}
 
 		@Override
@@ -1619,6 +1601,11 @@ public final class JpqlQueryBuilder {
 			return parts.stream()
 					.map(p -> p.render(context))
 					.collect(Collectors.joining(" OR "));
+		}
+
+		@Override
+		public Predicate or(Predicate other) {
+			return of(this, other);
 		}
 
 		@Override

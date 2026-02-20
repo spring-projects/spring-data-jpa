@@ -181,7 +181,7 @@ class JpqlQueryBuilderUnitTests {
 				.isEqualTo("o.country IN (SELECT c.code FROM Country c WHERE c.active = true)");
 	}
 
-	@Test
+	@Test // GH-4195
 	void chainedAndRendersWithoutExtraParentheses() {
 
 		Entity entity = entity(LineItem.class);
@@ -196,12 +196,14 @@ class JpqlQueryBuilderUnitTests {
 		Predicate b = where(bPath).eq(literal("ex40"));
 		Predicate c = where(aPath).isNotNull();
 
-		String fragment = a.and(b).and(c).render(ctx(entity));
+		AndPredicate and = (AndPredicate) a.and(b).and(c);
+		String fragment = and.render(ctx(entity));
 
+		assertThat(and.parts()).hasSize(3);
 		assertThat(fragment).isEqualTo("p.name = 'ex30' AND p_0.name = 'ex40' AND p.name IS NOT NULL");
 	}
 
-	@Test
+	@Test // GH-4195
 	void chainedOrRendersWithoutExtraParentheses() {
 
 		Entity entity = entity(Order.class);
@@ -211,8 +213,10 @@ class JpqlQueryBuilderUnitTests {
 		Predicate b = where(id).eq(literal("2"));
 		Predicate c = where(id).eq(literal("3"));
 
-		String fragment = a.or(b).or(c).render(ctx(entity));
+		OrPredicate or = (OrPredicate) a.or(b).or(c);
+		String fragment = or.render(ctx(entity));
 
+		assertThat(or.parts()).hasSize(3);
 		assertThat(fragment).isEqualTo("o.id = '1' OR o.id = '2' OR o.id = '3'");
 	}
 
@@ -367,10 +371,6 @@ class JpqlQueryBuilderUnitTests {
 
 	static AbstractStringAssert<?> assertThatRendered(Renderable renderable) {
 		return contextual(RenderContext.EMPTY).assertThat(renderable);
-	}
-
-	static AbstractStringAssert<?> assertThat(String actual) {
-		return Assertions.assertThat(actual);
 	}
 
 	record ContextualAssert(RenderContext context) {
