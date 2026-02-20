@@ -43,7 +43,7 @@
 		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
-
+		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 	</properties>
 
