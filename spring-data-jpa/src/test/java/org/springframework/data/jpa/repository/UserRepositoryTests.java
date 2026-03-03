@@ -531,7 +531,7 @@ class UserRepositoryTests {
 		flushTestUsers();
 		PredicateSpecification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Arrasz"));
 
-		Page<User> users1 = repository.findAll(Specification.where(spec1), PageRequest.of(0, 1));
+		Page<User> users1 = repository.findAll(spec1, PageRequest.of(0, 1));
 		assertThat(users1.getSize()).isOne();
 		assertThat(users1.hasPrevious()).isFalse();
 		assertThat(users1.getTotalElements()).isEqualTo(2L);
@@ -540,12 +540,43 @@ class UserRepositoryTests {
 				userHasFirstname("Oliver"), //
 				userHasLastname("Arrasz"));
 
-		Page<User> users2 = repository.findAll(Specification.where(spec2), PageRequest.of(0, 1));
+		Page<User> users2 = repository.findAll(spec2, PageRequest.of(0, 1));
 		assertThat(users2.getSize()).isOne();
 		assertThat(users2.hasPrevious()).isFalse();
 		assertThat(users2.getTotalElements()).isEqualTo(2L);
 
 		assertThat(users1).containsExactlyInAnyOrderElementsOf(users2);
+	}
+
+	@Test // GH-4198
+	void executesCombinedSpecificationsWithCountSpecCorrectly() {
+
+		flushTestUsers();
+
+		PredicateSpecification<User> spec = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+		PredicateSpecification<User> countSpec = userHasFirstname("Oliver");
+
+		Page<User> users = repository.findAll(spec, countSpec, PageRequest.of(0, 1, Sort.by("id")));
+
+		assertThat(users.getSize()).isOne();
+		assertThat(users.hasPrevious()).isFalse();
+		assertThat(users.getTotalElements()).isOne();
+	}
+
+	@Test // GH-4198
+	void executesCombinedSpecificationsWithSortCorrectly() {
+
+		flushTestUsers();
+
+		PredicateSpecification<User> spec1 = userHasFirstname("Oliver").or(userHasLastname("Matthews"));
+		List<User> users1 = repository.findAll(spec1, Sort.by("id"));
+
+		PredicateSpecification<User> spec2 = PredicateSpecification.anyOf( //
+				userHasFirstname("Oliver"), //
+				userHasLastname("Matthews"));
+		List<User> users2 = repository.findAll(spec2, Sort.by("id"));
+
+		assertThat(users1).containsExactlyElementsOf(users2);
 	}
 
 	@Test

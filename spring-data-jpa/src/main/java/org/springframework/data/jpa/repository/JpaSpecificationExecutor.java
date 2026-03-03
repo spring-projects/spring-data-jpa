@@ -102,6 +102,18 @@ public interface JpaSpecificationExecutor<T> {
 	Page<T> findAll(Specification<T> spec, Pageable pageable);
 
 	/**
+	 * Returns a {@link Page} of entities matching the given {@link PredicateSpecification}.
+	 *
+	 * @param spec must not be {@literal null}.
+	 * @param pageable must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see Specification#unrestricted()
+	 */
+	default Page<T> findAll(PredicateSpecification<T> spec, Pageable pageable) {
+		return findAll(Specification.where(spec), pageable);
+	}
+
+	/**
 	 * Returns a {@link Page} of entities matching the given {@link Specification}.
 	 * <p>
 	 * Supports counting the total number of entities matching the {@link Specification}.
@@ -115,6 +127,21 @@ public interface JpaSpecificationExecutor<T> {
 	Page<T> findAll(Specification<T> spec, Specification<T> countSpec, Pageable pageable);
 
 	/**
+	 * Returns a {@link Page} of entities matching the given {@link PredicateSpecification}.
+	 * <p>
+	 * Supports counting the total number of entities matching the {@link PredicateSpecification}.
+	 *
+	 * @param spec must not be {@literal null}.
+	 * @param countSpec must not be {@literal null}.
+	 * @param pageable must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @since 3.5
+	 */
+	default Page<T> findAll(PredicateSpecification<T> spec, PredicateSpecification<T> countSpec, Pageable pageable) {
+		return findAll(Specification.where(spec), Specification.where(countSpec), pageable);
+	}
+
+	/**
 	 * Returns all entities matching the given {@link Specification} and {@link Sort}.
 	 *
 	 * @param spec must not be {@literal null}.
@@ -123,6 +150,18 @@ public interface JpaSpecificationExecutor<T> {
 	 * @see Specification#unrestricted()
 	 */
 	List<T> findAll(Specification<T> spec, Sort sort);
+
+	/**
+	 * Returns all entities matching the given {@link PredicateSpecification} and {@link Sort}.
+	 *
+	 * @param spec must not be {@literal null}.
+	 * @param sort must not be {@literal null}.
+	 * @return never {@literal null}.
+	 * @see Specification#unrestricted()
+	 */
+	default List<T> findAll(PredicateSpecification<T> spec, Sort sort) {
+		return findAll(Specification.where(spec), sort);
+	}
 
 	/**
 	 * Returns the number of instances that the given {@link PredicateSpecification} will return.
