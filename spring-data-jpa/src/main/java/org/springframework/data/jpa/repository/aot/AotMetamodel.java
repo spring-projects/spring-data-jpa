@@ -26,8 +26,10 @@ import jakarta.persistence.spi.PersistenceUnitInfo;
 
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.hibernate.cfg.JdbcSettings;
@@ -43,9 +45,25 @@ import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProv
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
+import org.hibernate.metamodel.mapping.EntityMappingType;
+import org.hibernate.metamodel.mapping.JdbcMapping;
+import org.hibernate.metamodel.spi.RuntimeModelCreationContext;
 import org.hibernate.query.common.TemporalUnit;
+import org.hibernate.query.spi.DomainQueryExecutionContext;
+import org.hibernate.query.spi.QueryOptions;
+import org.hibernate.query.sqm.internal.DomainParameterXref;
+import org.hibernate.query.sqm.mutation.spi.MultiTableHandler;
+import org.hibernate.query.sqm.mutation.spi.MultiTableHandlerBuildResult;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableInsertStrategy;
+import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
+import org.hibernate.query.sqm.tree.SqmDeleteOrUpdateStatement;
+import org.hibernate.query.sqm.tree.insert.SqmInsertStatement;
 import org.hibernate.sql.ast.SqlAstTranslatorFactory;
 import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
+import org.hibernate.sql.ast.tree.expression.JdbcParameter;
+import org.hibernate.sql.exec.spi.JdbcParameterBinding;
+import org.hibernate.sql.exec.spi.JdbcParameterBindings;
+import org.hibernate.type.NullType;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -66,7 +84,7 @@ import org.springframework.util.CollectionUtils;
 class AotMetamodel implements Metamodel {
 
 	private static final Logger log = LoggerFactory.getLogger(AotMetamodel.class);
-	
+
 	/**
 	 * Collection of know properties causing problems during AOT if set differntly
 	 */
@@ -182,8 +200,8 @@ class AotMetamodel implements Metamodel {
 	}
 
 	/**
-	 * A {@link Dialect} to satisfy the bootstrap requirements of {@link JdbcSettings#DIALECT} during the AOT Phase. Printed
-	 * to log files (info level) when the {@link org.hibernate.engine.jdbc.env.spi.JdbcEnvironment} is created.
+	 * A {@link Dialect} to satisfy the bootstrap requirements of {@link JdbcSettings#DIALECT} during the AOT Phase.
+	 * Printed to log files (info level) when the {@link org.hibernate.engine.jdbc.env.spi.JdbcEnvironment} is created.
 	 */
 	@NullUnmarked
 	@SuppressWarnings("deprecation")
@@ -224,6 +242,99 @@ class AotMetamodel implements Metamodel {
 			return "datediff(?1,?2,?3)";
 		}
 
+		@Override
+		public SqmMultiTableInsertStrategy getFallbackSqmInsertStrategy(EntityMappingType entityDescriptor,
+				RuntimeModelCreationContext runtimeModelCreationContext) {
+			return new FallbackSqmMultiTableInsertStrategy();
+		}
+
+		@Override
+		public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityMappingType entityDescriptor,
+				RuntimeModelCreationContext runtimeModelCreationContext) {
+			return new FallbackSqmMultiTableMutationStrategy();
+		}
+
+		/**
+		 * Empty {@link JdbcParameterBindings} stub for AOT fallback strategies (no-op bindings).
+		 */
+		static class EmptyJdbcParameterBindings implements JdbcParameterBindings {
+
+			@Override
+			public void addBinding(JdbcParameter parameter, JdbcParameterBinding binding) {}
+
+			@Override
+			public Collection<JdbcParameterBinding> getBindings() {
+				return List.of();
+			}
+
+			@Override
+			public JdbcParameterBinding getBinding(JdbcParameter parameter) {
+				return new JdbcParameterBinding() {
+					@Override
+					public JdbcMapping getBindType() {
+						return NullType.INSTANCE;
+					}
+
+					@Override
+					public Object getBindValue() {
+						return null;
+					}
+				};
+			}
+
+			@Override
+			public void visitBindings(BiConsumer<JdbcParameter, JdbcParameterBinding> action) {}
+		}
+
+		/**
+		 * Empty {@link MultiTableHandler} stub for AOT fallback strategies (no-op execution).
+		 */
+		static class EmptyMultiTableHandler implements MultiTableHandler {
+
+			@Override
+			public JdbcParameterBindings createJdbcParameterBindings(DomainQueryExecutionContext executionContext) {
+				return new EmptyJdbcParameterBindings();
+			}
+
+			@Override
+			public boolean dependsOnParameterBindings() {
+				return false;
+			}
+
+			@Override
+			public boolean isCompatibleWith(JdbcParameterBindings jdbcParameterBindings, QueryOptions queryOptions) {
+				return false;
+			}
+
+			@Override
+			public int execute(JdbcParameterBindings jdbcParameterBindings, DomainQueryExecutionContext executionContext) {
+				return 0;
+			}
+		}
+
+		/**
+		 * Fallback {@link SqmMultiTableInsertStrategy} for AOT when no dialect-specific strategy is used.
+		 */
+		static class FallbackSqmMultiTableInsertStrategy implements SqmMultiTableInsertStrategy {
+
+			@Override
+			public MultiTableHandlerBuildResult buildHandler(SqmInsertStatement<?> sqmInsertStatement,
+					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
+				return new MultiTableHandlerBuildResult(new EmptyMultiTableHandler(), new EmptyJdbcParameterBindings());
+			}
+		}
+
+		/**
+		 * Fallback {@link SqmMultiTableMutationStrategy} for AOT when no dialect-specific strategy is used.
+		 */
+		static class FallbackSqmMultiTableMutationStrategy implements SqmMultiTableMutationStrategy {
+
+			@Override
+			public MultiTableHandlerBuildResult buildHandler(SqmDeleteOrUpdateStatement<?> sqmStatement,
+					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
+				return new MultiTableHandlerBuildResult(new EmptyMultiTableHandler(), new EmptyJdbcParameterBindings());
+			}
+		}
 	}
 
 	static class NoOpConnectionProvider extends UserSuppliedConnectionProviderImpl {
