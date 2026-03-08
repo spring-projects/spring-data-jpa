@@ -22,7 +22,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.util.Assert;
 
 /**
- * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints()} QueryHintList()} by
+ * QueryHints provides access to query hints defined via {@link CrudMethodMetadata#getQueryHints() QueryHints()} by
  * default excluding JPA {@link jakarta.persistence.EntityGraph}. The object allows to switch between query hints for
  * count queries with or without fetch graph hints.
  *

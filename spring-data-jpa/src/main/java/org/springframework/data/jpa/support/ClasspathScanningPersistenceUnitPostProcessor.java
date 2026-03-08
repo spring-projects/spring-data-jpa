@@ -81,7 +81,7 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	}
 
 	/**
-	 * Configures the file name pattern JPA entity mapping files shall scanned from the classpath. Lookup will use the
+	 * Configures the file name pattern JPA entity mapping files shall be scanned from the classpath. Lookup will use the
 	 * configured base package as root.
 	 *
 	 * @param mappingFilePattern must not be {@literal null} or empty.
@@ -191,8 +191,8 @@ public class ClasspathScanningPersistenceUnitPostProcessor
 	 * Returns the path from the given {@link URI}. In case the given {@link URI} is opaque, e.g. beginning with jar:file,
 	 * the path is extracted from URI by leaving out the protocol prefix, see DATAJPA-519.
 	 *
-	 * @param uri
-	 * @return
+	 * @param uri the given {@link URI}.
+	 * @return the path from the given {@link URI}.
 	 */
 	private static String getResourcePath(URI uri) {
 
