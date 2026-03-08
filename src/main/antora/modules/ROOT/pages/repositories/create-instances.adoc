@@ -8,7 +8,7 @@ This section describes configuring Spring Data JPA through either:
 
 [[jpa.java-config]]
 == Annotation-based Configuration
-The Spring Data JPA repositories support can be activated through both JavaConfig as well as a custom XML namespace, as shown in the following example:
+The Spring Data JPA repositories support can be activated through both JavaConfig and a custom XML namespace, as shown in the following example:
 
 .Spring Data JPA repositories using JavaConfig
 ====
