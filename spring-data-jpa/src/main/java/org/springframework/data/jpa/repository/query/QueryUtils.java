@@ -974,7 +974,7 @@ public abstract class QueryUtils {
 	 *
 	 * @param order
 	 */
-	static void checkSortExpression(Order order) {
+	public static void checkSortExpression(Order order) {
 
 		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
 			return;
