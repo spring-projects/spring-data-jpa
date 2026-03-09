@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import com.querydsl.core.types.dsl.StringExpression;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.querydsl.QSort;
@@ -229,6 +231,12 @@ public class Querydsl {
     private Expression<?> buildOrderPropertyPathFrom(Order order, JPQLQuery<?> query) {
 
         Assert.notNull(order, "Order must not be null");
+
+        if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+            QueryUtils.checkSortExpression(order);
+            return Expressions.template(Object.class, order.getProperty());
+        }
+
         Expression<?> sortPropertyExpression;
         try {
 
