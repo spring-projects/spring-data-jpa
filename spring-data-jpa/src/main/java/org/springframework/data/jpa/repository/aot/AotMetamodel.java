@@ -24,12 +24,11 @@ import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.hibernate.cfg.JdbcSettings;
@@ -46,11 +45,9 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.metamodel.mapping.EntityMappingType;
-import org.hibernate.metamodel.mapping.JdbcMapping;
 import org.hibernate.metamodel.spi.RuntimeModelCreationContext;
 import org.hibernate.query.common.TemporalUnit;
 import org.hibernate.query.spi.DomainQueryExecutionContext;
-import org.hibernate.query.spi.QueryOptions;
 import org.hibernate.query.sqm.internal.DomainParameterXref;
 import org.hibernate.query.sqm.mutation.spi.MultiTableHandler;
 import org.hibernate.query.sqm.mutation.spi.MultiTableHandlerBuildResult;
@@ -60,15 +57,14 @@ import org.hibernate.query.sqm.tree.SqmDeleteOrUpdateStatement;
 import org.hibernate.query.sqm.tree.insert.SqmInsertStatement;
 import org.hibernate.sql.ast.SqlAstTranslatorFactory;
 import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
-import org.hibernate.sql.ast.tree.expression.JdbcParameter;
-import org.hibernate.sql.exec.spi.JdbcParameterBinding;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
-import org.hibernate.type.NullType;
 import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.data.util.Lazy;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 import org.springframework.util.CollectionUtils;
@@ -255,60 +251,27 @@ class AotMetamodel implements Metamodel {
 		}
 
 		/**
-		 * Empty {@link JdbcParameterBindings} stub for AOT fallback strategies (no-op bindings).
-		 */
-		static class EmptyJdbcParameterBindings implements JdbcParameterBindings {
-
-			@Override
-			public void addBinding(JdbcParameter parameter, JdbcParameterBinding binding) {}
-
-			@Override
-			public Collection<JdbcParameterBinding> getBindings() {
-				return List.of();
-			}
-
-			@Override
-			public JdbcParameterBinding getBinding(JdbcParameter parameter) {
-				return new JdbcParameterBinding() {
-					@Override
-					public JdbcMapping getBindType() {
-						return NullType.INSTANCE;
-					}
-
-					@Override
-					public Object getBindValue() {
-						return null;
-					}
-				};
-			}
-
-			@Override
-			public void visitBindings(BiConsumer<JdbcParameter, JdbcParameterBinding> action) {}
-		}
-
-		/**
 		 * Empty {@link MultiTableHandler} stub for AOT fallback strategies (no-op execution).
 		 */
-		static class EmptyMultiTableHandler implements MultiTableHandler {
+		static class EmptyMultiTableHandler {
 
-			@Override
-			public JdbcParameterBindings createJdbcParameterBindings(DomainQueryExecutionContext executionContext) {
-				return new EmptyJdbcParameterBindings();
-			}
+			private static final MultiTableHandler INSTANCE = createMultiTableHandler();
 
-			@Override
-			public boolean dependsOnParameterBindings() {
-				return false;
-			}
+			private static MultiTableHandler createMultiTableHandler() {
 
-			@Override
-			public boolean isCompatibleWith(JdbcParameterBindings jdbcParameterBindings, QueryOptions queryOptions) {
-				return false;
-			}
+				return (MultiTableHandler) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
+						new Class[] { MultiTableHandler.class }, (proxy, method, args) -> {
 
-			@Override
-			public int execute(JdbcParameterBindings jdbcParameterBindings, DomainQueryExecutionContext executionContext) {
-				return 0;
+							if (method.getName().equals("createJdbcParameterBindings")) {
+								return JdbcParameterBindings.NO_BINDINGS;
+							}
+
+							if (method.getReturnType().isPrimitive()) {
+								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
+							}
+
+							return null;
+						});
 			}
 		}
 
@@ -320,8 +283,9 @@ class AotMetamodel implements Metamodel {
 			@Override
 			public MultiTableHandlerBuildResult buildHandler(SqmInsertStatement<?> sqmInsertStatement,
 					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
-				return new MultiTableHandlerBuildResult(new EmptyMultiTableHandler(), new EmptyJdbcParameterBindings());
+				return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE, JdbcParameterBindings.NO_BINDINGS);
 			}
+
 		}
 
 		/**
@@ -332,9 +296,11 @@ class AotMetamodel implements Metamodel {
 			@Override
 			public MultiTableHandlerBuildResult buildHandler(SqmDeleteOrUpdateStatement<?> sqmStatement,
 					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
-				return new MultiTableHandlerBuildResult(new EmptyMultiTableHandler(), new EmptyJdbcParameterBindings());
+				return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE, JdbcParameterBindings.NO_BINDINGS);
 			}
+
 		}
+
 	}
 
 	static class NoOpConnectionProvider extends UserSuppliedConnectionProviderImpl {
