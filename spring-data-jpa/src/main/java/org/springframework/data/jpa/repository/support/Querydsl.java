@@ -246,6 +246,9 @@ public class Querydsl {
             }
         } catch (PropertyReferenceException ex) {
             sortPropertyExpression = findAliasExpressionFrom(order, query, ex);
+            sortPropertyExpression = order.isIgnoreCase() && sortPropertyExpression instanceof StringExpression
+                    ? ((StringExpression)sortPropertyExpression).lower()
+                    : sortPropertyExpression;
         }
 
         return sortPropertyExpression;

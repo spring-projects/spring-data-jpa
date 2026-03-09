@@ -28,6 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
