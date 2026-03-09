@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
 /**
  * Sort option for queries that wraps JPA metamodel {@link Attribute}s for sorting.
  * <p>
- * {@link JpaSort#unsafe} accepts unsafe sort expressions, i. e. the String provided is not necessarily a property but
+ * {@link JpaSort#unsafe} accepts unsafe sort expressions, i.e. the String provided is not necessarily a property but
  * can be an arbitrary expression piped into the query execution.
  *
  * @author Thomas Darimont
