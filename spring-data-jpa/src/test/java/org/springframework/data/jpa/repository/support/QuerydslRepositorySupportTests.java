@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
@@ -130,6 +131,13 @@ class QuerydslRepositorySupportTests {
 
 		assertThat(page).hasSize(2);
 	}
+
+    @Test
+    void findAllUnsafe() {
+        Page<User> page = repository.findAllByFilter(null,
+                PageRequest.of(0, 10, JpaSort.unsafe("lower(firstname)").ascending()));
+        assertThat(page).hasSize(2);
+    }
 
     @Test
     void findAllWithAlias() {
