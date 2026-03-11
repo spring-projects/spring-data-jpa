@@ -46,6 +46,7 @@ import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -238,6 +239,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	@Override
+	public Collection<String> getIdAttributePaths() {
+		return idMetadata.attributePaths;
+	}
+
+	@Override
 	public @Nullable Object getCompositeIdAttributeValue(Object id, String idAttribute) {
 
 		Assert.isTrue(hasCompositeId(), "Model must have a composite Id");
@@ -266,7 +272,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		Map<String, Object> keyset = new LinkedHashMap<>();
 
 		if (hasCompositeId()) {
-			for (String idAttributeName : getIdAttributeNames()) {
+			for (String idAttributeName : getIdAttributePaths()) {
 				keyset.put(idAttributeName, getter.apply(idAttributeName));
 			}
 		} else {
@@ -304,15 +310,56 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		private final IdentifiableType<T> type;
 		private final Set<SingularAttribute<? super T, ?>> idClassAttributes;
 		private final Set<SingularAttribute<? super T, ?>> attributes;
+		private final List<String> attributePaths;
 		private @Nullable Class<?> idType;
 
 		IdMetadata(IdentifiableType<T> source, PersistenceProvider persistenceProvider) {
 
 			this.type = source;
 			this.idClassAttributes = persistenceProvider.getIdClassAttributes(source);
-			this.attributes = source.hasSingleIdAttribute()
-					? Collections.singleton(source.getId(source.getIdType().getJavaType()))
-					: source.getIdClassAttributes();
+			this.attributes = findAttributes(source);
+			this.attributePaths = findAttributePaths(source, null);
+		}
+
+		private static <X> Set<SingularAttribute<? super X, ?>> findAttributes(IdentifiableType<X> source) {
+			if (source.hasSingleIdAttribute()) {
+				for (SingularAttribute<? super X, ?> attribute : source.getSingularAttributes()) {
+					if (attribute.isId()) {
+						return Collections.singleton(attribute);
+					}
+				}
+			}
+			return source.getIdClassAttributes();
+		}
+
+		private static <X> List<String> findAttributePaths(IdentifiableType<X> source, @Nullable String prefix) {
+			List<String> attributeNames = new ArrayList<>();
+
+			Set<SingularAttribute<? super X, ?>> attributes = findAttributes(source);
+			for (SingularAttribute<? super X, ?> attribute : attributes) {
+				final var name = prefix(prefix, attribute.getName());
+				if (attribute.isAssociation()) {
+					attributeNames.addAll(findAttributePaths(attribute.getType(), name));
+				} else {
+					attributeNames.add(name);
+				}
+			}
+
+			return attributeNames;
+		}
+
+		private static <X> List<String> findAttributePaths(Type<X> type, @Nullable String prefix) {
+			if (!(type instanceof IdentifiableType<?> identifiableType)) {
+				return Collections.emptyList();
+			}
+			return findAttributePaths(identifiableType, prefix);
+		}
+
+		private static String prefix(@Nullable String prefix, String value) {
+			if (prefix == null) {
+				return value;
+			}
+			return prefix + "." + value;
 		}
 
 		boolean hasSimpleId() {
