@@ -63,8 +63,7 @@ public class JpaMetamodelMappingContext
 
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<>(typeInformation, persistenceProvider,
-				models.getRequiredMetamodel(typeInformation));
+		return new JpaPersistentEntityImpl<>(typeInformation, models.getRequiredMetamodel(typeInformation));
 	}
 
 	@Override
