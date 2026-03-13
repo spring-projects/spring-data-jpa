@@ -15,14 +15,17 @@
  */
 package org.springframework.data.jpa.repository.support;
 
+import com.querydsl.core.types.dsl.StringExpression;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
 
 import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.data.querydsl.QSort;
@@ -183,7 +186,7 @@ public class Querydsl {
 		Assert.notNull(query, "Query must not be null");
 
 		for (Order order : sort) {
-			query.orderBy(toOrderSpecifier(order));
+			query.orderBy(toOrderSpecifier(order, query));
 		}
 
 		return query;
@@ -195,11 +198,11 @@ public class Querydsl {
 	 * @param order must not be {@literal null}.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrderSpecifier(Order order) {
+	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery<?> query) {
 
 		return new OrderSpecifier(
 				order.isAscending() ? com.querydsl.core.types.Order.ASC : com.querydsl.core.types.Order.DESC,
-				buildOrderPropertyPathFrom(order), toQueryDslNullHandling(order.getNullHandling()));
+				buildOrderPropertyPathFrom(order, query), toQueryDslNullHandling(order.getNullHandling()));
 	}
 
 	/**
@@ -225,24 +228,62 @@ public class Querydsl {
 	 *
 	 * @param order must not be {@literal null}.
 	 */
-	private Expression<?> buildOrderPropertyPathFrom(Order order) {
+    private Expression<?> buildOrderPropertyPathFrom(Order order, JPQLQuery<?> query) {
 
+        Assert.notNull(order, "Order must not be null");
+
+        if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+            return Expressions.template(Object.class, order.getProperty());
+        }
+
+        Expression<?> sortPropertyExpression;
+        try {
+
+            QueryUtils.checkSortExpression(order);
+            PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
+            sortPropertyExpression = builder;
+
+            while (path != null) {
+
+                sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
+                        ? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
+                        : Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
+
+                path = path.next();
+            }
+        } catch (PropertyReferenceException ex) {
+            sortPropertyExpression = findAliasExpressionFrom(order, query, ex);
+            sortPropertyExpression = order.isIgnoreCase() && sortPropertyExpression instanceof StringExpression
+                    ? ((StringExpression)sortPropertyExpression).lower()
+                    : sortPropertyExpression;
+        }
+
+        return sortPropertyExpression;
+    }
+
+	/**
+	 * Attempts to find the sort expression from the query's projection using the {@link AliasVisitor}.
+	 * Falls back to throwing the original exception if the expression cannot be found.
+	 *
+	 * @param order the sort order
+	 * @param query the JPQL query
+	 * @param originalException the original PropertyReferenceException to throw if expression is not found
+	 * @return the expression found in the projection
+	 * @throws PropertyReferenceException if no expression can be found for the property
+	 */
+	private Expression<?> findAliasExpressionFrom(Order order, JPQLQuery<?> query, PropertyReferenceException originalException) {
 		Assert.notNull(order, "Order must not be null");
+		Assert.notNull(query, "JPQLQuery must not be null");
 
-		QueryUtils.checkSortExpression(order);
-		PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
-		Expression<?> sortPropertyExpression = builder;
-
-		while (path != null) {
-
-			sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
-					? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
-					: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
-
-			path = path.next();
+		Expression<?> projection = query.getMetadata().getProjection();
+		if (projection == null) {
+			throw originalException;
 		}
 
-		return sortPropertyExpression;
+		var result = projection.accept(new AliasVisitor(order), null);
+		Assert.notNull(result, "Visitor result must not be null");
+
+		return result.orElseThrow(() -> originalException);
 	}
 
 	/**

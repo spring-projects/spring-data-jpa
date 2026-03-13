@@ -22,10 +22,16 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -117,6 +123,32 @@ class QuerydslRepositorySupportTests {
 		assertThatIllegalArgumentException().isThrownBy(repositoryImpl::validate);
 	}
 
+	@Test
+	void findAll() {
+
+		Page<User> page = repository.findAllByFilter(null,
+				PageRequest.of(0, 10, Sort.by("firstname").ascending()));
+
+		assertThat(page).hasSize(2);
+	}
+
+    @Test
+    void findAllUnsafe() {
+        Page<User> page = repository.findAllByFilter(null,
+                PageRequest.of(0, 10, JpaSort.unsafe("lower(firstname)").ascending()));
+        assertThat(page).hasSize(2);
+    }
+
+    @Test
+    void findAllWithAlias() {
+        Page<User> page = repository.findAllByFilter(null,
+                PageRequest.of(0, 10, Sort.by("firstNameAlias").ascending()));
+
+        assertThat(page).hasSize(2);
+        assertThat(page.getContent().stream().map(User::getFirstname).collect(Collectors.toList()))
+                .containsExactly("Carter", "Dave");
+    }
+
 	interface UserRepository {
 
 		List<User> findUsersByLastname(String firstname);
@@ -124,6 +156,8 @@ class QuerydslRepositorySupportTests {
 		long updateLastnamesTo(String lastname);
 
 		long deleteAllWithLastname(String lastname);
+
+		Page<User> findAllByFilter(Object filter, PageRequest pageRequest);
 	}
 
 	static class UserRepositoryImpl extends QuerydslRepositorySupport implements UserRepository {
@@ -153,6 +187,30 @@ class QuerydslRepositorySupportTests {
 		@Override
 		public long deleteAllWithLastname(String lastname) {
 			return delete(user).where(user.lastname.eq(lastname)).execute();
+		}
+
+		@Override
+		public Page<User> findAllByFilter(Object filter, PageRequest pageRequest) {
+
+			var firstNameAlias = user.firstname.as("firstNameAlias");
+
+			var query = from(user)
+					.select(user.id, firstNameAlias, user.lastname, user.emailAddress);
+
+			var querydsl = getQuerydsl();
+			if (querydsl != null) {
+				querydsl.applyPagination(pageRequest, query);
+			}
+
+			List<User> results = query.fetch().stream()
+					.map(tuple -> {
+						User u = new User(tuple.get(firstNameAlias), tuple.get(user.lastname), tuple.get(user.emailAddress));
+						u.setId(tuple.get(user.id));
+						return u;
+					})
+					.collect(Collectors.toList());
+
+			return PageableExecutionUtils.getPage(results, pageRequest, query::fetchCount);
 		}
 	}
 }
