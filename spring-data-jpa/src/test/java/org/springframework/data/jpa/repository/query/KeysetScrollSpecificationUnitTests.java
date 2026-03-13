@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.jpa.domain.sample.Product;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
@@ -32,10 +33,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Unit tests for {@link KeysetScrollSpecification}.
  *
  * @author Mark Paluch
+ * @author Yanming Zhou
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -74,4 +79,17 @@ class KeysetScrollSpecificationUnitTests {
 		assertThat(sort).extracting(Order::getProperty).containsExactly("id", "firstname");
 	}
 
+	@Test // GH-3013
+	void shouldSkipIdentifiersInSortIfUniquePropertyPresent() {
+
+		JpaMetamodelEntityInformation<Product, Long> info = new JpaMetamodelEntityInformation<>(Product.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
+		Map<String, Object> keyset = info.getKeyset(List.of("code"), new Product());
+
+		assertThat(keyset).containsOnlyKeys("code");
+
+		Sort sort = KeysetScrollSpecification.createSort(ScrollPosition.keyset(), Sort.by("code"), info);
+
+		assertThat(sort).extracting(Order::getProperty).containsExactly("code");
+	}
 }
