@@ -381,6 +381,10 @@ public class JpaSort extends Sort {
 		/**
 		 * Creates new {@link Sort} with potentially unsafe {@link Order} instances.
 		 *
+		 * <p>
+		 * The returned {@link JpaOrder} instances inherit the receiver's direction,
+		 * case-sensitivity, and null-handling settings for each provided property.
+		 *
 		 * @param properties must not be {@literal null}.
 		 * @return
 		 */
