@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Address_;
 import org.springframework.data.jpa.domain.sample.MailMessage_;
 import org.springframework.data.jpa.domain.sample.MailSender_;
@@ -172,6 +173,20 @@ class JpaSortTests {
 		assertThat(sort).contains(Order.desc("foo.bar"), Order.desc("spring.data"));
 		assertThat(sort.getOrderFor("foo.bar")).isInstanceOf(JpaOrder.class);
 		assertThat(sort.getOrderFor("spring.data")).isInstanceOf(JpaOrder.class);
+	}
+
+	@Test // GH-2932
+	void withUnsafeRetainsOrderConfigurationForAllProperties() {
+
+		JpaOrder order = ((JpaOrder) JpaSort.unsafe(DESC, "foo.bar").getOrderFor("foo.bar")).ignoreCase()
+				.with(Sort.NullHandling.NULLS_LAST);
+
+		Sort sort = order.withUnsafe("spring.data", "baz");
+
+		assertThat(sort).containsExactly(Order.desc("spring.data").ignoreCase().nullsLast(),
+				Order.desc("baz").ignoreCase().nullsLast());
+		assertThat(sort.getOrderFor("spring.data")).isInstanceOf(JpaOrder.class);
+		assertThat(sort.getOrderFor("baz")).isInstanceOf(JpaOrder.class);
 	}
 
 	@Test // DATAJPA-965
