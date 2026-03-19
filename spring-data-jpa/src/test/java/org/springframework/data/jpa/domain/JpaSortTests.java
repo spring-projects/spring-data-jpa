@@ -149,20 +149,15 @@ class JpaSortTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> of(User_.firstname).and(DESC, (Path<?, ?>[]) null));
 	}
 
-	@Test // DATAJPA-702
-	void buildsUpPathForPluralAttributesCorrectly() {
-
-		// assertThat(JpaSort.of(JpaSort.path(User_.colleagues).dot(User_.roles).dot(Role_.name)), //
-		// hasItem(new Order(ASC, "colleagues.roles.name")));
-	}
-
 	@Test // DATAJPA-965
 	void createsUnsafeSortCorrectly() {
 
 		JpaSort sort = JpaSort.unsafe(DESC, "foo.bar");
 
 		assertThat(sort).contains(Order.desc("foo.bar"));
-		assertThat(sort.getOrderFor("foo.bar")).isInstanceOf(JpaOrder.class);
+		Order order = sort.getOrderFor("foo.bar");
+		assertThat(order).isInstanceOf(JpaOrder.class);
+		assertThat((JpaOrder) order).extracting(JpaOrder::isUnsafe).isEqualTo(true);
 	}
 
 	@Test // DATAJPA-965
@@ -178,34 +173,20 @@ class JpaSortTests {
 	@Test // GH-2932
 	void withUnsafeRetainsOrderConfigurationForAllProperties() {
 
-		JpaOrder order = ((JpaOrder) JpaSort.unsafe(DESC, "foo.bar").getOrderFor("foo.bar")).ignoreCase()
+		JpaOrder order = JpaSort.JpaOrder.desc("foo.bar").ignoreCase()
 				.with(Sort.NullHandling.NULLS_LAST);
+
+		assertThat(order.isUnsafe()).isFalse();
 
 		Sort sort = order.withUnsafe("spring.data", "baz");
 
 		assertThat(sort).containsExactly(Order.desc("spring.data").ignoreCase().nullsLast(),
 				Order.desc("baz").ignoreCase().nullsLast());
 		assertThat(sort.getOrderFor("spring.data")).isInstanceOf(JpaOrder.class);
-		assertThat(sort.getOrderFor("baz")).isInstanceOf(JpaOrder.class);
+		Order baz = sort.getOrderFor("baz");
+		assertThat(baz).isInstanceOf(JpaOrder.class);
+
+		assertThat((JpaOrder) baz).extracting(JpaOrder::isUnsafe).isEqualTo(true);
 	}
 
-	@Test // DATAJPA-965
-	void combinesSafeAndUnsafeSortCorrectly() {
-
-		// JpaSort sort = JpaSort.of(path(User_.colleagues).dot(User_.roles).dot(Role_.name)).andUnsafe(DESC, "foo.bar");
-		//
-		// assertThat(sort, hasItems(new Order(ASC, "colleagues.roles.name"), new Order(DESC, "foo.bar")));
-		// assertThat(sort.getOrderFor("colleagues.roles.name"), is(not(instanceOf(JpaOrder.class))));
-		// assertThat(sort.getOrderFor("foo.bar"), is(instanceOf(JpaOrder.class)));
-	}
-
-	@Test // DATAJPA-965
-	void combinesUnsafeAndSafeSortCorrectly() {
-
-		// Sort sort = JpaSort.unsafe(DESC, "foo.bar").and(ASC, path(User_.colleagues).dot(User_.roles).dot(Role_.name));
-		//
-		// assertThat(sort, hasItems(new Order(ASC, "colleagues.roles.name"), new Order(DESC, "foo.bar")));
-		// assertThat(sort.getOrderFor("colleagues.roles.name"), is(not(instanceOf(JpaOrder.class))));
-		// assertThat(sort.getOrderFor("foo.bar"), is(instanceOf(JpaOrder.class)));
-	}
 }

@@ -25,9 +25,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.springframework.data.domain.Sort;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.core.TypedPropertyPath;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.CheckReturnValue;
 import org.springframework.lang.Contract;
 import org.springframework.util.Assert;
@@ -157,7 +158,7 @@ public class JpaSort extends Sort {
 		}
 
 		for (String property : properties) {
-			orders.add(new JpaOrder(direction, property));
+			orders.add(JpaOrder.unsafe(direction, property));
 		}
 
 		return new JpaSort(orders, direction, Collections.<Path<?, ?>> emptyList());
@@ -258,7 +259,7 @@ public class JpaSort extends Sort {
 		List<Order> orders = new ArrayList<>(properties.size());
 
 		for (String property : properties) {
-			orders.add(new JpaOrder(direction, property));
+			orders.add(JpaOrder.unsafe(direction, property));
 		}
 
 		return new JpaSort(orders);
@@ -338,34 +339,78 @@ public class JpaSort extends Sort {
 
 		private final boolean unsafe;
 
-		/**
-		 * Creates a new {@link JpaOrder} instance. if order is {@literal null} then order defaults to
-		 * {@link Sort#DEFAULT_DIRECTION}
-		 *
-		 * @param direction can be {@literal null}, will default to {@link Sort#DEFAULT_DIRECTION}.
-		 * @param property must not be {@literal null}.
-		 */
-		private JpaOrder(@Nullable Direction direction, String property) {
+		private JpaOrder(Direction direction, String property) {
 			this(direction, property, NullHandling.NATIVE);
 		}
 
-		/**
-		 * Creates a new {@link Order} instance. if order is {@literal null} then order defaults to
-		 * {@link Sort#DEFAULT_DIRECTION}.
-		 *
-		 * @param direction can be {@literal null}, will default to {@link Sort#DEFAULT_DIRECTION}.
-		 * @param property must not be {@literal null}.
-		 * @param nullHandlingHint can be {@literal null}, will default to {@link NullHandling#NATIVE}.
-		 */
-		private JpaOrder(@Nullable Direction direction, String property, NullHandling nullHandlingHint) {
-			this(direction, property, false, nullHandlingHint, true);
+		private JpaOrder(Direction direction, String property, NullHandling nullHandlingHint) {
+			this(direction, property, false, nullHandlingHint, false);
 		}
 
-		private JpaOrder(@Nullable Direction direction, String property, boolean ignoreCase, NullHandling nullHandling,
+		private JpaOrder(Direction direction, String property, boolean ignoreCase, NullHandling nullHandling,
 				boolean unsafe) {
 
 			super(direction, property, ignoreCase, nullHandling);
 			this.unsafe = unsafe;
+		}
+
+		/**
+		 * Creates a new {@code JpaOrder} instance. Takes a single property. Direction defaults to
+		 * {@link Sort#DEFAULT_DIRECTION}.
+		 *
+		 * @param property must not be {@literal null} or empty.
+		 * @since 4.1
+		 */
+		public static JpaOrder by(String property) {
+			return new JpaOrder(DEFAULT_DIRECTION, property);
+		}
+
+		/**
+		 * Creates a new {@code JpaOrder} instance. Takes a property path. Direction is {@link Direction#ASC} and
+		 * NullHandling {@link NullHandling#NATIVE}.
+		 *
+		 * @param propertyPath must not be {@literal null} or empty.
+		 * @since 4.1
+		 */
+		public static <T, P> JpaOrder asc(TypedPropertyPath<T, P> propertyPath) {
+			return asc(propertyPath.toDotPath());
+		}
+
+		/**
+		 * Creates a new {@code JpaOrder} instance. Takes a single property. Direction is {@link Direction#ASC} and
+		 * NullHandling {@link NullHandling#NATIVE}.
+		 *
+		 * @param property must not be {@literal null} or empty.
+		 * @since 4.1
+		 */
+		public static JpaOrder asc(String property) {
+			return new JpaOrder(Direction.ASC, property);
+		}
+
+		/**
+		 * Creates a new {@code JpaOrder} instance. Takes a property path. Direction is {@link Direction#DESC} and
+		 * NullHandling {@link NullHandling#NATIVE}.
+		 *
+		 * @param propertyPath must not be {@literal null} or empty.
+		 * @since 4.1
+		 */
+		public static <T, P> JpaOrder desc(TypedPropertyPath<T, P> propertyPath) {
+			return desc(propertyPath.toDotPath());
+		}
+
+		/**
+		 * Creates a new {@code JpaOrder} instance. Takes a single property. Direction is {@link Direction#DESC} and
+		 * NullHandling {@link NullHandling#NATIVE}.
+		 *
+		 * @param property must not be {@literal null} or empty.
+		 * @since 4.1
+		 */
+		public static JpaOrder desc(String property) {
+			return new JpaOrder(Direction.DESC, property);
+		}
+
+		private static JpaOrder unsafe(Sort.Direction direction, String property) {
+			return new JpaOrder(direction, property, false, NullHandling.NATIVE, true);
 		}
 
 		@Override
@@ -379,18 +424,17 @@ public class JpaSort extends Sort {
 		}
 
 		/**
-		 * Creates new {@link Sort} with potentially unsafe {@link Order} instances.
-		 *
+		 * Creates new {@link JpaSort} with potentially unsafe {@link Order} instances.
 		 * <p>
-		 * The returned {@link JpaOrder} instances inherit the receiver's direction,
-		 * case-sensitivity, and null-handling settings for each provided property.
+		 * The returned {@link JpaSort} applies the current direction, case-sensitivity, and null-handling settings for all
+		 * given {@code properties}.
 		 *
 		 * @param properties must not be {@literal null}.
 		 * @return
 		 */
 		@Contract("_ -> new")
 		@CheckReturnValue
-		public Sort withUnsafe(String... properties) {
+		public JpaSort withUnsafe(String... properties) {
 
 			Assert.notEmpty(properties, "Properties must not be empty");
 			Assert.noNullElements(properties, "Properties must not contain null values");
@@ -398,10 +442,10 @@ public class JpaSort extends Sort {
 			List<Order> orders = new ArrayList<>(properties.length);
 
 			for (String property : properties) {
-				orders.add(new JpaOrder(getDirection(), property, isIgnoreCase(), getNullHandling(), this.unsafe));
+				orders.add(new JpaOrder(getDirection(), property, isIgnoreCase(), getNullHandling(), true));
 			}
 
-			return Sort.by(orders);
+			return new JpaSort(orders);
 		}
 
 		@Override
