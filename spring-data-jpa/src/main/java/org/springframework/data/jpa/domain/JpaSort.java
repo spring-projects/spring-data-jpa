@@ -141,13 +141,13 @@ public class JpaSort extends Sort {
 	/**
 	 * Returns a new {@link JpaSort} with the given sorting criteria added to the current one.
 	 *
-	 * @param direction can be {@literal null}.
+	 * @param direction must not be {@literal null}.
 	 * @param properties must not be {@literal null} or empty.
 	 * @return
 	 */
 	@Contract("_, _ -> new")
 	@CheckReturnValue
-	public JpaSort andUnsafe(@Nullable Direction direction, String... properties) {
+	public JpaSort andUnsafe(Direction direction, String... properties) {
 
 		Assert.notEmpty(properties, "Properties must not be empty");
 

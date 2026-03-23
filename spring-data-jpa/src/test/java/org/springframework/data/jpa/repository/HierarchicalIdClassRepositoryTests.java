@@ -15,9 +15,19 @@
  */
 package org.springframework.data.jpa.repository;
 
+import static org.assertj.core.api.Assertions.*;
+
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
@@ -35,62 +45,62 @@ import org.springframework.data.jpa.repository.sample.TradeRepository;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Integration tests for Repositories using hierarchical {@link jakarta.persistence.IdClass} identifiers.
- * 
+ *
  * @author James Bodkin
+ * @author Mark Paluch
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = HierarchicalIdClassRepositoryTests.TestConfig.class)
 @Transactional
-public class HierarchicalIdClassRepositoryTests {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = HierarchicalIdClassRepositoryTests.Config.class)
+class HierarchicalIdClassRepositoryTests {
 
-	@Autowired private TradeRepository tradeRepository;
+	@Autowired TradeRepository tradeRepository;
 
-	@Autowired private TradeItemRepository tradeItemRepository;
+	@Autowired TradeItemRepository tradeItemRepository;
 
-	@Test
-	void shouldScrollWithKeyset() {
+	Trade trade = new Trade(new ArrayList<>());
+	TradeOrder tradeOrder = new TradeOrder(trade, 1, new ArrayList<>());
+	TradeItem tradeItem1 = new TradeItem(tradeOrder, 1, "DIGITAL");
+	TradeItem tradeItem2 = new TradeItem(tradeOrder, 2, "PHYSICAL");
 
-		List<TradeOrder> tradeOrders = new ArrayList<>();
-		List<TradeItem> tradeItems = new ArrayList<>();
+	@BeforeEach
+	void setUp() {
 
-		Trade trade = new Trade(tradeOrders);
+		trade.getTradeOrders().add(tradeOrder);
 
-		TradeOrder tradeOrder = new TradeOrder(trade, 1, tradeItems);
-		tradeOrders.add(tradeOrder);
-
-		TradeItem tradeItem1 = new TradeItem(tradeOrder, 1, null);
-		tradeItems.add(tradeItem1);
-
-		TradeItem tradeItem2 = new TradeItem(tradeOrder, 2, "PHYSICAL");
-		tradeItems.add(tradeItem2);
+		tradeOrder.getTradeItems().add(tradeItem1);
+		tradeOrder.getTradeItems().add(tradeItem2);
 
 		tradeRepository.saveAndFlush(trade);
+	}
+
+	@ParameterizedTest
+	@MethodSource("scrollFixtures") // GH-4156
+	void shouldScrollWithKeysetAsc(Sort.Direction direction, int firstNumber, int secondNumber) {
 
 		Window<TradeItem> first = tradeItemRepository.findBy(Specification.unrestricted(),
-				q -> q.limit(1).sortBy(Sort.by("type")).scroll(ScrollPosition.keyset()));
+				q -> q.limit(1).sortBy(Sort.by(direction, "type")).scroll(ScrollPosition.keyset()));
 
-		assertThat(first).containsOnly(tradeItem1);
+		assertThat(first).extracting(TradeItem::getNumber).containsOnly(firstNumber);
 
 		Window<TradeItem> next = tradeItemRepository.findBy(Specification.unrestricted(),
-				q -> q.limit(1).sortBy(Sort.by("type")).scroll(first.positionAt(0)));
+				q -> q.limit(1).sortBy(Sort.by(direction, "type")).scroll(first.positionAt(0)));
 
-		assertThat(next).containsOnly(tradeItem2);
+		assertThat(next).extracting(TradeItem::getNumber).containsOnly(secondNumber);
+	}
+
+	static Stream<Arguments> scrollFixtures() {
+		return Stream.of(Arguments.argumentSet("asc", Sort.Direction.ASC, 1, 2),
+				Arguments.argumentSet("desc", Sort.Direction.DESC, 2, 1));
 	}
 
 	@Configuration
 	@EnableJpaRepositories(basePackageClasses = SampleConfig.class)
-	static abstract class Config {
+	@ImportResource("classpath:hibernate-infrastructure.xml")
+	static class Config {
 
 	}
-
-	@ImportResource("classpath:infrastructure.xml")
-	static class TestConfig extends Config {}
 
 }

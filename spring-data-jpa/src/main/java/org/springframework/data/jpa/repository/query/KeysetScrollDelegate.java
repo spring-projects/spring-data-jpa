@@ -173,7 +173,8 @@ public class KeysetScrollDelegate {
 
 			List<Order> orders = new ArrayList<>();
 			for (Order order : sort) {
-				orders.add(new Order(order.isAscending() ? Sort.Direction.DESC : Sort.Direction.ASC, order.getProperty()));
+				Sort.Direction direction = order.isAscending() ? Sort.Direction.DESC : Sort.Direction.ASC;
+				orders.add(order.with(direction));
 			}
 
 			return Sort.by(orders);
@@ -208,6 +209,14 @@ public class KeysetScrollDelegate {
 
 		/**
 		 * Create a comparison object according to the {@link Order}.
+		 * <p>
+		 * Specifically, consider three cases:
+		 * <ol>
+		 * <li>Value is not {@code null}: Compare according to {@link Order}. Also, when ordering with {@code NULLS LAST},
+		 * allow {@code NULL} values in the predicate</li>
+		 * <li>Value is {@code null} and null values are not the maximum value: restrict to {@code IS NOT NULL}</li>
+		 * <li>Otherwise: Disjunction (cannot compare)</li>
+		 * </ol>
 		 *
 		 * @param order must not be {@literal null}.
 		 * @param propertyExpression must not be {@literal null}.

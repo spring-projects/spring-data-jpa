@@ -70,6 +70,15 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 		return bindings;
 	}
 
+	/**
+	 * Marker for {@code null} values in the cache of parameter bindings. We need to distinguish between {@code null}
+	 * values and actual {@code null} values to avoid creating multiple parameter bindings for the same property when the
+	 * value is {@code null}.
+	 */
+	enum NullMarker {
+		INSTANCE;
+	}
+
 	@Override
 	protected JpqlQueryBuilder.AbstractJpqlQuery createQuery(JpqlQueryBuilder.@Nullable Predicate predicate, Sort sort) {
 
@@ -84,7 +93,8 @@ class JpaKeysetScrollQueryCreator extends JpaQueryCreator {
 
 					Map<Object, ParameterBinding> bindings = cachedBindings.computeIfAbsent(property, k -> new LinkedHashMap<>());
 
-					ParameterBinding parameterBinding = bindings.computeIfAbsent(value, o -> {
+					ParameterBinding parameterBinding = bindings.computeIfAbsent((value == null ? NullMarker.INSTANCE : value),
+							o -> {
 
 						ParameterBinding binding = provider.nextSynthetic(sanitize(property), value, scrollPosition);
 						syntheticBindings.add(binding);

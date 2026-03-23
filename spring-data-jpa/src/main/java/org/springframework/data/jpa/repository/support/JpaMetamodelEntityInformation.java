@@ -46,7 +46,6 @@ import org.springframework.data.jpa.repository.query.JpaMetamodelEntityMetadata;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.util.DirectFieldAccessFallbackBeanWrapper;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 
 /**
  * Implementation of {@link org.springframework.data.repository.core.EntityInformation} that uses JPA {@link Metamodel}
@@ -318,7 +317,7 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			this.type = source;
 			this.idClassAttributes = persistenceProvider.getIdClassAttributes(source);
 			this.attributes = findAttributes(source);
-			this.attributePaths = findAttributePaths(source, null);
+			this.attributePaths = findAttributePaths(null, source);
 		}
 
 		private static <X> Set<SingularAttribute<? super X, ?>> findAttributes(IdentifiableType<X> source) {
@@ -332,14 +331,15 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return source.getIdClassAttributes();
 		}
 
-		private static <X> List<String> findAttributePaths(IdentifiableType<X> source, @Nullable String prefix) {
+		private static <X> List<String> findAttributePaths(@Nullable String prefix, IdentifiableType<X> source) {
+
 			List<String> attributeNames = new ArrayList<>();
 
 			Set<SingularAttribute<? super X, ?>> attributes = findAttributes(source);
 			for (SingularAttribute<? super X, ?> attribute : attributes) {
-				final var name = prefix(prefix, attribute.getName());
+				String name = prefix(prefix, attribute.getName());
 				if (attribute.isAssociation()) {
-					attributeNames.addAll(findAttributePaths(attribute.getType(), name));
+					attributeNames.addAll(findAttributePaths(name, attribute.getType()));
 				} else {
 					attributeNames.add(name);
 				}
@@ -348,18 +348,13 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			return attributeNames;
 		}
 
-		private static <X> List<String> findAttributePaths(Type<X> type, @Nullable String prefix) {
-			if (!(type instanceof IdentifiableType<?> identifiableType)) {
-				return Collections.emptyList();
-			}
-			return findAttributePaths(identifiableType, prefix);
+		private static <X> List<String> findAttributePaths(@Nullable String prefix, Type<X> type) {
+			return type instanceof IdentifiableType<?> identifiableType ? findAttributePaths(prefix, identifiableType)
+					: Collections.emptyList();
 		}
 
 		private static String prefix(@Nullable String prefix, String value) {
-			if (prefix == null) {
-				return value;
-			}
-			return prefix + "." + value;
+			return prefix == null ? value : prefix + "." + value;
 		}
 
 		boolean hasSimpleId() {

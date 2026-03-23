@@ -20,9 +20,9 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
-
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.repository.core.EntityInformation;
 
 /**
@@ -66,15 +66,19 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 
 	/**
 	 * Returns the attribute names of the id attributes. If the entity has a composite id, then all id attribute names are
-	 * returned. If the entity has a single id attribute then this single attribute name is returned.
+	 * returned. If the entity has a single id attribute, then this single attribute name is returned.
 	 */
 	Collection<String> getIdAttributeNames();
 
 	/**
 	 * Returns the attribute paths of the id attributes. If the entity has a composite id, then all id attribute paths are
-	 * returned. If the entity has a single id attribute then this single attribute path is returned.
+	 * returned. If the entity has a single id attribute, then this single attribute path is returned.
+	 *
+	 * @since 4.0.5
 	 */
-	Collection<String> getIdAttributePaths();
+	default Collection<String> getIdAttributePaths() {
+		return getIdAttributeNames();
+	}
 
 	/**
 	 * Extracts the value for the given id attribute from a composite id
