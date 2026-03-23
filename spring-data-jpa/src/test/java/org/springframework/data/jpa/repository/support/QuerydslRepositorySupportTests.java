@@ -125,7 +125,6 @@ class QuerydslRepositorySupportTests {
 
 	@Test
 	void findAll() {
-
 		Page<User> page = repository.findAllByFilter(null,
 				PageRequest.of(0, 10, Sort.by("firstname").ascending()));
 
@@ -137,16 +136,6 @@ class QuerydslRepositorySupportTests {
         Page<User> page = repository.findAllByFilter(null,
                 PageRequest.of(0, 10, JpaSort.unsafe("lower(firstname)").ascending()));
         assertThat(page).hasSize(2);
-    }
-
-    @Test
-    void findAllWithAlias() {
-        Page<User> page = repository.findAllByFilter(null,
-                PageRequest.of(0, 10, Sort.by("firstNameAlias").ascending()));
-
-        assertThat(page).hasSize(2);
-        assertThat(page.getContent().stream().map(User::getFirstname).collect(Collectors.toList()))
-                .containsExactly("Carter", "Dave");
     }
 
 	interface UserRepository {

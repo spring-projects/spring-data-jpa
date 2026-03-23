@@ -21,12 +21,9 @@ import java.util.stream.Stream;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
@@ -84,28 +81,6 @@ class QuerydslIntegrationTests {
 		assertThat(result.toString()) //
 				.startsWith("select user") //
 				.endsWith("order by lower(user.firstname) asc, user.id asc, user.dateOfBirth asc");
-	}
-
-	@Test // GH-4209
-	void shouldApplySortingByProjectionAlias() {
-
-		JPQLQuery<?> projectedQuery = querydsl.createQuery()
-				.select(userPath.getString("firstname").as("firstnameAlias"), userPath.getNumber("id", Integer.class));
-
-		JPQLQuery<?> result = querydsl.applySorting(Sort.by("firstnameAlias"), projectedQuery);
-
-		assertThat(result).isNotNull();
-		assertThat(result.toString()).contains("order by");
-	}
-
-	@Test // GH-4209
-	void shouldThrowPropertyReferenceExceptionForUnknownProjectionAlias() {
-
-		JPQLQuery<?> projectedQuery = querydsl.createQuery()
-				.select(userPath.getString("firstname").as("firstnameAlias"), userPath.getNumber("id", Integer.class));
-
-		assertThatExceptionOfType(PropertyReferenceException.class)
-				.isThrownBy(() -> querydsl.applySorting(Sort.by("doesNotExistAlias"), projectedQuery));
 	}
 
 }

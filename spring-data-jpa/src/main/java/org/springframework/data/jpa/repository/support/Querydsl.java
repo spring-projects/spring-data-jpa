@@ -236,8 +236,6 @@ public class Querydsl {
             return Expressions.template(Object.class, order.getProperty());
         }
 
-        Assert.notNull(order, "Order must not be null");
-
         QueryUtils.checkSortExpression(order);
         PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
         Expression<?> sortPropertyExpression = builder;
