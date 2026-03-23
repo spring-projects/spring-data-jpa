@@ -21,6 +21,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -59,20 +60,7 @@ class JpaKeysetScrollQueryCreatorTests {
 
 		Method method = MyRepo.class.getMethod("findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc",
 				String.class, ScrollPosition.class);
-
-		PersistenceProvider provider = PersistenceProvider.fromEntityManager(entityManager);
-		JpaQueryMethod queryMethod = new JpaQueryMethod(method, AbstractRepositoryMetadata.getMetadata(MyRepo.class),
-				new SpelAwareProxyProjectionFactory(), provider);
-
-		PartTree tree = new PartTree("findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc", User.class);
-		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(
-				queryMethod.getParameters(), EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
-
-		JpaMetamodelEntityInformation<User, User> entityInformation = new JpaMetamodelEntityInformation<>(User.class,
-				entityManager.getMetamodel(), entityManager.getEntityManagerFactory().getPersistenceUnitUtil());
-		JpaKeysetScrollQueryCreator creator = new JpaKeysetScrollQueryCreator(tree,
-				queryMethod.getResultProcessor().getReturnedType(), metadataProvider, JpqlQueryTemplates.UPPER,
-				entityInformation, position, entityManager);
+		JpaKeysetScrollQueryCreator creator = getJpaKeysetScrollQueryCreator(position, method);
 
 		String query = creator.createQuery();
 
@@ -83,6 +71,46 @@ class JpaKeysetScrollQueryCreatorTests {
 				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id < :keyset_id)
 				ORDER BY u.firstname desc, u.emailAddress desc, u.id desc
 				""");
+	}
+
+	@Test // GH-4156
+	void shouldCreateForwardContinuationQueryWithNullKeysetSortValue() throws Exception {
+
+		Map<String, Object> keys = new LinkedHashMap<>();
+		keys.put("firstname", null);
+		keys.put("emailAddress", "john@example.com");
+		keys.put("id", "10");
+		KeysetScrollPosition position = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+
+		Method method = MyRepo.class.getMethod("findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc",
+				String.class, ScrollPosition.class);
+		JpaKeysetScrollQueryCreator creator = getJpaKeysetScrollQueryCreator(position, method);
+
+		String query = creator.createQuery();
+
+		assertThat(query).containsIgnoringWhitespaces("""
+				SELECT u FROM User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
+				AND (u.firstname IS NOT NULL
+				OR u.firstname IS NULL AND u.emailAddress > :keyset_emailAddress
+				OR u.firstname IS NULL AND u.emailAddress = :keyset_emailAddress AND u.id > :keyset_id)
+				ORDER BY u.firstname asc, u.emailAddress asc, u.id asc
+				""");
+	}
+
+	private JpaKeysetScrollQueryCreator getJpaKeysetScrollQueryCreator(KeysetScrollPosition position, Method method) {
+
+		PersistenceProvider provider = PersistenceProvider.fromEntityManager(entityManager);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, AbstractRepositoryMetadata.getMetadata(MyRepo.class),
+				new SpelAwareProxyProjectionFactory(), provider);
+
+		PartTree tree = new PartTree(method.getName(), User.class);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(queryMethod.getParameters(),
+				EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
+
+		JpaMetamodelEntityInformation<User, User> entityInformation = new JpaMetamodelEntityInformation<>(User.class,
+				entityManager.getMetamodel(), entityManager.getEntityManagerFactory().getPersistenceUnitUtil());
+		return new JpaKeysetScrollQueryCreator(tree, queryMethod.getResultProcessor().getReturnedType(), metadataProvider,
+				JpqlQueryTemplates.UPPER, entityInformation, position, entityManager);
 	}
 
 	interface MyRepo extends Repository<User, String> {

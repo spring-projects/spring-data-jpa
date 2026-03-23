@@ -15,7 +15,15 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author James Bodkin
@@ -60,4 +68,24 @@ public class TradeItem {
 		return type;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof TradeItem tradeItem)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(tradeOrder, tradeItem.tradeOrder)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(number, tradeItem.number);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHash(tradeOrder, number);
+	}
+
+	@Override
+	public String toString() {
+		return "TradeItem{" + "tradeOrder=" + tradeOrder + ", number=" + number + ", type='" + type + '\'' + '}';
+	}
 }

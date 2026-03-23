@@ -22,11 +22,13 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.Item;
@@ -120,6 +122,52 @@ class RepositoryWithIdClassKeyTests {
 				q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
 
 		assertThat(next).containsOnly(item2);
+	}
+
+	@Test // GH-4156
+	void shouldScrollWithKeysetAcrossMultipleNullSortKeys() {
+
+		Item item1 = new Item(1, 1, null);
+		Item item2 = new Item(2, 1, null);
+		Item item3 = new Item(3, 1, "a");
+
+		itemRepository.saveAllAndFlush(Arrays.asList(item1, item2, item3));
+
+		Window<Item> first = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(Sort.by("name")).scroll(ScrollPosition.keyset()));
+
+		assertThat(first).containsOnly(item1);
+
+		Window<Item> next = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(Sort.by("name")).scroll(first.positionAt(0)));
+
+		assertThat(next).containsOnly(item2);
+
+		Window<Item> third = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(Sort.by("name")).scroll(next.positionAt(0)));
+
+		assertThat(third).containsOnly(item3);
+	}
+
+	@Test // GH-4156
+	void shouldScrollWithKeysetNullableNullsLast() {
+
+		Item item1 = new Item(1, 1, null);
+		Item item2 = new Item(2, 1, "a");
+
+		itemRepository.saveAllAndFlush(Arrays.asList(item1, item2));
+
+		Sort sort = Sort.by(Order.asc("name").nullsLast());
+
+		Window<Item> first = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(first).containsOnly(item2);
+
+		Window<Item> next = itemRepository.findBy(Specification.unrestricted(),
+				q -> q.limit(1).sortBy(sort).scroll(first.positionAt(0)));
+
+		assertThat(next).containsOnly(item1);
 	}
 
 	@Configuration

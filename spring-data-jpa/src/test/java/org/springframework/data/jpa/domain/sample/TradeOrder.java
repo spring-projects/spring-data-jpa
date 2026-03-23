@@ -15,9 +15,19 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import java.util.List;
+
+import org.springframework.util.ObjectUtils;
 
 /**
  * @author James Bodkin
@@ -57,4 +67,28 @@ public class TradeOrder {
 		return number;
 	}
 
+	public List<TradeItem> getTradeItems() {
+		return tradeItems;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof TradeOrder that)) {
+			return false;
+		}
+		if (!ObjectUtils.nullSafeEquals(trade, that.trade)) {
+			return false;
+		}
+		return ObjectUtils.nullSafeEquals(number, that.number);
+	}
+
+	@Override
+	public int hashCode() {
+		return ObjectUtils.nullSafeHash(trade, number);
+	}
+
+	@Override
+	public String toString() {
+		return "TradeOrder{" + "number=" + number + ", trade=" + trade + '}';
+	}
 }

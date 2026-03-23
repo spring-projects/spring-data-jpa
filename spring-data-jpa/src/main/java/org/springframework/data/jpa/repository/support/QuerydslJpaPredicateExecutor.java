@@ -405,12 +405,21 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		@Override
 		public BooleanExpression compare(Order order, Expression<?> propertyExpression, @Nullable Object value) {
 
-			if (value == null) {
-				return Expressions.booleanOperation(order.isAscending() ? Ops.IS_NOT_NULL : Ops.IS_NULL, propertyExpression);
+			if (value != null) {
+
+				BooleanExpression strict = Expressions.booleanOperation(order.isAscending() ? Ops.GT : Ops.LT,
+						propertyExpression, ConstantImpl.create(value));
+
+				if (KeysetScrollSpecification.isNullsLast(order)) {
+					return strict.or(Expressions.predicate(Ops.IS_NULL, propertyExpression));
+				}
+
+				return strict;
 			}
 
-			return Expressions.booleanOperation(order.isAscending() ? Ops.GT : Ops.LT, propertyExpression,
-					ConstantImpl.create(value));
+			return KeysetScrollSpecification.requiresNonNullTail(order)
+					? Expressions.predicate(Ops.IS_NOT_NULL, propertyExpression)
+					: Expressions.FALSE;
 		}
 
 		@Override
@@ -428,5 +437,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 		public BooleanExpression or(List<BooleanExpression> intermediate) {
 			return Expressions.anyOf(intermediate.toArray(new BooleanExpression[0]));
 		}
+
 	}
+
 }

@@ -61,10 +61,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 	 * @param entity must not be {@literal null}.
 	 */
 	public static Sort createSort(KeysetScrollPosition position, Sort sort, JpaEntityInformation<?, ?> entity) {
-
-		KeysetScrollDelegate delegate = KeysetScrollDelegate.of(position.getDirection());
-
-		return delegate.createSort(sort, entity);
+		return KeysetScrollDelegate.of(position.getDirection()).createSort(sort, entity);
 	}
 
 	@Override
@@ -87,17 +84,28 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		return delegate.createPredicate(position, sort, new JpqlStrategy(metamodel, from, entity, factory));
 	}
 
+	/**
+	 * Determine whether the strict tail predicate for this column is {@code IS NOT NULL} if the keyset value is
+	 * {@code null} returning {@code true} or unsatisfiable {@code false}.
+	 */
+	public static boolean requiresNonNullTail(Order order) {
+
+		boolean ascending = order.isAscending();
+		boolean nullIsMaximum = (isNullsLast(order) && ascending) || (isNullsFirst(order) && !ascending);
+		return ascending != nullIsMaximum;
+	}
+
+	public static boolean isNullsFirst(Order order) {
+		return order.getNullHandling() == Sort.NullHandling.NULLS_FIRST;
+	}
+
+	public static boolean isNullsLast(Order order) {
+		return order.getNullHandling() == Sort.NullHandling.NULLS_LAST;
+	}
+
 	@SuppressWarnings("rawtypes")
-	private static class CriteriaBuilderStrategy implements QueryStrategy<Expression<Comparable>, Predicate> {
-
-		private final From<?, ?> from;
-		private final CriteriaBuilder cb;
-
-		public CriteriaBuilderStrategy(From<?, ?> from, CriteriaBuilder cb) {
-
-			this.from = from;
-			this.cb = cb;
-		}
+	record CriteriaBuilderStrategy(From<?, ?> from,
+			CriteriaBuilder cb) implements QueryStrategy<Expression<Comparable>, Predicate> {
 
 		@Override
 		public Expression<Comparable> createExpression(String property) {
@@ -108,12 +116,13 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		@Override
 		public Predicate compare(Order order, Expression<Comparable> propertyExpression, @Nullable Object value) {
 
-			if (value instanceof Comparable compareValue) {
-				return order.isAscending() ? cb.greaterThan(propertyExpression, compareValue)
-						: cb.lessThan(propertyExpression, compareValue);
+			if (value != null) {
+				Predicate strict = order.isAscending() ? cb.greaterThan(propertyExpression, (Comparable) value)
+						: cb.lessThan(propertyExpression, (Comparable) value);
+				return isNullsLast(order) ? cb.or(strict, cb.isNull(propertyExpression)) : strict;
 			}
-			return order.isAscending() ? cb.isNotNull(propertyExpression) : cb.isNull(propertyExpression);
 
+			return requiresNonNullTail(order) ? cb.isNotNull(propertyExpression) : cb.disjunction();
 		}
 
 		@Override
@@ -132,21 +141,8 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		}
 	}
 
-	private static class JpqlStrategy implements QueryStrategy<JpqlQueryBuilder.Expression, JpqlQueryBuilder.Predicate> {
-
-		private final Bindable<?> from;
-		private final JpqlQueryBuilder.Entity entity;
-		private final ParameterFactory factory;
-		private final Metamodel metamodel;
-
-		public JpqlStrategy(Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity,
-				ParameterFactory factory) {
-
-			this.from = from;
-			this.entity = entity;
-			this.factory = factory;
-			this.metamodel = metamodel;
-		}
+	record JpqlStrategy(Metamodel metamodel, Bindable<?> from, JpqlQueryBuilder.Entity entity,
+			ParameterFactory factory) implements QueryStrategy<JpqlQueryBuilder.Expression, JpqlQueryBuilder.Predicate> {
 
 		@Override
 		public JpqlQueryBuilder.Expression createExpression(String property) {
@@ -160,13 +156,20 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 				@Nullable Object value) {
 
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
-			if (value == null) {
-				return order.isAscending() ? where.isNotNull() : where.isNull();
-			}
 
 			QueryUtils.checkSortExpression(order);
-			return order.isAscending() ? where.gt(factory.capture(order.getProperty(), value))
-					: where.lt(factory.capture(order.getProperty(), value));
+
+			if (value != null) {
+				JpqlQueryBuilder.Predicate strict = order.isAscending() ? where.gt(factory.capture(order.getProperty(), value))
+						: where.lt(factory.capture(order.getProperty(), value));
+				return isNullsLast(order) ? strict.or(where.isNull()) : strict;
+			}
+
+			if (requiresNonNullTail(order)) {
+				return where.isNotNull();
+			}
+
+			return JpqlQueryBuilder.where(JpqlQueryBuilder.literal(1)).eq(JpqlQueryBuilder.literal(0));
 		}
 
 		@Override
@@ -190,6 +193,7 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 	}
 
 	public interface ParameterFactory {
-		JpqlQueryBuilder.Expression capture(String name, Object value);
+		JpqlQueryBuilder.Expression capture(String name, @Nullable Object value);
 	}
+
 }

@@ -300,7 +300,7 @@ public class ParameterMetadataProvider {
 	 * @param source
 	 * @return a new {@link ParameterBinding} for the given value and source.
 	 */
-	ParameterBinding nextSynthetic(String nameHint, Object value, Object source) {
+	ParameterBinding nextSynthetic(String nameHint, @Nullable Object value, Object source) {
 
 		int currentPosition = ++bindMarker;
 		String bindingName = nameHint;
