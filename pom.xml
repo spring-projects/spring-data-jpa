@@ -41,7 +41,6 @@
 		<mysql-connector-java>9.2.0</mysql-connector-java>
 		<postgresql>42.7.10</postgresql>
 		<springdata.commons>3.5.11-SNAPSHOT</springdata.commons>
-		<vavr>0.10.3</vavr>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
