@@ -403,13 +403,16 @@ class JpaCodeBlocks {
 				return "%1$s.getType() == Float.TYPE ? %1$s.toFloatArray() : %1$s.toDoubleArray()".formatted(parameterName);
 			}
 
+			boolean isArray = isArray(parameterType);
+
 			if (binding instanceof ParameterBinding.PartTreeParameterBinding treeBinding) {
 
+				boolean collectionExpected = Collection.class.isAssignableFrom(treeBinding.getParameterType());
 				if (treeBinding.isIgnoreCase()) {
 
 					String function = treeBinding.getTemplates() == JpqlQueryTemplates.LOWER ? "toLowerCase" : "toUpperCase";
 
-					if (isArray(parameterType) || Collection.class.isAssignableFrom(parameterType)) {
+					if (isArray || collectionExpected) {
 						return CodeBlock.builder().add("mapIgnoreCase($L, $T::$L)", parameterName, String.class, function).build();
 					}
 
@@ -419,9 +422,13 @@ class JpaCodeBlocks {
 
 					return "%1$s != null ? %1$s.toString().%2$s() : %1$s".formatted(parameterName, function);
 				}
+
+				if (isArray && collectionExpected) {
+					return CodeBlock.builder().add("$T.asList($L)", Arrays.class, parameterName).build();
+				}
 			}
 
-			if (isArray(parameterType)) {
+			if (isArray && binding instanceof ParameterBinding.InParameterBinding) {
 				return CodeBlock.builder().add("$T.asList($L)", Arrays.class, parameterName).build();
 			}
 
