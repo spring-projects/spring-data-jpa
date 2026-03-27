@@ -251,6 +251,10 @@ public class ParameterBinding {
 							: part.getType();
 		}
 
+		public Class<?> getParameterType() {
+			return parameterType;
+		}
+
 		/**
 		 * Returns whether the parameter shall be considered an {@literal IS NULL} parameter.
 		 */
@@ -341,7 +345,7 @@ public class ParameterBinding {
 	 *
 	 * @author Thomas Darimont
 	 */
-	static class InParameterBinding extends ParameterBinding {
+	public static class InParameterBinding extends ParameterBinding {
 
 		/**
 		 * Creates a new {@link InParameterBinding} for the parameter with the given name.
