@@ -15,8 +15,8 @@
  */
 package org.springframework.data.jpa.criteria;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.InstanceOfAssertFactories.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -33,6 +33,7 @@ import java.util.function.Function;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.core.TypedPropertyPath;
 import org.springframework.data.jpa.domain.sample.Role;
@@ -62,6 +63,14 @@ class ExpressionsTests {
 				from -> Expressions.get(from, User::getFirstname));
 
 		assertThat(qe.expression().getJavaType()).isEqualTo(String.class);
+	}
+
+	@Test // GH-4085
+	void shouldResolveNestedLevelPath() {
+
+		QueryExpression<User, Expression<Role>> qe = expression(User.class,
+				from -> Expressions.path(from, TypedPropertyPath.of(User::getManager).thenMany(User::getRoles)));
+		assertThat(qe.expression().getJavaType()).isEqualTo(Role.class);
 	}
 
 	@Test // GH-4085

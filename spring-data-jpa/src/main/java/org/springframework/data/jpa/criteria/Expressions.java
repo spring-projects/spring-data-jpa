@@ -15,16 +15,7 @@
  */
 package org.springframework.data.jpa.criteria;
 
-import jakarta.persistence.criteria.CollectionJoin;
-import jakarta.persistence.criteria.Expression;
-import jakarta.persistence.criteria.Fetch;
-import jakarta.persistence.criteria.From;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.ListJoin;
-import jakarta.persistence.criteria.MapJoin;
-import jakarta.persistence.criteria.Selection;
-import jakarta.persistence.criteria.SetJoin;
+import jakarta.persistence.criteria.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -62,15 +53,29 @@ import org.springframework.data.jpa.repository.query.QueryUtils;
 public abstract class Expressions {
 
 	/**
-	 * Create an {@link Expression} for the given property path.
+	 * Resolve a {@link Path} for the given property path.
+	 * <p>
+	 * The resulting path can be used in predicates. In case of a {@link From} path, Expression resolution navigates joins
+	 * as necessary.
+	 *
+	 * @param from the entity or attribute path start from.
+	 * @param property property path to navigate.
+	 * @return the resolved path.
+	 */
+	public static <T, P> Path<P> path(Path<T> from, TypedPropertyPath<T, P> property) {
+		return from instanceof From<?, T> f ? (Path<P>) get(f, property) : from.get(property.toDotPath());
+	}
+
+	/**
+	 * Resolve an {@link Expression} for the given property path.
 	 * <p>
 	 * The resulting expression can be used in predicates. Expression resolution navigates joins as necessary.
 	 *
 	 * @param from the root or join to start from.
 	 * @param property property path to navigate.
-	 * @return the expression.
+	 * @return the resolved expression.
 	 */
-	static <T, P> Expression<P> get(From<?, T> from, TypedPropertyPath<T, P> property) {
+	public static <T, P> Expression<P> get(From<?, T> from, TypedPropertyPath<T, P> property) {
 		return QueryUtils.toExpressionRecursively(from, property, false);
 	}
 
@@ -83,7 +88,7 @@ public abstract class Expressions {
 	 * @param property property path to navigate.
 	 * @return the selection.
 	 */
-	static <T, P> Selection<P> select(From<?, T> from, TypedPropertyPath<T, P> property) {
+	public static <T, P> Selection<P> select(From<?, T> from, TypedPropertyPath<T, P> property) {
 		return QueryUtils.toExpressionRecursively(from, property, true);
 	}
 
@@ -97,7 +102,7 @@ public abstract class Expressions {
 	 * @return the selection.
 	 */
 	@SafeVarargs
-	static <T> List<Selection<?>> select(From<?, T> from, TypedPropertyPath<T, ?>... properties) {
+	public static <T> List<Selection<?>> select(From<?, T> from, TypedPropertyPath<T, ?>... properties) {
 		return Arrays.stream(properties).map(it -> get(from, it)).collect(Collectors.toUnmodifiableList());
 	}
 
@@ -109,7 +114,7 @@ public abstract class Expressions {
 	 * @return the resolved join.
 	 * @see From#join(String)
 	 */
-	static <T, P> Join<T, P> join(From<?, T> from, PropertyReference<T, P> property) {
+	public static <T, P> Join<T, P> join(From<?, T> from, PropertyReference<T, P> property) {
 		return from.join(property.getName());
 	}
 
@@ -123,7 +128,7 @@ public abstract class Expressions {
 	 * @return the resolved join.
 	 * @see From#join(String, JoinType)
 	 */
-	static <T, J extends Join<?, ?>> J join(From<?, T> from, JoinType joinType, Function<Joiner<T>, J> function) {
+	public static <T, J extends Join<?, ?>> J join(From<?, T> from, JoinType joinType, Function<Joiner<T>, J> function) {
 		return function.apply(new TypedJoiner<>(from, joinType));
 	}
 
@@ -135,7 +140,7 @@ public abstract class Expressions {
 	 * @return the resolved fetch.
 	 * @see From#fetch(String)
 	 */
-	static <T, P> Fetch<T, P> fetch(From<?, T> from, PropertyReference<T, P> property) {
+	public static <T, P> Fetch<T, P> fetch(From<?, T> from, PropertyReference<T, P> property) {
 		return from.fetch(property.getName());
 	}
 
@@ -149,7 +154,8 @@ public abstract class Expressions {
 	 * @return the resolved fetch.
 	 * @see From#fetch(String, JoinType)
 	 */
-	static <T, F extends Fetch<?, ?>> F fetch(From<?, T> from, JoinType joinType, Function<Fetcher<T>, F> function) {
+	public static <T, F extends Fetch<?, ?>> F fetch(From<?, T> from, JoinType joinType,
+			Function<Fetcher<T>, F> function) {
 		return function.apply(new TypedFetcher<>(from, joinType));
 	}
 
@@ -162,7 +168,7 @@ public abstract class Expressions {
 	 * collection-valued attributes as well as map-valued attributes. The methods accept
 	 * {@link org.springframework.data.core.PropertyReference} instances to avoid string-based attribute navigation.
 	 */
-	interface Joiner<T> {
+	public interface Joiner<T> {
 
 		/**
 		 * Create a join for the given property.
@@ -236,7 +242,7 @@ public abstract class Expressions {
 	 * Implementations adapt a {@link jakarta.persistence.criteria.From} and expose typed fetch methods accepting
 	 * {@link org.springframework.data.core.PropertyReference} instances to avoid string-based attribute navigation.
 	 */
-	interface Fetcher<T> {
+	public interface Fetcher<T> {
 
 		/**
 		 * Create a fetch join for the given property.
