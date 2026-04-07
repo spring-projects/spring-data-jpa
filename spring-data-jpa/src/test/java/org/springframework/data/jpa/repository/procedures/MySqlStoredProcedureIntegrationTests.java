@@ -258,7 +258,7 @@ class MySqlStoredProcedureIntegrationTests {
 		@Bean(initMethod = "start", destroyMethod = "stop")
 		public MySQLContainer container() {
 
-			return new MySQLContainer("mysql:8.0.24") //
+			return new MySQLContainer("mysql:8.0.43") //
 					.withUsername("test") //
 					.withPassword("test") //
 					.withConfigurationOverride("");
