@@ -17,11 +17,13 @@ package org.springframework.data.jpa.domain.sample;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 /**
  * @author Oliver Gierke
  */
 @Entity
+@Table(name = "sample_entity")
 public class SampleEntity {
 
 	@EmbeddedId

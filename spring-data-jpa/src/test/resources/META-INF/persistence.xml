@@ -47,6 +47,7 @@
 		<class>org.springframework.data.jpa.domain.sample.SampleWithIdClass</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithPrimitiveId</class>
 		<class>org.springframework.data.jpa.domain.sample.SampleWithTimestampVersion</class>
+		<class>org.springframework.data.jpa.domain.sample.SampleEntityPartialKey</class>
 		<class>org.springframework.data.jpa.domain.sample.Site</class>
 		<class>org.springframework.data.jpa.domain.sample.SpecialUser</class>
 		<class>org.springframework.data.jpa.domain.sample.User</class>

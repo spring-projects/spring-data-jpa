@@ -28,10 +28,13 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClass;
 import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
 import org.springframework.data.jpa.domain.sample.SampleEntity;
 import org.springframework.data.jpa.domain.sample.SampleEntityPK;
+import org.springframework.data.jpa.domain.sample.SampleEntityPartialKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.test.context.ContextConfiguration;
@@ -46,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Krzysztof Krason
+ * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration({ "classpath:infrastructure.xml" })
@@ -56,11 +60,14 @@ class JpaRepositoryTests {
 
 	private JpaRepository<SampleEntity, SampleEntityPK> repository;
 	private CrudRepository<PersistableWithIdClass, PersistableWithIdClassPK> idClassRepository;
+	private SamplePartialKeyEntityRepository partialKey;
 
 	@BeforeEach
 	void setUp() {
-		repository = new JpaRepositoryFactory(em).getRepository(SampleEntityRepository.class);
-		idClassRepository = new JpaRepositoryFactory(em).getRepository(SampleWithIdClassRepository.class);
+		JpaRepositoryFactory factory = new JpaRepositoryFactory(em);
+		repository = factory.getRepository(SampleEntityRepository.class);
+		idClassRepository = factory.getRepository(SampleWithIdClassRepository.class);
+		partialKey = factory.getRepository(SamplePartialKeyEntityRepository.class);
 	}
 
 	@Test
@@ -77,6 +84,19 @@ class JpaRepositoryTests {
 		repository.flush();
 
 		assertThat(repository.count()).isZero();
+	}
+
+	@Test
+	void shouldReportExistsForPartialKeyEntity() {
+
+		repository.saveAndFlush(new SampleEntity("foo", "bar"));
+		repository.saveAndFlush(new SampleEntity("foo", "baz"));
+		repository.saveAndFlush(new SampleEntity("foo", "foo"));
+		repository.flush();
+
+		assertThat(partialKey.existsById("foo")).isTrue();
+		assertThat(partialKey.exists(Example.of(new SampleEntityPartialKey("foo")))).isTrue();
+		assertThat(partialKey.existsByFirst("foo")).isTrue();
 	}
 
 	@Test // DATAJPA-50
@@ -163,6 +183,12 @@ class JpaRepositoryTests {
 	}
 
 	private interface SampleEntityRepository extends JpaRepository<SampleEntity, SampleEntityPK> {
+
+	}
+
+	private interface SamplePartialKeyEntityRepository extends JpaRepository<SampleEntityPartialKey, String> {
+
+		boolean existsByFirst(String first);
 
 	}
 

@@ -378,7 +378,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		if (!entityInformation.hasCompositeId()) {
 			query.setParameter(idAttributeNames.iterator().next(), id);
-			return query.getSingleResult() == 1L;
+			return ExistsUtil.exists(query.getSingleResult());
 		}
 
 		for (String idAttributeName : idAttributeNames) {
@@ -397,7 +397,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.setParameter(idAttributeName, idAttributeValue);
 		}
 
-		return query.getSingleResult() == 1L;
+		return ExistsUtil.exists(query.getSingleResult());
 	}
 
 	@Override
@@ -486,7 +486,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
-		return query.setMaxResults(1).getResultList().size() == 1;
+		return ExistsUtil.exists(query.setMaxResults(1).getResultList().size());
 	}
 
 	@Override
@@ -593,7 +593,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 
 		TypedQuery<Integer> query = applyRepositoryMethodMetadata(this.entityManager.createQuery(cq));
-		return query.setMaxResults(1).getResultList().size() == 1;
+		return ExistsUtil.exists(query.setMaxResults(1).getResultList().size());
 	}
 
 	@Override
