@@ -77,6 +77,12 @@ class EclipseLinkJpaRepositoryTests extends JpaRepositoryTests {
 		assertThat(repository.count()).isZero();
 	}
 
+	@Test
+	@Disabled("We cannot currently setup a read-only entity to simulate a partial key on top of an entity with a composite key")
+	void shouldReportExistsForPartialKeyEntity() {
+
+	}
+
 	@Override
 	@Disabled("https://bugs.eclipse.org/bugs/show_bug.cgi?id=349477")
 	void deleteAllByIdInBatch() {
