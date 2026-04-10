@@ -28,6 +28,7 @@ import org.springframework.data.util.TypeUtils;
  * {@link TypeCollector} predicates to exclude JPA provider types.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.0
  */
 class JpaTypeFilters implements TypeCollector.TypeCollectorFilters {
@@ -38,7 +39,7 @@ class JpaTypeFilters implements TypeCollector.TypeCollectorFilters {
 	private static final Predicate<Member> IS_HIBERNATE_MEMBER = member -> member.getName().startsWith("$$_hibernate");
 
 	private static final Predicate<Class<?>> CLASS_FILTER = it -> TypeUtils.type(it).isPartOf("org.hibernate",
-			"org.eclipse.persistence", "jakarta.persistence");
+			"org.eclipse.persistence", "jakarta.persistence", "java.sql");
 
 	@Override
 	public Predicate<Class<?>> classPredicate() {

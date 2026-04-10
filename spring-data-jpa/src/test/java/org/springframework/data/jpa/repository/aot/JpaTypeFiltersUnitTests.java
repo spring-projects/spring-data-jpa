@@ -29,12 +29,20 @@ import org.springframework.data.util.TypeCollector;
  * Unit tests for {@link JpaTypeFilters}.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class JpaTypeFiltersUnitTests {
 
 	@Test // GH-4014
 	void shouldFilterUnreachableField() {
 		assertThat(TypeCollector.inspect(EnhancedEntity.class).list()).containsOnly(EnhancedEntity.class, Reachable.class);
+	}
+
+	@Test // GH-4228
+	void shouldFilterNativeSqlTypes() {
+
+		JpaTypeFilters filters = new JpaTypeFilters();
+		assertThat(filters.classPredicate().test(java.sql.Clob.class)).isFalse();
 	}
 
 	static class Unreachable {
