@@ -78,6 +78,11 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	}
 
 	@Override
+	public boolean useTupleQuery() {
+		return false;
+	}
+
+	@Override
 	protected JpqlQueryBuilder.Select buildQuery(Sort sort) {
 
 		JpqlQueryBuilder.SelectStep selectStep = JpqlQueryBuilder.selectFrom(getEntity());
