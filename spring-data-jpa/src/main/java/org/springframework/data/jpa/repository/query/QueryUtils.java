@@ -50,6 +50,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
@@ -753,12 +754,17 @@ public abstract class QueryUtils {
 
 		checkSortExpression(order);
 
-		if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
-			expression = new HqlOrderExpressionVisitor(cb, from, QueryUtils::toExpressionRecursively)
-					.createCriteriaExpression(order);
-		} else {
+		try {
 			PropertyPath property = PropertyPath.from(order.getProperty(), from.getJavaType());
 			expression = toExpressionRecursively(from, property);
+		}
+		catch (PropertyReferenceException e) {
+			if (order instanceof JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+				expression = new HqlOrderExpressionVisitor(cb, from, QueryUtils::toExpressionRecursively)
+						.createCriteriaExpression(order);
+			} else {
+				throw e;
+			}
 		}
 
 		Nulls nulls = toNulls(order.getNullHandling());

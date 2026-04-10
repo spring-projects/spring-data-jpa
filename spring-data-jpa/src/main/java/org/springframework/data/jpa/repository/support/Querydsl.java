@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import com.querydsl.core.types.dsl.StringExpression;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -186,7 +185,7 @@ public class Querydsl {
 		Assert.notNull(query, "Query must not be null");
 
 		for (Order order : sort) {
-			query.orderBy(toOrderSpecifier(order, query));
+			query.orderBy(toOrderSpecifier(order));
 		}
 
 		return query;
@@ -198,11 +197,11 @@ public class Querydsl {
 	 * @param order must not be {@literal null}.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private OrderSpecifier<?> toOrderSpecifier(Order order, JPQLQuery<?> query) {
+	private OrderSpecifier<?> toOrderSpecifier(Order order) {
 
 		return new OrderSpecifier(
 				order.isAscending() ? com.querydsl.core.types.Order.ASC : com.querydsl.core.types.Order.DESC,
-				buildOrderPropertyPathFrom(order, query), toQueryDslNullHandling(order.getNullHandling()));
+				buildOrderPropertyPathFrom(order), toQueryDslNullHandling(order.getNullHandling()));
 	}
 
 	/**
@@ -228,29 +227,34 @@ public class Querydsl {
 	 *
 	 * @param order must not be {@literal null}.
 	 */
-    private Expression<?> buildOrderPropertyPathFrom(Order order, JPQLQuery<?> query) {
+	private Expression<?> buildOrderPropertyPathFrom(Order order) {
 
-        Assert.notNull(order, "Order must not be null");
+		Assert.notNull(order, "Order must not be null");
 
-        if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
-            return Expressions.template(Object.class, order.getProperty());
-        }
+		QueryUtils.checkSortExpression(order);
 
-        QueryUtils.checkSortExpression(order);
-        PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
-        Expression<?> sortPropertyExpression = builder;
+		try {
+			PropertyPath path = PropertyPath.from(order.getProperty(), builder.getType());
+			Expression<?> sortPropertyExpression = builder;
 
-        while (path != null) {
+			while (path != null) {
 
-            sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
-                    ? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
-                    : Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
+				sortPropertyExpression = !path.hasNext() && order.isIgnoreCase() && String.class.equals(path.getType()) //
+						? Expressions.stringPath((Path<?>) sortPropertyExpression, path.getSegment()).lower() //
+						: Expressions.path(path.getType(), (Path<?>) sortPropertyExpression, path.getSegment());
 
-            path = path.next();
-        }
+				path = path.next();
+			}
 
-        return sortPropertyExpression;
-    }
+			return sortPropertyExpression;
+		} catch (PropertyReferenceException e) {
+			if (order instanceof JpaSort.JpaOrder jpaOrder && jpaOrder.isUnsafe()) {
+				return Expressions.template(Object.class, order.getProperty());
+			} else {
+				throw e;
+			}
+		}
+	}
 
 	/**
 	 * Creates an {@link Expression} for the given {@code property} property.

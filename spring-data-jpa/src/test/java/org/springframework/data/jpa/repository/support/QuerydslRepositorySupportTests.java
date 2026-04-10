@@ -15,8 +15,7 @@
  */
 package org.springframework.data.jpa.repository.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -27,13 +26,14 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.JpaSort;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Thomas Darimont
  * @author Jens Schauder
  * @author Krzysztof Krason
+ * @author Mark Paluch
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -123,20 +124,22 @@ class QuerydslRepositorySupportTests {
 		assertThatIllegalArgumentException().isThrownBy(repositoryImpl::validate);
 	}
 
-	@Test
-	void findAll() {
-		Page<User> page = repository.findAllByFilter(null,
-				PageRequest.of(0, 10, Sort.by("firstname").ascending()));
+	@Test // GH-4209
+	void findAllWithSortConsidersSorting() {
 
-		assertThat(page).hasSize(2);
+		Page<User> page = repository.findAllByFilter(null, PageRequest.of(0, 10, Sort.by("firstname").ascending()));
+
+		assertThat(page).extracting(User::getFirstname).containsExactly("Carter", "Dave");
 	}
 
-    @Test
-    void findAllUnsafe() {
-        Page<User> page = repository.findAllByFilter(null,
-                PageRequest.of(0, 10, JpaSort.unsafe("lower(firstname)").ascending()));
-        assertThat(page).hasSize(2);
-    }
+	@Test // GH-4209
+	void findAllWithSortConsidersUnsafeSortExpressions() {
+
+		Page<User> page = repository.findAllByFilter(null,
+				PageRequest.of(0, 10, JpaSort.unsafe("lower(firstname)").ascending()));
+
+		assertThat(page).extracting(User::getFirstname).containsExactly("Carter", "Dave");
+	}
 
 	interface UserRepository {
 
@@ -183,21 +186,18 @@ class QuerydslRepositorySupportTests {
 
 			var firstNameAlias = user.firstname.as("firstNameAlias");
 
-			var query = from(user)
-					.select(user.id, firstNameAlias, user.lastname, user.emailAddress);
+			var query = from(user).select(user.id, firstNameAlias, user.lastname, user.emailAddress);
 
 			var querydsl = getQuerydsl();
 			if (querydsl != null) {
 				querydsl.applyPagination(pageRequest, query);
 			}
 
-			List<User> results = query.fetch().stream()
-					.map(tuple -> {
-						User u = new User(tuple.get(firstNameAlias), tuple.get(user.lastname), tuple.get(user.emailAddress));
-						u.setId(tuple.get(user.id));
-						return u;
-					})
-					.collect(Collectors.toList());
+			List<User> results = query.fetch().stream().map(tuple -> {
+				User u = new User(tuple.get(firstNameAlias), tuple.get(user.lastname), tuple.get(user.emailAddress));
+				u.setId(tuple.get(user.id));
+				return u;
+			}).collect(Collectors.toList());
 
 			return PageableExecutionUtils.getPage(results, pageRequest, query::fetchCount);
 		}
