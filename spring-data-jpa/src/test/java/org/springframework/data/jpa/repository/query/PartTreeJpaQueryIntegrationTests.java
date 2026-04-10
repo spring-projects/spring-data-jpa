@@ -1,9 +1,7 @@
 /*
  * Copyright 2011-present the original author or authors.
  *
- * Licensed under the Apache License, Version 2.0 (the "License
-import org.springframework.aop.framework.Advised;
-");
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -22,6 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.persistence.Tuple;
 import jakarta.persistence.TemporalType;
 
 import java.lang.reflect.Method;
@@ -247,6 +246,20 @@ class PartTreeJpaQueryIntegrationTests {
 		new PartTreeJpaQuery(getQueryMethod("findByAttributes", String[].class), entityManager);
 	}
 
+	@Test // GH-4230
+	void countQueryForPagedInterfaceProjectionReturnsScalarAggregate() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(ProjectionPagingRepository.class, "findByFirstname", String.class,
+				Pageable.class);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query countQuery = jpaQuery
+				.createCountQuery(getAccessor(queryMethod, new Object[] { "Matthews", PageRequest.of(0, 2) }));
+
+		Object total = countQuery.getSingleResult();
+		assertThat(total).isInstanceOf(Number.class).isNotInstanceOf(Tuple.class);
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -262,8 +275,14 @@ class PartTreeJpaQueryIntegrationTests {
 
 	private JpaQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
 
-		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
-		return new JpaQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+		return getQueryMethod(UserRepository.class, methodName, parameterTypes);
+	}
+
+	private JpaQueryMethod getQueryMethod(Class<?> repositoryType, String methodName, Class<?>... parameterTypes)
+			throws Exception {
+
+		Method method = repositoryType.getMethod(methodName, parameterTypes);
+		return new JpaQueryMethod(method, new DefaultRepositoryMetadata(repositoryType),
 				new SpelAwareProxyProjectionFactory(), PersistenceProvider.fromEntityManager(entityManager));
 	}
 
@@ -324,6 +343,14 @@ class PartTreeJpaQueryIntegrationTests {
 		List<User> findByAttributes(Set<String> attributes);
 
 		List<User> findByAttributes(String... attributes);
+	}
+
+	interface UserNameProjection {
+		String getLastname();
+	}
+
+	interface ProjectionPagingRepository extends Repository<User, Integer> {
+		Page<UserNameProjection> findByFirstname(String firstname, Pageable pageable);
 	}
 
 }

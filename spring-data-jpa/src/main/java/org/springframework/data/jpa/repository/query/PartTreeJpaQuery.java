@@ -68,7 +68,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private final JpaParameters parameters;
 
 	private final QueryPreparer queryPreparer;
-	private final QueryPreparer countQuery;
+	private final CountQueryPreparer countQuery;
 	private final EntityManager em;
 	private final EscapeCharacter escape;
 	private final Lazy<JpaEntityInformation<?, ?>> entityInformation;
