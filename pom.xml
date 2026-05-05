@@ -31,7 +31,7 @@
 		<eclipselink>5.0.0</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
 		<hibernate>7.2.11.Final</hibernate>
-		<hibernate-72-snapshots>7.2.8-SNAPSHOT</hibernate-72-snapshots>
+		<hibernate-73-snapshots>7.3.4-SNAPSHOT</hibernate-73-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
@@ -63,10 +63,9 @@
 			</repositories>
 		</profile>
 		<profile>
-			<id>hibernate-72-snapshots</id>
+			<id>hibernate-73-snapshots</id>
 			<properties>
-				<hibernate>${hibernate-72-snapshots}</hibernate>
-				<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
+				<hibernate>${hibernate-73-snapshots}</hibernate>
 			</properties>
 			<repositories>
 				<repository>
