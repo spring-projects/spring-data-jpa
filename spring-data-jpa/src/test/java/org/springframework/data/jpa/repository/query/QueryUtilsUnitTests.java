@@ -52,6 +52,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Pranav HS
  * @author Eduard Dudar
  * @author Mark Paluch
+ * @author Young-ho Kim
  */
 class QueryUtilsUnitTests {
 
@@ -558,6 +559,13 @@ class QueryUtilsUnitTests {
 		assertThat(getFunctionAliases("1 as alias1, COUNT(2) as alias2")).containsExactly("alias2");
 		assertThat(getFunctionAliases("COUNT(1) as alias1,2 as alias2")).containsExactly("alias1");
 		assertThat(getFunctionAliases("COUNT(1) as alias1, 2 as alias2")).containsExactly("alias1");
+	}
+
+	@Test // GH-4242
+	void discoversCountStarFunctionAlias() {
+
+		assertThat(getFunctionAliases("SELECT COUNT(*) as total FROM User u")).containsExactly("total");
+		assertThat(getFunctionAliases("SELECT u, COUNT(*) as cnt FROM User u GROUP BY u")).containsExactly("cnt");
 	}
 
 	@Test // GH-3911
