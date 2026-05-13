@@ -57,6 +57,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Myles Fang
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
 
@@ -327,6 +328,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 						return Collections.singleton(attribute);
 					}
 				}
+				// SingularAttributes may not include the @Id when it's
+				// inherited from a @MappedSuperclass with a different
+				// @Access type. Fall back to getId() which resolves the
+				// attribute through the type hierarchy.
+				return Collections.singleton(source.getId(source.getIdType().getJavaType()));
 			}
 			return source.getIdClassAttributes();
 		}

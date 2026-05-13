@@ -67,6 +67,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithNestedIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithIdClass</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$PropertyAccessMappedSuperclass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithFieldAccessAndMappedSuperclassPropertyId</class>
 		<class>org.springframework.data.jpa.domain.sample.Trade</class>
 		<class>org.springframework.data.jpa.domain.sample.TradeOrder</class>
 		<class>org.springframework.data.jpa.domain.sample.TradeItem</class>
@@ -140,6 +142,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$PropertyAccessMappedSuperclass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithFieldAccessAndMappedSuperclassPropertyId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.HSQLDialect" />
@@ -159,6 +163,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$PropertyAccessMappedSuperclass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithFieldAccessAndMappedSuperclassPropertyId</class>
 		<class>org.springframework.data.jpa.domain.sample.Dummy</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
@@ -184,6 +190,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$PropertyAccessMappedSuperclass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithFieldAccessAndMappedSuperclassPropertyId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
@@ -203,6 +211,8 @@
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithPrivateIdGetter</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithStringId</class>
 		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$ExampleEntityWithUUIDId</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$PropertyAccessMappedSuperclass</class>
+		<class>org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformationIntegrationTests$EntityWithFieldAccessAndMappedSuperclassPropertyId</class>
 		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />

@@ -40,6 +40,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Christoph Strobl
  * @author Jens Schauder
  * @author Greg Turnquist
+ * @author Myles Fang
  */
 public abstract class JpaMetamodelEntityInformationIntegrationTests {
 
@@ -315,6 +316,65 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 		Object id = information.getId(entity);
 
 		assertThat(id).isEqualTo(42L);
+	}
+
+	/**
+	 * GH-4246: Current Hibernate already includes inherited {@code @Id} in
+	 * {@code getSingularAttributes()}, so this test passes without the
+	 * {@code findAttributes()} fallback (see UnitTests for the mocked
+	 * fallback path). The real bug surfaces on other JPA providers that miss
+	 * the {@code @Id} when {@code @Access} types differ between
+	 * {@code @Entity} and {@code @MappedSuperclass}.
+	 */
+	@Test // GH-4246
+	void resolvesIdFromMappedSuperclassWithDifferentAccessType() {
+
+		JpaMetamodelEntityInformation<EntityWithFieldAccessAndMappedSuperclassPropertyId, Long> information = new JpaMetamodelEntityInformation<>(
+				EntityWithFieldAccessAndMappedSuperclassPropertyId.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
+
+		assertThat(information.getIdType()).isEqualTo(Long.class);
+		assertThat(information.hasCompositeId()).isFalse();
+		assertThat(information.getId(new EntityWithFieldAccessAndMappedSuperclassPropertyId())).isNull();
+	}
+
+	/**
+	 * GH-4246: Companion to
+	 * {@link #resolvesIdFromMappedSuperclassWithDifferentAccessType()}.
+	 * See that method for context.
+	 */
+	@Test // GH-4246
+	void resolvesIdAttributePathsFromMappedSuperclassWithDifferentAccessType() {
+
+		JpaMetamodelEntityInformation<EntityWithFieldAccessAndMappedSuperclassPropertyId, Long> information = new JpaMetamodelEntityInformation<>(
+				EntityWithFieldAccessAndMappedSuperclassPropertyId.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
+
+		assertThat(information.getIdAttributeNames()).containsExactly("id");
+	}
+
+	@MappedSuperclass
+	@Access(AccessType.PROPERTY)
+	public static abstract class PropertyAccessMappedSuperclass {
+
+		private Long id;
+
+		@Id
+		@GeneratedValue
+		public Long getId() {
+			return this.id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+	}
+
+	@Entity
+	@Access(AccessType.FIELD)
+	public static class EntityWithFieldAccessAndMappedSuperclassPropertyId extends PropertyAccessMappedSuperclass {
+
+		private String name;
 	}
 
 	@SuppressWarnings("serial")

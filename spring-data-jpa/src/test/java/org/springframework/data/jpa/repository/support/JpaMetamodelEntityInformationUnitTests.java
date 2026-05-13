@@ -46,6 +46,7 @@ import org.springframework.data.jpa.domain.sample.PersistableWithIdClassPK;
  *
  * @author Oliver Gierke
  * @author Jens Schauder
+ * @author Myles Fang
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -61,6 +62,10 @@ class JpaMetamodelEntityInformationUnitTests {
 
 	@Mock
 	@SuppressWarnings("rawtypes") Type idType;
+
+	@Mock IdentifiableType<PersistableWithIdClass> singleIdType;
+	@Mock Type<String> singleIdTypeMock;
+	@Mock SingularAttribute<PersistableWithIdClass, String> singleIdAttribute;
 
 	@BeforeEach
 	@SuppressWarnings("unchecked")
@@ -95,5 +100,28 @@ class JpaMetamodelEntityInformationUnitTests {
 		entity = new PersistableWithIdClass(2L, null);
 		when(persistenceUnit.getIdentifier(entity)).thenReturn(2L);
 		assertThat(information.getId(entity)).isNotNull();
+	}
+
+	@Test // GH-4246
+	void fallsBackToGetIdWhenSingularAttributesMissesInheritedId() {
+
+		when(singleIdType.hasSingleIdAttribute()).thenReturn(true);
+		when(singleIdType.getSingularAttributes()).thenReturn(java.util.Collections.emptySet());
+		doReturn(singleIdTypeMock).when(singleIdType).getIdType();
+		when(singleIdTypeMock.getJavaType()).thenReturn(String.class);
+
+		when(singleIdAttribute.getName()).thenReturn("id");
+		when(singleIdAttribute.isId()).thenReturn(true);
+		when(singleIdAttribute.isAssociation()).thenReturn(false);
+		when(singleIdAttribute.getJavaType()).thenReturn(String.class);
+		doReturn(singleIdAttribute).when(singleIdType).getId(String.class);
+
+		when(metamodel.managedType(PersistableWithIdClass.class)).thenReturn(singleIdType);
+
+		JpaMetamodelEntityInformation<PersistableWithIdClass, Serializable> information = new JpaMetamodelEntityInformation<>(
+				PersistableWithIdClass.class, metamodel, persistenceUnit);
+
+		assertThat(information.hasCompositeId()).isFalse();
+		assertThat(information.getIdAttribute().getName()).isEqualTo("id");
 	}
 }
