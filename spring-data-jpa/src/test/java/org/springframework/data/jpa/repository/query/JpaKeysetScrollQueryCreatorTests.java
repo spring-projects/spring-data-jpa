@@ -45,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * Unit tests for {@link JpaKeysetScrollQueryCreator}.
  *
  * @author Mark Paluch
+ * @author YeongJae Min
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -52,7 +53,7 @@ class JpaKeysetScrollQueryCreatorTests {
 
 	@PersistenceContext EntityManager entityManager;
 
-	@Test // GH-3588
+	@Test // GH-3588, GH-4250
 	void shouldCreateContinuationQuery() throws Exception {
 
 		Map<String, Object> keys = Map.of("id", "10", "firstname", "John", "emailAddress", "john@example.com");
@@ -66,10 +67,33 @@ class JpaKeysetScrollQueryCreatorTests {
 
 		assertThat(query).containsIgnoringWhitespaces("""
 				SELECT u FROM User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
+				AND (u.firstname <= :keyset_firstname
 				AND (u.firstname < :keyset_firstname
 				OR u.firstname = :keyset_firstname AND u.emailAddress < :keyset_emailAddress
-				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id < :keyset_id)
+				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id < :keyset_id))
 				ORDER BY u.firstname desc, u.emailAddress desc, u.id desc
+				""");
+	}
+
+	@Test // GH-4250
+	void shouldCreateForwardContinuationQueryUsingSmartOr() throws Exception {
+
+		Map<String, Object> keys = Map.of("id", "10", "firstname", "John", "emailAddress", "john@example.com");
+		KeysetScrollPosition position = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+
+		Method method = MyRepo.class.getMethod("findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc",
+				String.class, ScrollPosition.class);
+		JpaKeysetScrollQueryCreator creator = getJpaKeysetScrollQueryCreator(position, method);
+
+		String query = creator.createQuery();
+
+		assertThat(query).containsIgnoringWhitespaces("""
+				SELECT u FROM User u WHERE (u.firstname LIKE :firstname ESCAPE '\\')
+				AND (u.firstname >= :keyset_firstname
+				AND (u.firstname > :keyset_firstname
+				OR u.firstname = :keyset_firstname AND u.emailAddress > :keyset_emailAddress
+				OR u.firstname = :keyset_firstname AND u.emailAddress = :keyset_emailAddress AND u.id > :keyset_id))
+				ORDER BY u.firstname asc, u.emailAddress asc, u.id asc
 				""");
 	}
 

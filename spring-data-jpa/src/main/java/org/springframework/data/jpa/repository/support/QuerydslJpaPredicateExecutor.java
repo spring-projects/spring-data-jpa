@@ -74,6 +74,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author YeongJae Min
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T>, JpaRepositoryConfigurationAware {
 
@@ -420,6 +421,24 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 			return KeysetScrollSpecification.requiresNonNullTail(order)
 					? Expressions.predicate(Ops.IS_NOT_NULL, propertyExpression)
 					: Expressions.FALSE;
+		}
+
+		@Override
+		public BooleanExpression compareInclusive(Order order, Expression<?> propertyExpression, @Nullable Object value) {
+
+			if (value != null) {
+
+				BooleanExpression inclusive = Expressions.booleanOperation(order.isAscending() ? Ops.GOE : Ops.LOE,
+						propertyExpression, ConstantImpl.create(value));
+
+				if (KeysetScrollSpecification.isNullsLast(order)) {
+					return inclusive.or(Expressions.predicate(Ops.IS_NULL, propertyExpression));
+				}
+
+				return inclusive;
+			}
+
+			return compare(order, propertyExpression, value);
 		}
 
 		@Override
