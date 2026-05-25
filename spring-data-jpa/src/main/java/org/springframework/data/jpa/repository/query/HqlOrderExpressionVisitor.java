@@ -60,6 +60,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author oniwon
  * @since 4.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
@@ -387,7 +388,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			}
 
 			if (ctx.dateOrTimeField().TIME() != null) {
-				return LocalDateTimeField.DATE;
+				return LocalDateTimeField.TIME;
 			}
 		} else if (ctx.datetimeField() != null) {
 

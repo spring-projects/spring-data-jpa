@@ -44,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author oniwon
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -76,6 +77,12 @@ class HqlOrderExpressionVisitorUnitTests {
 
 		assertThat(renderOrderBy(JpaSort.unsafe("EXTRACT(DAY FROM createdAt)"), "var_1"))
 				.startsWithIgnoringCase("order by extract(day from var_1.createdAt)");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("EXTRACT(DATE FROM createdAt)"), "var_1"))
+				.startsWithIgnoringCase("order by cast(var_1.createdAt as java.time.LocalDate)");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("EXTRACT(TIME FROM createdAt)"), "var_1"))
+				.startsWithIgnoringCase("order by cast(var_1.createdAt as java.time.LocalTime)");
 
 		assertThat(renderOrderBy(JpaSort.unsafe("WEEK(createdAt)"), "var_1"))
 				.startsWithIgnoringCase("order by extract(week from var_1.createdAt)");
