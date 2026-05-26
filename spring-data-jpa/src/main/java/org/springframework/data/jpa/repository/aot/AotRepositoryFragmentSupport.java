@@ -24,11 +24,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -37,11 +39,14 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.expression.ValueExpression;
+import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.jpa.repository.query.BeanFactoryQueryRewriterProvider;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaResultConverters;
 import org.springframework.data.jpa.repository.query.QueryEnhancer;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
+import org.springframework.data.jpa.repository.query.QueryRewriterProvider;
 import org.springframework.data.jpa.util.TupleBackedMap;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -56,6 +61,7 @@ import org.springframework.util.ConcurrentLruCache;
  * Support class for JPA AOT repository fragments.
  *
  * @author Mark Paluch
+ * @author YeongJae Min
  * @since 4.0
  */
 public class AotRepositoryFragmentSupport {
@@ -85,18 +91,33 @@ public class AotRepositoryFragmentSupport {
 
 	private final Lazy<ConcurrentLruCache<Method, ValueEvaluationContextProvider>> contextProviders;
 
+	private final QueryRewriterProvider queryRewriterProvider;
+
 	protected AotRepositoryFragmentSupport(QueryEnhancerSelector selector,
 			RepositoryFactoryBeanSupport.FragmentCreationContext context) {
 		this(selector, context.getRepositoryMetadata(), context.getValueExpressionDelegate(),
 				context.getProjectionFactory());
 	}
 
+	protected AotRepositoryFragmentSupport(QueryEnhancerSelector selector,
+			RepositoryFactoryBeanSupport.FragmentCreationContext context, BeanFactory beanFactory) {
+		this(selector, context.getRepositoryMetadata(), context.getValueExpressionDelegate(), context.getProjectionFactory(),
+				new BeanFactoryQueryRewriterProvider(beanFactory));
+	}
+
 	protected AotRepositoryFragmentSupport(QueryEnhancerSelector selector, RepositoryMetadata repositoryMetadata,
 			ValueExpressionDelegate valueExpressions, ProjectionFactory projectionFactory) {
+		this(selector, repositoryMetadata, valueExpressions, projectionFactory, QueryRewriterProvider.simple());
+	}
+
+	private AotRepositoryFragmentSupport(QueryEnhancerSelector selector, RepositoryMetadata repositoryMetadata,
+			ValueExpressionDelegate valueExpressions, ProjectionFactory projectionFactory,
+			QueryRewriterProvider queryRewriterProvider) {
 
 		this.repositoryMetadata = repositoryMetadata;
 		this.valueExpressions = valueExpressions;
 		this.projectionFactory = projectionFactory;
+		this.queryRewriterProvider = queryRewriterProvider;
 		this.enhancers = Lazy.of(() -> new ConcurrentLruCache<>(32, query -> selector.select(query).create(query)));
 		this.expressions = Lazy.of(() -> new ConcurrentLruCache<>(32, valueExpressions::parse));
 		this.contextProviders = Lazy.of(() -> new ConcurrentLruCache<>(32, it -> valueExpressions
@@ -116,6 +137,15 @@ public class AotRepositoryFragmentSupport {
 		QueryEnhancer queryStringEnhancer = this.enhancers.get().get(query);
 		return queryStringEnhancer.rewrite(new DefaultQueryRewriteInformation(sort,
 				ReturnedType.of(returnedType, repositoryMetadata.getDomainType(), projectionFactory)));
+	}
+
+	protected QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter) {
+		return this.queryRewriterProvider.getQueryRewriter(queryRewriter);
+	}
+
+	protected QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter,
+			Supplier<QueryRewriter> fallback) {
+		return this.queryRewriterProvider.getQueryRewriter(queryRewriter, fallback);
 	}
 
 	/**
