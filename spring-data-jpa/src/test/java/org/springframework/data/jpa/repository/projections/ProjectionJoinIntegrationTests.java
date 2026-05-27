@@ -122,7 +122,6 @@ class ProjectionJoinIntegrationTests {
 	static class Address {
 		@Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
-		@Access(value = AccessType.PROPERTY) //
 		int id;
 
 		String streetName;
