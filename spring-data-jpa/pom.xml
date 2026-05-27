@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>net.javacrumbs.json-unit</groupId>
 			<artifactId>json-unit-assertj</artifactId>
-			<version>4.1.0</version>
+			<version>5.1.1</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -221,7 +221,7 @@
 		<dependency>
 			<groupId>org.jboss.logging</groupId>
 			<artifactId>jboss-logging</artifactId>
-			<version>3.6.1.Final</version>
+			<version>3.6.3.Final</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -450,7 +450,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
-				<version>1.14.0</version>
+				<version>1.16.0</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.aspectj</groupId>
