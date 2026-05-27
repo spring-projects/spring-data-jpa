@@ -39,7 +39,7 @@
 		<jakarta-persistence-api>3.1.0</jakarta-persistence-api>
 		<jsqlparser>5.2</jsqlparser>
 		<mysql-connector-java>9.2.0</mysql-connector-java>
-		<postgresql>42.7.10</postgresql>
+		<postgresql>42.7.11</postgresql>
 		<springdata.commons>3.5.12-SNAPSHOT</springdata.commons>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
