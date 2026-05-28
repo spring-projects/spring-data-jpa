@@ -18,6 +18,6 @@ asciidoc:
     springjavadocurl: '${documentation.spring-javadoc-url}'
     spring-framework-javadoc: '{springjavadocurl}'
     springhateoasversion: '${spring-hateoas}'
-    hibernatejavadocurl: https://docs.jboss.org/hibernate/orm/6.6/javadocs/
+    hibernatejavadocurl: https://docs.hibernate.org/orm/7.2/javadocs/
     releasetrainversion: '${releasetrain}'
     store: Jpa
