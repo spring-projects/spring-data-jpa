@@ -598,6 +598,10 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-1185
 	<T> List<T> findAsListByFirstnameLike(String name, Class<T> projectionType);
 
+	// GH-4251
+	@Query("select u.firstname as firstname, u.lastname as lastname from User u where u.id = ?1")
+	NameOnly projectByJpql(Integer id);
+
 	// DATAJPA-980
 	@Query(value = "SELECT firstname, lastname FROM SD_User WHERE id = ?1", nativeQuery = true)
 	NameOnly findByNativeQuery(Integer id);

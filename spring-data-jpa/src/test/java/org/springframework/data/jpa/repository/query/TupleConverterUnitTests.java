@@ -117,7 +117,8 @@ class TupleConverterUnitTests {
 	@Test // GH-3076
 	void dealsWithNullsInArguments() {
 
-		ReturnedType returnedType = ReturnedType.of(WithPC.class, DomainType.class, new SpelAwareProxyProjectionFactory());
+		ReturnedType returnedType = ReturnedType.of(SingleConstructor.class, DomainType.class,
+				new SpelAwareProxyProjectionFactory());
 
 		doReturn(List.of(element, element, element)).when(tuple).getElements();
 		when(tuple.get(eq(0))).thenReturn("one");
@@ -125,7 +126,7 @@ class TupleConverterUnitTests {
 		when(tuple.get(eq(2))).thenReturn(1);
 
 		Object result = new TupleConverter(returnedType).convert(tuple);
-		assertThat(result).isInstanceOf(WithPC.class);
+		assertThat(result).isInstanceOf(SingleConstructor.class);
 	}
 
 	@Test // GH-3076, GH-4088
@@ -205,6 +206,69 @@ class TupleConverterUnitTests {
 				.withMessageContaining("Cannot find compatible constructor for DTO projection");
 	}
 
+	@Test // GH-4251
+	@SuppressWarnings("unchecked")
+	void mapsObjectArrayToInputPropertyKeyedMapForInterfaceProjection() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(NameOnly.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.isDtoProjection()).thenReturn(false);
+		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("firstname", "lastname"));
+		when(returnedType.hasInputProperties()).thenReturn(true);
+
+		Map<String, Object> map = (Map<String, Object>) new TupleConverter(returnedType)
+				.convert(new Object[] { "Dave", "Matthews" });
+
+		assertThat(map).containsEntry("firstname", "Dave").containsEntry("lastname", "Matthews");
+	}
+
+	@Test // GH-4251
+	void instantiatesDtoFromObjectArray() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(SingleConstructor.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(true);
+		when(returnedType.isDtoProjection()).thenReturn(true);
+		when(returnedType.needsCustomConstruction()).thenReturn(true);
+		when(returnedType.getInputProperties()).thenReturn(Arrays.asList("one", "two", "three"));
+		when(returnedType.hasInputProperties()).thenReturn(true);
+
+		Object result = new TupleConverter(returnedType).convert(new Object[] { "one", null, 1 });
+
+		assertThat(result).isInstanceOfSatisfying(SingleConstructor.class, pc -> {
+			assertThat(pc.one).isEqualTo("one");
+			assertThat(pc.two).isNull();
+			assertThat(pc.three).isEqualTo(1L);
+		});
+	}
+
+	@Test // GH-4251
+	void returnsSingleElementOfObjectArrayIfAssignable() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(String.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(false);
+
+		assertThat(new TupleConverter(returnedType).convert(new Object[] { "Foo" })).isEqualTo("Foo");
+	}
+
+	@Test // GH-4251
+	void returnsNullForSingleNullElementObjectArray() {
+
+		ReturnedType returnedType = spy(
+				ReturnedType.of(String.class, DomainType.class, new SpelAwareProxyProjectionFactory()));
+		when(returnedType.isProjecting()).thenReturn(false);
+
+		assertThat(new TupleConverter(returnedType).convert(new Object[] { null })).isNull();
+	}
+
+	interface NameOnly {
+		String getFirstname();
+
+		String getLastname();
+	}
+
 	interface SampleRepository extends CrudRepository<Object, Long> {
 		String someMethod();
 	}
@@ -274,12 +338,13 @@ class TupleConverterUnitTests {
 		String one, two, three;
 	}
 
-	static class WithPC {
+	static class SingleConstructor {
+
 		String one;
 		String two;
 		long three;
 
-		public WithPC(String one, String two, long three) {
+		public SingleConstructor(String one, String two, long three) {
 			this.one = one;
 			this.two = two;
 			this.three = three;
@@ -287,6 +352,7 @@ class TupleConverterUnitTests {
 	}
 
 	static class MultipleConstructors {
+
 		String one;
 		String two;
 		long three;

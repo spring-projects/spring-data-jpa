@@ -25,7 +25,9 @@ import jakarta.persistence.TypedQuery;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -387,6 +389,10 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 		@Override
 		public Object convert(Object source) {
 
+			if (source instanceof Object[] array) {
+				return convertArray(array);
+			}
+
 			if (!(source instanceof Tuple tuple)) {
 				return source;
 			}
@@ -409,19 +415,56 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 					ctorArgs[i] = tuple.get(i);
 				}
 
-				List<Class<?>> argTypes = getArgumentTypes(ctorArgs);
-
-				if (preferredConstructor != null && isConstructorCompatible(preferredConstructor.getConstructor(), argTypes)) {
-					return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
-				}
-
-				return BeanUtils.instantiateClass(getFirstMatchingConstructor(ctorArgs, argTypes), ctorArgs);
+				return instantiateDto(ctorArgs);
 			}
 
 			return new TupleBackedMap(tupleWrapper.apply(tuple));
 		}
 
-		private Constructor<?> getFirstMatchingConstructor(Object[] ctorArgs, List<Class<?>> argTypes) {
+		/**
+		 * Convert an {@code Object[]} result, as returned by some JPA providers (e.g. EclipseLink) for multi-field
+		 * {@code SELECT} queries.
+		 */
+		private @Nullable Object convertArray(@Nullable Object[] array) {
+
+			if (array.length > 0 && dtoProjection && type.isInstance(array[0])) {
+				return array[0];
+			}
+
+			if (array.length == 1) {
+
+				Object value = array[0];
+				if (value == null || type.getDomainType().isInstance(value) || type.isInstance(value)) {
+					return value;
+				}
+			}
+
+			if (dtoProjection) {
+				return instantiateDto(array);
+			}
+
+			List<String> inputProperties = type.getInputProperties();
+			Map<String, @Nullable Object> map = new HashMap<>(array.length);
+
+			for (int i = 0; i < array.length && i < inputProperties.size(); i++) {
+				map.put(inputProperties.get(i), array[i]);
+			}
+
+			return map;
+		}
+
+		private Object instantiateDto(@Nullable Object[] ctorArgs) {
+
+			List<Class<?>> argTypes = getArgumentTypes(ctorArgs);
+
+			if (preferredConstructor != null && isConstructorCompatible(preferredConstructor.getConstructor(), argTypes)) {
+				return BeanUtils.instantiateClass(preferredConstructor.getConstructor(), ctorArgs);
+			}
+
+			return BeanUtils.instantiateClass(getFirstMatchingConstructor(ctorArgs, argTypes), ctorArgs);
+		}
+
+		private Constructor<?> getFirstMatchingConstructor(@Nullable Object[] ctorArgs, List<Class<?>> argTypes) {
 
 			for (Constructor<?> ctor : type.getReturnedType().getDeclaredConstructors()) {
 
@@ -439,7 +482,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 					argTypes.stream().map(Class::getName).collect(Collectors.joining(", "))));
 		}
 
-		private static List<Class<?>> getArgumentTypes(Object[] ctorArgs) {
+		private static List<Class<?>> getArgumentTypes(@Nullable Object[] ctorArgs) {
 			List<Class<?>> argTypes = new ArrayList<>(ctorArgs.length);
 
 			for (Object ctorArg : ctorArgs) {

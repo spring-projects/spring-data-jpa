@@ -127,6 +127,16 @@ class UserRepositoryProjectionTests {
 		userRepository.findByNamedQueryWithConstructorExpression();
 	}
 
+	@Test // GH-4251
+	void selectsInterfaceProjection() {
+
+		NameOnly result = userRepository.projectByJpql(dave.getId());
+
+		assertThat(result).isNotNull();
+		assertThat(result.getFirstname()).isEqualTo("Dave");
+		assertThat(result.getLastname()).isEqualTo("Matthews");
+	}
+
 	@Test // DATAJPA-1713, GH-2008
 	void selectProjectionWithSubselect() {
 

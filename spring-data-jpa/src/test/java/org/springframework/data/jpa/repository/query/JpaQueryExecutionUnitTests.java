@@ -44,10 +44,13 @@ import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
+import org.springframework.data.jpa.repository.query.JpaQueryExecution.SingleEntityExecution;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import org.springframework.data.repository.query.ParametersSource;
+import org.springframework.data.repository.query.ResultProcessor;
+import org.springframework.data.repository.query.ReturnedType;
 
 /**
  * Unit test for {@link JpaQueryExecution}.
@@ -271,11 +274,50 @@ class JpaQueryExecutionUnitTests {
 		verify(jpaQuery).createCountQuery(any());
 	}
 
+	@Test // GH-4251
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	void doesNotConvertObjectArrayForInterfaceProjectionReturnType() {
+
+		ResultProcessor resultProcessor = mock(ResultProcessor.class);
+		ReturnedType returnedType = mock(ReturnedType.class);
+
+		when(jpaQuery.getQueryMethod()).thenReturn(method);
+		when(method.getReturnType()).thenReturn((Class) NameOnly.class);
+		when(method.getResultProcessor()).thenReturn(resultProcessor);
+		when(resultProcessor.getReturnedType()).thenReturn(returnedType);
+		when(returnedType.isProjecting()).thenReturn(true);
+
+		Object[] row = { "Dave", "Matthews" };
+
+		SingleEntityExecution execution = new SingleEntityExecution() {
+			@Override
+			protected Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
+				return row;
+			}
+		};
+
+		Object result = execution.execute(jpaQuery, accessor);
+
+		assertThat(result).isSameAs(row);
+	}
+
+	interface NameOnly {
+		String getFirstname();
+
+		String getLastname();
+	}
+
 	@Test // DATAJPA-951
 	void doesNotPreemtivelyWrapResultIntoOptional() {
 
+		ResultProcessor resultProcessor = mock(ResultProcessor.class);
+		ReturnedType returnedType = mock(ReturnedType.class);
+
 		doReturn(method).when(jpaQuery).getQueryMethod();
 		doReturn(Optional.class).when(method).getReturnType();
+		doReturn(resultProcessor).when(method).getResultProcessor();
+		when(resultProcessor.getReturnedType()).thenReturn(returnedType);
+		when(returnedType.isProjecting()).thenReturn(false);
 		JpaParametersParameterAccessor accessor = mock(JpaParametersParameterAccessor.class);
 
 		StubQueryExecution execution = new StubQueryExecution() {
