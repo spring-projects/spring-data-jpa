@@ -62,7 +62,7 @@
 			</repositories>
 		</profile>
 		<profile>
-			<id>hibernate-73-snapshots</id>
+			<id>hibernate-74-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-74-snapshots}</hibernate>
 			</properties>
