@@ -46,6 +46,7 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.repository.core.support.SurroundingTransactionDetectorMethodInterceptor;
+import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.data.util.CloseableIterator;
@@ -106,6 +107,14 @@ public abstract class JpaQueryExecution {
 		Class<?> requiredType = queryMethod.getReturnType();
 
 		if (ClassUtils.isAssignable(requiredType, void.class) || ClassUtils.isAssignableValue(requiredType, result)) {
+			return result;
+		}
+
+		// Projecting return types (interface or DTO projections) are handled downstream by
+		// ResultProcessor.processResult / ProjectingConverter, which already understand both
+		// Tuple and Object[] sources.
+		ResultProcessor resultProcessor = queryMethod.getResultProcessor();
+		if (resultProcessor.getReturnedType().isProjecting()) {
 			return result;
 		}
 
