@@ -653,6 +653,9 @@ public interface UserRepository extends Repository<User, Long> {
 ====
 The preceding declaration would apply the configured `@QueryHint` for that actually query but omit applying it to the count query triggered to calculate the total number of pages.
 
+NOTE: Returning a `Stream<T>` does not guarantee that the JPA provider or JDBC driver fetches database rows incrementally.
+For memory-efficient processing of large result sets, use query hints to apply provider-specific fetch-size settings and check your JPA provider and JDBC driver documentation for supported values.
+
 [[jpa.query-hints.comments]]
 === Adding Comments to Queries
 Sometimes, you need to debug a query based upon database performance.
