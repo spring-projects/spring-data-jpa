@@ -60,7 +60,6 @@ import org.springframework.util.StringUtils;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
- * @author oniwon
  * @since 4.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
@@ -220,7 +219,16 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 		Expression<String> condition = visitRequired(ctx.expression(0));
 		Expression<String> match = visitRequired(ctx.expression(1));
-		Expression<Character> escape = ctx.ESCAPE() != null ? charLiteralOf(ctx.ESCAPE()) : null;
+		Expression<Character> escape = null;
+
+		if (ctx.ESCAPE() != null) {
+
+			if (ctx.parameter() != null) {
+				throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "ESCAPE with a parameter"));
+			}
+
+			escape = charLiteralOf(ctx.STRING_LITERAL() != null ? ctx.STRING_LITERAL() : ctx.JAVA_STRING_LITERAL());
+		}
 
 		if (ctx.LIKE() != null) {
 			if (ctx.NOT() == null) {
@@ -293,10 +301,10 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "IN clause with a parameter"));
 		}
 
-		CriteriaBuilder.In<Object> in = cb.in(visit(ctx.expression()));
+		CriteriaBuilder.In<Object> in = cb.in(visitRequired(ctx.expression()));
 
 		ctx.inList().expressionOrPredicate()
-				.forEach(expressionOrPredicateContext -> in.value(visit(expressionOrPredicateContext)));
+				.forEach(expressionOrPredicateContext -> in.value(visitRequired(expressionOrPredicateContext)));
 
 		if (ctx.NOT() == null) {
 			return in;
@@ -323,12 +331,12 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	@Override
 	public Expression<?> visitCastFunction(HqlParser.CastFunctionContext ctx) {
-		throw new UnsupportedOperationException("Sorting using CAST ist not supported");
+		throw new UnsupportedOperationException("Sorting using CAST is not supported");
 	}
 
 	@Override
 	public Expression<?> visitTreatedNavigablePath(HqlParser.TreatedNavigablePathContext ctx) {
-		throw new UnsupportedOperationException("Sorting using TREAT ist not supported");
+		throw new UnsupportedOperationException("Sorting using TREAT is not supported");
 	}
 
 	@Override
@@ -465,15 +473,30 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 		HqlParser.TrimSpecificationContext tsc = ctx.trimSpecification();
 
-		if (tsc.LEADING() != null) {
-			trimSpec = CriteriaBuilder.Trimspec.LEADING;
-		} else if (tsc.TRAILING() != null) {
-			trimSpec = CriteriaBuilder.Trimspec.TRAILING;
-		} else if (tsc.BOTH() != null) {
-			trimSpec = CriteriaBuilder.Trimspec.BOTH;
+		if (tsc != null) {
+			if (tsc.LEADING() != null) {
+				trimSpec = CriteriaBuilder.Trimspec.LEADING;
+			} else if (tsc.TRAILING() != null) {
+				trimSpec = CriteriaBuilder.Trimspec.TRAILING;
+			} else if (tsc.BOTH() != null) {
+				trimSpec = CriteriaBuilder.Trimspec.BOTH;
+			}
 		}
 
-		Expression<Character> stringLiteral = charLiteralOf(ctx.trimCharacter().STRING_LITERAL());
+		Expression<Character> stringLiteral = null;
+		HqlParser.TrimCharacterContext trimCharacter = ctx.trimCharacter();
+
+		if (trimCharacter != null) {
+
+			if (trimCharacter.parameter() != null) {
+				throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "TRIM with a parameter"));
+			}
+
+			if (trimCharacter.STRING_LITERAL() != null) {
+				stringLiteral = charLiteralOf(trimCharacter.STRING_LITERAL());
+			}
+		}
+
 		Expression<String> expression = visitRequired(ctx.expression());
 
 		if (trimSpec != null) {
@@ -506,7 +529,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		if (ctx.booleanLiteral() != null) {
 			return visitRequired(ctx.booleanLiteral());
 		} else if (ctx.JAVA_STRING_LITERAL() != null) {
-			return literalOf(ctx.JAVA_STRING_LITERAL());
+			return cb.literal(unquoteJavaStringLiteral(ctx.JAVA_STRING_LITERAL().getText()));
 		} else if (ctx.STRING_LITERAL() != null) {
 			return literalOf(ctx.STRING_LITERAL());
 		} else if (ctx.numericLiteral() != null) {
@@ -528,7 +551,8 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	private Expression<Character> charLiteralOf(TerminalNode node) {
 
-		String text = node.getText();
+		String text = unquoteStringLiteral(node.getText());
+		Assert.hasLength(text, "Character literal must not be empty");
 		return cb.literal(text.charAt(0));
 	}
 
@@ -588,7 +612,8 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			return visitRequired(ctx.time());
 		}
 
-		return cb.literal(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText())));
+		return cb
+				.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
 	}
 
 	@Override
@@ -805,7 +830,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 		for (int i = 0; i < text.length(); i++) {
 			char c = text.charAt(i);
-			if (Character.isDigit(c) || c == '-' || c == '+' || c == '.') {
+			if (Character.isDigit(c) || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E') {
 				result.append(c);
 			}
 		}
@@ -876,6 +901,63 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 							c = nextChar;
 							break;
 					}
+				}
+			}
+			sb.append(c);
+		}
+		return sb.toString();
+	}
+
+	private static String unquoteJavaStringLiteral(String text) {
+
+		// Optional 'j'/'J' prefix as permitted by the grammar (j'…' / j"…")
+		int start = (text.charAt(0) == 'j' || text.charAt(0) == 'J') ? 1 : 0;
+		int end = text.length() - 1;
+
+		char delimiter = text.charAt(start);
+		Assert.isTrue(delimiter == text.charAt(end), "Quoted literal does not end with the same delimiter");
+
+		// Unquote and handle Java escape sequences
+		StringBuilder sb = new StringBuilder(text.length() - 2);
+		for (int i = start + 1; i < end; i++) {
+
+			char c = text.charAt(i);
+			if (c == '\\' && i + 1 < end) {
+
+				char nextChar = text.charAt(++i);
+				switch (nextChar) {
+					case 'b':
+						c = '\b';
+						break;
+					case 't':
+						c = '\t';
+						break;
+					case 'n':
+						c = '\n';
+						break;
+					case 'f':
+						c = '\f';
+						break;
+					case 'r':
+						c = '\r';
+						break;
+					case '\\':
+						c = '\\';
+						break;
+					case '\'':
+						c = '\'';
+						break;
+					case '"':
+						c = '"';
+						break;
+					case 'u':
+						c = (char) Integer.parseInt(text.substring(i + 1, i + 5), 16);
+						i += 4;
+						break;
+					default:
+						sb.append('\\');
+						c = nextChar;
+						break;
 				}
 			}
 			sb.append(c);
