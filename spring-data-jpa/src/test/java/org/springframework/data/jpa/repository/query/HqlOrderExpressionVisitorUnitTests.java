@@ -29,7 +29,6 @@ import java.util.Locale;
 
 import org.hibernate.query.sqm.tree.SqmRenderContext;
 import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -44,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
- * @author oniwon
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -116,7 +114,7 @@ class HqlOrderExpressionVisitorUnitTests {
 				.startsWithIgnoringCase("order by repeat('a', 5) asc");
 	}
 
-	@Test // GH-3172
+	@Test // GH-3172, GH-4255
 	void literals() {
 
 		assertThat(renderOrderBy(JpaSort.unsafe("age + 1"), "var_1")).startsWithIgnoringCase("order by var_1.age + 1");
@@ -129,6 +127,26 @@ class HqlOrderExpressionVisitorUnitTests {
 		assertThat(renderOrderBy(JpaSort.unsafe("age + 1.1bd"), "var_1"))
 				.startsWithIgnoringCase("order by var_1.age + 1.1");
 		assertThat(renderOrderBy(JpaSort.unsafe("age + 0x12"), "var_1")).startsWithIgnoringCase("order by var_1.age + 18");
+
+		// scientific notation
+		assertThat(renderOrderBy(JpaSort.unsafe("age + 1.5e2"), "var_1"))
+				.startsWithIgnoringCase("order by var_1.age + 150");
+		assertThat(renderOrderBy(JpaSort.unsafe("age + 1.5E2"), "var_1"))
+				.startsWithIgnoringCase("order by var_1.age + 150");
+		assertThat(renderOrderBy(JpaSort.unsafe("age + 2e3f"), "var_1"))
+				.startsWithIgnoringCase("order by var_1.age + 2000");
+	}
+
+	@Test // GH-4255
+	void javaStringLiteral() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("firstname || \"\\u0041BC\""), "var_1"))
+				.containsIgnoringCase("concat(var_1.firstname, 'ABC')");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("firstname || \"a\\tb\""), "var_1")).doesNotContain("\\t");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("firstname || j'\\u0041BC'"), "var_1"))
+				.containsIgnoringCase("concat(var_1.firstname, 'ABC')");
 	}
 
 	@Test // GH-3172
@@ -141,9 +159,8 @@ class HqlOrderExpressionVisitorUnitTests {
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {ts '2012-01-03 09:00:00.000000001'}"), "var_1"))
 				.startsWithIgnoringCase("order by var_1.createdAt + '2012-01-03T09:00:00.000000001'");
 
-		// Hibernate NPE
-		assertThatIllegalArgumentException()
-				.isThrownBy(() -> renderOrderBy(JpaSort.unsafe("createdAt + {t '12:34:56'}"), "var_1"));
+		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {t '12:34:56'}"), "var_1"))
+				.startsWithIgnoringCase("order by var_1.createdAt + '12:34:56'");
 
 		assertThat(renderOrderBy(JpaSort.unsafe("createdAt + {d '2024-01-01'}"), "var_1"))
 				.startsWithIgnoringCase("order by var_1.createdAt + '2024-01-01'");
@@ -198,11 +215,55 @@ class HqlOrderExpressionVisitorUnitTests {
 		assertThat(renderOrderBy(JpaSort.unsafe("ln(age)"), "var_1")).startsWithIgnoringCase("order by ln(var_1.age)");
 	}
 
-	@Test // GH-3172
-	@Disabled("HHH-19075")
+	@Test // GH-3172, 4255
 	void trim() {
 		assertThat(renderOrderBy(JpaSort.unsafe("trim(leading '.' from lastname)"), "var_1"))
-				.startsWithIgnoringCase("order by repeat('a', 5) asc");
+				.startsWithIgnoringCase("order by trim(leading '.' from var_1.lastname)");
+		assertThat(renderOrderBy(JpaSort.unsafe("trim(trailing '.' from lastname)"), "var_1"))
+				.startsWithIgnoringCase("order by trim(trailing '.' from var_1.lastname)");
+		assertThat(renderOrderBy(JpaSort.unsafe("trim(both '.' from lastname)"), "var_1"))
+				.startsWithIgnoringCase("order by trim(both '.' from var_1.lastname)");
+		assertThat(renderOrderBy(JpaSort.unsafe("trim('.' from lastname)"), "var_1"))
+				.startsWithIgnoringCase("order by trim(both '.' from var_1.lastname)");
+		assertThat(renderOrderBy(JpaSort.unsafe("trim(lastname)"), "var_1"))
+				.startsWithIgnoringCase("order by trim(both ' ' from var_1.lastname)");
+	}
+
+	@Test // GH-4255
+	void like() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname like 'A%' then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname like 'A%'");
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname not like 'A%' then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname not like 'A%'");
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname like 'A!%' escape '!' then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname like 'A!%' escape '!'");
+		assertThat(
+				renderOrderBy(JpaSort.unsafe("case when firstname not like 'A!%' escape '!' then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname not like 'A!%' escape '!'");
+	}
+
+	@Test // GH-4255
+	void in() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname in ('Oliver', 'Dave') then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname in ('Oliver', 'Dave')");
+	}
+
+	@Test // GH-4255
+	void unsupported() {
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> renderOrderBy(JpaSort.unsafe(":parameter"), "var_1"));
+
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> renderOrderBy(JpaSort.unsafe("trim(:parameter from lastname)"), "var_1"));
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> renderOrderBy(
+				JpaSort.unsafe("case when firstname like 'A%' escape :parameter then 1 else 0 end"), "var_1"));
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
+				() -> renderOrderBy(JpaSort.unsafe("case when firstname in (:parameter) then 1 else 0 end"), "var_1"));
 	}
 
 	@Test // GH-3172
