@@ -19,7 +19,12 @@ The additional interface has methods that let you run specifications in a variet
 List<T> findAll(Specification<T> spec);
 ----
 
-The `Specification` interface is defined as follows:
+The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
+So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `LocalDate`.
+Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
+====
+
+Use a specification directly with a repository:
 
 [source, java]
 ----

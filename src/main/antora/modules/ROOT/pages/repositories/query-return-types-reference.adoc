@@ -15,7 +15,7 @@ Make sure to close the `Stream` after usage, for example:
 ----
 @Transactional
 public void processUsers() {
-	try (Stream<User> users = repository.streamByName("John", "Doe")) {
+	try (Stream<User> users = repository.streamByFirstnameAndLastname("John", "Doe")) {
 		// stream consumption
 	}
 }
