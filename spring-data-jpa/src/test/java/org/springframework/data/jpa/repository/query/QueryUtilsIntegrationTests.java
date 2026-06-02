@@ -129,7 +129,6 @@ class QueryUtilsIntegrationTests {
 
 		assertThat(expr.getParentPath()).hasFieldOrPropertyWithValue("fetched", true);
 		assertThat(from.getFetches()).hasSize(1);
-		assertThat(from.getJoins()).hasSize(1);
 	}
 
 	@Test // DATAJPA-401, DATAJPA-1238

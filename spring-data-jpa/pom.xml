@@ -175,6 +175,12 @@
 			<artifactId>hibernate-jpamodelgen</artifactId>
 			<version>${hibernate}</version>
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>net.bytebuddy</groupId>
+					<artifactId>byte-buddy</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
