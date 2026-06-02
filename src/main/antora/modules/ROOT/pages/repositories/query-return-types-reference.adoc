@@ -1,1 +1,27 @@
 include::{commons}@data-commons::page$repositories/query-return-types-reference.adoc[]
+
+[[return-type.stream]]
+== Java `Stream`
+
+Using a Java `Stream` requires additional consideration.
+A `Stream` implies operating on a stateful resource that is associated with closeable resources (such as a JDBC `ResultSet` or `Statement`).
+Those resources are typically bound to the stream itself and a surrounding transaction.
+Returning a `Stream<T>` therefore requires a surrounding transaction to ensure proper contextual availability of resources (the same applies when returning a JDBC `ResultSet`).
+
+Make sure to close the `Stream` after usage, for example:
+
+====
+[source,java]
+----
+@Transactional
+public void processUsers() {
+	try (Stream<User> users = repository.streamByName("John", "Doe")) {
+		// stream consumption
+	}
+}
+----
+====
+
+Note that using a `Stream<T>` does not guarantee incremental fetching by your JPA provider or JDBC driver.
+For memory-efficient processing of large result sets, use query hints to apply provider-specific fetch-size settings and check your JPA provider and JDBC driver documentation for supported values and behavior that is associated with these.
+Consuming objects from a `Stream` associates entities with the session cache and is no different from any collection type in that regard.
