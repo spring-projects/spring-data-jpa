@@ -184,8 +184,8 @@ public abstract class QueryUtils {
 		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE + DOTALL);
 
 		builder = new StringBuilder();
-		// any function call including parameters within the brackets
-		builder.append("\\w+\\s*\\([\\w\\.,\\s'=:;\\\\?\\*]+\\)");
+		// any function call including parameters within the brackets;
+		builder.append("\\w+\\s*\\((?:[^()]+|\\([^()]*\\))+\\)");
 		// the potential alias
 		builder.append("\\s+(?:as)+\\s+([\\w\\.]+)");
 
@@ -771,8 +771,8 @@ public abstract class QueryUtils {
 		Nulls nulls = toNulls(order.getNullHandling());
 
 		if (order.isIgnoreCase() && String.class.equals(expression.getJavaType())) {
-			Expression<String> upper = cb.lower((Expression<String>) expression);
-			return order.isAscending() ? cb.asc(upper, nulls) : cb.desc(upper, nulls);
+			Expression<String> lower = cb.lower((Expression<String>) expression);
+			return order.isAscending() ? cb.asc(lower, nulls) : cb.desc(lower, nulls);
 		} else {
 			return order.isAscending() ? cb.asc(expression, nulls) : cb.desc(expression, nulls);
 		}
