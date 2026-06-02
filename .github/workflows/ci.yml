@@ -25,3 +25,4 @@ jobs:
         uses: spring-projects/spring-data-build/actions/maven-build@main
         with:
           additional-options: -Pall-dbs
+          settings-xml: '${{ vars.SETTINGS_XML }}'
