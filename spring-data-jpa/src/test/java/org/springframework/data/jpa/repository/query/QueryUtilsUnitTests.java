@@ -566,6 +566,23 @@ class QueryUtilsUnitTests {
 
 		assertThat(getFunctionAliases("SELECT COUNT(*) as total FROM User u")).containsExactly("total");
 		assertThat(getFunctionAliases("SELECT u, COUNT(*) as cnt FROM User u GROUP BY u")).containsExactly("cnt");
+		assertThat(getFunctionAliases("SELECT COUNT(*) AS cnt, SUM(price) AS s FROM Order o")).contains("cnt", "s");
+	}
+
+	@Test // GH-4242
+	void discoversFunctionAliasWithArithmeticArguments() {
+
+		assertThat(getFunctionAliases("SELECT SUM(price - discount) AS net FROM Order o")).containsExactly("net");
+		assertThat(getFunctionAliases("SELECT ROUND(x / 2, 0) AS half FROM t")).containsExactly("half");
+		assertThat(getFunctionAliases("SELECT ABS(a + b) AS total FROM t")).containsExactly("total");
+	}
+
+	@Test // GH-4242
+	void discoversFunctionAliasWithNestedFunctionArguments() {
+
+		assertThat(getFunctionAliases("SELECT COALESCE(COUNT(id), 0) AS cnt FROM User u")).containsExactly("cnt");
+		assertThat(getFunctionAliases("SELECT UPPER(TRIM(name)) AS cleanName FROM User u")).containsExactly("cleanName");
+		assertThat(getFunctionAliases("SELECT NVL(SUM(price), 0) AS total FROM Order o")).containsExactly("total");
 	}
 
 	@Test // GH-3911
