@@ -1,7 +1,7 @@
 [[jpa.stored-procedures]]
 = Stored Procedures
 
-The JPA 2.1 specification introduced support for calling stored procedures by using the JPA criteria query API.
+The JPA 2.1 specification introduced support for calling stored procedures via the `StoredProcedureQuery` API.
 We Introduced the `@Procedure` annotation for declaring stored procedure metadata on a repository method.
 
 The examples to follow use the following stored procedure:
@@ -82,12 +82,12 @@ Integer plus1inout(@Param("arg") Integer arg);
 
 The following example shows how to reference a stored procedure by referencing the `@NamedStoredProcedureQuery.name` attribute.
 
-.Referencing explicitly mapped named stored procedure "User.plus1IO" in `EntityManager`.
+.Referencing explicitly mapped named stored procedure "User.plus1" in `EntityManager`.
 ====
 [source, java]
 ----
-@Procedure(name = "User.plus1IO")
-Integer entityAnnotatedCustomNamedProcedurePlus1IO(@Param("arg") Integer arg);
+@Procedure(name = "User.plus1")
+Integer entityAnnotatedCustomNamedProcedurePlus1(@Param("arg") Integer arg);
 ----
 ====
 

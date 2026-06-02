@@ -11,7 +11,7 @@ These are typically all query methods that are not backed by an xref:repositorie
 AOT processing avoids database access.
 Therefore, it initializes an in-memory Hibernate instance for metadata collection.
 Types for the Hibernate configuration are determined by our AOT metadata collector.
-We prefer using a `PersistentEntityTypes` bean if available and fall back to `PersistenceUnitInfo` or our own discovered types.
+We prefer using a `PersistenceManagedTypes` bean if available and fall back to `PersistenceUnitInfo` or our own discovered types.
 If our type scanning is not sufficient for your arrangement, you can enable direct `EntityManagerFactory` usage by configuring the `spring.aot.jpa.repositories.use-entitymanager=true` property.
 ====
 
@@ -32,7 +32,7 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 * Requires Hibernate for AOT processing.
 * `QueryRewriter` must be a no-args class. `QueryRewriter` beans are not yet supported.
 * Methods accepting `ScrollPosition` (e.g. `Keyset` pagination) are not yet supported.
-* Custom Collection return types (e.g. `io.vavr.collection`, `"org.eclipse.collections`) are not yet supported.
+* Custom Collection return types (e.g. `io.vavr.collection`, `org.eclipse.collections`) are not yet supported.
 
 **Excluded methods**
 

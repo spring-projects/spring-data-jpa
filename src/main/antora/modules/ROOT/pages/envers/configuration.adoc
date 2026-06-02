@@ -22,7 +22,8 @@ As a starting point for using Spring Data Envers, you need a project with Spring
 
 This also brings `hibernate-envers` into the project as a transient dependency.
 
-To enable Spring Data Envers and Spring Data JPA, we need to configure two beans and a special `repositoryFactoryBeanClass`:
+To enable Spring Data Envers and Spring Data JPA, we need to configure three beans (`DataSource`, `EntityManagerFactory`, and `PlatformTransactionManager`).
+`@EnableEnversRepositories` already supplies the `repositoryFactoryBeanClass` automatically:
 
 ====
 [source,java]

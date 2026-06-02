@@ -97,7 +97,7 @@ NOTE: Spring Data JPA requires a `PlatformTransactionManager` bean named `transa
 [[jpa.bootstrap-mode]]
 == Bootstrap Mode
 
-By default, Spring Data JPA repositories are default Spring beans.
+By default, Spring Data JPA repositories are regular Spring beans.
 They are singleton scoped and eagerly initialized.
 During startup, they already interact with the JPA `EntityManager` for verification and metadata analysis purposes.
 Spring Framework supports the initialization of the JPA `EntityManagerFactory` in a background thread because that process usually takes up a significant amount of startup time in a Spring application.
@@ -110,7 +110,7 @@ The lazification only has effect if no client bean needs an instance of the repo
 * `LAZY` -- Implicitly declares all repository beans lazy and also causes lazy initialization proxies to be created to be injected into client beans.
 That means, that repositories will not get instantiated if the client bean is simply storing the instance in a field and not making use of the repository during initialization.
 Repository instances will be initialized and verified upon first interaction with the repository.
-* `DEFERRED` -- Fundamentally the same mode of operation as `LAZY`, but triggering repository initialization in response to an `ContextRefreshedEvent` so that repositories are verified before the application has completely started.
+* `DEFERRED` -- Fundamentally the same mode of operation as `LAZY`, but triggering repository initialization in response to a `ContextRefreshedEvent` so that repositories are verified before the application has completely started.
 
 [[jpa.bootstrap-mode.recommendations]]
 === Recommendations

@@ -54,7 +54,7 @@ class CustomerSpecs {
 ----
 
 The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
-So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `Date`.
+So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `LocalDate`.
 Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
 ====
 
@@ -129,14 +129,14 @@ public interface DeleteSpecification<T> {
 public class CustomerSpecs {
 
   public static UpdateSpecification<Customer> updateLastnameByFirstnameAndLastname(String newLastName, String currentFirstname, String currentLastname) {
-    return UpdateSpecification<User> updateLastname = UpdateSpecification.<User> update((root, update, criteriaBuilder) -> {
+    return UpdateSpecification.<Customer>update((root, update, criteriaBuilder) -> {
       update.set("lastname", newLastName);
     }).where(hasFirstname(currentFirstname).and(hasLastname(currentLastname)));
   }
 
   public static PredicateSpecification<Customer> hasFirstname(String firstname) {
     return (root, builder) -> {
-      return builder.equal(from.get("firstname"), value);
+      return builder.equal(root.get("firstname"), firstname);
     };
   }
 
