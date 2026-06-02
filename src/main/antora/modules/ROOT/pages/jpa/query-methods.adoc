@@ -667,7 +667,8 @@ All resulting objects are loaded into memory before being deleted and are held i
 
 [[jpa.query-hints]]
 == Applying Query Hints
-To apply JPA query hints to the queries declared in your repository interface, you can use the `@QueryHints` annotation. It takes an array of JPA `@QueryHint` annotations plus a boolean flag to potentially disable the hints applied to the additional count query triggered when applying pagination, as shown in the following example:
+To apply JPA query hints to the queries declared in your repository interface, you can use the `@QueryHints` annotation.
+It takes an array of JPA `@QueryHint` annotations plus a boolean flag to potentially disable the hints applied to the additional count query triggered when applying pagination, as shown in the following example:
 
 .Using QueryHints with a repository method
 ====
@@ -683,8 +684,7 @@ public interface UserRepository extends Repository<User, Long> {
 ====
 The preceding declaration would apply the configured `@QueryHint` for that actually query but omit applying it to the count query triggered to calculate the total number of pages.
 
-NOTE: Returning a `Stream<T>` does not guarantee that the JPA provider or JDBC driver fetches database rows incrementally.
-For memory-efficient processing of large result sets, use query hints to apply provider-specific fetch-size settings and check your JPA provider and JDBC driver documentation for supported values.
+NOTE: When using Java `Stream<T>`, review the xref:repositories/query-return-types-reference.adoc#return-type.stream[`Stream` semantics and resource handling] in the context of your JPA provider and JDBC driver considering specifically provider-specific fetch behavior and driver fetch-size settings.
 
 [[jpa.query-hints.comments]]
 === Adding Comments to Queries

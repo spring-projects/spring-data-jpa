@@ -178,7 +178,7 @@ Throws `IncorrectResultSizeDataAccessException` if more than one match found.
 * `page(Pageable)`: Return all results as a `Page<T>`.
 * `slice(Pageable)`: Return all results as a `Slice<T>`.
 * `scroll(ScrollPosition)`: Use scrolling (offset, keyset) to retrieve results as a `Window<T>`.
-* `stream()`: Return a `Stream<T>` to process results lazily.
+* `stream()`: Return a `Stream<T>` to process results as a stream rather than a materialized `Collection` (see xref:repositories/query-return-types-reference.adoc#return-type.stream[`Stream` semantics]).
 The stream is stateful and must be closed after use.
 * `count` and `exists`: Return the count of matching entities or whether any match exists.
 
