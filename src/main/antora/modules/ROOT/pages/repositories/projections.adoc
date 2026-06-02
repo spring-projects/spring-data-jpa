@@ -53,10 +53,10 @@ Consider the following queries:
 ----
 interface UserRepository extends Repository<User, Long> {
 
-  @Query("SELECT u FROM USER u WHERE u.lastname = :lastname")                       <1>
+  @Query("SELECT u FROM User u WHERE u.lastname = :lastname")                       <1>
   List<UserDto> findByLastname(String lastname);
 
-  @Query("SELECT u.firstname, u.lastname FROM USER u WHERE u.lastname = :lastname") <2>
+  @Query("SELECT u.firstname, u.lastname FROM User u WHERE u.lastname = :lastname") <2>
   List<UserDto> findMultipleColumnsByLastname(String lastname);
 }
 
@@ -64,26 +64,26 @@ record UserDto(String firstname, String lastname){}
 ----
 
 <1> Selection of the top-level entity.
-This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u WHERE u.lastname = :lastname`.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM User u WHERE u.lastname = :lastname`.
 <2> Multi-select of `firstname` and `lastname` properties.
-This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM USER u WHERE u.lastname = :lastname`.
+This query gets rewritten to `SELECT new UserDto(u.firstname, u.lastname) FROM User u WHERE u.lastname = :lastname`.
 ====
 
 [WARNING]
 ====
 JPQL constructor expressions must not contain aliases for selected columns and query rewriting will not remove them for you.
-While `SELECT u as user, count(u.roles) as roleCount FROM USER u …` is a valid query for interface-based projections that rely on column names from the returned `Tuple`, the same construct is invalid when requesting a DTO where it needs to be `SELECT u, count(u.roles) FROM USER u …`. +
+While `SELECT u as user, count(u.roles) as roleCount FROM User u …` is a valid query for interface-based projections that rely on column names from the returned `Tuple`, the same construct is invalid when requesting a DTO where it needs to be `SELECT u, count(u.roles) FROM User u …`. +
 Some persistence providers may be lenient about this, others not.
 ====
 
-Repository query methods that return a DTO projection type (a Java type outside the domain type hierarchy) are subject for query rewriting.
+Repository query methods that return a DTO projection type (a Java type outside the domain type hierarchy) are subject to query rewriting.
 If an `@Query`-annotated query already uses constructor expressions, then Spring Data backs off and doesn't apply DTO constructor expression rewriting.
 
 Make sure that your DTO types provide an all-args constructor for the projection, otherwise the query will fail.
 
 ==== Native Queries
 
-When using <<projections.dtos,Class-based projections>>, their usage requires slightly more consideration depending on your :
+When using <<projections.dtos,Class-based projections>>, their usage requires slightly more consideration depending on your use case:
 
 * If properties of the result type map directly to the result (the order of columns and their types match the constructor arguments), then you can declare the query result type as the DTO type without further hints (or use the DTO class through dynamic projections).
-* If the properties do not match or require transformation, use `@SqlResultSetMapping` through JPA's annotations map the result set to the DTO and provide the result mapping name through `@NativeQuery(resultSetMapping = "…")`.
+* If the properties do not match or require transformation, use `@SqlResultSetMapping` through JPA's annotations to map the result set to the DTO and provide the result mapping name through `@NativeQuery(resultSetMapping = "…")`.

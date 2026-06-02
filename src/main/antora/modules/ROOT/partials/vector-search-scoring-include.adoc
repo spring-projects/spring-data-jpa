@@ -3,7 +3,7 @@ Their result is typically a distance.
 When using `Similarity` instead of `Score`, Spring Data normalizes distance scores into a similarity score between 0 and 1. The higher the score, the more similar the two vectors are.
 // END
 
-.Using `Score` and `Similarity` in a Repository Search Methods
+.Using `Score` and `Similarity` in a Repository Search Method
 ====
 [source,java]
 ----
@@ -32,7 +32,7 @@ repository.searchByEmbeddingNear(Vector.of(…), Similarity.between(0.5, 1, Scor
 <3> Run a search and normalize the score into a similarity value.
 Return results with a similarity of `0.9`  or greater using Cosine scoring.
 <4> Run a search and normalize the score into a similarity value.
-Return results with a similarity of between `0.5` and `1.0`  or greater using Euclidean scoring.
+Return results with a similarity between `0.5` and `1.0` using Euclidean scoring.
 ====
 
 NOTE: JPA requires a `ScoringFunction` to be provided when creating `Score` or `Similarity` instances to select a scoring function.

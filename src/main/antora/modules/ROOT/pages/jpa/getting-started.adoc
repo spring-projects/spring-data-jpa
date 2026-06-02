@@ -8,7 +8,7 @@ An easy way to bootstrap setting up a working environment is to create a Spring-
 
 The GitHub https://github.com/spring-projects/spring-data-examples[spring-data-examples repository] hosts several examples that you can download and play around with to get a feel for how the library works.
 
-[[redis.hello-world]]
+[[jpa.hello-world]]
 == Hello World
 
 Let's start with a simple entity and its corresponding repository:

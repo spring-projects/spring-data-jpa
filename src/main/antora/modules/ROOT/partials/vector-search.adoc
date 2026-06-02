@@ -78,7 +78,7 @@ Scores are a by-product of vector search and are not required for a successful s
 Score values are not part of a domain model and therefore represented best as out-of-band data.
 
 Generally, a Score is computed by a `ScoringFunction`.
-The actual scoring function used to calculate this score can depends on the underlying database and can be obtained from a search index or input parameters.
+The actual scoring function used to calculate this score can depend on the underlying database and can be obtained from a search index or input parameters.
 
 Spring Data support declares constants for commonly used functions such as:
 
@@ -87,7 +87,7 @@ Cosine Similarity:: Measures the angle between two vectors by calculating the Do
 Dot Product:: Computes the sum of element-wise multiplications.
 
 The choice of similarity function can impact both the performance and semantics of the search and is often determined by the underlying database or index being used.
-Spring Data adopts to the database's native scoring function capabilities and whether the score can be used to limit results.
+Spring Data adapts to the database's native scoring function capabilities and whether the score can be used to limit results.
 
 ifdef::vector-search-scoring-include[]
 include::{vector-search-scoring-include}[]
@@ -128,7 +128,7 @@ include::{vector-search-method-derived-include}[]
 endif::[]
 
 Derived search methods are typically easier to read and maintain, as they rely on the method name to express the query intent.
-However, a derived search method requires either to declare a `Score`, `Range<Score>` or `ScoreFunction` as second argument to the `Near`/`Within` keyword to limit search results by their score.
+However, a derived search method requires you to declare either a `Score`, `Range<Score>`, or `ScoringFunction` as the second argument to the `Near`/`Within` keyword to limit search results by their score.
 
 [[vector-search.method.string]]
 === Annotated Search Methods
