@@ -22,7 +22,6 @@ List<T> findAll(Specification<T> spec);
 The `Customer_` type is a metamodel type generated using the JPA Metamodel generator (see the link:$$https://docs.jboss.org/hibernate/jpamodelgen/1.3/reference/en-US/html_single/#whatisit$$[Hibernate implementation's documentation for an example]).
 So the expression, `Customer_.createdAt`, assumes the `Customer` has a `createdAt` attribute of type `LocalDate`.
 Besides that, we have expressed some criteria on a business requirement abstraction level and created executable `Specifications`.
-====
 
 Use a specification directly with a repository:
 
@@ -82,7 +81,6 @@ MonetaryAmount amount = new MonetaryAmount(200.0, Currencies.DOLLAR);
 List<Customer> customers = customerRepository.findAll(
   isLongTermCustomer().or(hasSalesOfMoreThan(amount)));
 ----
-
 `Specification` offers some "`glue-code`" default methods to chain and combine `Specification` instances. These methods let you extend your data access layer by creating new `Specification` implementations and combining them with already existing implementations.
 ====
 
@@ -92,7 +90,7 @@ And with JPA 2.1, the `CriteriaBuilder` API introduced `CriteriaDelete`. This is
 ====
 [source, java]
 ----
-Specification<User> ageLessThan18 = (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), 18)
+Specification<User> ageLessThan18 = (root, query, cb) -> cb.lessThan(root.get("age").as(Integer.class), 18);
 
 userRepository.delete(ageLessThan18);
 ----
@@ -100,5 +98,3 @@ The `Specification` builds up a criteria where the `age` field (cast as an integ
 Passed on to the `userRepository`, it will use JPA's `CriteriaDelete` feature to generate the right `DELETE` operation.
 It then returns the number of entities deleted.
 ====
-
-
