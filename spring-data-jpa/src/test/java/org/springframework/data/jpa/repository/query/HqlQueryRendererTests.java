@@ -35,6 +35,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Mark Paluch
  * @author Yannick Brandt
  * @author Oscar Fanchin
+ * @author Jewoo Shin
  * @since 3.1
  */
 class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
@@ -1812,6 +1813,14 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 						nonExisting String,
 						nonExistingWithDefault String default 'none') t
 				""");
+	}
+
+	@Test // GH-4272
+	void columnFunctionWithCastTarget() {
+
+		assertQuery("select column(tbl.foo as int) from Entity tbl");
+		assertQuery("select column(tbl.foo as varchar(255)) from Entity tbl");
+		assertQuery("select column(tbl.foo) from Entity tbl");
 	}
 
 }

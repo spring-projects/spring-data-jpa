@@ -36,6 +36,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author TaeHyun Kang
+ * @author Jewoo Shin
  * @since 3.2
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -273,9 +274,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.qualified_identification_variable() != null) {
-			builder.append(visit(ctx.qualified_identification_variable()));
-		} else if (ctx.qualified_identification_variable() != null) {
+		if (ctx.TREAT() != null) {
 
 			builder.append(QueryTokens.token(ctx.TREAT()));
 			builder.append(TOKEN_OPEN_PAREN);
@@ -283,6 +282,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 			builder.appendInline(visit(ctx.subtype()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.qualified_identification_variable() != null) {
+			builder.append(visit(ctx.qualified_identification_variable()));
 		} else if (ctx.state_field_path_expression() != null) {
 			builder.append(visit(ctx.state_field_path_expression()));
 		} else if (ctx.single_valued_object_path_expression() != null) {
@@ -553,8 +554,15 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.FROM()));
-		builder.appendExpression(
-				QueryTokenStream.concat(ctx.subselect_identification_variable_declaration(), this::visit, TOKEN_COMMA));
+
+		List<ParseTree> declarations = new ArrayList<>();
+		for (ParseTree child : ctx.children) {
+			if (child instanceof EqlParser.Subselect_identification_variable_declarationContext
+					|| child instanceof EqlParser.Collection_member_declarationContext) {
+				declarations.add(child);
+			}
+		}
+		builder.appendExpression(QueryTokenStream.concat(declarations, this::visit, TOKEN_COMMA));
 
 		return builder;
 	}
@@ -729,7 +737,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_COMMA);
 			builder.appendInline(visit(ctx.string_expression(1)));
 
-			if (ctx.arithmetic_expression() != null) {
+			if (!ctx.arithmetic_expression().isEmpty()) {
 				builder.append(TOKEN_COMMA);
 				builder.appendInline(visit(ctx.arithmetic_expression(0)));
 			}
