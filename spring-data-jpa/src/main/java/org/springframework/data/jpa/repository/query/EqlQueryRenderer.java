@@ -554,8 +554,15 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(QueryTokens.expression(ctx.FROM()));
-		builder.appendExpression(
-				QueryTokenStream.concat(ctx.subselect_identification_variable_declaration(), this::visit, TOKEN_COMMA));
+
+		List<ParseTree> declarations = new ArrayList<>();
+		for (ParseTree child : ctx.children) {
+			if (child instanceof EqlParser.Subselect_identification_variable_declarationContext
+					|| child instanceof EqlParser.Collection_member_declarationContext) {
+				declarations.add(child);
+			}
+		}
+		builder.appendExpression(QueryTokenStream.concat(declarations, this::visit, TOKEN_COMMA));
 
 		return builder;
 	}

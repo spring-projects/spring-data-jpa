@@ -582,6 +582,14 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT d FROM Department d JOIN d.employees m WHERE TREAT(VALUE(m) AS Employee) IS NOT NULL");
 	}
 
+	@Test // GH-4272
+	void subqueryFromWithCollectionMemberDeclaration() {
+
+		assertQuery("SELECT o FROM Order o WHERE EXISTS (SELECT l FROM Order o2, IN(o2.lineItems) l WHERE l.quantity > 5)");
+		assertQuery(
+				"SELECT o FROM Order o WHERE EXISTS (SELECT l FROM Order o2, IN(o2.lineItems) l, Order o3, IN(o3.lineItems) s WHERE l.quantity > 5)");
+	}
+
 	@Test
 	void fromClauseDowncastingExample1() {
 
