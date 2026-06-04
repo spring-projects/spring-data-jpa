@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Yannick Brandt
+ * @author Jewoo Shin
  * @since 3.1
  */
 class HqlQueryRendererTests {
@@ -1991,5 +1992,13 @@ class HqlQueryRendererTests {
 		assertQuery("select ie.object from ItemExample ie left join ie.object io where io.externalId = :externalId");
 		assertQuery("select ie from ItemExample ie left join ie.object io where io.object = :externalId");
 		assertQuery("select ie from ItemExample ie where ie.status = com.app.domain.object.Status.UP");
+	}
+
+	@Test // GH-4272
+	void columnFunctionWithCastTarget() {
+
+		assertQuery("select column(tbl.foo as int) from Entity tbl");
+		assertQuery("select column(tbl.foo as varchar(255)) from Entity tbl");
+		assertQuery("select column(tbl.foo) from Entity tbl");
 	}
 }

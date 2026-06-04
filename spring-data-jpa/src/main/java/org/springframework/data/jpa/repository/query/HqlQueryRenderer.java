@@ -33,6 +33,7 @@ import org.springframework.util.ObjectUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author TaeHyun Kang
+ * @author Jewoo Shin
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
@@ -2517,11 +2518,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		QueryRendererBuilder nested = QueryRenderer.builder();
 		nested.appendInline(visit(ctx.path()));
 		nested.append(TOKEN_DOT);
-		nested.appendExpression(visit(ctx.jpaNonstandardFunctionName()));
+		nested.append(visit(ctx.jpaNonstandardFunctionName()));
 
 		if (ctx.castTarget() != null) {
 			nested.append(QueryTokens.expression(ctx.AS()));
-			nested.appendExpression(visit(ctx.jpaNonstandardFunctionName()));
+			nested.append(visit(ctx.castTarget()));
 		}
 
 		builder.appendInline(nested);
