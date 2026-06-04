@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * Abstract TCK Tests for JPQL query rendering.
  *
  * @author Mark Paluch
+ * @author Jewoo Shin
  */
 abstract class JpqlQueryRendererTckTests {
 
@@ -343,6 +344,13 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
 	}
 
+	@Test // GH-4272
+	void locateWithOptionalThirdArgument() {
+
+		assertQuery("SELECT LOCATE('a', e.name) FROM Employee e");
+		assertQuery("SELECT LOCATE('a', e.name, 2) FROM Employee e");
+	}
+
 	/**
 	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
 	 */
@@ -565,6 +573,21 @@ abstract class JpqlQueryRendererTckTests {
 				SELECT TREAT(e as Integer).foo
 				FROM Employee e
 				""");
+	}
+
+	@Test // GH-4272
+	void treatQualifiedIdentificationVariableDowncast() {
+
+		assertQuery("SELECT TREAT(VALUE(m) AS Employee) FROM Department d JOIN d.employees m");
+		assertQuery("SELECT d FROM Department d JOIN d.employees m WHERE TREAT(VALUE(m) AS Employee) IS NOT NULL");
+	}
+
+	@Test // GH-4272
+	void subqueryFromWithCollectionMemberDeclaration() {
+
+		assertQuery("SELECT o FROM Order o WHERE EXISTS (SELECT l FROM Order o2, IN(o2.lineItems) l WHERE l.quantity > 5)");
+		assertQuery(
+				"SELECT o FROM Order o WHERE EXISTS (SELECT l FROM Order o2, IN(o2.lineItems) l, Order o3, IN(o3.lineItems) s WHERE l.quantity > 5)");
 	}
 
 	@Test
