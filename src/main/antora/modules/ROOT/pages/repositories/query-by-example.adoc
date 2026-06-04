@@ -21,8 +21,6 @@ public class PersonService {
 ----
 ====
 
-NOTE: Currently, only `SingularAttribute` properties can be used for property matching.
-
 The property specifier accepts property names (such as `firstname` and `lastname`). You can navigate by chaining properties together with dots (`address.city`). You can also tune it with matching options and case sensitivity.
 
 The following table shows the various `StringMatcher` options that you can use and the result of using them on a field named `firstname`:
