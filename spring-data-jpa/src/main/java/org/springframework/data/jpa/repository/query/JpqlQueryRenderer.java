@@ -734,7 +734,7 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(TOKEN_COMMA);
 			builder.appendInline(visit(ctx.string_expression(1)));
 
-			if (ctx.arithmetic_expression() != null) {
+			if (!ctx.arithmetic_expression().isEmpty()) {
 				builder.append(TOKEN_COMMA);
 				builder.appendInline(visit(ctx.arithmetic_expression(0)));
 			}

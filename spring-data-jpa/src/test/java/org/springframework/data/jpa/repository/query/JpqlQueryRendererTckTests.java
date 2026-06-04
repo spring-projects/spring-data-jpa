@@ -344,6 +344,13 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT e.firstname || e.lastname AS name FROM Employee e");
 	}
 
+	@Test // GH-4272
+	void locateWithOptionalThirdArgument() {
+
+		assertQuery("SELECT LOCATE('a', e.name) FROM Employee e");
+		assertQuery("SELECT LOCATE('a', e.name, 2) FROM Employee e");
+	}
+
 	/**
 	 * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#example
 	 */
