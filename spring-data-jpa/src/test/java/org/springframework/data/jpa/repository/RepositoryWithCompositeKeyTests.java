@@ -370,6 +370,26 @@ class RepositoryWithCompositeKeyTests {
 		assertThat(employeeRepositoryWithIdClass.existsByName("Walter")).isFalse();
 	}
 
+	@Test // GH-1616
+	void shouldExecuteExistsQueryByIdClassRelationshipAttribute() {
+
+		IdClassExampleDepartment dep = new IdClassExampleDepartment();
+		dep.setDepartmentId(2L);
+		dep.setName("Dep2");
+
+		IdClassExampleEmployee emp = new IdClassExampleEmployee();
+		emp.setEmpId(3L);
+		emp.setDepartment(dep);
+
+		employeeRepositoryWithIdClass.save(emp);
+
+		IdClassExampleDepartment unknown = new IdClassExampleDepartment();
+		unknown.setDepartmentId(99L);
+
+		assertThat(employeeRepositoryWithIdClass.existsByDepartment(dep)).isTrue();
+		assertThat(employeeRepositoryWithIdClass.existsByDepartment(unknown)).isFalse();
+	}
+
 	@Test // GH-3349
 	void findByRelationshipPartialEmbeddedId() {
 
