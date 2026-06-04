@@ -36,6 +36,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author TaeHyun Kang
+ * @author Jewoo Shin
  * @since 3.2
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -273,9 +274,7 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.qualified_identification_variable() != null) {
-			builder.append(visit(ctx.qualified_identification_variable()));
-		} else if (ctx.qualified_identification_variable() != null) {
+		if (ctx.TREAT() != null) {
 
 			builder.append(QueryTokens.token(ctx.TREAT()));
 			builder.append(TOKEN_OPEN_PAREN);
@@ -283,6 +282,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 			builder.appendInline(visit(ctx.subtype()));
 			builder.append(TOKEN_CLOSE_PAREN);
+		} else if (ctx.qualified_identification_variable() != null) {
+			builder.append(visit(ctx.qualified_identification_variable()));
 		} else if (ctx.state_field_path_expression() != null) {
 			builder.append(visit(ctx.state_field_path_expression()));
 		} else if (ctx.single_valued_object_path_expression() != null) {

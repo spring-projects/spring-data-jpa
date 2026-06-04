@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * Abstract TCK Tests for JPQL query rendering.
  *
  * @author Mark Paluch
+ * @author Jewoo Shin
  */
 abstract class JpqlQueryRendererTckTests {
 
@@ -565,6 +566,13 @@ abstract class JpqlQueryRendererTckTests {
 				SELECT TREAT(e as Integer).foo
 				FROM Employee e
 				""");
+	}
+
+	@Test // GH-4272
+	void treatQualifiedIdentificationVariableDowncast() {
+
+		assertQuery("SELECT TREAT(VALUE(m) AS Employee) FROM Department d JOIN d.employees m");
+		assertQuery("SELECT d FROM Department d JOIN d.employees m WHERE TREAT(VALUE(m) AS Employee) IS NOT NULL");
 	}
 
 	@Test
