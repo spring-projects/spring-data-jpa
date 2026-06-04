@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.sample;
 import java.util.List;
 
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.sample.IdClassExampleDepartment;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.IdClassExampleEmployeePK;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,6 +42,9 @@ public interface EmployeeRepositoryWithIdClass extends JpaRepository<IdClassExam
 
 	// DATAJPA-920
 	boolean existsByName(String name);
+
+	// GH-1616
+	boolean existsByDepartment(IdClassExampleDepartment department);
 
 	List<IdClassExampleEmployee> findAllByDepartment_DepartmentId(long departmentId);
 	List<IdClassExampleEmployee> findAllByEmpId(long empId);
