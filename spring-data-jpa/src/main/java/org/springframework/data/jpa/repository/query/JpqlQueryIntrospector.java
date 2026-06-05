@@ -29,7 +29,7 @@ import org.springframework.lang.Nullable;
  * @author Mark Paluch
  * @author Christoph Strobl
  */
-@SuppressWarnings({ "UnreachableCode", "ConstantValue" })
+@SuppressWarnings({ "UnreachableCode" })
 class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQueryIntrospector<QueryInformation> {
 
 	private final JpqlQueryRenderer renderer = new JpqlQueryRenderer();
@@ -48,8 +48,8 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 	@Override
 	public Void visitRange_variable_declaration(JpqlParser.Range_variable_declarationContext ctx) {
 
-		if (primaryFromAlias == null) {
-			primaryFromAlias = capturePrimaryAlias(ctx);
+		if (primaryFromAlias == null && ctx.identification_variable() != null) {
+			primaryFromAlias = capturePrimaryAlias(ctx.identification_variable());
 		}
 
 		return super.visitRange_variable_declaration(ctx);
@@ -74,9 +74,8 @@ class JpqlQueryIntrospector extends JpqlBaseVisitor<Void> implements ParsedQuery
 		return super.visitConstructor_expression(ctx);
 	}
 
-	private static String capturePrimaryAlias(JpqlParser.Range_variable_declarationContext ctx) {
-		return ctx.identification_variable() != null ? ctx.identification_variable().getText()
-				: ctx.entity_name().getText();
+	private static String capturePrimaryAlias(JpqlParser.Identification_variableContext ctx) {
+		return ctx.getText();
 	}
 
 	private static List<QueryToken> captureSelectItems(List<JpqlParser.Select_itemContext> selections,

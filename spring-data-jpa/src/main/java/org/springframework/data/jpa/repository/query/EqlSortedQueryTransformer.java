@@ -95,7 +95,7 @@ class EqlSortedQueryTransformer extends EqlQueryRenderer {
 
 		QueryTokenStream selectItems = QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA);
 
-		if (dtoDelegate != null && dtoDelegate.canRewrite()) {
+		if (dtoDelegate.canRewrite()) {
 			builder.append(dtoDelegate.getRewrittenSelectionList());
 		} else {
 			builder.append(selectItems);

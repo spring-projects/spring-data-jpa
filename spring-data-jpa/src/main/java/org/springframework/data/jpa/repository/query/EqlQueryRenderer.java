@@ -213,7 +213,9 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}
@@ -1317,8 +1319,6 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitSimple_entity_or_value_expression(
 			EqlParser.Simple_entity_or_value_expressionContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.identification_variable() != null) {
 			return visit(ctx.identification_variable());

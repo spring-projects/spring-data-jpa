@@ -30,7 +30,6 @@ import org.springframework.lang.Nullable;
  * @author Christoph Strobl
  * @since 3.1
  */
-@SuppressWarnings("ConstantValue")
 class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 
 	private final @Nullable String countProjection;
@@ -77,8 +76,10 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 			if (usesDistinct) {
 				nested.append(QueryTokens.expression(ctx.DISTINCT()));
 				nested.append(getDistinctCountSelection(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA)));
-			} else {
+			} else if (primaryFromAlias != null) {
 				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				nested.append(visit(ctx.select_item(0)));
 			}
 		} else {
 			builder.append(QueryTokens.token(countProjection));
@@ -99,12 +100,12 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
-			// constructor
-			if (primaryFromAlias == null) {
-				throw new IllegalStateException(
-						"Primary alias must be set for DISTINCT count selection using constructor expressions");
+			if (primaryFromAlias != null) {
+				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				// no alias available
+				nested.append(countSelection.withoutConstructorExpression());
 			}
-			nested.append(QueryTokens.token(primaryFromAlias));
 		} else {
 			// keep all the select items to distinct against
 			nested.append(countSelection);

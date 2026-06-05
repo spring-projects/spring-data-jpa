@@ -173,7 +173,9 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 			builder.append(QueryTokens.expression(ctx.AS()));
 		}
 
-		builder.appendExpression(visit(ctx.identification_variable()));
+		if (ctx.identification_variable() != null) {
+			builder.appendExpression(visit(ctx.identification_variable()));
+		}
 
 		return builder;
 	}

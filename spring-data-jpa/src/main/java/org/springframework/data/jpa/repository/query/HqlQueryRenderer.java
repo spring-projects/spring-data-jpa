@@ -3236,7 +3236,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 				if (!tokens.isEmpty()) {
 					tokens.add(TOKEN_COMMA);
 				}
-				tokens.add(QueryTokens.expression(terminalNode));
+				tokens.add(QueryTokens.token(terminalNode));
 
 			});
 
@@ -3249,7 +3249,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitCastTargetType(HqlParser.CastTargetTypeContext ctx) {
-		return QueryRendererBuilder.from(QueryTokens.expression(ctx.fullTargetName));
+		return QueryRendererBuilder.from(QueryTokens.token(ctx.fullTargetName));
 	}
 
 	@Override
