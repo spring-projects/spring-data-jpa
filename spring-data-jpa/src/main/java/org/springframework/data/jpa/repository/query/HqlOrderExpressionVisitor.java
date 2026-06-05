@@ -693,11 +693,6 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitDateTime(HqlParser.DateTimeContext ctx) {
-		return super.visitDateTime(ctx);
-	}
-
-	@Override
 	public Expression<?> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
 		return visit(ctx.expression());
 	}
