@@ -104,6 +104,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
  * @author Yanming Zhou
+ * @author Ilya Bakaev
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -1520,6 +1521,130 @@ class UserRepositoryTests {
 
 		// no more items before this window
 		assertThat(previousWindow.hasNext()).isFalse();
+	}
+
+	@Test
+	void scrollByPredicateKeysetWithAscNullsFirst() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", null, "jane@doe2.com");
+		User jane3 = new User("Jane", null, "jane@doe3.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", null, "john@doe2.com");
+		User john3 = new User("John", null, "john@doe3.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, john3, jane1, jane2, jane3));
+
+		Sort sort = Sort.by(
+				Order.asc("firstname"),
+				Order.asc("lastname").nullsFirst(),
+				Order.asc("emailAddress")
+		);
+
+		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow).containsOnly(jane2);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(3).sortBy(sort).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow).containsExactly(jane3, jane1, john2);
+		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2878
+	void scrollByPredicateKeysetWithDescNullsFirst() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", null, "jane@doe2.com");
+		User jane3 = new User("Jane", null, "jane@doe3.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", null, "john@doe2.com");
+		User john3 = new User("John", null, "john@doe3.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, john3, jane1, jane2, jane3));
+
+		Sort sort = Sort.by(
+				Order.asc("firstname"),
+				Order.desc("lastname").nullsFirst(),
+				Order.asc("emailAddress")
+		);
+
+		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow).containsOnly(jane2);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(3).sortBy(sort).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow).containsExactly(jane3, jane1, john2);
+		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2878
+	void scrollByPredicateKeysetWithAscNullsLast() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", null, "jane@doe2.com");
+		User jane3 = new User("Jane", null, "jane@doe3.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", null, "john@doe2.com");
+		User john3 = new User("John", null, "john@doe3.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, john3, jane1, jane2, jane3));
+
+		Sort sort = Sort.by(
+				Order.asc("firstname"),
+				Order.asc("lastname").nullsLast(),
+				Order.asc("emailAddress")
+		);
+
+		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow).containsOnly(jane1);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(3).sortBy(sort).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow).containsExactly(jane2, jane3, john1);
+		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test // GH-2878
+	void scrollByPredicateKeysetWithDescNullsLast() {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", null, "jane@doe2.com");
+		User jane3 = new User("Jane", null, "jane@doe3.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", null, "john@doe2.com");
+		User john3 = new User("John", null, "john@doe3.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, john3, jane1, jane2, jane3));
+
+		Sort sort = Sort.by(
+				Order.asc("firstname"),
+				Order.desc("lastname").nullsLast(),
+				Order.asc("emailAddress")
+		);
+
+		Window<User> firstWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(1).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(firstWindow).containsOnly(jane1);
+		assertThat(firstWindow.hasNext()).isTrue();
+
+		Window<User> nextWindow = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(3).sortBy(sort).scroll(firstWindow.positionAt(0)));
+
+		assertThat(nextWindow).containsExactly(jane2, jane3, john1);
+		assertThat(nextWindow.hasNext()).isTrue();
 	}
 
 	@Test // GH-3015, GH-3407

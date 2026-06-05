@@ -52,7 +52,6 @@ import com.querydsl.core.NonUniqueResultException;
 import com.querydsl.core.types.ConstantImpl;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.NullExpression;
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
@@ -74,6 +73,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Ilya Bakaev
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T>, JpaRepositoryConfigurationAware {
 
@@ -424,8 +424,9 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 		@Override
 		public BooleanExpression compare(String property, Expression<?> propertyExpression, @Nullable Object value) {
-			return Expressions.booleanOperation(Ops.EQ, propertyExpression,
-					value == null ? NullExpression.DEFAULT : ConstantImpl.create(value));
+			return value == null
+					? Expressions.booleanOperation(Ops.IS_NULL, propertyExpression)
+					: Expressions.booleanOperation(Ops.EQ, propertyExpression, ConstantImpl.create(value));
 		}
 
 		@Override
