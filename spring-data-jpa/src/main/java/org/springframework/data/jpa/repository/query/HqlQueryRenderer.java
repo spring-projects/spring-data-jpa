@@ -1258,8 +1258,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.append(QueryTokens.token(ctx.LISTAGG()));
 		builder.append(TOKEN_OPEN_PAREN);
 
-		QueryRendererBuilder nested = QueryRenderer.builder();
-
 		if (ctx.DISTINCT() != null) {
 			builder.append(QueryTokens.expression(ctx.DISTINCT()));
 		}
@@ -1272,7 +1270,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			builder.appendExpression(visit(ctx.onOverflowClause()));
 		}
 
-		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
 
 		if (ctx.withinGroupClause() != null) {
