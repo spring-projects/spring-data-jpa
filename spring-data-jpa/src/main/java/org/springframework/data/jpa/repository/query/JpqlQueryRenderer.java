@@ -673,8 +673,6 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitString_expression(JpqlParser.String_expressionContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
 		if (ctx.subquery() != null) {
 			return QueryTokenStream.group(visit(ctx.subquery()));
 		}
