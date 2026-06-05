@@ -66,14 +66,13 @@ class RepositoryWithCompositeKeyTests {
 
 	@Autowired EmployeeRepositoryWithIdClass employeeRepositoryWithIdClass;
 	@Autowired EmployeeRepositoryWithEmbeddedId employeeRepositoryWithEmbeddedId;
-	@Autowired
-	ReferencingEmployeeRepositoryWithEmbeddedIdRepository referencingEmployeeRepositoryWithEmbeddedIdRepository;
-	@Autowired
-	ReferencingEmployeeRepositoryWithIdClassRepository referencingEmployeeRepositoryWithIdClassRepository;
+	@Autowired ReferencingEmployeeRepositoryWithEmbeddedIdRepository referencingEmployeeRepositoryWithEmbeddedIdRepository;
+	@Autowired ReferencingEmployeeRepositoryWithIdClassRepository referencingEmployeeRepositoryWithIdClassRepository;
 	@Autowired EntityManager em;
 
 	/**
-	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 * @see <a href=
+	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
 	 *      Persistence Specification: Derived Identities, Example 2</a>
 	 */
 	@Test // DATAJPA-269
@@ -99,7 +98,8 @@ class RepositoryWithCompositeKeyTests {
 	}
 
 	/**
-	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 * @see <a href=
+	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
 	 *      Persistence Specification: Derived Identities, Example 3</a>
 	 */
 	@Test // DATAJPA-269
@@ -421,13 +421,15 @@ class RepositoryWithCompositeKeyTests {
 		refEmp2.setEmployee(emp2);
 		refEmp2 = referencingEmployeeRepositoryWithEmbeddedIdRepository.save(refEmp2);
 
-		List<ReferencingEmbeddedIdExampleEmployee> result = referencingEmployeeRepositoryWithEmbeddedIdRepository.findByEmployee_EmployeePk_employeeId(1L);
+		List<ReferencingEmbeddedIdExampleEmployee> result = referencingEmployeeRepositoryWithEmbeddedIdRepository
+				.findByEmployee_EmployeePk_employeeId(1L);
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(2);
 		assertThat(result).containsOnly(refEmp1, refEmp2);
 
-		List<ReferencingEmbeddedIdExampleEmployee> result2 = referencingEmployeeRepositoryWithEmbeddedIdRepository.findByEmployee_EmployeePk_DepartmentId(2L);
+		List<ReferencingEmbeddedIdExampleEmployee> result2 = referencingEmployeeRepositoryWithEmbeddedIdRepository
+				.findByEmployee_EmployeePk_DepartmentId(2L);
 
 		assertThat(result2).isNotNull();
 		assertThat(result2).hasSize(1);
@@ -465,13 +467,15 @@ class RepositoryWithCompositeKeyTests {
 		refEmp2.setEmployee(emp2);
 		refEmp2 = referencingEmployeeRepositoryWithIdClassRepository.save(refEmp2);
 
-		List<ReferencingIdClassExampleEmployee> result = referencingEmployeeRepositoryWithIdClassRepository.findByEmployee_EmpId(1L);
+		List<ReferencingIdClassExampleEmployee> result = referencingEmployeeRepositoryWithIdClassRepository
+				.findByEmployee_EmpId(1L);
 
 		assertThat(result).isNotNull();
 		assertThat(result).hasSize(2);
 		assertThat(result).containsOnly(refEmp1, refEmp2);
 
-		List<ReferencingIdClassExampleEmployee> result2 = referencingEmployeeRepositoryWithIdClassRepository.findByEmployee_Department_DepartmentId(2L);
+		List<ReferencingIdClassExampleEmployee> result2 = referencingEmployeeRepositoryWithIdClassRepository
+				.findByEmployee_Department_DepartmentId(2L);
 
 		assertThat(result2).isNotNull();
 		assertThat(result2).hasSize(1);
