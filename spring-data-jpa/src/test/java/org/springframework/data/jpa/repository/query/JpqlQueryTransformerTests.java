@@ -204,6 +204,10 @@ class JpqlQueryTransformerTests {
 
 		assertCountQuery("select distinct new com.example.User(u.name) from User u where u.foo = ?1",
 				"select count(distinct u) from User u where u.foo = ?1");
+
+		// no primary alias
+		assertCountQuery("select distinct new com.example.User(name, lastname) from User where foo = ?1",
+				"select count(distinct name, lastname) from User where foo = ?1");
 	}
 
 	@Test

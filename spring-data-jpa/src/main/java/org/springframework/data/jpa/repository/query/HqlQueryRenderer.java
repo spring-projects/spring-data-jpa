@@ -339,6 +339,8 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		return builder;
 	}
+
+	@Override
 	public QueryTokenStream visitSelectionList(HqlParser.SelectionListContext ctx) {
 		return QueryTokenStream.concat(ctx.selection(), this::visit, TOKEN_COMMA);
 	}

@@ -151,12 +151,12 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
 
 		if (countSelection.requiresPrimaryAlias()) {
-			// constructor
-			if (primaryFromAlias == null) {
-				throw new IllegalStateException(
-						"Primary alias must be set for DISTINCT count selection using constructor expressions");
+			if (primaryFromAlias != null) {
+				nested.append(QueryTokens.token(primaryFromAlias));
+			} else {
+				// no alias available
+				nested.append(countSelection.withoutConstructorExpression());
 			}
-			nested.append(QueryTokens.token(primaryFromAlias));
 		} else {
 			// keep all the select items to distinct against
 			nested.append(countSelection);

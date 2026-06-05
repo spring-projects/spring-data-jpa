@@ -228,7 +228,6 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		if (countSelection.requiresPrimaryAlias()) {
 
 			if (primaryFromAlias != null) {
-				// constructor
 				nested.append(QueryTokens.token(primaryFromAlias));
 			} else {
 				nested.append(countSelection.withoutConstructorExpression());
