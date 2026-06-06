@@ -29,6 +29,7 @@ import org.springframework.data.repository.query.ReturnedType;
  *
  * @author Mark Paluch
  * @author Alim Naizabek
+ * @author Jewoo Shin
  */
 class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
@@ -63,5 +64,18 @@ class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc nulls first, e.bar asc nulls last");
+	}
+
+	@Test // GH-2395
+	void appliesSortingWithoutBreakingDerivedTableOrderByLimit() {
+
+		QueryEnhancer enhancer = createQueryEnhancer(DeclaredQuery.nativeQuery(
+				"SELECT n.id, n.name, n.status FROM n_entity n LEFT JOIN (SELECT s.status FROM entity_statuses s ORDER BY s.updated_at DESC LIMIT 1) st ON n.id = st.entity_id WHERE n.status = :status"));
+
+		String sql = enhancer.rewrite(new DefaultQueryRewriteInformation(Sort.by("name"),
+				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
+
+		assertThat(sql).isEqualTo(
+				"SELECT n.id, n.name, n.status FROM n_entity n LEFT JOIN (SELECT s.status FROM entity_statuses s ORDER BY s.updated_at DESC LIMIT 1) st ON n.id = st.entity_id WHERE n.status = :status order by n.name asc");
 	}
 }
