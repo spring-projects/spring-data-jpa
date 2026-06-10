@@ -250,6 +250,12 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT p FROM Phone p WHERE FUNCTION('TO_NUMBER', p.areaCode) > 613");
 	}
 
+	@Test // GH-4278
+	void singleCharacterLiteralAsCollectionMemberExpression() {
+
+		assertQuery("SELECT e FROM Employee e WHERE 'c' MEMBER OF e.responsibilities");
+	}
+
 	@Test // GH-3314
 	void isNullAndIsNotNull() {
 
