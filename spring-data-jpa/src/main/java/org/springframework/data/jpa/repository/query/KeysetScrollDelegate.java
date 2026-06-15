@@ -257,12 +257,15 @@ public class KeysetScrollDelegate {
 
 		/**
 		 * Create an inclusive comparison object according to the {@link Order}.
+		 * <p>
+		 * Query strategies should override this method with a native inclusive comparison if available so that keyset
+		 * predicates can promote the leading sort property into an indexable range condition.
 		 *
 		 * @param order must not be {@literal null}.
 		 * @param propertyExpression must not be {@literal null}.
 		 * @param value the value to compare with. Can be {@literal null}.
 		 * @return an object representing the inclusive comparison predicate.
-		 * @since 4.1
+		 * @since 4.2
 		 */
 		default P compareInclusive(Order order, E propertyExpression, @Nullable Object value) {
 			P predicate = or(List.of(compare(order, propertyExpression, value),
@@ -275,7 +278,7 @@ public class KeysetScrollDelegate {
 		 *
 		 * @param predicate must not be {@literal null}.
 		 * @return the nested predicate.
-		 * @since 4.1
+		 * @since 4.2
 		 */
 		default P nest(P predicate) {
 			return predicate;
