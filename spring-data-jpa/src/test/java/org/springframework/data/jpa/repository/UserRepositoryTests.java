@@ -866,7 +866,7 @@ class UserRepositoryTests {
 
 		flushTestUsers();
 
-		assertThat(repository.findByFirstname("Oliver", null)).containsOnly(firstUser);
+		assertThat(repository.findByFirstname("Oliver", (Pageable) null)).containsOnly(firstUser);
 
 		Page<User> page = repository.findByFirstnameIn(Pageable.unpaged(), "Oliver");
 		assertThat(page.getNumberOfElements()).isOne();
@@ -875,6 +875,21 @@ class UserRepositoryTests {
 		page = repository.findAll(Pageable.unpaged());
 		assertThat(page.getNumberOfElements()).isEqualTo(4);
 		assertThat(page.getContent()).contains(firstUser, secondUser, thirdUser, fourthUser);
+	}
+
+	@Test // GH-4175
+	void appliesEntityGraphHintParameterToQueryMethod() {
+
+		firstUser.addRole(adminRole);
+		flushTestUsers();
+		em.clear();
+
+		List<User> users = repository.findByFirstname("Oliver", EntityGraphHint.fetch(User::getRoles));
+
+		em.clear();
+
+		assertThat(users).containsOnly(firstUser);
+		assertThat(users).allSatisfy(it -> assertThat(it.getRoles()).hasSize(1));
 	}
 
 	@Test // DATAJPA-207
