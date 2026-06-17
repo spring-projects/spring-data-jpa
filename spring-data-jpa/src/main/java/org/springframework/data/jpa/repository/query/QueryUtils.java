@@ -139,7 +139,7 @@ public abstract class QueryUtils {
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
-	private static final Pattern PUNCTATION_PATTERN = compile(".*((?![._])[\\p{Punct}|\\s])");
+	private static final Pattern PUNCTATION_PATTERN = compile("[^\\p{L}\\p{N}._]", UNICODE_CHARACTER_CLASS);
 	private static final Pattern FUNCTION_PATTERN;
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
@@ -799,7 +799,8 @@ public abstract class QueryUtils {
 			return;
 		}
 
-		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
+		String property = order.getProperty();
+		if (PUNCTATION_PATTERN.matcher(property).find()) {
 			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
 	}
