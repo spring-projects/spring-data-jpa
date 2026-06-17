@@ -30,6 +30,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -51,6 +53,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -3883,6 +3888,49 @@ class UserRepositoryTests {
 		// then
 		assertThat(repository.findById(firstUser.getId())) //
 				.map(User::getAge).contains(30);
+	}
+
+	@ParameterizedTest(name = "''{0}'' query") // GH-52
+	@MethodSource("queryUnicodeColum")
+	void queryUnicodeColumn(String queryType, BiFunction<UserRepository, LocalDate, List<User>> query) {
+
+		LocalDate today = LocalDate.now();
+		firstUser.setHireDate(LocalDate.of(2020, 1, 1));
+		secondUser.setHireDate(today.plusDays(1));
+		flushTestUsers();
+
+		assertThat(query.apply(repository, today)).containsOnly(firstUser);
+	}
+
+	@ParameterizedTest(name = "''{0}'' query") // GH-52
+	@MethodSource("sortUnicodeColum")
+	void sortUnicodeColum(String queryType, Function<UserRepository, List<User>> query) {
+
+		firstUser.setHireDate(LocalDate.of(2022, 3, 15));
+		secondUser.setHireDate(LocalDate.of(2020, 1, 10));
+		thirdUser.setHireDate(LocalDate.of(2023, 6, 20));
+		fourthUser.setHireDate(LocalDate.of(2021, 8, 5));
+		flushTestUsers();
+
+		assertThat(query.apply(repository)).containsExactly(secondUser, fourthUser, firstUser, thirdUser);
+	}
+
+	static Stream<Arguments> queryUnicodeColum() {
+
+		return Stream.of(
+			Arguments.of("derived", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findUserByHireDateLessThanEqual),
+			Arguments.of("jpql", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findByHireDateJpql),
+			Arguments.of("native", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findByHireDateNativeQuery)
+		);
+	}
+
+	static Stream<Arguments> sortUnicodeColum() {
+
+		return Stream.of(
+			Arguments.of("derived", (Function<UserRepository, List<User>>) UserRepository::findAllByOrderByHireDateAsc),
+			Arguments.of("jpql", (Function<UserRepository, List<User>>) (repo) -> repo.findAndSortAllUsersJpql(Sort.by("hireDate").ascending())),
+			Arguments.of("native", (Function<UserRepository, List<User>>) (repo) -> repo.findAndSortAllUsersNativeQuery(Sort.by("入职日期").ascending()))
+		);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

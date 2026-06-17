@@ -20,6 +20,7 @@ import jakarta.persistence.QueryHint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -838,6 +839,24 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u, count(r) from User u left outer join u.roles r group by u")
 	@interface UserRoleCountProjectingQuery {
 	}
+
+	// --> Test for Unicode column names
+
+	List<User> findUserByHireDateLessThanEqual(LocalDate date);
+
+	@Query("select u from User u where u.hireDate <= :date")
+	List<User> findByHireDateJpql(@Param("date") LocalDate date);
+
+	@NativeQuery("SELECT * FROM SD_User WHERE 入职日期 <= ?1")
+	List<User> findByHireDateNativeQuery(LocalDate date);
+
+	List<User> findAllByOrderByHireDateAsc();
+
+	@Query("select u from User u")
+	List<User> findAndSortAllUsersJpql(Sort sort);
+
+	@NativeQuery("SELECT * FROM SD_User")
+	List<User> findAndSortAllUsersNativeQuery(Sort sort);
 
 	interface RolesAndFirstname {
 
