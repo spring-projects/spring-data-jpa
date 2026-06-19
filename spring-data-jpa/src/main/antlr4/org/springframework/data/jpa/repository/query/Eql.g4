@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ grammar Eql;
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Jewoo Shin
  * @since 3.2
  */
 }
@@ -656,6 +657,7 @@ constructor_name
 
 literal
     : STRINGLITERAL
+    | CHARACTER
     | INTLITERAL
     | FLOATLITERAL
     | LONGLITERAL

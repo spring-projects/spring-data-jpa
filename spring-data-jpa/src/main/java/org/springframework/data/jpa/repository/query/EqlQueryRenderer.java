@@ -2242,6 +2242,8 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.STRINGLITERAL() != null) {
 			builder.append(QueryTokens.expression(ctx.STRINGLITERAL()));
+		} else if (ctx.CHARACTER() != null) {
+			builder.append(QueryTokens.expression(ctx.CHARACTER()));
 		} else if (ctx.INTLITERAL() != null) {
 			builder.append(QueryTokens.expression(ctx.INTLITERAL()));
 		} else if (ctx.FLOATLITERAL() != null) {

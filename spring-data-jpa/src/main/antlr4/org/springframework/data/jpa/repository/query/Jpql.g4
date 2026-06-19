@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2023 the original author or authors.
+ * Copyright 2011-2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ grammar Jpql;
  * @see https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc#bnf
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Jewoo Shin
  * @since 3.1
  */
 }
@@ -644,6 +645,7 @@ constructor_name
 
 literal
     : STRINGLITERAL
+    | CHARACTER
     | JAVASTRINGLITERAL
     | INTLITERAL
     | FLOATLITERAL

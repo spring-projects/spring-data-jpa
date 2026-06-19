@@ -2134,6 +2134,8 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.STRINGLITERAL() != null) {
 			return QueryRenderer.from(QueryTokens.expression(ctx.STRINGLITERAL()));
+		} else if (ctx.CHARACTER() != null) {
+			return QueryRenderer.from(QueryTokens.expression(ctx.CHARACTER()));
 		} else if (ctx.JAVASTRINGLITERAL() != null) {
 			return QueryRenderer.from(QueryTokens.expression(ctx.JAVASTRINGLITERAL()));
 		} else if (ctx.INTLITERAL() != null) {
