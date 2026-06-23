@@ -1815,6 +1815,39 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				""");
 	}
 
+	@Test // GH-4278
+	void singleCharacterLiteralAsHqlCollectionMemberExpression() {
+
+		assertQuery("""
+				select p
+				from Person p
+				where 'c' member of p.addresses
+				""");
+
+		assertQuery("""
+				select p
+				from Person p
+				where 'c' not member of p.addresses
+				""");
+
+		assertQuery("""
+				select p
+				from Person p
+				where exists (select p2 from Person p2 where 'c' member of p2.addresses)
+				""");
+
+		assertQuery("""
+				update Person p
+				set p.name = 'x'
+				where 'c' member of p.addresses
+				""");
+
+		assertQuery("""
+				delete from Person p
+				where 'c' member of p.addresses
+				""");
+	}
+
 	@Test // GH-4272
 	void columnFunctionWithCastTarget() {
 
