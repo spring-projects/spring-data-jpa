@@ -4,12 +4,12 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-envers</artifactId>
-	<version>3.5.13-SNAPSHOT</version>
+	<version>3.5.13</version>
 
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-jpa-parent</artifactId>
-		<version>3.5.13-SNAPSHOT</version>
+		<version>3.5.13</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
