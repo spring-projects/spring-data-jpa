@@ -184,8 +184,104 @@
 						</develocity>
 					</configuration>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<executions>
+						<execution>
+							<id>unpack-javadoc-offline-links</id>
+							<configuration>
+								<artifactItems combine.children="append">
+									<artifactItem>
+										<groupId>org.hibernate.orm</groupId>
+										<artifactId>hibernate-core</artifactId>
+										<version>${hibernate}</version>
+										<classifier>javadoc</classifier>
+										<type>jar</type>
+										<outputDirectory>
+											${javadoc.offline-links.directory}/hibernate-core
+										</outputDirectory>
+									</artifactItem>
+									<artifactItem>
+										<groupId>org.hibernate.orm</groupId>
+										<artifactId>hibernate-envers</artifactId>
+										<version>${hibernate}</version>
+										<classifier>javadoc</classifier>
+										<type>jar</type>
+										<outputDirectory>
+											${javadoc.offline-links.directory}/hibernate-envers
+										</outputDirectory>
+									</artifactItem>
+									<artifactItem>
+										<groupId>jakarta.persistence</groupId>
+										<artifactId>jakarta.persistence-api</artifactId>
+										<version>${jakarta-persistence-api}</version>
+										<classifier>javadoc</classifier>
+										<type>jar</type>
+										<outputDirectory>
+											${javadoc.offline-links.directory}/jakarta-persistence
+										</outputDirectory>
+									</artifactItem>
+								</artifactItems>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<configuration>
+						<offlineLinks combine.children="append">
+							<offlineLink>
+								<url>
+									https://docs.hibernate.org/orm/${hibernate.parsed.majorVersion}.${hibernate.parsed.minorVersion}/javadocs/
+								</url>
+								<location>
+									${javadoc.offline-links.directory}/hibernate-core
+								</location>
+							</offlineLink>
+							<offlineLink>
+								<url>
+									https://docs.hibernate.org/orm/${hibernate.parsed.majorVersion}.${hibernate.parsed.minorVersion}/javadocs/
+								</url>
+								<location>
+									${javadoc.offline-links.directory}/hibernate-envers
+								</location>
+							</offlineLink>
+							<offlineLink>
+								<url>
+									https://javadoc.io/doc/jakarta.persistence/jakarta.persistence-api/${jakarta-persistence-api}
+								</url>
+								<location>
+									${javadoc.offline-links.directory}/jakarta-persistence
+								</location>
+							</offlineLink>
+						</offlineLinks>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>parse-hibernate-version</id>
+						<goals>
+							<goal>parse-version</goal>
+						</goals>
+						<phase>initialize</phase>
+						<configuration>
+							<propertyPrefix>hibernate.parsed</propertyPrefix>
+							<versionString>${hibernate}</versionString>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
 
 	<repositories>
