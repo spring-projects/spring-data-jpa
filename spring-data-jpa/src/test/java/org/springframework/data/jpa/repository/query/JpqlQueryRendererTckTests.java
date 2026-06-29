@@ -744,6 +744,28 @@ abstract class JpqlQueryRendererTckTests {
 	}
 
 	@Test
+	void mapFieldIdentificationVariableAsCollectionMemberExpression() {
+
+		assertQuery("""
+				SELECT i
+				FROM Item i JOIN i.photos p
+				WHERE VALUE(p) MEMBER OF i.photoValues
+				""");
+
+		assertQuery("""
+				SELECT i
+				FROM Item i JOIN i.photos p
+				WHERE KEY(p) MEMBER OF i.photoKeys
+				""");
+
+		assertQuery("""
+				SELECT i
+				FROM Item i JOIN i.photos p
+				WHERE VALUE(p) NOT MEMBER OF i.photoValues
+				""");
+	}
+
+	@Test
 	void existsSubSelectExample1() {
 
 		assertQuery("""
