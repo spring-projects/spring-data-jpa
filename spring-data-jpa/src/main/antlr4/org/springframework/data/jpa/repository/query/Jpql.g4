@@ -388,6 +388,7 @@ collection_member_expression
 entity_or_value_expression
     : single_valued_object_path_expression
     | state_field_path_expression
+    | map_field_identification_variable
     | simple_entity_or_value_expression
     ;
 
