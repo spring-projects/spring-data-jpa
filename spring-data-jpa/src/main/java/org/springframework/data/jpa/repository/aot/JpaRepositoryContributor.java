@@ -93,13 +93,15 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		super(repositoryContext);
 
+		JpaAnnotationMetadata annotationMetadata = JpaAnnotationMetadata.from(repositoryContext);
+
 		this.entityManagerFactory = entityManagerFactory;
 		this.metamodel = entityManagerFactory.getMetamodel();
 		this.persistenceUnitUtil = entityManagerFactory.getPersistenceUnitUtil();
 		this.persistenceProvider = PersistenceProvider.fromEntityManagerFactory(entityManagerFactory);
 		this.queriesFactory = new QueriesFactory(repositoryContext.getConfigurationSource(), entityManagerFactory,
-				repositoryContext.getRequiredClassLoader());
-		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory);
+				entityManagerFactory.getMetamodel(), repositoryContext.getRequiredClassLoader(), annotationMetadata);
+		this.entityGraphLookup = new EntityGraphLookup(entityManagerFactory, annotationMetadata);
 		this.context = repositoryContext;
 	}
 

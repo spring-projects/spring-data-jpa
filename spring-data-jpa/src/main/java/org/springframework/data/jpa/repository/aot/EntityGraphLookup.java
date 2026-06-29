@@ -42,7 +42,11 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @since 4.0
  */
-record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
+record EntityGraphLookup(EntityManagerFactory entityManagerFactory, JpaAnnotationMetadata annotationMetadata) {
+
+	EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
+		this(entityManagerFactory, JpaAnnotationMetadata.empty());
+	}
 
 	@SuppressWarnings("unchecked")
 	public @Nullable AotEntityGraph findEntityGraph(MergedAnnotation<EntityGraph> entityGraph,
@@ -60,12 +64,14 @@ record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
 
 		for (Class<?> candidate : candidates) {
 
+			for (String entityGraphName : entityGraphNames) {
+				if (annotationMetadata.hasNamedEntityGraph(candidate, entityGraphName)) {
+					return new AotEntityGraph(entityGraphName, type, Collections.emptyList());
+				}
+			}
+
 			Map<String, jakarta.persistence.EntityGraph<?>> namedEntityGraphs = entityManagerFactory
 					.getNamedEntityGraphs(Class.class.cast(candidate));
-
-			if (namedEntityGraphs.isEmpty()) {
-				continue;
-			}
 
 			for (String entityGraphName : entityGraphNames) {
 				if (namedEntityGraphs.containsKey(entityGraphName)) {

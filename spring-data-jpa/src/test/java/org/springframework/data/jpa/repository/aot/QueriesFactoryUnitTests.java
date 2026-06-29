@@ -22,15 +22,19 @@ import static org.mockito.Mockito.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Id;
+import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
@@ -79,6 +83,47 @@ class QueriesFactoryUnitTests {
 				.extracting(StringAotQuery::getQueryString).isEqualTo("select t from CustomNamed t");
 		assertThat(generatedQueries.count()).asInstanceOf(type(StringAotQuery.class))
 				.extracting(StringAotQuery::getQueryString).isEqualTo("select count(t) from CustomNamed t");
+	}
+
+	@Test // GH-4166
+	void resolvesNamedQueryFromAnnotationMetadataWithoutEntityManagerFactoryNamedQueries() throws NoSuchMethodException {
+
+		RepositoryConfigurationSource configSource = mock(RepositoryConfigurationSource.class);
+		EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
+		Metamodel metamodel = mock(Metamodel.class);
+
+		when(entityManagerFactory.getMetamodel()).thenReturn(metamodel);
+		when(entityManagerFactory.getNamedQueries(org.mockito.ArgumentMatchers.any())).thenReturn(Map.of());
+
+		JpaAnnotationMetadata annotationMetadata = JpaAnnotationMetadata.from(List.of(User.class));
+		QueriesFactory annotationBackedFactory = new QueriesFactory(configSource, entityManagerFactory, metamodel,
+				getClass().getClassLoader(), annotationMetadata);
+
+		RepositoryInformation repositoryInformation = new AotRepositoryInformation(
+				AbstractRepositoryMetadata.getMetadata(NamedQueryRepository.class), NamedQueryRepository.class,
+				Collections.emptyList());
+
+		Method method = NamedQueryRepository.class.getMethod("findByEmailAddress");
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method, repositoryInformation,
+				new SpelAwareProxyProjectionFactory(), mock(QueryExtractor.class));
+
+		AotQueries generatedQueries = annotationBackedFactory.createQueries(repositoryInformation,
+				queryMethod.getResultProcessor().getReturnedType(), QueryEnhancerSelector.DEFAULT_SELECTOR,
+				MergedAnnotations.from(method).get(Query.class), queryMethod);
+
+		assertThat(generatedQueries.result()).asInstanceOf(type(StringAotQuery.class))
+				.satisfies(query -> {
+					assertThat(query).isInstanceOf(AotQuery.NamedQuery.class);
+					assertThat(((AotQuery.NamedQuery) query).getQueryName()).isEqualTo("User.findByEmailAddress");
+					assertThat(((AotQuery.NamedQuery) query).isManaged()).isTrue();
+					assertThat(query.getQueryString()).isEqualTo("SELECT u FROM User u WHERE u.emailAddress = ?1");
+				});
+	}
+
+	interface NamedQueryRepository extends Repository<User, Long> {
+
+		@Query(name = "User.findByEmailAddress")
+		User findByEmailAddress();
 	}
 
 	interface MyRepository extends Repository<MyEntity, Long> {

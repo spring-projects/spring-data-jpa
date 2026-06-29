@@ -64,6 +64,7 @@ import org.springframework.util.StringUtils;
 class QueriesFactory {
 
 	private final EntityManagerFactory entityManagerFactory;
+	private final JpaAnnotationMetadata annotationMetadata;
 	private final NamedQueries namedQueries;
 	private final Metamodel metamodel;
 	private final EscapeCharacter escapeCharacter;
@@ -71,15 +72,22 @@ class QueriesFactory {
 
 	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
 			ClassLoader classLoader) {
-		this(configurationSource, entityManagerFactory, entityManagerFactory.getMetamodel(), classLoader);
+		this(configurationSource, entityManagerFactory, entityManagerFactory.getMetamodel(), classLoader,
+				JpaAnnotationMetadata.empty());
 	}
 
 	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
 			Metamodel metamodel, ClassLoader classLoader) {
+		this(configurationSource, entityManagerFactory, metamodel, classLoader, JpaAnnotationMetadata.empty());
+	}
+
+	public QueriesFactory(RepositoryConfigurationSource configurationSource, EntityManagerFactory entityManagerFactory,
+			Metamodel metamodel, ClassLoader classLoader, JpaAnnotationMetadata annotationMetadata) {
 
 		this.metamodel = metamodel;
 		this.namedQueries = getNamedQueries(configurationSource, classLoader);
 		this.entityManagerFactory = entityManagerFactory;
+		this.annotationMetadata = annotationMetadata;
 
 		Optional<Character> escapeCharacter = configurationSource.getAttribute("escapeCharacter", Character.class);
 		this.escapeCharacter = escapeCharacter.map(EscapeCharacter::of).orElse(EscapeCharacter.DEFAULT);
@@ -137,7 +145,8 @@ class QueriesFactory {
 	}
 
 	private boolean hasNamedQuery(ReturnedType returnedType, String queryName) {
-		return namedQueries.hasQuery(queryName) || getNamedQuery(returnedType, queryName) != null;
+		return namedQueries.hasQuery(queryName) || annotationMetadata.findNamedQuery(queryName).isPresent()
+				|| getNamedQuery(returnedType, queryName) != null;
 	}
 
 	private AotQueries buildStringQuery(ReturnedType returnedType, QueryEnhancerSelector selector,
@@ -220,6 +229,17 @@ class QueriesFactory {
 
 			DeclaredQuery query = isNative ? DeclaredQuery.nativeQuery(queryString) : DeclaredQuery.jpqlQuery(queryString);
 			return StringAotQuery.named(queryName, EntityQuery.create(query, selector), false);
+		}
+
+		Optional<JpaAnnotationMetadata.NamedQueryDefinition> annotationQuery = annotationMetadata.findNamedQuery(queryName);
+
+		if (annotationQuery.isPresent()) {
+
+			JpaAnnotationMetadata.NamedQueryDefinition definition = annotationQuery.get();
+			boolean nativeQuery = definition.nativeQuery() || isNative;
+			DeclaredQuery query = nativeQuery ? DeclaredQuery.nativeQuery(definition.query())
+					: DeclaredQuery.jpqlQuery(definition.query());
+			return StringAotQuery.named(queryName, EntityQuery.create(query, selector), true);
 		}
 
 		TypedQueryReference<?> namedQuery = getNamedQuery(returnedType, queryName);
