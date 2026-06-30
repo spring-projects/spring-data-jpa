@@ -153,6 +153,21 @@ class JpaQueryLookupStrategyUnitTests {
 		assertThat(repositoryQuery).isInstanceOf(AbstractStringBasedJpaQuery.class);
 	}
 
+	@Test // DATAJPA-1417
+	void rejectsMissingExplicitNamedQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				CONFIG);
+		Method method = UserRepository.class.getMethod("annotatedQueryNameOnly", String.class, String.class, String.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		when(em.createNamedQuery("missing-query")).thenThrow(new IllegalArgumentException());
+
+		assertThatExceptionOfType(QueryCreationException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withMessageContaining("Did not find named query 'missing-query'");
+	}
+
 	@Test // GH-2018
 	void namedQueryWithSortShouldThrowIllegalStateException() throws NoSuchMethodException {
 
@@ -227,6 +242,9 @@ class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "select foo from Foo foo", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();
+
+		@Query(name = "missing-query")
+		List<User> annotatedQueryNameOnly(String firstname, String lastname, String emailAddress);
 
 		@Query("SELECT * FROM table WHERE (json_col->'jsonKey')::jsonb \\?\\? :param ")
 		List<User> customQueryWithQuestionMarksAndNamedParam(String param);

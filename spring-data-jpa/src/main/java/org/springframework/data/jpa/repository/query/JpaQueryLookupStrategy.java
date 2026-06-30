@@ -171,7 +171,15 @@ public final class JpaQueryLookupStrategy {
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em, configuration);
 
-			return query != null ? query : NO_QUERY;
+			if (query != null) {
+				return query;
+			}
+
+			if (method.hasAnnotatedQueryName()) {
+				throw QueryCreationException.create(method, String.format("Did not find named query '%s'", name));
+			}
+
+			return NO_QUERY;
 		}
 
 		private @Nullable DeclaredQuery getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
