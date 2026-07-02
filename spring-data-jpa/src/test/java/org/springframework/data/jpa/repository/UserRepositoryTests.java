@@ -104,6 +104,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Geoffrey Deremetz
  * @author Krzysztof Krason
  * @author Yanming Zhou
+ * @author YeongJae Min
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -1348,6 +1349,50 @@ class UserRepositoryTests {
 		assertThat(previousWindow.hasNext()).isTrue();
 	}
 
+	@Test // GH-4250
+	void scrollByKeysetReturnsSameSequenceWithDuplicateLeadingSortValues() {
+
+		saveKeysetScrollUsersWithDuplicateFirstnames();
+
+		Sort sort = Sort.by(Order.asc("firstname"), Order.asc("emailAddress"), Order.asc("id"));
+
+		assertThat(emailAddressesOf(scrollForward(sort, 2)))
+				.containsExactlyElementsOf(emailAddressesOf(repository.findAll(sort)));
+	}
+
+	@Test // GH-4250
+	void scrollBackwardByKeysetReturnsSameSequenceWithDuplicateLeadingSortValues() {
+
+		saveKeysetScrollUsersWithDuplicateFirstnames();
+
+		Sort sort = Sort.by(Order.asc("firstname"), Order.asc("emailAddress"), Order.asc("id"));
+
+		assertThat(emailAddressesOf(scrollBackward(sort, 2)))
+				.containsExactlyElementsOf(emailAddressesOf(repository.findAll(sort)));
+	}
+
+	@Test // GH-4250
+	void scrollByKeysetReturnsSameSequenceWithNullsLastAndMixedDirections() {
+
+		saveKeysetScrollUsersWithDuplicateFirstnamesAndNulls();
+
+		Sort sort = Sort.by(Order.asc("firstname").nullsLast(), Order.desc("emailAddress"), Order.asc("id"));
+
+		assertThat(emailAddressesOf(scrollForward(sort, 2)))
+				.containsExactlyElementsOf(emailAddressesOf(repository.findAll(sort)));
+	}
+
+	@Test // GH-4250
+	void scrollByPredicateKeysetReturnsSameSequenceWithNullsLastAndMixedDirections() {
+
+		saveKeysetScrollUsersWithDuplicateFirstnamesAndNulls();
+
+		Sort sort = Sort.by(Order.asc("firstname").nullsLast(), Order.desc("emailAddress"), Order.asc("id"));
+
+		assertThat(emailAddressesOf(scrollForward(QUser.user.emailAddress.contains("@example.com"), sort, 2)))
+				.containsExactlyElementsOf(emailAddressesOf(repository.findAll(sort)));
+	}
+
 	@Test // GH-2999
 	void scrollInitiallyByExampleKeysetBackward() {
 
@@ -1371,6 +1416,101 @@ class UserRepositoryTests {
 				q -> q.limit(2).sortBy(Sort.by("firstname", "emailAddress")).scroll(firstWindow.positionAt(0)));
 
 		assertThat(previousWindow).containsExactly(jane1, jane2);
+	}
+
+	private List<User> scrollForward(Sort sort, int pageSize) {
+
+		List<User> result = new ArrayList<>();
+		ScrollPosition position = ScrollPosition.keyset();
+
+		while (true) {
+
+			Window<User> window = scroll(sort, position, pageSize);
+			result.addAll(window.getContent());
+
+			if (!window.hasNext() || window.isEmpty()) {
+				return result;
+			}
+
+			position = window.positionAt(window.size() - 1);
+		}
+	}
+
+	private List<User> scrollForward(com.querydsl.core.types.Predicate predicate, Sort sort, int pageSize) {
+
+		List<User> result = new ArrayList<>();
+		ScrollPosition position = ScrollPosition.keyset();
+
+		while (true) {
+
+			Window<User> window = scroll(predicate, sort, position, pageSize);
+			result.addAll(window.getContent());
+
+			if (!window.hasNext() || window.isEmpty()) {
+				return result;
+			}
+
+			position = window.positionAt(window.size() - 1);
+		}
+	}
+
+	private List<User> scrollBackward(Sort sort, int pageSize) {
+
+		List<User> result = new ArrayList<>();
+		ScrollPosition position = ScrollPosition.keyset().backward();
+
+		while (true) {
+
+			Window<User> window = scroll(sort, position, pageSize);
+			result.addAll(0, window.getContent());
+
+			if (!window.hasNext() || window.isEmpty()) {
+				return result;
+			}
+
+			position = window.positionAt(0);
+		}
+	}
+
+	private Window<User> scroll(Sort sort, ScrollPosition position, int pageSize) {
+		return repository.findBy(Specification.unrestricted(), q -> q.limit(pageSize).sortBy(sort).scroll(position));
+	}
+
+	private Window<User> scroll(com.querydsl.core.types.Predicate predicate, Sort sort, ScrollPosition position,
+			int pageSize) {
+		return repository.findBy(predicate, q -> q.limit(pageSize).sortBy(sort).scroll(position));
+	}
+
+	private void saveKeysetScrollUsersWithDuplicateFirstnames() {
+
+		repository.saveAllAndFlush(Arrays.asList(//
+				new User("Ada", "Lovelace", "ada-3@example.com"), //
+				new User("Ada", "Lovelace", "ada-2@example.com"), //
+				new User("Ada", "Lovelace", "ada-1@example.com"), //
+				new User("Beth", "Johnson", "beth-2@example.com"), //
+				new User("Beth", "Johnson", "beth-1@example.com"), //
+				new User("Cora", "Smith", "cora-1@example.com")));
+	}
+
+	private void saveKeysetScrollUsersWithDuplicateFirstnamesAndNulls() {
+
+		repository.saveAllAndFlush(Arrays.asList(//
+				new User("Ada", "Lovelace", "ada-3@example.com"), //
+				new User("Ada", "Lovelace", "ada-2@example.com"), //
+				new User("Beth", "Johnson", "beth-2@example.com"), //
+				new User("Beth", "Johnson", "beth-1@example.com"), //
+				new User("Cora", "Smith", "cora-1@example.com"), //
+				new User(null, "Unknown", "unknown-2@example.com"), //
+				new User(null, "Unknown", "unknown-1@example.com")));
+	}
+
+	private static List<String> emailAddressesOf(List<User> users) {
+
+		List<String> result = new ArrayList<>(users.size());
+		for (User user : users) {
+			result.add(user.getEmailAddress());
+		}
+		return result;
 	}
 
 	@Test // GH-2878
