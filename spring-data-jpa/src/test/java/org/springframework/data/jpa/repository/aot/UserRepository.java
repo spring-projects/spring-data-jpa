@@ -29,6 +29,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -256,6 +257,11 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
 	User findWithDeclaredEntityGraphByFirstname(String firstname);
+
+	User findByFirstname(String firstname, EntityGraphHint<User> entityGraph);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, value = "User.detail")
+	User findWithEntityGraphHintByFirstname(String firstname, EntityGraphHint<User> entityGraph);
 
 	@Query("select u from User u where u.emailAddress = ?1 AND TYPE(u) = ?2")
 	<T extends User> T findByEmailAddress(String emailAddress, Class<T> type);

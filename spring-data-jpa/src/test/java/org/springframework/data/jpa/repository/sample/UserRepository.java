@@ -43,6 +43,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -136,6 +137,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	 * Just returns the queried {@link Page}'s contents.
 	 */
 	List<User> findByFirstname(String firstname, Pageable pageable);
+
+	List<User> findByFirstname(String firstname, EntityGraphHint<User> entityGraph);
 
 	Page<User> findByFirstnameIn(Pageable pageable, String... firstnames);
 
