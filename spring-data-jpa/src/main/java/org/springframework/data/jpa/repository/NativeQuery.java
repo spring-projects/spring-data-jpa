@@ -71,6 +71,9 @@ public @interface NativeQuery {
 	/**
 	 * The named query to be used. If not defined, a {@link jakarta.persistence.NamedQuery} with name of
 	 * {@code ${domainClass}.${queryMethodName}} will be used. Alias for {@link Query#name()}.
+	 * <p>
+	 * If an explicitly defined query name cannot resolve a named query, Query creation fails with
+	 * {@link org.springframework.data.repository.query.QueryCreationException} upon repository creation.
 	 */
 	@AliasFor(annotation = Query.class)
 	String name() default "";
@@ -79,6 +82,9 @@ public @interface NativeQuery {
 	 * Returns the name of the {@link jakarta.persistence.NamedQuery} to be used to execute count queries when pagination
 	 * is used. Will default to the named query name configured suffixed by {@code .count}. Alias for
 	 * {@link Query#countName()}.
+	 * <p>
+	 * If an explicitly defined query name cannot resolve a named query, Query creation fails with
+	 * {@link org.springframework.data.repository.query.QueryCreationException} upon repository creation.
 	 */
 	@AliasFor(annotation = Query.class)
 	String countName() default "";

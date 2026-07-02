@@ -153,7 +153,7 @@ class JpaQueryLookupStrategyUnitTests {
 		assertThat(repositoryQuery).isInstanceOf(AbstractStringBasedJpaQuery.class);
 	}
 
-	@Test // DATAJPA-1417
+	@Test // GH-4293
 	void rejectsMissingExplicitNamedQuery() throws Exception {
 
 		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
@@ -166,6 +166,50 @@ class JpaQueryLookupStrategyUnitTests {
 		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
 				.withMessageContaining("Did not find named query 'missing-query'");
+	}
+
+	@Test // GH-4293
+	void rejectsMissingExplicitNamedCountQueryOnStringQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				CONFIG);
+		Method method = UserRepository.class.getMethod("findByStringQueryWithNamedCountQuery", String.class,
+				Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		when(em.createNamedQuery("foo.count")).thenThrow(new IllegalArgumentException());
+
+		assertThatExceptionOfType(QueryCreationException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withMessageContaining("Did not find named count query 'foo.count'");
+	}
+
+	@Test // GH-4293
+	void derivedCountQueryNameIsNotRequiredToExist() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				CONFIG);
+		Method method = UserRepository.class.getMethod("findWithoutExplicitCountName", Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		RepositoryQuery query = strategy.resolveQuery(method, metadata, projectionFactory, namedQueries);
+
+		assertThat(query).isInstanceOf(AbstractStringBasedJpaQuery.class);
+	}
+
+	@Test // GH-4293
+	void rejectsMissingExplicitNamedCountQueryOnNamedQuery() throws Exception {
+
+		QueryLookupStrategy strategy = JpaQueryLookupStrategy.create(em, queryMethodFactory, Key.CREATE_IF_NOT_FOUND,
+				CONFIG);
+		Method method = UserRepository.class.getMethod("findByNamedQuery", String.class, Pageable.class);
+		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
+
+		when(em.createNamedQuery("foo.count")).thenThrow(new IllegalArgumentException());
+
+		assertThatExceptionOfType(QueryCreationException.class)
+				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
+				.withMessageContaining("Did not find named count query 'foo.count'");
 	}
 
 	@Test // GH-2018
@@ -239,6 +283,9 @@ class JpaQueryLookupStrategyUnitTests {
 
 		@Query(value = "select foo from Foo foo", countName = "foo.count")
 		Page<User> findByStringQueryWithNamedCountQuery(String foo, Pageable pageable);
+
+		@Query("select foo from Foo foo")
+		Page<User> findWithoutExplicitCountName(Pageable pageable);
 
 		@Query(value = "select foo from Foo foo", name = "my-query-name")
 		User annotatedQueryWithQueryAndQueryName();

@@ -212,6 +212,10 @@ public final class JpaQueryLookupStrategy {
 				return method.getQueryExtractor().extractQueryString(em.createNamedQuery(queryName));
 			}
 
+			if (method.hasAnnotatedCountQueryName()) {
+				throw QueryCreationException.create(method, String.format("Did not find named count query '%s'", queryName));
+			}
+
 			return null;
 		}
 
