@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.antlr.v4.runtime.tree.Tree;
@@ -35,6 +36,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jewoo Shin
  * @since 3.4
  */
 interface QueryTokenStream extends Streamable<QueryToken> {
@@ -193,6 +195,33 @@ interface QueryTokenStream extends Streamable<QueryToken> {
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.appendInline(nested);
 		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder.build();
+	}
+
+	/**
+	 * Creates a JDBC escape literal using the given marker and literal value.
+	 *
+	 * @param context the JDBC escape parser context.
+	 * @param literal the literal parser context.
+	 * @param visitor visitor function rendering the literal.
+	 * @return the composed token stream.
+	 */
+	static QueryTokenStream ofJdbcEscape(ParserRuleContext context, ParserRuleContext literal,
+			Function<ParseTree, QueryTokenStream> visitor) {
+
+		var escapeStart = context.getStart();
+		var literalStart = literal.getStart();
+
+		QueryRenderer.QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(token(escapeStart));
+
+		if (escapeStart.getStopIndex() + 1 < literalStart.getStartIndex()) {
+			builder.append(TOKEN_SPACE);
+		}
+
+		builder.appendInline(visitor.apply(literal));
+		builder.append(TOKEN_CLOSE_BRACE);
 
 		return builder.build();
 	}

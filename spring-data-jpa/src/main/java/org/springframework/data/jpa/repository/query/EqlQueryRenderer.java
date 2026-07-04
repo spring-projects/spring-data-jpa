@@ -689,6 +689,21 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitJdbc_date_literal(EqlParser.Jdbc_date_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_time_literal(EqlParser.Jdbc_time_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_timestamp_literal(EqlParser.Jdbc_timestamp_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
 	public QueryTokenStream visitBoolean_expression(EqlParser.Boolean_expressionContext ctx) {
 
 		if (ctx.subquery() != null) {

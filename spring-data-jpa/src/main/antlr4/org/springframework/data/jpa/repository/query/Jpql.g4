@@ -692,9 +692,25 @@ pattern_value
 
 date_time_timestamp_literal
     : STRINGLITERAL
-    | DATELITERAL
-    | TIMELITERAL
-    | TIMESTAMPLITERAL
+    | jdbc_date_literal
+    | jdbc_time_literal
+    | jdbc_timestamp_literal
+    ;
+
+jdbc_date_literal
+    : DATE_ESCAPE_START generic_temporal_literal_text '}'
+    ;
+
+jdbc_time_literal
+    : TIME_ESCAPE_START generic_temporal_literal_text '}'
+    ;
+
+jdbc_timestamp_literal
+    : TIMESTAMP_ESCAPE_START generic_temporal_literal_text '}'
+    ;
+
+generic_temporal_literal_text
+    : STRINGLITERAL
     ;
 
 entity_type_literal
@@ -1032,6 +1048,6 @@ JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;
 LONGLITERAL                 : ('0' .. '9')+ L;
-DATELITERAL                 : '{' D STRINGLITERAL '}';
-TIMELITERAL                 : '{' T STRINGLITERAL '}';
-TIMESTAMPLITERAL            : '{' T S STRINGLITERAL '}';
+TIMESTAMP_ESCAPE_START      : '{' T S;
+DATE_ESCAPE_START           : '{' D;
+TIME_ESCAPE_START           : '{' T;
