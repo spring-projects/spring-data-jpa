@@ -1282,8 +1282,11 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 	void dateTimeLiterals() {
 
 		assertQuery("SELECT e FROM  Employee e WHERE e.startDate = {d'2012-01-03'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.startDate = {d '2012-01-03'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.startTime = {t'09:00:00'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.startTime = {t '09:00:00'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts'2012-01-03 09:00:00'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts '2012-01-03 09:00:00'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts'something weird'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00+1}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts2012-01-03 09:00:00-1}");

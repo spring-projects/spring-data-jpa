@@ -172,8 +172,11 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT s FROM  Stat s WHERE s.ratio > 3.14e32D");
 		assertQuery("SELECT e FROM  Employee e WHERE e.active = TRUE");
 		assertQuery("SELECT e FROM  Employee e WHERE e.startDate = {d'2012-01-03'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.startDate = {d '2012-01-03'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.startTime = {t'09:00:00'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.startTime = {t '09:00:00'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts'2012-01-03 09:00:00.000000001'}");
+		assertQuery("SELECT e FROM  Employee e WHERE e.version = {ts '2012-01-03 09:00:00.000000001'}");
 		assertQuery("SELECT e FROM  Employee e WHERE e.gender = org.acme.Gender.MALE");
 		assertQuery("UPDATE Employee e SET e.manager = NULL WHERE e.manager = :manager");
 	}
