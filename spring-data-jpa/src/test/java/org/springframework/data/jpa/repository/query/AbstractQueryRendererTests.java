@@ -418,12 +418,15 @@ abstract class AbstractQueryRendererTests {
 			assertQuery("SELECT e FROM Employee e WHERE e.gender = org.acme.Gender.MALE");
 		}
 
-		@Test
+		@Test // GH-4294
 		void temporalLiterals() {
 
 			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'}");
 			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t'09:00:00'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t '09:00:00'}");
 			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts'2012-01-03 09:00:00.000000001'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts '2012-01-03 09:00:00.000000001'}");
 		}
 
 		@Test
