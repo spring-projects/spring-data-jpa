@@ -53,8 +53,8 @@ import org.hibernate.query.sqm.mutation.spi.MultiTableHandler;
 import org.hibernate.query.sqm.mutation.spi.MultiTableHandlerBuildResult;
 import org.hibernate.query.sqm.mutation.spi.SqmMultiTableInsertStrategy;
 import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
-import org.hibernate.query.sqm.tree.SqmDeleteOrUpdateStatement;
-import org.hibernate.query.sqm.tree.insert.SqmInsertStatement;
+import org.hibernate.query.sqm.tree.spi.SqmDeleteOrUpdateStatement;
+import org.hibernate.query.sqm.tree.spi.insert.SqmInsertStatement;
 import org.hibernate.sql.ast.SqlAstTranslatorFactory;
 import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
@@ -67,14 +67,16 @@ import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-
+import org.hibernate.dialect.DatabaseVersion;
 /**
  * AOT metamodel implementation that uses Hibernate to build the metamodel.
  *
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oliver Drotbohm
+ * @author Oscar Fanchin
  * @since 4.0
  */
 class AotMetamodel implements Metamodel {
@@ -101,11 +103,14 @@ class AotMetamodel implements Metamodel {
 	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl,
 			Map<String, Object> jpaProperties) {
 
-		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(
-				managedTypes.getClass().getClassLoader());
+		// managedTypes may be backed by a bootstrap-loaded JDK collection whose class loader is null.
+		// Use the application class loader so that the persistence unit can resolve managed entity classes.
+			ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+			SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(
+					classLoader != null ? classLoader : AotMetamodel.class.getClassLoader());
 		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
 		persistenceUnitInfo.setPersistenceUnitRootUrl(persistenceUnitRootUrl);
-
+		persistenceUnitInfo.setExcludeUnlistedClasses(true);
 		this.entityManagerFactory = init(() -> {
 
 			managedTypes.forEach(persistenceUnitInfo::addManagedClassName);
@@ -202,8 +207,13 @@ class AotMetamodel implements Metamodel {
 	@NullUnmarked
 	@SuppressWarnings("deprecation")
 	static class SpringDataJpaAotDialect extends Dialect {
+		// Hibernate 8 requires an explicit database version when constructing a Dialect.
+		// Use a synthetic version because AOT bootstrap does not connect to a database.
+		protected SpringDataJpaAotDialect(DatabaseVersion version) {
+			super(version);
+		}
 
-		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect();
+		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect(DatabaseVersion.make(1, 0));
 
 		public boolean isCurrentTimestampSelectStringCallable() {
 			return false;
