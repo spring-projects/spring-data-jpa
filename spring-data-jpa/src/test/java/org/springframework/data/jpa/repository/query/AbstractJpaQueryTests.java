@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
+import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
@@ -55,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Krzysztof Krason
  * @author Julia Lee
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -129,7 +131,14 @@ class AbstractJpaQueryTests {
 		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
 		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[0]));
 
-		verify(result).setHint("jakarta.persistence.fetchgraph", entityGraph);
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(result).setHint(eq("jakarta.persistence.fetchgraph"), captor.capture());
+
+		assertThat(captor.getValue()).isInstanceOf(jakarta.persistence.EntityGraph.class);
+		jakarta.persistence.EntityGraph<?> actual = (jakarta.persistence.EntityGraph<?>) captor.getValue();
+
+		assertThat(actual.getName()).isEqualTo(entityGraph.getName());
+		assertThat(actual.getAttributeNodes()).extracting(AttributeNode::getAttributeName).containsExactly("roles");
 	}
 
 	@Test // DATAJPA-466
@@ -145,7 +154,15 @@ class AbstractJpaQueryTests {
 		Query result = jpaQuery
 				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { 1 }));
 
-		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(result).setHint(eq("jakarta.persistence.loadgraph"), captor.capture());
+
+		assertThat(captor.getValue()).isInstanceOf(jakarta.persistence.EntityGraph.class);
+		jakarta.persistence.EntityGraph<?> actual = (jakarta.persistence.EntityGraph<?>) captor.getValue();
+
+		assertThat(actual.getName()).isEqualTo(entityGraph.getName());
+		assertThat(actual.getAttributeNodes()).extracting(AttributeNode::getAttributeName)
+				.containsExactlyInAnyOrder("manager", "roles", "colleagues");
 	}
 
 	@Test // GH-3137
