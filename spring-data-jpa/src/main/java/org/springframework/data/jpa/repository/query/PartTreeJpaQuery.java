@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @author Oscar Fanchin
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
@@ -125,10 +126,13 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		return queryPreparer.createQuery(accessor);
 	}
 
+	// SharedEntityManager may expose JPA 4 queries through a reduced proxy interface.
+	// Unwrap the underlying TypedQuery instead of casting the proxy directly.
+	// See https://github.com/spring-projects/spring-framework/issues/36878.
 	@Override
 	@SuppressWarnings("unchecked")
 	public TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
-		return (TypedQuery<Long>) countQuery.createQuery(accessor);
+		return (TypedQuery<Long>) (countQuery.createQuery(accessor).unwrap(TypedQuery.class));
 	}
 
 	@Override
