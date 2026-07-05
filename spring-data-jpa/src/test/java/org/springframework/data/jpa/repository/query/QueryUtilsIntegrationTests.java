@@ -15,9 +15,38 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static java.util.Collections.*;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import org.hibernate.query.MutationOrSelectionQuery;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.jpa.domain.sample.Category;
+import org.springframework.data.jpa.domain.sample.Invoice;
+import org.springframework.data.jpa.domain.sample.InvoiceItem;
+import org.springframework.data.jpa.domain.sample.Order;
+import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
+import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
+import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
@@ -38,33 +67,6 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
 import jakarta.persistence.spi.PersistenceProviderResolverHolder;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import org.hibernate.query.sqm.internal.SqmQueryImpl;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
-
-import org.springframework.dao.InvalidDataAccessApiUsageException;
-import org.springframework.data.core.PropertyPath;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
-import org.springframework.data.jpa.domain.sample.Category;
-import org.springframework.data.jpa.domain.sample.Invoice;
-import org.springframework.data.jpa.domain.sample.InvoiceItem;
-import org.springframework.data.jpa.domain.sample.Order;
-import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
-import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
-import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Integration tests for {@link QueryUtils}.
@@ -449,7 +451,7 @@ class QueryUtilsIntegrationTests {
 	void applyAndBindOptimizesIn() {
 
 		em.getCriteriaBuilder();
-		SqmQueryImpl<?> query = (SqmQueryImpl) QueryUtils
+		MutationOrSelectionQuery query = (MutationOrSelectionQuery) QueryUtils
 				.applyAndBind("DELETE FROM User u", List.of(new User(), new User()), em.unwrap(null));
 
 		assertThat(query.getQueryString()).isEqualTo("DELETE FROM User u where u IN (?1)");
@@ -460,7 +462,7 @@ class QueryUtilsIntegrationTests {
 	void applyAndBindExpandsToPositionalPlaceholders() {
 
 		em.getCriteriaBuilder();
-		SqmQueryImpl<?> query = (SqmQueryImpl) QueryUtils
+		MutationOrSelectionQuery query = (MutationOrSelectionQuery) QueryUtils
 				.applyAndBind("DELETE FROM User u", List.of(new User(), new User()), em.unwrap(null),
 						org.springframework.data.jpa.provider.PersistenceProvider.ECLIPSELINK);
 

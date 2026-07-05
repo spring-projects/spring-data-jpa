@@ -61,7 +61,7 @@ import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
-
+import jakarta.persistence.StatementOrTypedQuery;
 /**
  * Unit test for {@link SimpleJpaQuery}.
  *
@@ -75,6 +75,7 @@ import org.springframework.data.repository.query.ValueExpressionDelegate;
  * @author Erik Pellizzon
  * @author Christoph Strobl
  * @author Danny van den Elshout
+ * @author Oscar Fanchin
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -90,7 +91,8 @@ class SimpleJpaQueryUnitTests {
 	@Mock EntityManager em;
 	@Mock EntityManagerFactory emf;
 	@Mock QueryExtractor extractor;
-	@Mock jakarta.persistence.Query query;
+	@Mock jakarta.persistence.StatementOrTypedQuery query;
+	@Mock jakarta.persistence.TypedQuery<User> queryNative;
 	@Mock TypedQuery<Long> typedQuery;
 	RepositoryMetadata metadata;
 	@Mock ParameterBinder binder;
@@ -102,7 +104,7 @@ class SimpleJpaQueryUnitTests {
 	void setUp() throws SecurityException, NoSuchMethodException {
 
 		when(em.getMetamodel()).thenReturn(metamodel);
-		when(em.createQuery(anyString())).thenReturn(query);
+		when(em.createQuery(anyString())).thenReturn((@Nullable StatementOrTypedQuery) query);
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(typedQuery);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
@@ -156,7 +158,7 @@ class SimpleJpaQueryUnitTests {
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
-		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
+		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(queryNative);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
@@ -173,7 +175,7 @@ class SimpleJpaQueryUnitTests {
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
-		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(query);
+		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(queryNative);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 

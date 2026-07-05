@@ -58,7 +58,7 @@ class CrudMethodMetadataUnitTests {
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
-	@Mock jakarta.persistence.Query query;
+	@Mock jakarta.persistence.StatementOrTypedQuery query;
 	@Mock Metamodel metamodel;
 
 	private RoleRepository repository;

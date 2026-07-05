@@ -27,7 +27,6 @@ import jakarta.persistence.Subgraph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.assertj.core.api.AbstractAssert;
@@ -51,6 +50,7 @@ import org.springframework.util.ObjectUtils;
  * @author Jens Schauder
  * @author Krzysztof Krason
  * @author Christoph Strobl
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -317,7 +317,7 @@ class Jpa21UtilsTests {
 
 		private List<String> extractSubgraphsAttributeNames() {
 
-			Iterator<Subgraph> iterator = attributeNode.getSubgraphs().values().iterator();
+			var iterator = attributeNode.getSubgraphs().values().iterator();
 
 			if (!iterator.hasNext()) {
 				return Collections.emptyList();
