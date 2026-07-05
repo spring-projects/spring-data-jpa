@@ -62,6 +62,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  * @author Yanming Zhou
  * @author Thorben Janssen
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -110,7 +111,8 @@ class PostgresStoredProcedureIntegrationTests {
 				new Employee(4, "Gabriel"));
 	}
 
-	@DisabledOnHibernate(value = "7",
+  // Same error with Hibernate 8
+	@DisabledOnHibernate(value = "8",
 			disabledReason = "class org.hibernate.metamodel.model.domain.internal.EntityTypeImpl cannot be cast to class org.hibernate.query.OutputableType (org.hibernate.metamodel.model.domain.internal.EntityTypeImpl and org.hibernate.query.OutputableType are in unnamed module of loader 'app')")
 	@Test // 2256
 	void testSingleEntityFromResultSet() {
