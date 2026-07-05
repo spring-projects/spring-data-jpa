@@ -69,6 +69,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jens Schauder
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  */
 public abstract class JpaQueryExecution {
 
@@ -493,11 +494,11 @@ public abstract class JpaQueryExecution {
 				return query.extractOutputValue(procedure);
 			} finally {
 
-				if (procedure instanceof AutoCloseable ac) {
-					try {
-						ac.close();
-					} catch (Exception ignored) {}
-				}
+					if (procedure instanceof AutoCloseable) { // StoredProcedureQuery extends AutoCloseable as of Jakarta Persistence 4.0.
+						try {
+							((AutoCloseable) procedure).close();
+						} catch (Exception ignored) {}
+					}
 			}
 		}
 	}
