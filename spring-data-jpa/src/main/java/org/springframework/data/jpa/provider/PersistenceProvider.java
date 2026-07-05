@@ -43,7 +43,7 @@ import org.eclipse.persistence.queries.ScrollableCursor;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.proxy.HibernateProxy;
-import org.hibernate.query.SelectionQuery;
+import org.hibernate.query.MutationOrSelectionQuery;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopProxyUtils;
@@ -65,6 +65,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  * @author Ariel Morelli Andres
+ * @author Oscar Fanchin
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -124,9 +125,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		@Override
 		public long getResultCount(Query resultQuery, LongSupplier countSupplier) {
 
+			// Hibernate 8 may expose a selection query as MutationOrSelectionQuery instead of SelectionQuery.
+			// Check the query kind before adapting it to the selection-specific contract.
 			if (TransactionSynchronizationManager.isActualTransactionActive()
-					&& resultQuery instanceof SelectionQuery<?> sq) {
-				return sq.getResultCount();
+					&& resultQuery instanceof MutationOrSelectionQuery sq && sq.isSelectionQuery()) {
+				return sq.asSelectionQuery().getResultCount();
 			}
 
 			return super.getResultCount(resultQuery, countSupplier);
