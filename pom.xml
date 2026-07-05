@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa-parent</artifactId>
-	<version>4.2.0-SNAPSHOT</version>
+	<version>4.2.0-SNAPSHOT-JPA4</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data JPA Parent</name>
@@ -30,11 +30,12 @@
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.0</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.4.0.Final</hibernate>
-		<hibernate-74-snapshots>7.4.1-SNAPSHOT</hibernate-74-snapshots>
+		<hibernate>8.0.0-SNAPSHOT</hibernate>
+		<hibernate-81-snapshots>8.1.0-SNAPSHOT</hibernate-81-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.3.232</h2>
-		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
+		<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+		<jakarta-persistence-api-snapshot>4.0.0-SNAPSHOT</jakarta-persistence-api-snapshot>
 		<jsqlparser>5.3</jsqlparser>
 		<mysql-connector-java>9.7.0</mysql-connector-java>
 		<postgresql>42.7.11</postgresql>
@@ -44,6 +45,8 @@
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<spring>7.1.0-SNAPSHOT</spring>
+		<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 	</properties>
 
 	<modules>
@@ -63,9 +66,10 @@
 			</repositories>
 		</profile>
 		<profile>
-			<id>hibernate-74-snapshots</id>
+			<id>hibernate-81-snapshots</id>
 			<properties>
-				<hibernate>${hibernate-74-snapshots}</hibernate>
+				<hibernate>${hibernate-81-snapshots}</hibernate>
+				<jakarta-persistence-api>${jakarta-persistence-api-snapshot}</jakarta-persistence-api>
 			</properties>
 			<repositories>
 				<repository>
@@ -284,6 +288,13 @@
 	</build>
 
 	<repositories>
+		<repository>
+			<id>sonatype-central</id>
+			<url>https://central.sonatype.com/repository/maven-snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
 		<repository>
 			<id>spring-snapshot</id>
 			<url>https://repo.spring.io/snapshot</url>
