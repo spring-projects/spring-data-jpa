@@ -249,7 +249,11 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-132
 	List<User> findByActiveFalse();
 
-	@Query("select u.colleagues from User u where u = ?1")
+	// Previous query: select u.colleagues from User u where u = ?1
+	// Hibernate 8 no longer flattens the collection-valued path into individual elements.
+	// Join the association explicitly to preserve the expected List<User> result shape.
+	// See Jakarta Persistence specification, section 4.9.
+	@Query("select colleague from User u join u.colleagues colleague where u = ?1")
 	List<User> findColleaguesFor(User user);
 
 	// DATAJPA-188
