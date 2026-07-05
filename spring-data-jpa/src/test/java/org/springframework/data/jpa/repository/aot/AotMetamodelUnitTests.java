@@ -93,6 +93,7 @@ class AotMetamodelUnitTests {
 		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(this.getClass().getClassLoader());
 		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
 		persistenceUnitInfo.addManagedClassName(EntityEntity.class.getName());
+		persistenceUnitInfo.setExcludeUnlistedClasses(true);
 		PersistenceUnitInfoDescriptor persistenceUnit = new PersistenceUnitInfoDescriptor(
 				persistenceUnitInfo.asStandardPersistenceUnitInfo());
 
