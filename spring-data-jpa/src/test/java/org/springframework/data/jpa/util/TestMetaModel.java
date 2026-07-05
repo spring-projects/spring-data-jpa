@@ -33,6 +33,7 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 
 /**
  * @author Christoph Strobl
+ * @author Oscar Fanchin
  */
 public class TestMetaModel implements Metamodel {
 
@@ -99,9 +100,14 @@ public class TestMetaModel implements Metamodel {
 		persistenceUnitInfo.setPersistenceUnitName(persistenceUnit);
 		this.managedTypes.stream().map(Class::getName).forEach(persistenceUnitInfo::addManagedClassName);
 		persistenceUnitInfo.setPersistenceProviderClassName(HibernatePersistenceProvider.class.getName());
+		persistenceUnitInfo.setExcludeUnlistedClasses(true);
+
+		Map<String, Object> properties = Map.of( //
+				"hibernate.dialect", "org.hibernate.dialect.H2Dialect", //
+				"hibernate.xml_mapping_enabled", false);
 
 		return new EntityManagerFactoryBuilderImpl(
 				new PersistenceUnitInfoDescriptor(persistenceUnitInfo.asStandardPersistenceUnitInfo()) {},
-				Map.of("hibernate.dialect", "org.hibernate.dialect.H2Dialect")).build();
+				properties).build();
 	}
 }
