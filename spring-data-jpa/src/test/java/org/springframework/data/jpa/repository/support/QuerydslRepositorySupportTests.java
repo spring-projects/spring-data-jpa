@@ -37,7 +37,7 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.junit.jupiter.api.Disabled;
 /**
  * Integration test for {@link QuerydslRepositorySupport}.
  *
@@ -46,7 +46,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jens Schauder
  * @author Krzysztof Krason
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
+@Disabled("Querydsl 5.1 is not binary-compatible with Jakarta Persistence 4.0")
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
 @Transactional
