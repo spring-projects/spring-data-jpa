@@ -17,9 +17,9 @@ package org.springframework.data.jpa.provider;
 
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.query.spi.SqmQuery;
-import org.hibernate.query.sql.spi.NamedNativeQueryMemento;
-import org.hibernate.query.sqm.spi.NamedSqmQueryMemento;
+import org.hibernate.query.internal.AbstractSqmQuery;
+import org.hibernate.query.named.spi.NamedNativeQueryMemento;
+import org.hibernate.query.named.spi.NamedSqmQueryMemento;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -31,6 +31,7 @@ import org.jspecify.annotations.Nullable;
  * @author Jens Schauder
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
@@ -48,7 +49,7 @@ public abstract class HibernateUtils {
 
 		try {
 			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery sqmQuery) {
+			if (query instanceof AbstractSqmQuery sqmQuery) {
 
 				String hql = sqmQuery.getQueryString();
 
@@ -89,7 +90,7 @@ public abstract class HibernateUtils {
 	public static boolean isNativeQuery(Object query) {
 
 		// Try the new Hibernate implementation first
-		if (query instanceof SqmQuery) {
+		if (query instanceof AbstractSqmQuery<?>) {
 			return false;
 		}
 
@@ -105,6 +106,23 @@ public abstract class HibernateUtils {
 
 		if (query instanceof NamedNativeQueryMemento<?>) {
 			return true;
+		}
+		// This change handles the query proxying mechanism introduced in Spring Framework 7.0.9 and 7.1.
+		// See https://github.com/spring-projects/spring-framework/issues/36878.
+		if (query instanceof jakarta.persistence.Query jpaQuery) {
+			try {
+				jpaQuery.unwrap(NativeQuery.class);
+				return true;
+			} catch (Exception ignored) {
+				// Not a native Hibernate query; try the general Hibernate query type.
+			}
+
+			try {
+				jpaQuery.unwrap(Query.class);
+				return false;
+			} catch (Exception ignored) {
+				// Not an unwrap-compatible Hibernate query.
+			}
 		}
 
 		return false;
