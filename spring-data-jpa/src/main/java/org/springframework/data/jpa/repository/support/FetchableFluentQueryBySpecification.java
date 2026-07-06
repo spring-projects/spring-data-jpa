@@ -54,6 +54,7 @@ import org.springframework.util.Assert;
  * @param <R> Result type
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author kmdy7991
  * @since 3.0
  */
 class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
@@ -175,18 +176,18 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	@Override
 	public Slice<R> slice(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort())) : readSlice(pageable);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readSlice(pageable);
 	}
 
 	@Override
 	public Page<R> page(Pageable pageable) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort())) : readPage(pageable, spec);
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort))) : readPage(pageable, spec);
 	}
 
 	@Override
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Page<R> page(Pageable pageable, Specification<?> countSpec) {
-		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSort()))
+		return pageable.isUnpaged() ? new PageImpl<>(all(pageable.getSortOr(this.sort)))
 				: readPage(pageable, (Specification) countSpec);
 	}
 
@@ -225,7 +226,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Slice<R> readSlice(Pageable pageable) {
 
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSort());
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSortOr(this.sort));
 
 		if (pageable.isPaged()) {
 			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
@@ -245,7 +246,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 	private Slice<R> readSlice(Pageable pageable, @Nullable Specification<S> countSpec) {
 
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSort());
+		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSortOr(this.sort));
 
 		if (pageable.isPaged()) {
 			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));

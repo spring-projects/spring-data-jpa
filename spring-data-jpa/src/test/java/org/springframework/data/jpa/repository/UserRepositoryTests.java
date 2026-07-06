@@ -105,6 +105,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  * @author Yanming Zhou
  * @author Ilya Bakaev
+ * @author kmdy7991
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -2983,6 +2984,39 @@ class UserRepositoryTests {
 		assertThat(slice).isNotInstanceOf(Page.class);
 		assertThat(slice).hasSize(3);
 		assertThat(slice.hasNext()).isFalse();
+	}
+
+	@Test // GH-4297
+	void findByFluentSpecificationSliceWithUnsortedPageable() {
+
+		flushTestUsers();
+
+		Slice<User> slice = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by("firstname")).slice(PageRequest.of(0, 2)));
+
+		assertThat(slice.getContent()).containsExactly(thirdUser, firstUser);
+		assertThat(slice.hasNext()).isTrue();
+	}
+
+	@Test // GH-4297
+	void findByFluentSpecificationWithUnpagedPageableAppliesSortBy() {
+
+		flushTestUsers();
+
+		Page<User> page = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by(DESC, "firstname")).page(Pageable.unpaged()));
+
+		assertThat(page.getContent()).containsExactly(fourthUser, firstUser, thirdUser);
+
+		Slice<User> slice = repository.findBy(userHasFirstnameLike("v"),
+				q -> q.sortBy(Sort.by(DESC, "firstname")).slice(Pageable.unpaged()));
+
+		assertThat(slice.getContent()).containsExactly(fourthUser, firstUser, thirdUser);
+
+		page = repository.findBy(userHasFirstnameLike("v"), q -> q.sortBy(Sort.by(DESC, "firstname"))
+				.page(Pageable.unpaged(), (root, query, criteriaBuilder) -> null));
+
+		assertThat(page.getContent()).containsExactly(fourthUser, firstUser, thirdUser);
 	}
 
 	@Test // GH-3727
