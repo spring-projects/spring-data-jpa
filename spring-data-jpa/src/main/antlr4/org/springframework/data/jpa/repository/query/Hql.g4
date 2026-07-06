@@ -1487,7 +1487,7 @@ betweenExpression
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
 stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL |parameter))?
+    : expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL |parameter))?
     ;
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
@@ -1707,6 +1707,7 @@ nakedIdentifier
     | PRECEDING
     | QUARTER
     | RANGE
+    | REGEXP
     | RESPECT
     | RETURNING
     | RIGHT
@@ -1968,6 +1969,7 @@ POSITION                    : P O S I T I O N;
 PRECEDING                   : P R E C E D I N G;
 QUARTER                     : Q U A R T E R;
 RANGE                       : R A N G E;
+REGEXP                      : R E G E X P;
 RESPECT                     : R E S P E C T;
 RETURNING                   : R E T U R N I N G;
 RIGHT                       : R I G H T;
