@@ -67,7 +67,7 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	User getOneWithAttributeNamesById(Integer id);
 
 	// GH-4175
-	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	@EntityGraph(attributePaths = { "colleagues" })
 	User getOneWithEntityGraphHintById(Integer id, EntityGraphHint<User> entityGraph);
 
 	// DATAJPA-790

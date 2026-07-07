@@ -182,7 +182,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 				.describedAs("roles should be fetched with the EntityGraphHint parameter") //
 				.isTrue();
 		assertThat(util.isLoaded(user, "colleagues")) //
-				.describedAs("colleagues should not be fetched from the declared 'User.detail' graph") //
+				.describedAs("colleagues should not be fetched from the declared entity graph") //
 				.isFalse();
 	}
 

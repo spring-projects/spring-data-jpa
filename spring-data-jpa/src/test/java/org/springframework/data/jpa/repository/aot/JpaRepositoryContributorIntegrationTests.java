@@ -704,7 +704,7 @@ class JpaRepositoryContributorIntegrationTests {
 	@Test // GH-4175
 	void shouldPreferEntityGraphHintParameterOverDeclaredEntityGraph() {
 
-		User chewie = fragment.findWithEntityGraphHintByFirstname("Chewbacca", EntityGraphHint.fetch(User::getRoles));
+		User chewie = fragment.findWithAdHocEntityGraphHintByFirstname("Chewbacca", EntityGraphHint.fetch(User::getRoles));
 
 		em.clear();
 
