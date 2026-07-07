@@ -24,6 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -64,6 +65,10 @@ public interface RepositoryMethodsWithEntityGraphConfigRepository
 	// DATAJPA-696
 	@EntityGraph(attributePaths = { "roles", "colleagues.roles" })
 	User getOneWithAttributeNamesById(Integer id);
+
+	// GH-4175
+	@EntityGraph(type = EntityGraphType.FETCH, value = "User.detail")
+	User getOneWithEntityGraphHintById(Integer id, EntityGraphHint<User> entityGraph);
 
 	// DATAJPA-790
 	@Override
