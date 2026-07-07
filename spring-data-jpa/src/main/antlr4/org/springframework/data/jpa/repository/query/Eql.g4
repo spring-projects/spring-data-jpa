@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2023-present the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ grammar Eql;
  * @see https://eclipse.dev/eclipselink/documentation/3.0/jpa/extensions/jpql.htm
  * @author Greg Turnquist
  * @author Christoph Strobl
+ * @author Jewoo Shin
  * @since 3.2
  */
 }
@@ -387,6 +388,7 @@ collection_member_expression
 entity_or_value_expression
     : single_valued_object_path_expression
     | state_field_path_expression
+    | map_field_identification_variable
     | simple_entity_or_value_expression
     ;
 
@@ -677,6 +679,7 @@ constructor_name
 
 literal
     : STRINGLITERAL
+    | CHARACTER
     | JAVASTRINGLITERAL
     | INTLITERAL
     | FLOATLITERAL

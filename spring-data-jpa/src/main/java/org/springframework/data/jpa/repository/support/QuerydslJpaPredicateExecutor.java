@@ -73,6 +73,7 @@ import com.querydsl.jpa.impl.AbstractJPAQuery;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Yanming Zhou
+ * @author Ilya Bakaev
  * @author YeongJae Min
  */
 public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecutor<T>, JpaRepositoryConfigurationAware {
@@ -431,7 +432,7 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 						propertyExpression, ConstantImpl.create(value));
 
 				if (KeysetScrollSpecification.isNullsLast(order)) {
-					return inclusive.or(Expressions.predicate(Ops.IS_NULL, propertyExpression));
+					return inclusive.or(Expressions.booleanOperation(Ops.IS_NULL, propertyExpression));
 				}
 
 				return inclusive;
@@ -442,7 +443,8 @@ public class QuerydslJpaPredicateExecutor<T> implements QuerydslPredicateExecuto
 
 		@Override
 		public BooleanExpression compare(String property, Expression<?> propertyExpression, @Nullable Object value) {
-			return value == null ? Expressions.predicate(Ops.IS_NULL, propertyExpression)
+			return value == null
+					? Expressions.booleanOperation(Ops.IS_NULL, propertyExpression)
 					: Expressions.booleanOperation(Ops.EQ, propertyExpression, ConstantImpl.create(value));
 		}
 

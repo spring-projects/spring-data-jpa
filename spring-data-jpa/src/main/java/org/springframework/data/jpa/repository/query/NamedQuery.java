@@ -178,6 +178,11 @@ final class NamedQuery extends AbstractJpaQuery {
 					method.isNativeQuery() ? "NativeQuery" : "Query"));
 		}
 
+		if (method.hasAnnotatedCountQueryName() && !hasNamedQuery(em, method.getNamedCountQueryName())) {
+			throw QueryCreationException.create(method,
+					String.format("Did not find named count query '%s'", method.getNamedCountQueryName()));
+		}
+
 		RepositoryQuery query = new NamedQuery(method, em, queryConfiguration);
 		if (LOG.isDebugEnabled()) {
 			LOG.debug(String.format("Found named query '%s'", queryName));

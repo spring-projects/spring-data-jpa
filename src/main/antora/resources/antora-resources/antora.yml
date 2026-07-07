@@ -13,7 +13,7 @@ asciidoc:
     include-xml-namespaces: false
     spring-data-commons-docs-url: '${documentation.baseurl}/spring-data/commons/reference/${springdata.commons.short}'
     spring-data-commons-javadoc-base: '{spring-data-commons-docs-url}/api/java'
-    springdocsurl: '${documentation.baseurl}/spring-framework/reference/{springversionshort}'
+    springdocsurl: '${documentation.spring-reference-url}/{springversionshort}'
     spring-framework-docs: '{springdocsurl}'
     springjavadocurl: '${documentation.spring-javadoc-url}'
     spring-framework-javadoc: '{springjavadocurl}'
