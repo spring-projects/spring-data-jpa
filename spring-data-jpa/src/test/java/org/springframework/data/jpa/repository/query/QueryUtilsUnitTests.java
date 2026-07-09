@@ -53,6 +53,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Eduard Dudar
  * @author Mark Paluch
  * @author Young-ho Kim
+ * @author Jewoo Shin
  */
 class QueryUtilsUnitTests {
 
@@ -583,6 +584,22 @@ class QueryUtilsUnitTests {
 		assertThat(getFunctionAliases("SELECT COALESCE(COUNT(id), 0) AS cnt FROM User u")).containsExactly("cnt");
 		assertThat(getFunctionAliases("SELECT UPPER(TRIM(name)) AS cleanName FROM User u")).containsExactly("cleanName");
 		assertThat(getFunctionAliases("SELECT NVL(SUM(price), 0) AS total FROM Order o")).containsExactly("total");
+	}
+
+	@Test // GH-4242
+	void discoversFunctionAliasWithDeeplyNestedFunctionArguments() {
+
+		assertThat(getFunctionAliases("SELECT COALESCE(NULLIF(TRIM(name), ''), 'unknown') AS normalized FROM User u"))
+				.containsExactly("normalized");
+	}
+
+	@Test // GH-4242
+	void doesNotPrefixDeeplyNestedFunctionAliasSortProperty() {
+
+		String query = "SELECT COALESCE(NULLIF(TRIM(m.name), ''), 'unknown') AS normalized FROM Magazine m";
+		Sort sort = Sort.by("normalized");
+
+		assertThat(applySorting(query, sort, "m")).endsWith("order by normalized asc");
 	}
 
 	@Test // GH-3911
