@@ -540,7 +540,7 @@ class QueryUtilsUnitTests {
 	@Test // DATAJPA-965, DATAJPA-970
 	void doesNotPrefixAliasedFunctionCallNameWhenQueryStringContainsMultipleWhiteSpaces() {
 
-		String query = "SELECT  AVG(  m.price  )   AS   avgPrice   FROM Magazine   m";
+		String query = "SELECT  AVG  (  m.price  )   AS   avgPrice   FROM Magazine   m";
 		Sort sort = Sort.by("avgPrice");
 
 		assertThat(applySorting(query, sort, "m")).endsWith("order by avgPrice asc");
@@ -591,6 +591,13 @@ class QueryUtilsUnitTests {
 
 		assertThat(getFunctionAliases("SELECT COALESCE(NULLIF(TRIM(name), ''), 'unknown') AS normalized FROM User u"))
 				.containsExactly("normalized");
+	}
+
+	@Test // GH-4242
+	void discoversFunctionAliasesWithParenthesesInQuotedArguments() {
+
+		assertThat(getFunctionAliases("SELECT COALESCE(name, '(') AS opening FROM User u")).containsExactly("opening");
+		assertThat(getFunctionAliases("SELECT COALESCE(name, ')') AS closing FROM User u")).containsExactly("closing");
 	}
 
 	@Test // GH-4242

@@ -404,25 +404,25 @@ public abstract class QueryUtils {
 				continue;
 			}
 
-			int functionEnd = readJavaIdentifier(query, i + 1);
-			int openingParenthesis = skipWhitespace(query, functionEnd);
+			int functionNameEnd = readJavaIdentifier(query, i + 1);
+			int functionOpeningParenthesis = skipWhitespace(query, functionNameEnd);
 
-			if (openingParenthesis >= query.length() || query.charAt(openingParenthesis) != '(') {
-				i = functionEnd;
+			if (functionOpeningParenthesis >= query.length() || query.charAt(functionOpeningParenthesis) != '(') {
+				i = functionNameEnd;
 				continue;
 			}
 
-			int closingParenthesis = findClosingParenthesis(query, openingParenthesis);
+			int functionClosingParenthesis = findClosingParenthesis(query, functionOpeningParenthesis);
 
-			if (closingParenthesis == -1) {
-				i = functionEnd;
+			if (functionClosingParenthesis == -1) {
+				i = functionNameEnd;
 				continue;
 			}
 
-			int aliasKeyword = skipWhitespace(query, closingParenthesis + 1);
+			int aliasKeyword = skipWhitespace(query, functionClosingParenthesis + 1);
 
 			if (!hasAsKeyword(query, aliasKeyword)) {
-				i = functionEnd;
+				i = functionNameEnd;
 				continue;
 			}
 
@@ -433,7 +433,7 @@ public abstract class QueryUtils {
 				result.add(query.substring(aliasStart, aliasEnd));
 			}
 
-			i = closingParenthesis;
+			i = functionClosingParenthesis;
 		}
 
 		return result;
