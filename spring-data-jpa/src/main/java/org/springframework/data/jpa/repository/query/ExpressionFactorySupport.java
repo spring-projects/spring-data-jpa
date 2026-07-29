@@ -28,8 +28,11 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
@@ -42,6 +45,7 @@ import org.springframework.util.StringUtils;
  * Support class to build expression factories for JPA query creation.
  *
  * @author Mark Paluch
+ * @author Seongho Eom
  * @since 4.0
  */
 class ExpressionFactorySupport {
@@ -168,6 +172,79 @@ class ExpressionFactorySupport {
 		}
 
 		return singularAttribute.getType() instanceof ManagedType<?> managedType ? managedType : null;
+	}
+
+	/**
+	 * Resolve the {@link Attribute} for a parsed {@link PropertyPath} segment.
+	 * <p>
+	 * Resolves {@code segment} against {@code managedType} first. If no such attribute exists and {@code segment} is a
+	 * Boolean {@code is}-prefixed property name, resolves the attribute that property access derives from the very same
+	 * getter: {@code isActive} is mapped onto the {@code active} attribute if that attribute is read through
+	 * {@code isActive()}. Names are not treated as aliases otherwise.
+	 *
+	 * @param managedType the type declaring the attribute, can be {@literal null}.
+	 * @param segment the parsed property path segment.
+	 * @return the resolved attribute or {@literal null} if the segment cannot be resolved.
+	 */
+	static @Nullable Attribute<?, ?> findAttribute(@Nullable ManagedType<?> managedType, String segment) {
+
+		if (managedType == null) {
+			return null;
+		}
+
+		try {
+			return managedType.getAttribute(segment);
+		} catch (IllegalArgumentException ex) {
+			// ManagedType may be erased for some vendor if the attribute is declared as generic, or the attribute is
+			// named after the JavaBeans property of a Boolean is-getter.
+		}
+
+		if (segment.length() < 3 || !segment.startsWith("is") || !Character.isUpperCase(segment.charAt(2))) {
+			return null;
+		}
+
+		try {
+
+			Attribute<?, ?> attribute = managedType.getAttribute(StringUtils.uncapitalizeAsProperty(segment.substring(2)));
+			return isReadThrough(attribute, segment) ? attribute : null;
+		} catch (IllegalArgumentException ex) {
+			return null;
+		}
+	}
+
+	/**
+	 * @return {@literal true} if {@code attribute} is read through a zero-argument {@code boolean} or {@code Boolean}
+	 *         getter named {@code getterName}.
+	 */
+	private static boolean isReadThrough(Attribute<?, ?> attribute, String getterName) {
+
+		return attribute.getJavaMember() instanceof Method method && method.getName().equals(getterName)
+				&& method.getParameterCount() == 0
+				&& (method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class);
+	}
+
+	/**
+	 * Resolve every segment of {@code path} into its JPA metamodel attribute name, starting at {@code model}. Segments
+	 * that cannot be resolved are retained as parsed.
+	 *
+	 * @param model the model declaring the first segment, can be {@literal null}.
+	 * @param path the property path to resolve.
+	 * @return the resolved attribute names, one per path segment.
+	 */
+	static List<String> toAttributeNames(@Nullable Object model, PropertyPath path) {
+
+		List<String> names = new ArrayList<>();
+		ManagedType<?> managedType = getManagedTypeForModel(model);
+
+		for (PropertyPath current = path; current != null; current = current.next()) {
+
+			Attribute<?, ?> attribute = findAttribute(managedType, current.getSegment());
+
+			names.add(attribute != null ? attribute.getName() : current.getSegment());
+			managedType = attribute != null ? getManagedTypeForModel(attribute) : null;
+		}
+
+		return names;
 	}
 
 	public interface ModelPathResolver {

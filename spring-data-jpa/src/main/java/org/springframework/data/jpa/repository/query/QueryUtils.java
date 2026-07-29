@@ -91,6 +91,7 @@ import org.springframework.util.StringUtils;
  * @author Alim Naizabek
  * @author Jakub Soltys
  * @author Young-ho Kim
+ * @author Seongho Eom
  */
 public abstract class QueryUtils {
 
@@ -847,12 +848,11 @@ public abstract class QueryUtils {
 
 			// if it does not require an outer join and is a leaf or relationship id, simply get rest of the segment path
 			if (!requiresOuterJoin && (isLeafProperty || isRelationshipId)) {
-				Path<T> trailingPath = from.get(segment);
-				while (property.hasNext()) {
-					property = property.next();
-					trailingPath = trailingPath.get(property.getSegment());
+				Path<?> trailingPath = from;
+				for (String attributeName : toAttributeNames(from.getModel(), property)) {
+					trailingPath = trailingPath.get(attributeName);
 				}
-				return trailingPath;
+				return (Expression<T>) trailingPath;
 			}
 
 			// get or create the join
@@ -993,12 +993,9 @@ public abstract class QueryUtils {
 					Supplier<Path<?>> fallback) {
 
 				String segment = path.getSegment();
-				if (managedType != null) {
-					try {
-						return (Bindable<?>) managedType.getAttribute(segment);
-					} catch (IllegalArgumentException ex) {
-						// ManagedType may be erased for some vendor if the attribute is declared as generic
-					}
+				Attribute<?, ?> attribute = findAttribute(managedType, segment);
+				if (attribute != null) {
+					return (Bindable<?>) attribute;
 				}
 
 				return (Bindable<?>) fallback.get().get(segment);

@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Seongho Eom
  */
 class JpqlUtils {
 
@@ -76,7 +77,8 @@ class JpqlUtils {
 
 			// if it does not require an outer join and is a leaf, simply get the segment
 			if (!requiresOuterJoin && (isLeafProperty || isRelationshipId)) {
-				return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+				return new JpqlQueryBuilder.PathAndOrigin(property, source, false,
+						String.join(".", toAttributeNames(from, property)));
 			}
 
 			// get or create the join
@@ -110,19 +112,16 @@ class JpqlUtils {
 				@Nullable ManagedType<?> managedType, @Nullable Bindable<?> fallback) {
 
 			String segment = path.getSegment();
-			if (managedType != null) {
-				try {
-					return managedType.getAttribute(segment);
-				} catch (IllegalArgumentException ex) {
-					// ManagedType may be erased for some vendor if the attribute is declared as generic
-				}
+			Attribute<?, ?> attribute = findAttribute(managedType, segment);
+			if (attribute != null) {
+				return attribute;
 			}
 
 			if (metamodel != null && fallback != null) {
 
 				Class<?> fallbackType = fallback.getBindableJavaType();
 				try {
-					return metamodel.managedType(fallbackType).getAttribute(segment);
+					return findAttribute(metamodel.managedType(fallbackType), segment);
 				} catch (IllegalArgumentException e) {
 					// nothing to do here
 				}
