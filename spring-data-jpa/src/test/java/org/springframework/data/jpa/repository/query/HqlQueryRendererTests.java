@@ -373,7 +373,7 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				"from Call c ");
 	}
 
-	@Test
+	@Test // GH-4295
 	void likeRegexpPredicate() {
 
 		assertQuery("select p from Person p where p.name like regexp 'Jo.*'");
