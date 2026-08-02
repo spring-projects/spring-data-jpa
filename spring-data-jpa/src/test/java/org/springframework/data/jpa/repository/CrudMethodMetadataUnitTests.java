@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -47,6 +48,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Oscar Fanchin
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -58,13 +60,15 @@ class CrudMethodMetadataUnitTests {
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
-	@Mock jakarta.persistence.Query query;
+	jakarta.persistence.Query query;
 	@Mock Metamodel metamodel;
 
 	private RoleRepository repository;
 
 	@BeforeEach
 	void setUp() {
+
+		query = mockQuery();
 
 		when(information.getJavaType()).thenReturn(Role.class);
 
@@ -113,7 +117,7 @@ class CrudMethodMetadataUnitTests {
 	void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
 		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
-		when(em.createQuery(anyString())).thenReturn(query);
+		doReturn(query).when(em).createQuery(anyString());
 
 		repository.findOne(QRole.role.name.eq("role"));
 
