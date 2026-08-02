@@ -78,6 +78,42 @@
 			</repositories>
 		</profile>
 		<profile>
+			<id>h8</id>
+			<properties>
+				<hibernate>8.0.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+				<spring>7.1.0-SNAPSHOT</spring>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>h8-next</id>
+			<properties>
+				<hibernate>8.1.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
+				<spring>7.1.0-SNAPSHOT</spring>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
 			<id>all-dbs</id>
 			<build>
 				<plugins>
