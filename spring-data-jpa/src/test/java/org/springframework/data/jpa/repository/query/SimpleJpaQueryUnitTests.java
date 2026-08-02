@@ -17,7 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.support.EntityManagerTestUtils.mockQuery;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -29,6 +29,7 @@ import jakarta.persistence.metamodel.Metamodel;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -106,11 +107,11 @@ class SimpleJpaQueryUnitTests {
 
 		query = mockQuery();
 		when(em.getMetamodel()).thenReturn(metamodel);
-		doReturn(query).when(em).createQuery(anyString());
+		whenCreateQuery(em, anyString()).thenReturn(query);
 		when(em.createQuery(anyString(), eq(Long.class))).thenReturn(typedQuery);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
-		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.createEntityManager(Map.of())).thenReturn(em);
 
 		metadata = AbstractRepositoryMetadata.getMetadata(SampleRepository.class);
 
@@ -136,7 +137,7 @@ class SimpleJpaQueryUnitTests {
 	@Test // DATAJPA-77
 	void doesNotApplyPaginationToCountQuery() throws Exception {
 
-		doReturn(query).when(em).createQuery(Mockito.anyString());
+		whenCreateQuery(em, Mockito.anyString()).thenReturn(query);
 
 		Method method = UserRepository.class.getMethod("findAllPaged", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
@@ -160,11 +161,11 @@ class SimpleJpaQueryUnitTests {
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
-		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(userQuery);
+		whenCreateNativeQuery(em, anyString(), eq(User.class)).thenReturn(userQuery);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
-		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
+		verifyCreateNativeQuery(verify(em), "SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
 	@Test // GH-3155
@@ -177,18 +178,18 @@ class SimpleJpaQueryUnitTests {
 
 		assertThat(jpaQuery).isInstanceOf(NativeJpaQuery.class);
 
-		when(em.createNativeQuery(anyString(), eq(User.class))).thenReturn(userQuery);
+		whenCreateNativeQuery(em, anyString(), eq(User.class)).thenReturn(userQuery);
 
 		jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { "Matthews" }));
 
-		verify(em).createNativeQuery("SELECT u FROM User u WHERE u.lastname = ?1", User.class);
+		verifyCreateNativeQuery(verify(em), "SELECT u FROM User u WHERE u.lastname = ?1", User.class);
 	}
 
 	@Test // DATAJPA-352
 	void doesNotValidateCountQueryIfNotPagingMethod() throws Exception {
 
 		Method method = SampleRepository.class.getMethod("findByAnnotatedQuery");
-		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
+		whenCreateQuery(em, Mockito.contains("count")).thenThrow(IllegalArgumentException.class);
 
 		createJpaQuery(method);
 	}
@@ -198,7 +199,7 @@ class SimpleJpaQueryUnitTests {
 
 		Method method = SampleRepository.class.getMethod("pageByAnnotatedQuery", Pageable.class);
 
-		when(em.createQuery(Mockito.contains("count"))).thenThrow(IllegalArgumentException.class);
+		whenCreateQuery(em, Mockito.contains("count")).thenThrow(IllegalArgumentException.class);
 
 		assertThatExceptionOfType(QueryCreationException.class) //
 				.isThrownBy(() -> createJpaQuery(method)) //
@@ -222,7 +223,7 @@ class SimpleJpaQueryUnitTests {
 	@Test // DATAJPA-757
 	void createsNativeCountQuery() throws Exception {
 
-		doReturn(query).when(em).createNativeQuery(anyString());
+		whenCreateNativeQuery(em, anyString()).thenReturn(query);
 
 		AbstractJpaQuery jpaQuery = createJpaQuery(
 				UserRepository.class.getMethod("findUsersInNativeQueryWithPagination", Pageable.class));
@@ -230,13 +231,13 @@ class SimpleJpaQueryUnitTests {
 		jpaQuery.doCreateCountQuery(new JpaParametersParameterAccessor(jpaQuery.getQueryMethod().getParameters(),
 				new Object[] { PageRequest.of(0, 10) }));
 
-		verify(em).createNativeQuery(anyString());
+		verifyCreateNativeQuery(verify(em), anyString());
 	}
 
 	@Test // GH-3293
 	void allowsCountQueryUsingParametersNotInOriginalQuery() throws Exception {
 
-		doReturn(query).when(em).createNativeQuery(anyString());
+		whenCreateNativeQuery(em, anyString()).thenReturn(query);
 
 		AbstractJpaQuery jpaQuery = createJpaQuery(
 				SampleRepository.class.getMethod("findAllWithBindingsOnlyInCountQuery", String.class, Pageable.class),
@@ -261,7 +262,7 @@ class SimpleJpaQueryUnitTests {
 		verify(em, times(0)).createQuery(anyString(), eq(Tuple.class));
 
 		// Two times, first one is from the query validation
-		verify(em, times(2)).createQuery(anyString());
+		verifyCreateQuery(verify(em, times(2)), anyString());
 	}
 
 	@Test // GH-3895
@@ -340,7 +341,7 @@ class SimpleJpaQueryUnitTests {
 	@Test // DATAJPA-1163
 	void resolvesExpressionInCountQuery() throws Exception {
 
-		doReturn(query).when(em).createQuery(Mockito.anyString());
+		whenCreateQuery(em, Mockito.anyString()).thenReturn(query);
 
 		Method method = SampleRepository.class.getMethod("findAllWithExpressionInCountQuery", Pageable.class);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, factory, extractor);
@@ -351,7 +352,7 @@ class SimpleJpaQueryUnitTests {
 		jpaQuery.createCountQuery(
 				new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { PageRequest.of(1, 10) }));
 
-		verify(em).createQuery(eq("select u from User u"));
+		verifyCreateQuery(verify(em), "select u from User u");
 		verify(em).createQuery(eq("select count(u.id) from User u"), eq(Long.class));
 	}
 

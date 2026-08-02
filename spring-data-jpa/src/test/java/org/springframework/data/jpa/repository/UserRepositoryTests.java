@@ -76,6 +76,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.repository.sample.Users;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -145,7 +146,7 @@ class UserRepositoryTests {
 	@Test
 	void testCreation() {
 
-		Query countQuery = em.createQuery("select count(u) from User u");
+		Query countQuery = JpaPortableQueries.createQuery(em, "select count(u) from User u");
 		Long before = (Long) countQuery.getSingleResult();
 
 		flushTestUsers();
@@ -3302,7 +3303,8 @@ class UserRepositoryTests {
 	@Test // DATAJPA-1172
 	void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
-		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		Query query = JpaPortableQueries.createNativeQuery(em,
+				"select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).hasSize(2);
 	}
 
@@ -3619,7 +3621,8 @@ class UserRepositoryTests {
 
 		/*
 		TODO: Hibernate-generated HQL for the CriteriaBuilder-based API. Yields only one result in contrast to the CriteriaBuilder one.
-		Query query = em.createQuery("select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
+		Query query = JpaPortableQueries.createQuery(em,
+				"select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
 				.setParameter(1, asList("cOOl", "hIP"));
 
 		List resultList = query.getResultList();

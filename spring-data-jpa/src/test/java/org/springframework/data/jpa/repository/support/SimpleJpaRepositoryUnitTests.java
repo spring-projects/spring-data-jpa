@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.support;
 import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -95,8 +96,8 @@ class SimpleJpaRepositoryUnitTests {
 		when(builder.createQuery(User.class)).thenReturn(criteriaQuery);
 		when(builder.createQuery(Long.class)).thenReturn(countCriteriaQuery);
 
-		when(em.createQuery(criteriaQuery)).thenReturn(query);
-		when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
+		whenCreateQuery(em, criteriaQuery).thenReturn(query);
+		whenCreateQuery(em, countCriteriaQuery).thenReturn(countQuery);
 
 		MutableQueryHints hints = new MutableQueryHints();
 		when(metadata.getQueryHints()).thenReturn(hints);
