@@ -43,6 +43,7 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Oscar Fanchin
  */
 class AotMetamodelUnitTests {
 
@@ -93,6 +94,7 @@ class AotMetamodelUnitTests {
 		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(this.getClass().getClassLoader());
 		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
 		persistenceUnitInfo.addManagedClassName(EntityEntity.class.getName());
+		persistenceUnitInfo.setExcludeUnlistedClasses(true);
 		PersistenceUnitInfoDescriptor persistenceUnit = new PersistenceUnitInfoDescriptor(
 				persistenceUnitInfo.asStandardPersistenceUnitInfo());
 

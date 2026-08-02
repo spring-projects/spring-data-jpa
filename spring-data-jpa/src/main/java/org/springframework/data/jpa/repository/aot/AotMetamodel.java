@@ -103,6 +103,7 @@ class AotMetamodel implements Metamodel {
 				managedTypes.getClass().getClassLoader());
 		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
 		persistenceUnitInfo.setPersistenceUnitRootUrl(persistenceUnitRootUrl);
+		persistenceUnitInfo.setExcludeUnlistedClasses(true);
 
 		this.entityManagerFactory = init(() -> {
 
