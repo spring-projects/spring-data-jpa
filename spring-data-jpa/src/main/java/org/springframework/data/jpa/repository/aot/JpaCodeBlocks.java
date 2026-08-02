@@ -49,6 +49,7 @@ import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
 import org.springframework.data.repository.aot.generate.MethodReturn;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -466,8 +467,8 @@ class JpaCodeBlocks {
 					return builder.build();
 				}
 
-				builder.addStatement("$T $L = this.$L.createNamedQuery($S)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), nq.getQueryName());
+				builder.addStatement("$T $L = $T.createNamedQuery(this.$L, $S)", Query.class, queryVariableName,
+						JpaPortableQueries.class, context.fieldNameOf(EntityManager.class), nq.getQueryName());
 
 				return builder.build();
 			}
@@ -490,8 +491,9 @@ class JpaCodeBlocks {
 
 			if (StringUtils.hasText(sqlResultSetMapping)) {
 
-				builder.addStatement("$T $L = this.$L.createNativeQuery($L, $S)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), queryStringNameToUse, sqlResultSetMapping);
+				builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $S)", Query.class, queryVariableName,
+						JpaPortableQueries.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse,
+						sqlResultSetMapping);
 
 				return builder.build();
 			}
@@ -500,19 +502,20 @@ class JpaCodeBlocks {
 
 				if (queryReturnType != null) {
 
-					builder.addStatement("$T $L = this.$L.createNativeQuery($L, $T.class)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), queryStringNameToUse, queryReturnType);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class,
+							queryVariableName, JpaPortableQueries.class, context.fieldNameOf(EntityManager.class),
+							queryStringNameToUse, queryReturnType);
 				} else {
-					builder.addStatement("$T $L = this.$L.createNativeQuery($L)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), queryStringNameToUse);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L)", Query.class, queryVariableName,
+							JpaPortableQueries.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
 				}
 
 				return builder.build();
 			}
 
 			if (sq.hasConstructorExpressionOrDefaultProjection() && !count && methodReturn.isInterfaceProjection()) {
-				builder.addStatement("$T $L = this.$L.createQuery($L)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), queryStringNameToUse);
+				builder.addStatement("$T $L = $T.createQuery(this.$L, $L)", Query.class, queryVariableName,
+						JpaPortableQueries.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
 			} else {
 
 				String createQueryMethod = query.isNative() ? "createNativeQuery" : "createQuery";
@@ -521,8 +524,8 @@ class JpaCodeBlocks {
 					builder.addStatement("$T $L = this.$L.$L($L, $T.class)", Query.class, queryVariableName,
 							context.fieldNameOf(EntityManager.class), createQueryMethod, queryStringNameToUse, Tuple.class);
 				} else {
-					builder.addStatement("$T $L = this.$L.$L($L)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), createQueryMethod, queryStringNameToUse);
+					builder.addStatement("$T $L = $T.createQuery(this.$L, $L)", Query.class, queryVariableName,
+							JpaPortableQueries.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
 				}
 			}
 
