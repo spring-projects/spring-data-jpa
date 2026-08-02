@@ -35,6 +35,7 @@ import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
 import org.hibernate.cfg.SchemaToolingSettings;
+import org.hibernate.dialect.DatabaseVersion;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.dialect.pagination.OffsetFetchLimitHandler;
@@ -47,14 +48,10 @@ import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.hibernate.metamodel.mapping.EntityMappingType;
 import org.hibernate.metamodel.spi.RuntimeModelCreationContext;
 import org.hibernate.query.common.TemporalUnit;
-import org.hibernate.query.spi.DomainQueryExecutionContext;
-import org.hibernate.query.sqm.internal.DomainParameterXref;
 import org.hibernate.query.sqm.mutation.spi.MultiTableHandler;
 import org.hibernate.query.sqm.mutation.spi.MultiTableHandlerBuildResult;
 import org.hibernate.query.sqm.mutation.spi.SqmMultiTableInsertStrategy;
 import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
-import org.hibernate.query.sqm.tree.SqmDeleteOrUpdateStatement;
-import org.hibernate.query.sqm.tree.insert.SqmInsertStatement;
 import org.hibernate.sql.ast.SqlAstTranslatorFactory;
 import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
@@ -75,6 +72,7 @@ import org.springframework.util.CollectionUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oliver Drotbohm
+ * @author Oscar Fanchin
  * @since 4.0
  */
 class AotMetamodel implements Metamodel {
@@ -203,7 +201,11 @@ class AotMetamodel implements Metamodel {
 	@SuppressWarnings("deprecation")
 	static class SpringDataJpaAotDialect extends Dialect {
 
-		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect();
+		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect(DatabaseVersion.make(1, 0));
+
+		protected SpringDataJpaAotDialect(DatabaseVersion version) {
+			super(version);
+		}
 
 		public boolean isCurrentTimestampSelectStringCallable() {
 			return false;
@@ -241,13 +243,13 @@ class AotMetamodel implements Metamodel {
 		@Override
 		public SqmMultiTableInsertStrategy getFallbackSqmInsertStrategy(EntityMappingType entityDescriptor,
 				RuntimeModelCreationContext runtimeModelCreationContext) {
-			return new FallbackSqmMultiTableInsertStrategy();
+			return FallbackSqmMultiTableInsertStrategy.INSTANCE;
 		}
 
 		@Override
 		public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityMappingType entityDescriptor,
 				RuntimeModelCreationContext runtimeModelCreationContext) {
-			return new FallbackSqmMultiTableMutationStrategy();
+			return FallbackSqmMultiTableMutationStrategy.INSTANCE;
 		}
 
 		/**
@@ -278,27 +280,51 @@ class AotMetamodel implements Metamodel {
 		/**
 		 * Fallback {@link SqmMultiTableInsertStrategy} for AOT when no dialect-specific strategy is used.
 		 */
-		static class FallbackSqmMultiTableInsertStrategy implements SqmMultiTableInsertStrategy {
+		static class FallbackSqmMultiTableInsertStrategy {
 
-			@Override
-			public MultiTableHandlerBuildResult buildHandler(SqmInsertStatement<?> sqmInsertStatement,
-					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
-				return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE, JdbcParameterBindings.NO_BINDINGS);
+			private static final SqmMultiTableInsertStrategy INSTANCE = createStrategy();
+
+			private static SqmMultiTableInsertStrategy createStrategy() {
+				return (SqmMultiTableInsertStrategy) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
+						new Class[] { SqmMultiTableInsertStrategy.class }, (proxy, method, args) -> {
+
+							if (method.getName().equals("buildHandler")) {
+								return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE,
+										JdbcParameterBindings.NO_BINDINGS);
+							}
+
+							if (method.getReturnType().isPrimitive()) {
+								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
+							}
+
+							return null;
+						});
 			}
-
 		}
 
 		/**
 		 * Fallback {@link SqmMultiTableMutationStrategy} for AOT when no dialect-specific strategy is used.
 		 */
-		static class FallbackSqmMultiTableMutationStrategy implements SqmMultiTableMutationStrategy {
+		static class FallbackSqmMultiTableMutationStrategy {
 
-			@Override
-			public MultiTableHandlerBuildResult buildHandler(SqmDeleteOrUpdateStatement<?> sqmStatement,
-					DomainParameterXref domainParameterXref, DomainQueryExecutionContext context) {
-				return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE, JdbcParameterBindings.NO_BINDINGS);
+			private static final SqmMultiTableMutationStrategy INSTANCE = createStrategy();
+
+			private static SqmMultiTableMutationStrategy createStrategy() {
+				return (SqmMultiTableMutationStrategy) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
+						new Class[] { SqmMultiTableMutationStrategy.class }, (proxy, method, args) -> {
+
+							if (method.getName().equals("buildHandler")) {
+								return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE,
+										JdbcParameterBindings.NO_BINDINGS);
+							}
+
+							if (method.getReturnType().isPrimitive()) {
+								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
+							}
+
+							return null;
+						});
 			}
-
 		}
 
 	}
