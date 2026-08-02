@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -209,7 +210,7 @@ public final class JpaQueryLookupStrategy {
 			boolean namedQuery = NamedQuery.hasNamedQuery(em, queryName);
 
 			if (namedQuery) {
-				return method.getQueryExtractor().extractQueryString(em.createNamedQuery(queryName));
+				return method.getQueryExtractor().extractQueryString(JpaPortableQueries.createNamedQuery(em, queryName));
 			}
 
 			if (method.hasAnnotatedCountQueryName()) {

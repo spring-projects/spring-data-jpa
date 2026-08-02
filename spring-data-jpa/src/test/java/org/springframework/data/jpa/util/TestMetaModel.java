@@ -41,7 +41,7 @@ public class TestMetaModel implements Metamodel {
 	private final Set<Class<?>> managedTypes;
 	private final Lazy<EntityManagerFactory> entityManagerFactory = Lazy.of(this::init);
 	private final Lazy<Metamodel> metamodel = Lazy.of(() -> entityManagerFactory.get().getMetamodel());
-	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager());
+	private final Lazy<EntityManager> entityManager = Lazy.of(() -> entityManagerFactory.get().createEntityManager(Map.of()));
 
 	private TestMetaModel(Set<Class<?>> managedTypes) {
 		this("dynamic-tests", managedTypes);

@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,7 @@ class SimpleJpaParameterBindingTests {
 		ParameterExpression<String[]> parameter = builder.parameter(String[].class);
 		criteria.where(root.get("firstname").in(parameter));
 
-		TypedQuery<User> query = em.createQuery(criteria);
+		TypedQuery<User> query = JpaPortableQueries.createQuery(em, criteria);
 		query.setParameter(parameter, new String[] { "Dave", "Carter" });
 
 		List<User> result = query.getResultList();
@@ -89,7 +90,7 @@ class SimpleJpaParameterBindingTests {
 		ParameterExpression<Collection> parameter = builder.parameter(Collection.class);
 		criteria.where(root.get("firstname").in(parameter));
 
-		TypedQuery<User> query = em.createQuery(criteria);
+		TypedQuery<User> query = JpaPortableQueries.createQuery(em, criteria);
 
 		query.setParameter(parameter, Arrays.asList("Dave"));
 

@@ -91,7 +91,7 @@ class AotMetamodel implements Metamodel {
 			SchemaToolingSettings.JAKARTA_HBM2DDL_DATABASE_ACTION, "none" // has also precedence over HBM2DDL_AUTO
 	);
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
-	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager());
+	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager(Map.of()));
 
 	public AotMetamodel(PersistenceManagedTypes managedTypes, Map<String, Object> jpaProperties) {
 		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl(), jpaProperties);

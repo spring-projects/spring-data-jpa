@@ -31,6 +31,8 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAUtil;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.jpa.util.JpaPortableQueries;
+
 /**
  * Customized String-Query implementation that specifically routes tuple query creation to
  * {@code EntityManager#createQuery(queryString, Tuple.class)}.
@@ -56,7 +58,7 @@ class SpringDataJpaQuery<T> extends JPAQuery<T> {
 
 		Query query = getMetadata().getProjection() instanceof JakartaTuple
 				? entityManager.createQuery(queryString, Tuple.class)
-				: entityManager.createQuery(queryString);
+				: JpaPortableQueries.createQuery(entityManager, queryString);
 
 		JPAUtil.setConstants(query, serializer.getConstants(), getMetadata().getParams());
 		if (modifiers != null && modifiers.isRestricting()) {

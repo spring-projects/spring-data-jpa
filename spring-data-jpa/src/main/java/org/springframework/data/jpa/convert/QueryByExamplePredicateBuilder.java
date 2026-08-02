@@ -116,9 +116,7 @@ public class QueryByExamplePredicateBuilder {
 			return predicates.iterator().next();
 		}
 
-		Predicate[] array = predicates.toArray(new Predicate[0]);
-
-		return matcher.isAllMatching() ? cb.and(array) : cb.or(array);
+		return matcher.isAllMatching() ? cb.and(predicates) : cb.or(predicates);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
