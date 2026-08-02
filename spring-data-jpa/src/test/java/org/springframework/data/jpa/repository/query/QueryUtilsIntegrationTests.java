@@ -301,7 +301,7 @@ class QueryUtilsIntegrationTests {
 
 		doInMerchantContext((emf) -> {
 
-			CriteriaBuilder builder = emf.createEntityManager().getCriteriaBuilder();
+			CriteriaBuilder builder = emf.createEntityManager(emptyMap()).getCriteriaBuilder();
 			CriteriaQuery<Merchant> query = builder.createQuery(Merchant.class);
 			Root<Merchant> root = query.from(Merchant.class);
 

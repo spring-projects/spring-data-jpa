@@ -20,11 +20,13 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
+import java.util.Map;
+
 class UnqualifiedEntityManagerProducer {
 
 	@Produces
 	public EntityManager createEntityManager(EntityManagerFactory entityManagerFactory) {
-		return entityManagerFactory.createEntityManager();
+		return entityManagerFactory.createEntityManager(Map.of());
 	}
 
 	public void close(@Disposes EntityManager entityManager) {
