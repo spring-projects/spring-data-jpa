@@ -64,6 +64,7 @@ import org.springframework.data.util.Lazy;
 import org.springframework.data.util.ReflectionUtils;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -99,8 +100,11 @@ class AotMetamodel implements Metamodel {
 	public AotMetamodel(Collection<String> managedTypes, @Nullable URL persistenceUnitRootUrl,
 			Map<String, Object> jpaProperties) {
 
+		// managedTypes may be backed by a bootstrap-loaded JDK collection whose class loader is null.
+		// Use the application class loader so that the persistence unit can resolve managed entity classes.
+		ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 		SpringPersistenceUnitInfo persistenceUnitInfo = new SpringPersistenceUnitInfo(
-				managedTypes.getClass().getClassLoader());
+				classLoader != null ? classLoader : AotMetamodel.class.getClassLoader());
 		persistenceUnitInfo.setPersistenceUnitName("AotMetamodel");
 		persistenceUnitInfo.setPersistenceUnitRootUrl(persistenceUnitRootUrl);
 		persistenceUnitInfo.setExcludeUnlistedClasses(true);
