@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.util;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.util.DisabledOnHibernateCondition.*;
 
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link DisabledOnHibernate}.
  *
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
 class DisabledOnHibernateConditionTests {
 
@@ -52,5 +54,14 @@ class DisabledOnHibernateConditionTests {
 		VersionMatcher lib = VersionMatcher.parse("1.2");
 
 		assertThat(spec.matches(lib)).isFalse();
+	}
+
+	@Test
+	void shouldDisableOnAnyConfiguredVersion() {
+
+		DisabledOnHibernate annotation = mock(DisabledOnHibernate.class);
+		when(annotation.value()).thenReturn(new String[] { "7", "8" });
+
+		assertThat(new DisabledOnHibernateCondition().isEnabled(annotation)).isFalse();
 	}
 }
