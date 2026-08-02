@@ -105,6 +105,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  * @author Yanming Zhou
  * @author Ilya Bakaev
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -812,6 +813,8 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	// Hibernate 7 permissively flattens the selected collection-valued path.
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 no longer flattens collection-valued paths")
 	void executesAnnotatedCollectionMethodCorrectly() {
 
 		flushTestUsers();
@@ -819,6 +822,18 @@ class UserRepositoryTests {
 		repository.save(firstUser);
 
 		List<User> result = repository.findColleaguesFor(firstUser);
+		assertThat(result).containsOnly(thirdUser);
+	}
+
+	@Test
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 permits the original collection-valued query")
+	void executesAnnotatedCollectionMethodCorrectlyH8() {
+
+		flushTestUsers();
+		firstUser.addColleague(thirdUser);
+		repository.save(firstUser);
+
+		List<User> result = repository.findColleaguesForH8(firstUser);
 		assertThat(result).containsOnly(thirdUser);
 	}
 

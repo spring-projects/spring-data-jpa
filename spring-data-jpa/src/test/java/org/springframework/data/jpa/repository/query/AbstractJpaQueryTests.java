@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
+import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
@@ -40,6 +41,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -55,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Krzysztof Krason
  * @author Julia Lee
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -119,6 +122,8 @@ class AbstractJpaQueryTests {
 
 	@Test // DATAJPA-466
 	@Transactional
+	// Hibernate 8 passes an equivalent EntityGraph instance instead of retaining identity.
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 no longer retains EntityGraph identity")
 	void shouldAddEntityGraphHintForFetch() throws Exception {
 
 		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
@@ -134,6 +139,31 @@ class AbstractJpaQueryTests {
 
 	@Test // DATAJPA-466
 	@Transactional
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 retains EntityGraph identity")
+	void shouldAddEntityGraphHintForFetchH8() throws Exception {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		JpaQueryMethod queryMethod = getMethod("findAll");
+		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[0]));
+
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(result).setHint(eq("jakarta.persistence.fetchgraph"), captor.capture());
+
+		assertThat(captor.getValue()).isInstanceOf(jakarta.persistence.EntityGraph.class);
+		jakarta.persistence.EntityGraph<?> actual = (jakarta.persistence.EntityGraph<?>) captor.getValue();
+
+		assertThat(actual.getName()).isEqualTo(entityGraph.getName());
+		assertThat(actual.getAttributeNodes()).extracting(AttributeNode::getAttributeName).containsExactly("roles");
+	}
+
+	@Test // DATAJPA-466
+	@Transactional
+	// Hibernate 8 passes an equivalent EntityGraph instance instead of retaining identity.
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 no longer retains EntityGraph identity")
 	void shouldAddEntityGraphHintForLoad() throws Exception {
 
 		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
@@ -146,6 +176,31 @@ class AbstractJpaQueryTests {
 				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { 1 }));
 
 		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
+	}
+
+	@Test // DATAJPA-466
+	@Transactional
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 retains EntityGraph identity")
+	void shouldAddEntityGraphHintForLoadH8() throws Exception {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		JpaQueryMethod queryMethod = getMethod("getById", Integer.class);
+		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.detail");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery
+				.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(), new Object[] { 1 }));
+
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(result).setHint(eq("jakarta.persistence.loadgraph"), captor.capture());
+
+		assertThat(captor.getValue()).isInstanceOf(jakarta.persistence.EntityGraph.class);
+		jakarta.persistence.EntityGraph<?> actual = (jakarta.persistence.EntityGraph<?>) captor.getValue();
+
+		assertThat(actual.getName()).isEqualTo(entityGraph.getName());
+		assertThat(actual.getAttributeNodes()).extracting(AttributeNode::getAttributeName)
+				.containsExactlyInAnyOrder("manager", "roles", "colleagues");
 	}
 
 	@Test // GH-3137
