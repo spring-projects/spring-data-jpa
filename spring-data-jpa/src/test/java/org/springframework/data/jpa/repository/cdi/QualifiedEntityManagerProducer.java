@@ -20,6 +20,8 @@ import jakarta.enterprise.inject.Produces;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 
+import java.util.Map;
+
 /**
  * @author Oliver Gierke
  * @author Mark Paluch
@@ -29,7 +31,7 @@ class QualifiedEntityManagerProducer {
 	@Produces
 	@PersonDB
 	public EntityManager createPersonDBEntityManager(EntityManagerFactory entityManagerFactory) {
-		return entityManagerFactory.createEntityManager();
+		return entityManagerFactory.createEntityManager(Map.of());
 	}
 
 	public void closePersonDB(@Disposes @PersonDB EntityManager entityManager) {
@@ -39,7 +41,7 @@ class QualifiedEntityManagerProducer {
 	@Produces
 	@UserDB
 	public EntityManager createUserDBEntityManager(EntityManagerFactory entityManagerFactory) {
-		return entityManagerFactory.createEntityManager();
+		return entityManagerFactory.createEntityManager(Map.of());
 	}
 
 	public void closeUserDB(@Disposes @UserDB EntityManager entityManager) {

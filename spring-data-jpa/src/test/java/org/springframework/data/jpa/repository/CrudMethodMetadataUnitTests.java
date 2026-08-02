@@ -75,7 +75,7 @@ class CrudMethodMetadataUnitTests {
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getDelegate()).thenReturn(em);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
-		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.createEntityManager(Map.of())).thenReturn(em);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
@@ -93,7 +93,7 @@ class CrudMethodMetadataUnitTests {
 
 		when(em.getCriteriaBuilder()).thenReturn(builder);
 		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
-		when(em.createQuery(criteriaQuery)).thenReturn(typedQuery);
+		whenCreateQuery(em, criteriaQuery).thenReturn(typedQuery);
 		when(typedQuery.setLockMode(any(LockModeType.class))).thenReturn(typedQuery);
 
 		repository.findAll();
@@ -117,7 +117,7 @@ class CrudMethodMetadataUnitTests {
 	void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
 		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
-		doReturn(query).when(em).createQuery(anyString());
+		whenCreateQuery(em, anyString()).thenReturn(query);
 
 		repository.findOne(QRole.role.name.eq("role"));
 

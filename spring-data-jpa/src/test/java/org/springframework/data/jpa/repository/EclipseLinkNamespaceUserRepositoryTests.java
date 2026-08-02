@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.jpa.repository.sample.UserRepository;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
@@ -63,7 +64,8 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Test // DATAJPA-1172
 	void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
-		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		Query query = JpaPortableQueries.createNativeQuery(em,
+				"select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).describedAs(
 				"Due to a bug eclipse has size 0; If this is no longer the case the special code path triggered in NamedOrIndexedQueryParameterSetter.registerExcessParameters can be removed")
 				.isEmpty();
