@@ -25,6 +25,7 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,6 +67,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  * @author Ariel Morelli Andres
+ * @author Oscar Fanchin
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -124,9 +127,17 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		@Override
 		public long getResultCount(Query resultQuery, LongSupplier countSupplier) {
 
-			if (TransactionSynchronizationManager.isActualTransactionActive()
-					&& resultQuery instanceof SelectionQuery<?> sq) {
-				return sq.getResultCount();
+			if (TransactionSynchronizationManager.isActualTransactionActive()) {
+
+				if (resultQuery instanceof SelectionQuery<?> selectionQuery) {
+					return selectionQuery.getResultCount();
+				}
+
+				SelectionQuery<?> selectionQuery = asSelectionQuery(resultQuery);
+
+				if (selectionQuery != null) {
+					return selectionQuery.getResultCount();
+				}
 			}
 
 			return super.getResultCount(resultQuery, countSupplier);
@@ -240,6 +251,9 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	};
 
 	private static final @Nullable Class<?> typedParameterValueClass;
+	private static final @Nullable Class<?> mutationOrSelectionQueryClass;
+	private static final @Nullable Method isSelectionQueryMethod;
+	private static final @Nullable Method asSelectionQueryMethod;
 
 	static {
 
@@ -250,11 +264,37 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			type = null;
 		}
 		typedParameterValueClass = type;
+
+		Class<?> queryType;
+		try {
+			queryType = ClassUtils.forName("org.hibernate.query.MutationOrSelectionQuery",
+					PersistenceProvider.class.getClassLoader());
+		} catch (ClassNotFoundException e) {
+			queryType = null;
+		}
+
+		mutationOrSelectionQueryClass = queryType;
+		isSelectionQueryMethod = queryType != null ? ReflectionUtils.findMethod(queryType, "isSelectionQuery") : null;
+		asSelectionQueryMethod = queryType != null ? ReflectionUtils.findMethod(queryType, "asSelectionQuery") : null;
 	}
 
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	private static final ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
+
+	private static @Nullable SelectionQuery<?> asSelectionQuery(Query query) {
+
+		if (mutationOrSelectionQueryClass == null || isSelectionQueryMethod == null || asSelectionQueryMethod == null
+				|| !mutationOrSelectionQueryClass.isInstance(query)
+				|| !Boolean.TRUE.equals(ReflectionUtils.invokeMethod(isSelectionQueryMethod, query))) {
+			return null;
+		}
+
+		Object selectionQuery = ReflectionUtils.invokeMethod(asSelectionQueryMethod, query);
+
+		return selectionQuery instanceof SelectionQuery<?> candidate ? candidate : null;
+	}
+
 	final Iterable<String> entityManagerFactoryClassNames;
 	private final Iterable<String> metamodelClassNames;
 
