@@ -58,6 +58,7 @@ import org.springframework.util.Assert;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Сергей Цыпанов
+ * @author Oscar Fanchin
  */
 public class PartTreeJpaQuery extends AbstractJpaQuery {
 
@@ -128,7 +129,10 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	@Override
 	@SuppressWarnings("unchecked")
 	public TypedQuery<Long> doCreateCountQuery(JpaParametersParameterAccessor accessor) {
-		return (TypedQuery<Long>) countQuery.createQuery(accessor);
+
+		Query query = countQuery.createQuery(accessor);
+
+		return query instanceof TypedQuery<?> typedQuery ? (TypedQuery<Long>) typedQuery : query.unwrap(TypedQuery.class);
 	}
 
 	@Override
