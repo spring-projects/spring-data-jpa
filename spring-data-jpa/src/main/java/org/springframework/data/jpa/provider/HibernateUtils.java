@@ -17,10 +17,10 @@ package org.springframework.data.jpa.provider;
 
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.query.spi.SqmQuery;
-import org.hibernate.query.sql.spi.NamedNativeQueryMemento;
-import org.hibernate.query.sqm.spi.NamedSqmQueryMemento;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
@@ -31,10 +31,13 @@ import org.jspecify.annotations.Nullable;
  * @author Jens Schauder
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
 public abstract class HibernateUtils {
+
+	private static final HibernateQueryAdapter HIBERNATE_QUERY_ADAPTER = new HibernateQueryAdapter();
 
 	private HibernateUtils() {}
 
@@ -47,32 +50,30 @@ public abstract class HibernateUtils {
 	public @Nullable static String getHibernateQuery(Object query) {
 
 		try {
-			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery sqmQuery) {
+			if (HIBERNATE_QUERY_ADAPTER.isSqmQuery(query)) {
 
-				String hql = sqmQuery.getQueryString();
-
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
-
-				return sqmQuery.getSqmStatement().toHqlString();
-			}
-
-			// Try the new Hibernate implementation first
-			if (query instanceof NamedSqmQueryMemento<?> sqmQuery) {
-
-				String hql = sqmQuery.getHqlString();
+				String hql = HIBERNATE_QUERY_ADAPTER.getQueryString(query);
 
 				if (!hql.equals("<criteria>")) {
 					return hql;
 				}
 
-				return sqmQuery.getSqmStatement().toHqlString();
+				return HIBERNATE_QUERY_ADAPTER.getSqmStatement(query);
 			}
 
-			if (query instanceof NamedNativeQueryMemento<?> nativeQuery) {
-				return nativeQuery.getSqlString();
+			if (HIBERNATE_QUERY_ADAPTER.isNamedSqmQuery(query)) {
+
+				String hql = HIBERNATE_QUERY_ADAPTER.getHqlString(query);
+
+				if (!hql.equals("<criteria>")) {
+					return hql;
+				}
+
+				return HIBERNATE_QUERY_ADAPTER.getSqmStatement(query);
+			}
+
+			if (HIBERNATE_QUERY_ADAPTER.isNamedNativeQuery(query)) {
+				return HIBERNATE_QUERY_ADAPTER.getSqlString(query);
 			}
 
 			// Couple of cases in which this still breaks, see HHH-15389
@@ -88,8 +89,7 @@ public abstract class HibernateUtils {
 
 	public static boolean isNativeQuery(Object query) {
 
-		// Try the new Hibernate implementation first
-		if (query instanceof SqmQuery) {
+		if (HIBERNATE_QUERY_ADAPTER.isSqmQuery(query)) {
 			return false;
 		}
 
@@ -97,16 +97,97 @@ public abstract class HibernateUtils {
 			return true;
 		}
 
-		// Try the new Hibernate implementation first
-		if (query instanceof NamedSqmQueryMemento<?>) {
+		if (HIBERNATE_QUERY_ADAPTER.isNamedSqmQuery(query)) {
 
 			return false;
 		}
 
-		if (query instanceof NamedNativeQueryMemento<?>) {
+		if (HIBERNATE_QUERY_ADAPTER.isNamedNativeQuery(query)) {
 			return true;
 		}
 
+		if (query instanceof jakarta.persistence.Query jpaQuery) {
+			try {
+				jpaQuery.unwrap(NativeQuery.class);
+				return true;
+			} catch (RuntimeException o_O) {
+				// Not a native Hibernate query.
+			}
+		}
+
 		return false;
+	}
+
+	private static final class HibernateQueryAdapter {
+
+		private static final ClassLoader CLASS_LOADER = HibernateUtils.class.getClassLoader();
+
+		private final @Nullable Class<?> sqmQuery = loadClass("org.hibernate.query.sqm.spi.SqmStatementAccess",
+				"org.hibernate.query.spi.SqmQuery");
+		private final @Nullable Class<?> namedSqmQuery = loadClass("org.hibernate.query.named.spi.NamedSqmQueryMemento",
+				"org.hibernate.query.sqm.spi.NamedSqmQueryMemento");
+		private final @Nullable Class<?> namedNativeQuery = loadClass(
+				"org.hibernate.query.named.spi.NamedNativeQueryMemento",
+				"org.hibernate.query.sql.spi.NamedNativeQueryMemento");
+
+		boolean isSqmQuery(Object query) {
+			return isInstance(sqmQuery, query);
+		}
+
+		boolean isNamedSqmQuery(Object query) {
+			return isInstance(namedSqmQuery, query);
+		}
+
+		boolean isNamedNativeQuery(Object query) {
+			return isInstance(namedNativeQuery, query);
+		}
+
+		String getQueryString(Object query) {
+			return invokeStringMethod(query, "getQueryString");
+		}
+
+		String getHqlString(Object query) {
+			return invokeStringMethod(query, "getHqlString");
+		}
+
+		String getSqlString(Object query) {
+			return invokeStringMethod(query, "getSqlString");
+		}
+
+		String getSqmStatement(Object query) {
+			return invokeStringMethod(invokeMethod(query, "getSqmStatement"), "toHqlString");
+		}
+
+		private static boolean isInstance(@Nullable Class<?> type, Object query) {
+			return type != null && type.isInstance(query);
+		}
+
+		private static String invokeStringMethod(Object target, String methodName) {
+			return (String) invokeMethod(target, methodName);
+		}
+
+		private static Object invokeMethod(Object target, String methodName) {
+
+			var method = ReflectionUtils.findMethod(target.getClass(), methodName);
+
+			if (method == null) {
+				throw new IllegalStateException("Cannot resolve method %s on %s".formatted(methodName, target.getClass()));
+			}
+
+			ReflectionUtils.makeAccessible(method);
+
+			return ReflectionUtils.invokeMethod(method, target);
+		}
+
+		private static @Nullable Class<?> loadClass(String... classNames) {
+
+			for (String className : classNames) {
+				if (ClassUtils.isPresent(className, CLASS_LOADER)) {
+					return ClassUtils.resolveClassName(className, CLASS_LOADER);
+				}
+			}
+
+			return null;
+		}
 	}
 }
