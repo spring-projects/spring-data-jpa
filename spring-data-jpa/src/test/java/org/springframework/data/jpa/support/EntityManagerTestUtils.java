@@ -16,13 +16,17 @@
 package org.springframework.data.jpa.support;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
+import org.mockito.Mockito;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
  * Utility class with {@link EntityManager} related helper methods.
  *
  * @author Thomas Darimont
+ * @author Oscar Fanchin
  */
 public abstract class EntityManagerTestUtils {
 
@@ -35,5 +39,23 @@ public abstract class EntityManagerTestUtils {
 
 	public static boolean currentEntityManagerIsHibernateEntityManager(EntityManager em) {
 		return em.getDelegate().getClass().getName().toLowerCase().contains("hibernate");
+	}
+
+	/**
+	 * Creates a query mock matching the return type of {@link EntityManager#createQuery(String)}.
+	 * <p>
+	 * Jakarta Persistence 4 changes the return type from {@link Query} to {@code StatementOrTypedQuery}. Resolving the
+	 * method at runtime keeps these test sources compilable against both API generations.
+	 *
+	 * @return a query mock compatible with the Jakarta Persistence API on the classpath.
+	 */
+	@SuppressWarnings("unchecked")
+	public static Query mockQuery() {
+
+		var createQuery = ReflectionUtils.findMethod(EntityManager.class, "createQuery", String.class);
+
+		Assert.state(createQuery != null, "Cannot resolve EntityManager.createQuery(String)");
+
+		return Mockito.mock((Class<? extends Query>) createQuery.getReturnType());
 	}
 }
