@@ -363,7 +363,7 @@
 							</excludes>
 							<argLine>
 								-Xmx4G
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>
@@ -381,7 +381,7 @@
 							<argLine>
 								-Xmx4G
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>
