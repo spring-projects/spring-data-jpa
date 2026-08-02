@@ -69,6 +69,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jens Schauder
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  */
 public abstract class JpaQueryExecution {
 
@@ -493,9 +494,12 @@ public abstract class JpaQueryExecution {
 				return query.extractOutputValue(procedure);
 			} finally {
 
-				if (procedure instanceof AutoCloseable ac) {
+				// StoredProcedureQuery extends AutoCloseable in JPA 4, but not in JPA 3.2. Keep the plain instanceof
+				// check: with JPA 4 on the compile classpath AJC rejects a pattern whose type the expression already
+				// implements ("Expression type cannot be a subtype of the Pattern type").
+				if (procedure instanceof AutoCloseable) {
 					try {
-						ac.close();
+						((AutoCloseable) procedure).close();
 					} catch (Exception ignored) {}
 				}
 			}

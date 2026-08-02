@@ -27,6 +27,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.From;
@@ -45,7 +46,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.hibernate.query.sqm.internal.SqmQueryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -62,6 +62,7 @@ import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEm
 import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.infrastructure.HibernateTestUtils;
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Diego Krupitza
  * @author Krzysztof Krason
  * @author Jakub Soltys
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -449,10 +451,10 @@ class QueryUtilsIntegrationTests {
 	void applyAndBindOptimizesIn() {
 
 		em.getCriteriaBuilder();
-		SqmQueryImpl<?> query = (SqmQueryImpl) QueryUtils
+		Query query = (Query) QueryUtils
 				.applyAndBind("DELETE FROM User u", List.of(new User(), new User()), em.unwrap(null));
 
-		assertThat(query.getQueryString()).isEqualTo("DELETE FROM User u where u IN (?1)");
+		assertThat(HibernateUtils.getHibernateQuery(query)).isEqualTo("DELETE FROM User u where u IN (?1)");
 	}
 
 	@Test // GH-3983, GH-2870
@@ -460,11 +462,11 @@ class QueryUtilsIntegrationTests {
 	void applyAndBindExpandsToPositionalPlaceholders() {
 
 		em.getCriteriaBuilder();
-		SqmQueryImpl<?> query = (SqmQueryImpl) QueryUtils
+		Query query = (Query) QueryUtils
 				.applyAndBind("DELETE FROM User u", List.of(new User(), new User()), em.unwrap(null),
 						org.springframework.data.jpa.provider.PersistenceProvider.ECLIPSELINK);
 
-		assertThat(query.getQueryString()).isEqualTo("DELETE FROM User u where u = ?1 or u = ?2");
+		assertThat(HibernateUtils.getHibernateQuery(query)).isEqualTo("DELETE FROM User u where u = ?1 or u = ?2");
 	}
 
 	int getNumberOfJoinsAfterCreatingAPath() {
