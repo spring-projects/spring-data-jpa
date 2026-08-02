@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -657,9 +659,17 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 normalizes enum query hint values to uppercase")
 	void shouldApplyQueryHints() {
 		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
 				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
+	}
+
+	@Test // GH-3830, GH-4197
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 retains the original enum query hint value")
+	void shouldApplyQueryHintsOnHibernate8() {
+		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
+				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.FOO");
 	}
 
 	@Test // GH-3830, GH-4097
