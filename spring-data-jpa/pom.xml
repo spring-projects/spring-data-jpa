@@ -355,7 +355,8 @@
 							</includes>
 							<excludes>
 								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/EclipseLink*</exclude>
+								<!-- ? matches both spellings: EclipselinkRepositoryWithCompositeKeyTests, all others EclipseLink* -->
+								<exclude>**/Eclipse?ink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
 								<exclude>**/Oracle*</exclude>
@@ -374,7 +375,8 @@
 						<phase>test</phase>
 						<configuration>
 							<includes>
-								<include>**/EclipseLink*Tests.java</include>
+								<!-- ? matches both spellings, see the exclude above -->
+								<include>**/Eclipse?ink*Tests.java</include>
 							</includes>
 							<argLine>
 								-Xmx4G
