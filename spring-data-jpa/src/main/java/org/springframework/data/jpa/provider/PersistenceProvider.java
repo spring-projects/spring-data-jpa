@@ -133,7 +133,8 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 					return selectionQuery.getResultCount();
 				}
 
-				SelectionQuery<?> selectionQuery = asSelectionQuery(resultQuery);
+				// Hibernate 8 exposes selection queries through MutationOrSelectionQuery instead.
+				SelectionQuery<?> selectionQuery = HibernateUtils.asSelectionQuery(resultQuery);
 
 				if (selectionQuery != null) {
 					return selectionQuery.getResultCount();
@@ -251,9 +252,6 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	};
 
 	private static final @Nullable Class<?> typedParameterValueClass;
-	private static final @Nullable Class<?> mutationOrSelectionQueryClass;
-	private static final @Nullable Method isSelectionQueryMethod;
-	private static final @Nullable Method asSelectionQueryMethod;
 
 	static {
 
@@ -264,36 +262,11 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 			type = null;
 		}
 		typedParameterValueClass = type;
-
-		Class<?> queryType;
-		try {
-			queryType = ClassUtils.forName("org.hibernate.query.MutationOrSelectionQuery",
-					PersistenceProvider.class.getClassLoader());
-		} catch (ClassNotFoundException e) {
-			queryType = null;
-		}
-
-		mutationOrSelectionQueryClass = queryType;
-		isSelectionQueryMethod = queryType != null ? ReflectionUtils.findMethod(queryType, "isSelectionQuery") : null;
-		asSelectionQueryMethod = queryType != null ? ReflectionUtils.findMethod(queryType, "asSelectionQuery") : null;
 	}
 
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	private static final ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
-
-	private static @Nullable SelectionQuery<?> asSelectionQuery(Query query) {
-
-		if (mutationOrSelectionQueryClass == null || isSelectionQueryMethod == null || asSelectionQueryMethod == null
-				|| !mutationOrSelectionQueryClass.isInstance(query)
-				|| !Boolean.TRUE.equals(ReflectionUtils.invokeMethod(isSelectionQueryMethod, query))) {
-			return null;
-		}
-
-		Object selectionQuery = ReflectionUtils.invokeMethod(asSelectionQueryMethod, query);
-
-		return selectionQuery instanceof SelectionQuery<?> candidate ? candidate : null;
-	}
 
 	final Iterable<String> entityManagerFactoryClassNames;
 	private final Iterable<String> metamodelClassNames;
