@@ -293,6 +293,10 @@ class AotMetamodel implements Metamodel {
 										JdbcParameterBindings.NO_BINDINGS);
 							}
 
+							if (method.getReturnType().equals(void.class)) {
+								return null;
+							}
+
 							if (method.getReturnType().isPrimitive()) {
 								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
 							}
@@ -316,6 +320,10 @@ class AotMetamodel implements Metamodel {
 							if (method.getName().equals("buildHandler")) {
 								return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE,
 										JdbcParameterBindings.NO_BINDINGS);
+							}
+
+							if (method.getReturnType().equals(void.class)) {
+								return null;
 							}
 
 							if (method.getReturnType().isPrimitive()) {
