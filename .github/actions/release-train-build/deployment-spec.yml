@@ -1,0 +1,6 @@
+artifactory:
+  artifacts:
+    - pattern: "/**/spring-data-*-docs.zip"
+      properties:
+        zip.deployed: "false"
+        zip.type: "docs"
