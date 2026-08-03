@@ -3,7 +3,7 @@ name: Snapshots
 on:
   workflow_dispatch:
   push:
-    branches: [ 4.0.x, 'issue/4.0.x/**' ]
+    branches: [ 4.0.x, 'issue/4.0.x/**', 'release/**' ]
 
 permissions: read-all
 
@@ -11,7 +11,7 @@ jobs:
   build-snapshots:
     name: Build and deploy snapshots
     if: ${{ github.repository_owner == 'spring-projects' }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
       - name: Setup Java and Maven
@@ -20,11 +20,11 @@ jobs:
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Deploy to Artifactory
         uses: spring-projects/spring-data-build/actions/maven-artifactory-deploy@4.0.x
+        env:
+          OSS_ARTIFACTORY_USR: '${{ secrets.ARTIFACTORY_USERNAME }}'
+          OSS_ARTIFACTORY_PSW: '${{ secrets.ARTIFACTORY_PASSWORD }}'
+          COMMERCIAL_ARTIFACTORY_USR: '${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}'
+          COMMERCIAL_ARTIFACTORY_PSW: '${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}'
         with:
           build-name: 'spring-data-jpa'
-          username: '${{ secrets.ARTIFACTORY_USERNAME }}'
-          password: '${{ secrets.ARTIFACTORY_PASSWORD }}'
-          context-url: '${{ vars.ARTIFACTORY_CONTEXT_URL }}'
-          repository: '${{ vars.ARTIFACTORY_REPOSITORY }}'
-          project: '${{ vars.ARTIFACTORY_PROJECT }}'
           settings-xml: '${{ vars.SETTINGS_XML }}'
