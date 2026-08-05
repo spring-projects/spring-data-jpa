@@ -42,6 +42,7 @@ import org.springframework.data.util.Streamable;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author arimu1
  */
 interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -56,6 +57,10 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	Long countUsersByLastname(String lastname);
 
 	boolean existsUserByLastname(String lastname);
+
+	List<User> findUserByLastname(String lastname);
+
+	List<User> findByLastnameNot(String lastname);
 
 	List<User> findByLastnameStartingWith(String lastname);
 

@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author arimu1
  * @since 4.0
  */
 class QueriesFactory {
@@ -290,8 +291,10 @@ class QueriesFactory {
 			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata) {
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
+		// nullSafeEquality: AOT materializes a single query string; match runtime PartTree null handling for
+		// SIMPLE_PROPERTY / NEGATING_SIMPLE_PROPERTY without per-invocation query rewriting (see GH-4304).
 		JpaQueryCreator queryCreator = new JpaQueryCreator(partTree, false, returnedType, metadataProvider, templates,
-				entityMetadata, metamodel);
+				entityMetadata, metamodel, true);
 
 		return StringAotQuery.jpqlQuery(queryCreator.createQuery(), metadataProvider.getBindings(),
 				partTree.getResultLimit(), partTree.isDelete(), partTree.isExistsProjection());
@@ -302,7 +305,7 @@ class QueriesFactory {
 
 		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(parameters, escapeCharacter, templates);
 		JpaQueryCreator queryCreator = new JpaCountQueryCreator(partTree, returnedType, metadataProvider, templates,
-				entityMetadata, metamodel);
+				entityMetadata, metamodel, true);
 
 		return StringAotQuery.jpqlQuery(queryCreator.createQuery(), metadataProvider.getBindings(), Limit.unlimited(),
 				false, false);

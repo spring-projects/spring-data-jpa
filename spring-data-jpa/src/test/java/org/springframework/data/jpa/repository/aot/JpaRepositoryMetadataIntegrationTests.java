@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the {@link UserRepository} JSON metadata via {@link JpaRepositoryContributor}.
  *
  * @author Mark Paluch
+ * @author arimu1
  */
 @SpringJUnitConfig(classes = JpaRepositoryMetadataIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -76,8 +77,9 @@ class JpaRepositoryMetadataIntegrationTests {
 		String json = resource.getContentAsString(StandardCharsets.UTF_8);
 
 		assertThatJson(json).inPath("$.methods[0]").isObject().containsEntry("name", "countUsersByLastname");
+		// Null-safe equality so fixed AOT queries match runtime PartTree null handling (GH-4304)
 		assertThatJson(json).inPath("$.methods[0].query").isObject().containsEntry("query",
-				"SELECT COUNT(u) FROM User u WHERE u.lastname = :lastname");
+				"SELECT COUNT(u) FROM User u WHERE (u.lastname = :lastname OR u.lastname IS NULL AND :lastname IS NULL)");
 	}
 
 	@Test // GH-3830
