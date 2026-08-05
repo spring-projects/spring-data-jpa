@@ -70,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jinmyeong Kim
  * @author Oualid Bouh
+ * @author arimu1
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
 		implements JpqlQueryCreator {
@@ -96,6 +97,12 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	private final Metamodel metamodel;
 	private final SimilarityNormalizer similarityNormalizer;
 	private final boolean useNamedParameters;
+	/**
+	 * When {@code true}, equality comparisons for derived queries are rendered null-safe so a single static query
+	 * matches runtime {@link PartTree} behavior for both {@code null} and non-{@code null} arguments. Used by AOT
+	 * repository generation where the query string is fixed at build time.
+	 */
+	private final boolean nullSafeEquality;
 
 	/**
 	 * Create a new {@link JpaQueryCreator}.
@@ -120,11 +127,30 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, Metamodel metamodel) {
 		this(tree, searchQuery, type, provider, templates,
-				new JpaMetamodelEntityMetadata(metamodel.entity(type.getDomainType())), metamodel);
+				new JpaMetamodelEntityMetadata(metamodel.entity(type.getDomainType())), metamodel, false);
 	}
 
 	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel) {
+		this(tree, searchQuery, type, provider, templates, entityMetadata, metamodel, false);
+	}
+
+	/**
+	 * Create a new {@link JpaQueryCreator}.
+	 *
+	 * @param tree must not be {@literal null}.
+	 * @param searchQuery whether the query is a search query.
+	 * @param type must not be {@literal null}.
+	 * @param provider must not be {@literal null}.
+	 * @param templates must not be {@literal null}.
+	 * @param entityMetadata must not be {@literal null}.
+	 * @param metamodel must not be {@literal null}.
+	 * @param nullSafeEquality whether to render null-safe equality predicates suitable for AOT fixed queries.
+	 * @since 4.2
+	 */
+	public JpaQueryCreator(PartTree tree, boolean searchQuery, ReturnedType type, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel,
+			boolean nullSafeEquality) {
 
 		super(tree);
 
@@ -132,6 +158,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		this.tree = tree;
 		this.returnedType = type;
 		this.provider = provider;
+		this.nullSafeEquality = nullSafeEquality;
 
 		JpaParameters bindableParameters = provider.getParameters().getBindableParameters();
 
@@ -520,6 +547,21 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 					JpqlQueryBuilder.Expression expression = potentiallyIgnoreCase(property.getLeafProperty(),
 							placeholder(simple));
+
+					// Fixed AOT queries cannot rewrite per-invocation nullness. Emit a null-safe form that matches
+					// runtime PartTree behavior for null and non-null arguments:
+					// eq: (path = :p OR (path IS NULL AND :p IS NULL))
+					// neq: (path != :p OR (path IS NOT NULL AND :p IS NULL))
+					// Skip binary/array parameters: dual use of the same bind marker for "=" and "IS NULL" is rejected by
+					// several JDBC drivers (e.g. HSQLDB byte[] / BLOB).
+					if (nullSafeEquality && supportsNullSafeEquality(simple.getParameterType())) {
+						JpqlQueryBuilder.Predicate parameterIsNull = JpqlQueryBuilder.where(expression).isNull();
+						if (type.equals(SIMPLE_PROPERTY)) {
+							return whereIgnoreCase.eq(expression).or(where.isNull().and(parameterIsNull)).nest();
+						}
+						return whereIgnoreCase.neq(expression).or(where.isNotNull().and(parameterIsNull)).nest();
+					}
+
 					return type.equals(SIMPLE_PROPERTY) ? whereIgnoreCase.eq(expression) : whereIgnoreCase.neq(expression);
 				case IS_EMPTY:
 				case IS_NOT_EMPTY:
@@ -682,6 +724,21 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		private boolean canUpperCase(PropertyPath path) {
 			return String.class.equals(path.getType());
 		}
+	}
+
+	/**
+	 * Whether the given parameter type can participate in a null-safe equality predicate that references the bind marker
+	 * twice ({@code path = :p OR … AND :p IS NULL}). Binary/array JDBC types often reject the dual bind.
+	 */
+	private static boolean supportsNullSafeEquality(Class<?> parameterType) {
+
+		if (parameterType.isArray()) {
+			return false;
+		}
+
+		// java.sql.Blob / Clob and similar LOB types are not safe for dual parameter binding either
+		return !java.sql.Blob.class.isAssignableFrom(parameterType)
+				&& !java.sql.Clob.class.isAssignableFrom(parameterType);
 	}
 
 }

@@ -67,6 +67,7 @@ import org.springframework.data.util.Lazy;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oualid Bouh
+ * @author arimu1
  */
 class JpaQueryCreatorTests {
 
@@ -90,6 +91,37 @@ class JpaQueryCreatorTests {
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT o FROM %s o WHERE o.country = ?1", DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
+	}
+
+	@Test // GH-4304
+	void simplePropertyNullSafeEqualityForAot() {
+
+		// Non-null argument so the binding is not collapsed to pure IS NULL; nullSafeEquality still rewrites the predicate.
+		ParameterMetadataProvider provider = new ParameterMetadataProvider(
+				StubJpaParameterParameterAccessor.accessor("AT"), EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
+		PartTree tree = new PartTree("findOrderByCountry", Order.class);
+		ReturnedType returnedType = ReturnedType.of(Order.class, Order.class, new SpelAwareProxyProjectionFactory());
+		JpaQueryCreator creator = new JpaQueryCreator(tree, false, returnedType, provider, JpqlQueryTemplates.UPPER,
+				new DefaultJpaEntityMetadata<>(Order.class), ORDER, true);
+
+		assertThat(creator.createQuery())
+				.isEqualTo("SELECT o FROM %s o WHERE (o.country = ?1 OR o.country IS NULL AND ?1 IS NULL)",
+						DefaultJpaEntityMetadata.unqualify(Order.class));
+	}
+
+	@Test // GH-4304
+	void negatingSimplePropertyNullSafeEqualityForAot() {
+
+		ParameterMetadataProvider provider = new ParameterMetadataProvider(
+				StubJpaParameterParameterAccessor.accessor("US"), EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
+		PartTree tree = new PartTree("findOrderByCountryNot", Order.class);
+		ReturnedType returnedType = ReturnedType.of(Order.class, Order.class, new SpelAwareProxyProjectionFactory());
+		JpaQueryCreator creator = new JpaQueryCreator(tree, false, returnedType, provider, JpqlQueryTemplates.UPPER,
+				new DefaultJpaEntityMetadata<>(Order.class), ORDER, true);
+
+		assertThat(creator.createQuery())
+				.isEqualTo("SELECT o FROM %s o WHERE (o.country != ?1 OR o.country IS NOT NULL AND ?1 IS NULL)",
+						DefaultJpaEntityMetadata.unqualify(Order.class));
 	}
 
 	@Test // GH-3588

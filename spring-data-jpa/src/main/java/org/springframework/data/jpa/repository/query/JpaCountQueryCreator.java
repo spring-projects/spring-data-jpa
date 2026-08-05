@@ -30,6 +30,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  * @author Marc Lefrançois
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @author arimu1
  */
 public class JpaCountQueryCreator extends JpaQueryCreator {
 
@@ -72,7 +73,20 @@ public class JpaCountQueryCreator extends JpaQueryCreator {
 	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
 			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel) {
 
-		super(tree, false, returnedType, provider, templates, entityMetadata, metamodel);
+		this(tree, returnedType, provider, templates, entityMetadata, metamodel, false);
+	}
+
+	/**
+	 * Creates a new {@link JpaCountQueryCreator}.
+	 *
+	 * @param nullSafeEquality whether to render null-safe equality predicates suitable for AOT fixed queries.
+	 * @since 4.2
+	 */
+	public JpaCountQueryCreator(PartTree tree, ReturnedType returnedType, ParameterMetadataProvider provider,
+			JpqlQueryTemplates templates, JpaEntityMetadata<?> entityMetadata, Metamodel metamodel,
+			boolean nullSafeEquality) {
+
+		super(tree, false, returnedType, provider, templates, entityMetadata, metamodel, nullSafeEquality);
 
 		this.distinct = tree.isDistinct();
 	}

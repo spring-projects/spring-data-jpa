@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author arimu1
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -146,6 +147,41 @@ class JpaRepositoryContributorIntegrationTests {
 
 		Boolean exists = fragment.existsUserByLastname("Skywalker");
 		assertThat(exists).isTrue();
+	}
+
+	@Test // GH-4304
+	void testDerivedQueryWithNullAndNonNullEqualityParameter() {
+
+		User noLastname = new User("Rey", null, "rey@resistance.gov");
+		em.persist(noLastname);
+		em.flush();
+		em.clear();
+
+		List<User> withValue = fragment.findUserByLastname("Skywalker");
+		assertThat(withValue).extracting(User::getEmailAddress).containsExactlyInAnyOrder("luke@jedi.org",
+				"vader@empire.com");
+
+		List<User> withNull = fragment.findUserByLastname(null);
+		assertThat(withNull).extracting(User::getEmailAddress).containsExactly("rey@resistance.gov");
+	}
+
+	@Test // GH-4304
+	void testDerivedQueryWithNullAndNonNullNegatingEqualityParameter() {
+
+		User noLastname = new User("Rey", null, "rey@resistance.gov");
+		em.persist(noLastname);
+		em.flush();
+		em.clear();
+
+		// Not-equals excludes both matching values and SQL-null properties
+		List<User> notSkywalker = fragment.findByLastnameNot("Skywalker");
+		assertThat(notSkywalker).extracting(User::getEmailAddress).contains("yoda@jedi.org")
+				.doesNotContain("luke@jedi.org", "vader@empire.com", "rey@resistance.gov");
+
+		// Null argument maps to IS NOT NULL (runtime PartTree parity)
+		List<User> notNull = fragment.findByLastnameNot(null);
+		assertThat(notNull).extracting(User::getEmailAddress).doesNotContain("rey@resistance.gov")
+				.contains("luke@jedi.org", "yoda@jedi.org");
 	}
 
 	@Test // GH-3830
