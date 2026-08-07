@@ -70,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jinmyeong Kim
  * @author Oualid Bouh
+ * @author masiljangajji
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
 		implements JpqlQueryCreator {
@@ -542,7 +543,7 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 
 						Range<Score> range = (Range<Score>) r;
 
-						if (range.getUpperBound().isBounded() || range.getUpperBound().isBounded()) {
+						if (range.getLowerBound().isBounded() || range.getUpperBound().isBounded()) {
 
 							Range.Bound<Score> lower = range.getLowerBound();
 							Range.Bound<Score> upper = range.getUpperBound();

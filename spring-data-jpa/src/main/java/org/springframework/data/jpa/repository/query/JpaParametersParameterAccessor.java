@@ -37,6 +37,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
  * @author Jens Schauder
  * @author Mark Paluch
  * @author Greg Turnquist
+ * @author masiljangajji
  */
 public class JpaParametersParameterAccessor extends ParametersParameterAccessor {
 
@@ -113,7 +114,7 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 
 			if (range != null && range.getLowerBound().isBounded()
 					&& scoreFilter.test(range.getLowerBound().getValue().get())) {
-				return function.apply(range.getUpperBound().getValue().get());
+				return function.apply(range.getLowerBound().getValue().get());
 			}
 
 			if (range != null && range.getUpperBound().isBounded()

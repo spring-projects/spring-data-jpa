@@ -29,12 +29,16 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,8 +50,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Similarity;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Vector;
+import org.springframework.data.domain.VectorScoringFunctions;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
@@ -57,6 +63,7 @@ import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Lazy;
@@ -67,6 +74,7 @@ import org.springframework.data.util.Lazy;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oualid Bouh
+ * @author masiljangajji
  */
 class JpaQueryCreatorTests {
 
@@ -80,6 +88,8 @@ class JpaQueryCreatorTests {
 
 	private static final TestMetaModel ORDER_WITH_RELATIONS = TestMetaModel.hibernateModel(OrderWithRelations.class,
 			Customer.class, Supplier.class);
+
+	private static final TestMetaModel VECTOR = TestMetaModel.hibernateModel(WithVector.class);
 
 	@Test // GH-3588
 	void simpleProperty() {
@@ -798,6 +808,54 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
+	@Test
+	void withinRangeConsidersLowerBoundOnlyRange() throws Exception {
+
+		Range<Similarity> range = Range.rightUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
+
+		assertThat(renderVectorWithinQuery(range)).isEqualTo(
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, :vector) <= :range_lower",
+				DefaultJpaEntityMetadata.unqualify(WithVector.class));
+	}
+
+	@Test
+	void withinRangeConsidersUpperBoundOnlyRange() throws Exception {
+
+		Range<Similarity> range = Range.leftUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
+
+		assertThat(renderVectorWithinQuery(range)).isEqualTo(
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, :vector) >= :range_upper",
+				DefaultJpaEntityMetadata.unqualify(WithVector.class));
+	}
+
+	/**
+	 * Renders a {@code findByEmbeddingNear(Vector, Range<Score>)} query for {@link WithVector} using a real,
+	 * reflection-backed {@link JpaParametersParameterAccessor} — {@code Range<Score>} parameters require genuine generic
+	 * type information that a mocked {@link org.springframework.core.MethodParameter} (as used by
+	 * {@link StubJpaParameterParameterAccessor}) cannot provide.
+	 */
+	private String renderVectorWithinQuery(Range<Similarity> range) throws Exception {
+
+		Vector vector = Vector.of(0.1f, 0.2f, 0.3f, 0.4f, 0.5f);
+
+		Method method = VectorSample.class.getMethod("findByEmbeddingNear", Vector.class, Range.class);
+		JpaParameters jpaParameters = new JpaParameters(ParametersSource.of(method));
+		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(jpaParameters,
+				new Object[] { vector, range });
+
+		PartTree tree = new PartTree("findByEmbeddingNear", WithVector.class);
+		ReturnedType returnedType = ReturnedType.of(WithVector.class, WithVector.class,
+				new SpelAwareProxyProjectionFactory());
+
+		JpaQueryCreator creator = queryCreator(tree, returnedType, VECTOR, JpqlQueryTemplates.UPPER, accessor);
+
+		return creator.createQuery(Sort.unsorted());
+	}
+
+	interface VectorSample {
+		List<WithVector> findByEmbeddingNear(Vector vector, Range<Score> range);
+	}
+
 	QueryCreatorBuilder queryCreator(Metamodel metamodel) {
 		return new DefaultCreatorBuilder(metamodel);
 	}
@@ -891,6 +949,15 @@ class JpaQueryCreatorTests {
 		String productType;
 
 		@ElementCollection List<String> categories;
+	}
+
+	@jakarta.persistence.Entity
+	static class WithVector {
+
+		@Id Long id;
+
+		@JdbcTypeCode(SqlTypes.VECTOR)
+		@Array(length = 5) float[] embedding;
 	}
 
 	static class DtoProductProjection {
