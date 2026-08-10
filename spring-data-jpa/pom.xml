@@ -20,6 +20,7 @@
 
 	<properties>
 		<java-module-name>spring.data.jpa</java-module-name>
+		<project.root>${basedir}/..</project.root>
 	</properties>
 
 	<dependencies>
