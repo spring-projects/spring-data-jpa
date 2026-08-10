@@ -47,6 +47,7 @@
 	</scm>
 
 	<properties>
+		<project.root>${basedir}/..</project.root>
 		<hibernate.envers>${hibernate}</hibernate.envers>
 		<java-module-name>spring.data.envers</java-module-name>
 	</properties>
