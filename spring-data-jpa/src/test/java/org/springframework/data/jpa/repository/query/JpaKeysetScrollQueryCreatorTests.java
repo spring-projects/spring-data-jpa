@@ -45,6 +45,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * Unit tests for {@link JpaKeysetScrollQueryCreator}.
  *
  * @author Mark Paluch
+ * @author Seongho Eom
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -97,6 +98,31 @@ class JpaKeysetScrollQueryCreatorTests {
 				""");
 	}
 
+	@Test // GH-4303
+	void shouldResolveJpaMetamodelAttributeNameForKeysetScrolling() throws Exception {
+
+		Map<String, Object> keys = Map.of("id", 1L, "isActive", false);
+		KeysetScrollPosition position = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+		Method method = IsActiveRepo.class.getMethod("findTop3ByOrderByIsActiveAsc", ScrollPosition.class);
+
+		PersistenceProvider provider = PersistenceProvider.fromEntityManager(entityManager);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(method,
+				AbstractRepositoryMetadata.getMetadata(IsActiveRepo.class), new SpelAwareProxyProjectionFactory(), provider);
+		PartTree tree = new PartTree(method.getName(), PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class);
+		ParameterMetadataProvider metadataProvider = new ParameterMetadataProvider(queryMethod.getParameters(),
+				EscapeCharacter.DEFAULT, JpqlQueryTemplates.UPPER);
+		JpaMetamodelEntityInformation<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess, Long> entityInformation = new JpaMetamodelEntityInformation<>(
+				PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class, entityManager.getMetamodel(),
+				entityManager.getEntityManagerFactory().getPersistenceUnitUtil());
+		JpaKeysetScrollQueryCreator creator = new JpaKeysetScrollQueryCreator(tree,
+				queryMethod.getResultProcessor().getReturnedType(), metadataProvider, JpqlQueryTemplates.UPPER,
+				entityInformation, position, entityManager);
+
+		String query = creator.createQuery();
+
+		assertThat(query).contains(".active", "?1", "?2").doesNotContain(".isActive");
+	}
+
 	private JpaKeysetScrollQueryCreator getJpaKeysetScrollQueryCreator(KeysetScrollPosition position, Method method) {
 
 		PersistenceProvider provider = PersistenceProvider.fromEntityManager(entityManager);
@@ -118,6 +144,12 @@ class JpaKeysetScrollQueryCreatorTests {
 		Window<User> findTop3ByFirstnameStartingWithOrderByFirstnameAscEmailAddressAsc(String firstname,
 				ScrollPosition position);
 
+	}
+
+	interface IsActiveRepo extends Repository<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess, Long> {
+
+		Window<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> findTop3ByOrderByIsActiveAsc(
+				ScrollPosition position);
 	}
 
 }
