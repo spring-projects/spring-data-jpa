@@ -17,6 +17,7 @@ package org.springframework.data.jpa.domain.sample;
 
 import java.util.Date;
 
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -28,12 +29,14 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * @author Oliver Gierke
  * @since 1.6
  */
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public class AbstractAnnotatedAuditable {
 
 	private @Id @GeneratedValue Long id;
