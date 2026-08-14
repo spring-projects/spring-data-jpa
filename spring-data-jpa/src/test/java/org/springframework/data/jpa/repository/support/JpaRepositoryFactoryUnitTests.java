@@ -28,6 +28,7 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +78,7 @@ class JpaRepositoryFactoryUnitTests {
 		when(entityManager.getMetamodel()).thenReturn(metamodel);
 		when(entityManager.getEntityManagerFactory()).thenReturn(emf);
 		when(entityManager.getDelegate()).thenReturn(entityManager);
-		when(emf.createEntityManager()).thenReturn(entityManager);
+		when(emf.createEntityManager(Map.of())).thenReturn(entityManager);
 		when(emf.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 
 		// Setup standard factory configuration

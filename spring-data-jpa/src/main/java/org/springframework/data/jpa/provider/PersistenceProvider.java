@@ -25,6 +25,7 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,6 +67,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Yuriy Tsarkov
  * @author Ariel Morelli Andres
+ * @author Oscar Fanchin
  */
 public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, QueryComment {
 
@@ -124,9 +127,18 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 		@Override
 		public long getResultCount(Query resultQuery, LongSupplier countSupplier) {
 
-			if (TransactionSynchronizationManager.isActualTransactionActive()
-					&& resultQuery instanceof SelectionQuery<?> sq) {
-				return sq.getResultCount();
+			if (TransactionSynchronizationManager.isActualTransactionActive()) {
+
+				if (resultQuery instanceof SelectionQuery<?> selectionQuery) {
+					return selectionQuery.getResultCount();
+				}
+
+				// Hibernate 8 exposes selection queries through MutationOrSelectionQuery instead.
+				SelectionQuery<?> selectionQuery = HibernateUtils.asSelectionQuery(resultQuery);
+
+				if (selectionQuery != null) {
+					return selectionQuery.getResultCount();
+				}
 			}
 
 			return super.getResultCount(resultQuery, countSupplier);
@@ -255,6 +267,7 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 	private static final Collection<PersistenceProvider> ALL = List.of(HIBERNATE, ECLIPSELINK, GENERIC_JPA);
 
 	private static final ConcurrentReferenceHashMap<Class<?>, PersistenceProvider> CACHE = new ConcurrentReferenceHashMap<>();
+
 	final Iterable<String> entityManagerFactoryClassNames;
 	private final Iterable<String> metamodelClassNames;
 

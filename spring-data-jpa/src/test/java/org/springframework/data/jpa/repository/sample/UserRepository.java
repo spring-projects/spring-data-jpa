@@ -72,6 +72,7 @@ import com.querydsl.core.types.Predicate;
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
+ * @author Oscar Fanchin
  */
 public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
 		UserRepositoryCustom, ListQuerydslPredicateExecutor<User> {
@@ -251,6 +252,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	@Query("select u.colleagues from User u where u = ?1")
 	List<User> findColleaguesFor(User user);
+
+	// Counterpart of findColleaguesFor(…) above: Hibernate 8 no longer flattens the collection-valued path into
+	// individual elements. Join the association explicitly to preserve the expected List<User> result shape.
+	// See Jakarta Persistence specification, section 4.9.
+	@Query("select colleague from User u join u.colleagues colleague where u = ?1")
+	List<User> findColleaguesForH8(User user);
 
 	// DATAJPA-188
 	List<User> findByCreatedAtBefore(Date date);

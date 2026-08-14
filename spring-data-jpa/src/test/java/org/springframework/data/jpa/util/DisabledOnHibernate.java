@@ -24,10 +24,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * {@code @DisabledOnHibernate} is used to signal that the annotated test class or test method is only <em>disabled</em>
- * if the given Hibernate {@linkplain #value version} is being used.
+ * if any of the given Hibernate {@linkplain #value versions} is being used.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Oscar Fanchin
  * @since 3.2
  */
 @Target({ ElementType.TYPE, ElementType.METHOD, ElementType.ANNOTATION_TYPE })
@@ -36,12 +37,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public @interface DisabledOnHibernate {
 
 	/**
-	 * The version of Hibernate to disable the test or container case on. The version specifier can hold individual
+	 * The versions of Hibernate to disable the test or container case on. Each version specifier can hold individual
 	 * version components matching effectively the version in a prefix-manner. The more specific you want to match, the
-	 * more version components you can specify, such as {@code  6.2.1} to match a specific service release or {@code 6} to
+	 * more version components you can specify, such as {@code 6.2.1} to match a specific service release or {@code 6} to
 	 * match a full major version.
 	 */
-	String value();
+	String[] value();
 
 	/**
 	 * Custom reason to provide if the test or container is disabled.

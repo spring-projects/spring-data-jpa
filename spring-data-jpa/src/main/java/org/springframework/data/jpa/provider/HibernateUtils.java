@@ -17,9 +17,7 @@ package org.springframework.data.jpa.provider;
 
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.query.spi.SqmQuery;
-import org.hibernate.query.sql.spi.NamedNativeQueryMemento;
-import org.hibernate.query.sqm.spi.NamedSqmQueryMemento;
+import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -31,12 +29,24 @@ import org.jspecify.annotations.Nullable;
  * @author Jens Schauder
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
 public abstract class HibernateUtils {
 
+	private static final HibernateAdapter HIBERNATE_ADAPTER = HibernateAdapter.create();
+
 	private HibernateUtils() {}
+
+	/**
+	 * Return the {@link SelectionQuery} the given query represents, or {@literal null} if it does not represent one.
+	 *
+	 * @since 4.2
+	 */
+	static @Nullable SelectionQuery<?> asSelectionQuery(jakarta.persistence.Query query) {
+		return HIBERNATE_ADAPTER.asSelectionQuery(query);
+	}
 
 	/**
 	 * Return the query string of the underlying native Hibernate query.
@@ -47,32 +57,30 @@ public abstract class HibernateUtils {
 	public @Nullable static String getHibernateQuery(Object query) {
 
 		try {
-			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery sqmQuery) {
+			if (HIBERNATE_ADAPTER.isSqmQuery(query)) {
 
-				String hql = sqmQuery.getQueryString();
-
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
-
-				return sqmQuery.getSqmStatement().toHqlString();
-			}
-
-			// Try the new Hibernate implementation first
-			if (query instanceof NamedSqmQueryMemento<?> sqmQuery) {
-
-				String hql = sqmQuery.getHqlString();
+				String hql = HIBERNATE_ADAPTER.getQueryString(query);
 
 				if (!hql.equals("<criteria>")) {
 					return hql;
 				}
 
-				return sqmQuery.getSqmStatement().toHqlString();
+				return HIBERNATE_ADAPTER.getSqmStatement(query);
 			}
 
-			if (query instanceof NamedNativeQueryMemento<?> nativeQuery) {
-				return nativeQuery.getSqlString();
+			if (HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
+
+				String hql = HIBERNATE_ADAPTER.getHqlString(query);
+
+				if (!hql.equals("<criteria>")) {
+					return hql;
+				}
+
+				return HIBERNATE_ADAPTER.getSqmStatement(query);
+			}
+
+			if (HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
+				return HIBERNATE_ADAPTER.getSqlString(query);
 			}
 
 			// Couple of cases in which this still breaks, see HHH-15389
@@ -88,8 +96,7 @@ public abstract class HibernateUtils {
 
 	public static boolean isNativeQuery(Object query) {
 
-		// Try the new Hibernate implementation first
-		if (query instanceof SqmQuery) {
+		if (HIBERNATE_ADAPTER.isSqmQuery(query)) {
 			return false;
 		}
 
@@ -97,14 +104,22 @@ public abstract class HibernateUtils {
 			return true;
 		}
 
-		// Try the new Hibernate implementation first
-		if (query instanceof NamedSqmQueryMemento<?>) {
+		if (HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
 
 			return false;
 		}
 
-		if (query instanceof NamedNativeQueryMemento<?>) {
+		if (HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
 			return true;
+		}
+
+		if (query instanceof jakarta.persistence.Query jpaQuery) {
+			try {
+				jpaQuery.unwrap(NativeQuery.class);
+				return true;
+			} catch (RuntimeException o_O) {
+				// Not a native Hibernate query.
+			}
 		}
 
 		return false;

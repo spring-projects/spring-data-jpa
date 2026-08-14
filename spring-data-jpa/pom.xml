@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa</artifactId>
-	<version>4.2.0-SNAPSHOT</version>
+	<version>4.2.x-GH-4197-SNAPSHOT</version>
 
 	<name>Spring Data JPA</name>
 	<description>Spring Data module for JPA repositories.</description>
@@ -14,7 +14,7 @@
 	<parent>
 		<groupId>org.springframework.data</groupId>
 		<artifactId>spring-data-jpa-parent</artifactId>
-		<version>4.2.0-SNAPSHOT</version>
+		<version>4.2.x-GH-4197-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -356,14 +356,15 @@
 							</includes>
 							<excludes>
 								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/EclipseLink*</exclude>
+								<!-- ? matches both spellings: EclipselinkRepositoryWithCompositeKeyTests, all others EclipseLink* -->
+								<exclude>**/Eclipse?ink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
 								<exclude>**/Oracle*</exclude>
 							</excludes>
 							<argLine>
 								-Xmx4G
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>
@@ -375,12 +376,13 @@
 						<phase>test</phase>
 						<configuration>
 							<includes>
-								<include>**/EclipseLink*Tests.java</include>
+								<!-- ? matches both spellings, see the exclude above -->
+								<include>**/Eclipse?ink*Tests.java</include>
 							</includes>
 							<argLine>
 								-Xmx4G
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>

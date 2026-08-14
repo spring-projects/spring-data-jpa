@@ -55,6 +55,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -542,13 +543,14 @@ public abstract class QueryUtils {
 		Iterator<T> iterator = entities.iterator();
 
 		if (!iterator.hasNext()) {
-			return entityManager.createQuery(queryString);
+			return JpaPortableQueries.createQuery(entityManager, queryString);
 		}
 
 		if (persistenceProvider == PersistenceProvider.HIBERNATE) {
 
 			String alias = detectAlias(queryString);
-			Query query = entityManager.createQuery("%s where %s IN (?1)".formatted(queryString, alias));
+			Query query = JpaPortableQueries.createQuery(entityManager,
+					"%s where %s IN (?1)".formatted(queryString, alias));
 			query.setParameter(1, entities instanceof Collection<T> ? entities : Streamable.of(entities).toList());
 
 			return query;
@@ -577,7 +579,7 @@ public abstract class QueryUtils {
 			}
 		}
 
-		Query query = entityManager.createQuery(builder.toString());
+		Query query = JpaPortableQueries.createQuery(entityManager, builder.toString());
 
 		iterator = entities.iterator();
 		i = 0;

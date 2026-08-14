@@ -27,8 +27,6 @@ import jakarta.persistence.criteria.Selection;
 
 import java.util.Locale;
 
-import org.hibernate.query.sqm.tree.SqmRenderContext;
-import org.hibernate.query.sqm.tree.select.SqmSelectStatement;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -37,12 +35,15 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Verify that {@link JpaSort#unsafe(String...)} works properly with Hibernate via {@link HqlOrderExpressionVisitor}.
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -337,15 +338,32 @@ class HqlOrderExpressionVisitorUnitTests {
 		return query.select(from).orderBy(em.getCriteriaBuilder().asc(expression, Nulls.NONE));
 	}
 
-	@SuppressWarnings("rawtypes")
 	String renderQuery(JpaSort sort, String alias) {
 
 		CriteriaQuery<User> q = createQuery(sort, alias);
-		SqmSelectStatement s = (SqmSelectStatement) q;
-
 		StringBuilder builder = new StringBuilder();
-		s.appendHqlString(builder, SqmRenderContext.simpleContext());
+		Class<?> renderContextType = loadClass("org.hibernate.query.sqm.tree.spi.SqmRenderContext",
+				"org.hibernate.query.sqm.tree.SqmRenderContext");
+		Object renderContext = ReflectionUtils.invokeMethod(
+				ReflectionUtils.findMethod(renderContextType, "simpleContext"), null);
+
+		ReflectionUtils.invokeMethod(
+				ReflectionUtils.findMethod(q.getClass(), "appendHqlString", StringBuilder.class, renderContextType), q,
+				builder, renderContext);
 
 		return builder.toString();
+	}
+
+	private static Class<?> loadClass(String... classNames) {
+
+		ClassLoader classLoader = HqlOrderExpressionVisitorUnitTests.class.getClassLoader();
+
+		for (String className : classNames) {
+			if (ClassUtils.isPresent(className, classLoader)) {
+				return ClassUtils.resolveClassName(className, classLoader);
+			}
+		}
+
+		throw new IllegalStateException("Cannot resolve Hibernate SQM render context");
 	}
 }

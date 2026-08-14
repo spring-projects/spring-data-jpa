@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +78,7 @@ abstract class MetamodelIntegrationTests {
 	@Test
 	void canAccessParametersByIndexForNativeQueries() {
 
-		Query query = em.createNativeQuery("SELECT u from User u where u.lastname = ?1");
+		Query query = JpaPortableQueries.createNativeQuery(em, "SELECT u from User u where u.lastname = ?1");
 
 		assertThat(query.getParameter(1)).isNotNull();
 	}

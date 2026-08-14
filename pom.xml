@@ -4,7 +4,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-jpa-parent</artifactId>
-	<version>4.2.0-SNAPSHOT</version>
+	<version>4.2.x-GH-4197-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data JPA Parent</name>
@@ -39,6 +39,7 @@
 		<postgresql>42.7.13</postgresql>
 		<oracle>23.26.3.0.0</oracle>
 		<springdata.commons>4.2.0-SNAPSHOT</springdata.commons>
+		<spring-instrument-agent>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</spring-instrument-agent>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
@@ -65,6 +66,44 @@
 			<id>hibernate-74-snapshots</id>
 			<properties>
 				<hibernate>${hibernate-74-snapshots}</hibernate>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>h8</id>
+			<properties>
+				<hibernate>8.0.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+				<spring>7.1.0-SNAPSHOT</spring>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent />
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>h8-next</id>
+			<properties>
+				<hibernate>8.1.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
+				<spring>7.1.0-SNAPSHOT</spring>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent />
 			</properties>
 			<repositories>
 				<repository>
