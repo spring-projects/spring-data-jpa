@@ -91,6 +91,7 @@ import org.springframework.util.StringUtils;
  * @author Alim Naizabek
  * @author Jakub Soltys
  * @author Young-ho Kim
+ * @author Jewoo Shin
  */
 public abstract class QueryUtils {
 
@@ -140,7 +141,6 @@ public abstract class QueryUtils {
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
 	private static final Pattern PUNCTATION_PATTERN = compile(".*((?![._])[\\p{Punct}|\\s])");
-	private static final Pattern FUNCTION_PATTERN;
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
 	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
@@ -182,14 +182,6 @@ public abstract class QueryUtils {
 		builder.append("\\)");
 
 		CONSTRUCTOR_EXPRESSION = compile(builder.toString(), CASE_INSENSITIVE + DOTALL);
-
-		builder = new StringBuilder();
-		// any function call including parameters within the brackets;
-		builder.append("\\w+\\s*\\((?:[^()]+|\\([^()]*\\))+\\)");
-		// the potential alias
-		builder.append("\\s+(?:as)+\\s+([\\w\\.]+)");
-
-		FUNCTION_PATTERN = compile(builder.toString(), CASE_INSENSITIVE);
 
 		builder = new StringBuilder();
 		builder.append("[^\\s\\(\\)]+"); // No white char no bracket
@@ -405,18 +397,121 @@ public abstract class QueryUtils {
 	static Set<String> getFunctionAliases(String query) {
 
 		Set<String> result = new HashSet<>();
-		Matcher matcher = FUNCTION_PATTERN.matcher(query);
 
-		while (matcher.find()) {
+		for (int i = 0; i < query.length(); i++) {
 
-			String alias = matcher.group(1);
-
-			if (StringUtils.hasText(alias)) {
-				result.add(alias);
+			if (!Character.isJavaIdentifierStart(query.charAt(i))) {
+				continue;
 			}
+
+			int functionNameEnd = readJavaIdentifier(query, i + 1);
+			int functionOpeningParenthesis = skipWhitespace(query, functionNameEnd);
+
+			if (functionOpeningParenthesis >= query.length() || query.charAt(functionOpeningParenthesis) != '(') {
+				i = functionNameEnd;
+				continue;
+			}
+
+			int functionClosingParenthesis = findClosingParenthesis(query, functionOpeningParenthesis);
+
+			if (functionClosingParenthesis == -1) {
+				i = functionNameEnd;
+				continue;
+			}
+
+			int aliasKeyword = skipWhitespace(query, functionClosingParenthesis + 1);
+
+			if (!hasAsKeyword(query, aliasKeyword)) {
+				i = functionNameEnd;
+				continue;
+			}
+
+			int aliasStart = skipWhitespace(query, aliasKeyword + 2);
+			int aliasEnd = readAlias(query, aliasStart);
+
+			if (aliasEnd > aliasStart) {
+				result.add(query.substring(aliasStart, aliasEnd));
+			}
+
+			i = functionClosingParenthesis;
 		}
 
 		return result;
+	}
+
+	private static int readJavaIdentifier(String query, int offset) {
+
+		while (offset < query.length() && Character.isJavaIdentifierPart(query.charAt(offset))) {
+			offset++;
+		}
+
+		return offset;
+	}
+
+	private static int skipWhitespace(String query, int offset) {
+
+		while (offset < query.length() && Character.isWhitespace(query.charAt(offset))) {
+			offset++;
+		}
+
+		return offset;
+	}
+
+	private static int findClosingParenthesis(String query, int openingParenthesis) {
+
+		int depth = 0;
+		boolean quoted = false;
+
+		for (int i = openingParenthesis; i < query.length(); i++) {
+
+			char current = query.charAt(i);
+
+			if (current == '\'') {
+
+				if (quoted && i + 1 < query.length() && query.charAt(i + 1) == '\'') {
+					i++;
+					continue;
+				}
+
+				quoted = !quoted;
+				continue;
+			}
+
+			if (quoted) {
+				continue;
+			}
+
+			if (current == '(') {
+				depth++;
+			} else if (current == ')' && --depth == 0) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	private static boolean hasAsKeyword(String query, int offset) {
+
+		return offset + 2 < query.length() //
+				&& query.regionMatches(true, offset, "as", 0, 2) //
+				&& Character.isWhitespace(query.charAt(offset + 2));
+	}
+
+	private static int readAlias(String query, int offset) {
+
+		while (offset < query.length()) {
+
+			char current = query.charAt(offset);
+
+			if (!Character.isLetterOrDigit(current) && current != '_' && current != '.') {
+				break;
+			}
+
+			offset++;
+		}
+
+		return offset;
 	}
 
 	private static String toJpaDirection(Order order) {
