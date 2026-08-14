@@ -500,40 +500,22 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitJdbcTimestampLiteral(HqlParser.JdbcTimestampLiteralContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("ts"));
-		builder.appendInline(visit(ctx.dateTime() != null ? ctx.dateTime() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
-
-		return builder;
+		ParserRuleContext literal = ctx.dateTime() != null ? ctx.dateTime() : ctx.genericTemporalLiteralText();
+		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcDateLiteral(HqlParser.JdbcDateLiteralContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("d"));
-		builder.append(visit(ctx.date() != null ? ctx.date() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
-
-		return builder;
+		ParserRuleContext literal = ctx.date() != null ? ctx.date() : ctx.genericTemporalLiteralText();
+		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcTimeLiteral(HqlParser.JdbcTimeLiteralContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("t"));
-		builder.append(visit(ctx.time() != null ? ctx.time() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
-
-		return builder;
+		ParserRuleContext literal = ctx.time() != null ? ctx.time() : ctx.genericTemporalLiteralText();
+		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
 	@Override
