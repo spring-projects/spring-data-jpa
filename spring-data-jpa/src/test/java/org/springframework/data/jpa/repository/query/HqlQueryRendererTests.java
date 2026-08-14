@@ -38,6 +38,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Oscar Fanchin
  * @author Jewoo Shin
  * @author OhKyu Chan
+ * @author Arai
  * @since 3.1
  */
 class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
@@ -218,6 +219,20 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 		assertQuery("""
 				SELECT some_function().foo
 				FROM Employee e
+				""");
+	}
+
+	@Test // GH-4326
+	void complexFunctionPredicates() {
+
+		assertQuery("""
+				SELECT lower(coalesce(e.name, '')), function('json_value', e.metadata).value
+				FROM Employee e
+				WHERE lower(coalesce(e.name, '')) LIKE lower(concat('%', :search, '%'))
+					AND e.createdAt BETWEEN :from AND :to
+					AND e.state IN :states
+					AND e.total IS DISTINCT FROM :total
+					AND e.tags CONTAINS :tag
 				""");
 	}
 

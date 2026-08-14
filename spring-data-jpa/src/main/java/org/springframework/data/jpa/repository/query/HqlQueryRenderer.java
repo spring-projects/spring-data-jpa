@@ -38,6 +38,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author TaeHyun Kang
  * @author Jewoo Shin
+ * @author Arai
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
@@ -714,6 +715,28 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendInline(visit(ctx.function()));
+
+		if (ctx.indexedPathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.indexedPathAccessFragment()));
+		}
+
+		if (ctx.slicedPathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.slicedPathAccessFragment()));
+		}
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
 	public QueryTokenStream visitPathContinuation(HqlParser.PathContinuationContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
@@ -792,31 +815,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		if (ctx.mapKeyNavigablePath() != null) {
 			return visit(ctx.mapKeyNavigablePath());
-		}
-
-		if (ctx.toOneFkReference() != null) {
-			return visit(ctx.toOneFkReference());
-		}
-
-		if (ctx.function() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.function()));
-
-			if (ctx.indexedPathAccessFragment() != null) {
-				builder.append(visit(ctx.indexedPathAccessFragment()));
-			}
-
-			if (ctx.slicedPathAccessFragment() != null) {
-				builder.append(visit(ctx.slicedPathAccessFragment()));
-			}
-
-			if (ctx.pathContinuation() != null) {
-				builder.append(visit(ctx.pathContinuation()));
-			}
-
-			return builder;
 		}
 
 		if (ctx.indexedPathAccessFragment() != null) {
@@ -2045,7 +2043,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
+	public QueryTokenStream visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
