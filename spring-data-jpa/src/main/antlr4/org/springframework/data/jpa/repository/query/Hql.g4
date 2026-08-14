@@ -581,7 +581,11 @@ primaryExpression
     | entityVersionReference                                        # EntityVersionExpression
     | entityNaturalIdReference                                      # EntityNaturalIdExpression
     | syntacticDomainPath pathContinuation?                         # SyntacticPathExpression
-    | function                                                      # FunctionExpression
+    | function (
+        pathContinuation
+        | slicedPathAccessFragment pathContinuation?
+        | indexedPathAccessFragment pathContinuation?
+      )?                                                            # FunctionExpression
     | generalPathFragment                                           # GeneralPathExpression
     ;
 
@@ -680,10 +684,6 @@ syntacticDomainPath
     | mapKeyNavigablePath
     | simplePath indexedPathAccessFragment
     | simplePath slicedPathAccessFragment
-    | toOneFkReference
-    | function pathContinuation
-    | function indexedPathAccessFragment pathContinuation?
-    | function slicedPathAccessFragment
     ;
 
 /**
@@ -759,6 +759,7 @@ function
     | columnFunction                             # ColumnFunctionInvocation
     | jsonFunction                               # JsonFunctionInvocation
     | xmlFunction                                # XmlFunctionInvocation
+    | toOneFkReference                           # ToOneFkReferenceInvocation
     | genericFunction                            # GenericFunctionInvocation
     ;
 
@@ -1428,20 +1429,22 @@ xmltableDefaultClause
 // Predicates
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
-    : '(' predicate ')'                     # GroupedPredicate
-    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE) # IsBooleanPredicate
-    | expression IS NOT? DISTINCT FROM expression # IsDistinctFromPredicate
-    | expression NOT? MEMBER OF? path       # MemberOfPredicate
-    | inExpression                          # InPredicate
-    | betweenExpression                     # BetweenPredicate
-    | expression NOT? (CONTAINS|INCLUDES|INTERSECTS) expression   # ContainsPredicate
-    | relationalExpression                  # RelationalPredicate
-    | stringPatternMatching                 # LikePredicate
-    | existsExpression                      # ExistsPredicate
-    | NOT predicate                         # NotPredicate
-    | predicate AND predicate               # AndPredicate
-    | predicate OR predicate                # OrPredicate
-    | expression                            # ExpressionPredicate
+    : '(' predicate ')'                                             # GroupedPredicate
+    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE)                    # IsBooleanPredicate
+    | expression NOT? MEMBER OF? path                               # MemberOfPredicate
+    | expression NOT? IN inList                                     # InPredicate
+    | expression NOT? BETWEEN expression AND expression             # BetweenPredicate
+    | expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
+    | expression (
+        NOT? (CONTAINS|INCLUDES|INTERSECTS)
+        | IS NOT? DISTINCT FROM
+        | op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=')
+      ) expression                                                  # BinaryExpressionPredicate
+    | EXISTS ((ELEMENTS | INDICES) '(' simplePath ')' | expression) # ExistsPredicate
+    | NOT predicate                                                 # NotPredicate
+    | predicate AND predicate                                       # AndPredicate
+    | predicate OR predicate                                        # OrPredicate
+    | expression                                                    # ExpressionPredicate
     ;
 
 expressionOrPredicate
@@ -1474,41 +1477,15 @@ indicesKeysQuantifier
     | KEYS
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-relational-comparisons
-// NOTE: The TIP shows that "!=" is also supported. Hibernate's source code shows that "^=" is another NOT_EQUALS option as well.
-relationalExpression
-    : expression op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=' ) expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-between-predicate
-betweenExpression
-    : expression NOT? BETWEEN expression AND expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
-stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL |parameter))?
-    ;
-
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
 // TBD
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-in-predicate
-inExpression
-    : expression NOT? IN inList
-    ;
-
 inList
     : (ELEMENTS | INDICES) '(' simplePath ')'
     | '(' subquery ')'
     | parameter
     | '(' (expressionOrPredicate (',' expressionOrPredicate)*)? ')'
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exists-predicate
-existsExpression
-    : EXISTS (ELEMENTS | INDICES) '(' simplePath ')'
-    | EXISTS expression
     ;
 
 // Projection
