@@ -356,7 +356,7 @@
 							</includes>
 							<excludes>
 								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/EclipseLink*</exclude>
+								<exclude>**/Eclipse*ink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
 								<exclude>**/Oracle*</exclude>
@@ -375,7 +375,7 @@
 						<phase>test</phase>
 						<configuration>
 							<includes>
-								<include>**/EclipseLink*Tests.java</include>
+								<include>**/Eclipse*ink*Tests.java</include>
 							</includes>
 							<argLine>
 								-Xmx4G

@@ -4,15 +4,6 @@
 				 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm/orm_3_2.xsd"
 				 version="3.2">
 
-	<persistence-unit-metadata>
-		<persistence-unit-defaults>
-			<entity-listeners>
-				<entity-listener
-					class="org.springframework.data.jpa.domain.support.AuditingEntityListener" />
-			</entity-listeners>
-		</persistence-unit-defaults>
-	</persistence-unit-metadata>
-
 	<named-query name="User.findByLastname">
 		<query>SELECT u FROM User u WHERE u.lastname = ?1</query>
 	</named-query>
