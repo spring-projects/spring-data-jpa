@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assumptions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
+import jakarta.persistence.AttributeNode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
@@ -38,6 +39,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.EntityGraph.EntityGraphType;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -148,6 +150,58 @@ class AbstractJpaQueryTests {
 		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
 	}
 
+	@Test // GH-4175
+	@Transactional
+	void shouldAddNamedEntityGraphHintParameter() throws Exception {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		JpaQueryMethod queryMethod = getMethod("findByFirstname", String.class, EntityGraphHint.class);
+		jakarta.persistence.EntityGraph<?> entityGraph = em.getEntityGraph("User.overview");
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(),
+				new Object[] { "Dave", EntityGraphHint.fetch("User.overview") }));
+
+		verify(result).setHint("jakarta.persistence.fetchgraph", entityGraph);
+	}
+
+	@Test // GH-4175
+	@Transactional
+	void shouldAddTypedPropertyPathEntityGraphHintParameter() throws Exception {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		JpaQueryMethod queryMethod = getMethod("findWithEntityGraphHint", EntityGraphHint.class);
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+
+		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(),
+				new Object[] { EntityGraphHint.fetch(User::getRoles) }));
+
+		ArgumentCaptor<jakarta.persistence.EntityGraph> captor = ArgumentCaptor
+				.forClass(jakarta.persistence.EntityGraph.class);
+
+		verify(result).setHint(eq("jakarta.persistence.fetchgraph"), captor.capture());
+		assertThat(captor.getValue().getAttributeNodes()).extracting(it -> ((AttributeNode<?>) it).getAttributeName())
+				.containsExactly("roles");
+	}
+
+	@Test // GH-4175
+	@Transactional
+	void shouldAddJpaEntityGraphHintParameter() throws Exception {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		JpaQueryMethod queryMethod = getMethod("findWithEntityGraphHint", EntityGraphHint.class);
+		jakarta.persistence.EntityGraph<User> entityGraph = em.createEntityGraph(User.class);
+
+		AbstractJpaQuery jpaQuery = new DummyJpaQuery(queryMethod, em);
+		Query result = jpaQuery.createQuery(new JpaParametersParameterAccessor(queryMethod.getParameters(),
+				new Object[] { EntityGraphHint.load(entityGraph) }));
+
+		verify(result).setHint("jakarta.persistence.loadgraph", entityGraph);
+	}
+
 	@Test // GH-3137
 	void shouldCreateHibernateJpaParameterParametersAccessorForNativeQuery() throws Exception {
 
@@ -201,9 +255,13 @@ class AbstractJpaQueryTests {
 		@QueryHints(value = { @QueryHint(name = "bar", value = "foo") }, forCounting = false)
 		List<User> findByFirstname(String firstname);
 
+		List<User> findByFirstname(String firstname, EntityGraphHint<User> entityGraph);
+
 		@Lock(LockModeType.PESSIMISTIC_WRITE)
 		@org.springframework.data.jpa.repository.Query("select u from User u where u.id = ?1")
 		List<User> findOneLocked(Integer primaryKey);
+
+		List<User> findWithEntityGraphHint(EntityGraphHint<User> entityGraph);
 
 		// DATAJPA-466
 		@EntityGraph(value = "User.detail", type = EntityGraphType.LOAD)

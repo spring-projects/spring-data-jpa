@@ -26,11 +26,13 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.data.core.TypeInformation;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.Temporal;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.ParametersSource;
+import org.springframework.util.Assert;
 
 /**
  * Custom extension of {@link Parameters} discovering additional query parameter annotations.
@@ -41,6 +43,8 @@ import org.springframework.data.repository.query.ParametersSource;
  */
 public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
+	private final int entityGraphHintIndex;
+
 	/**
 	 * Creates a new {@link JpaParameters} instance from the given {@link ParametersSource}.
 	 *
@@ -50,6 +54,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	public JpaParameters(ParametersSource parametersSource) {
 		super(parametersSource,
 				methodParameter -> new JpaParameter(methodParameter, parametersSource.getDomainTypeInformation()));
+		this.entityGraphHintIndex = findEntityGraphHintIndex();
 	}
 
 	/**
@@ -62,10 +67,12 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	protected JpaParameters(ParametersSource parametersSource,
 			Function<MethodParameter, JpaParameter> parameterFactory) {
 		super(parametersSource, parameterFactory);
+		this.entityGraphHintIndex = findEntityGraphHintIndex();
 	}
 
 	JpaParameters(List<JpaParameter> parameters) {
 		super(parameters);
+		this.entityGraphHintIndex = findEntityGraphHintIndex();
 	}
 
 	@Override
@@ -80,6 +87,42 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		return hasLimitParameter() || hasPageableParameter();
 	}
 
+	@Override
+	public boolean hasSpecialParameter() {
+		return super.hasSpecialParameter() || hasEntityGraphHintParameter();
+	}
+
+	/**
+	 * @return {@code true} if the method signature declares an {@link EntityGraphHint} parameter.
+	 */
+	public boolean hasEntityGraphHintParameter() {
+		return entityGraphHintIndex != -1;
+	}
+
+	/**
+	 * @return the index of the {@link EntityGraphHint} parameter or {@code -1} if none exists.
+	 */
+	public int getEntityGraphHintIndex() {
+		return entityGraphHintIndex;
+	}
+
+	private int findEntityGraphHintIndex() {
+
+		int result = -1;
+
+		for (JpaParameter parameter : this) {
+
+			if (!parameter.isEntityGraphHintParameter()) {
+				continue;
+			}
+
+			Assert.isTrue(result == -1, "Only one EntityGraphHint parameter is allowed");
+			result = parameter.getIndex();
+		}
+
+		return result;
+	}
+
 	/**
 	 * Custom {@link Parameter} implementation adding parameters of type {@link Temporal} to the special ones.
 	 *
@@ -89,6 +132,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 	public static class JpaParameter extends Parameter {
 
 		private final @Nullable Temporal annotation;
+		private final boolean entityGraphHintParameter;
 
 		@SuppressWarnings("deprecation")
 		private @Nullable TemporalType temporalType;
@@ -102,6 +146,7 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 
 			super(parameter, domainType);
 			this.annotation = parameter.getParameterAnnotation(Temporal.class);
+			this.entityGraphHintParameter = EntityGraphHint.class.isAssignableFrom(parameter.getParameterType());
 			this.temporalType = null;
 			if (!isDateParameter() && hasTemporalParamAnnotation()) {
 				throw new IllegalArgumentException(
@@ -110,8 +155,17 @@ public class JpaParameters extends Parameters<JpaParameters, JpaParameter> {
 		}
 
 		@Override
+		public boolean isSpecialParameter() {
+			return super.isSpecialParameter() || isEntityGraphHintParameter();
+		}
+
+		@Override
 		public boolean isBindable() {
 			return super.isBindable() || isTemporalParameter();
+		}
+
+		boolean isEntityGraphHintParameter() {
+			return entityGraphHintParameter;
 		}
 
 		/**
