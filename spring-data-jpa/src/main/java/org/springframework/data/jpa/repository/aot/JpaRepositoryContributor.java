@@ -29,6 +29,7 @@ import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
@@ -73,6 +74,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author YeongJae Min
  * @since 4.0
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
@@ -126,15 +128,17 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		});
 
 		constructorBuilder.addParameter("context", RepositoryFactoryBeanSupport.FragmentCreationContext.class);
+		constructorBuilder.addParameter("beanFactory", BeanFactory.class,
+				customizer -> customizer.origin(context -> context.getBeanFactory()));
 
 		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelector = getQueryEnhancerSelectorClass();
 
 		constructorBuilder.customize(builder -> {
 
 			if (queryEnhancerSelector.isPresent()) {
-				builder.addStatement("super(new T$(), context)", queryEnhancerSelector.get());
+				builder.addStatement("super(new T$(), context, beanFactory)", queryEnhancerSelector.get());
 			} else {
-				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
+				builder.addStatement("super($T.DEFAULT_SELECTOR, context, beanFactory)", QueryEnhancerSelector.class);
 			}
 		});
 	}

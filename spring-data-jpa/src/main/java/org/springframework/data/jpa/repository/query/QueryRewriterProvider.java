@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.repository.query;
 
+import java.util.function.Supplier;
+
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.repository.QueryRewriter;
 
@@ -24,6 +26,7 @@ import org.springframework.data.jpa.repository.QueryRewriter;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author YeongJae Min
  * @since 3.0
  * @see QueryRewriter
  */
@@ -37,16 +40,42 @@ public interface QueryRewriterProvider {
 	 */
 	static QueryRewriterProvider simple() {
 
-		return method -> {
+		return new QueryRewriterProvider() {
 
-			Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
-
-			if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
-				return QueryRewriter.IdentityQueryRewriter.INSTANCE;
+			@Override
+			public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
+				return getQueryRewriter(method.getQueryRewriter());
 			}
-
-			return BeanUtils.instantiateClass(queryRewriter);
 		};
+	}
+
+	/**
+	 * Obtain an instance of {@link QueryRewriter} for the given type.
+	 *
+	 * @param queryRewriter the {@link QueryRewriter} type.
+	 * @return a Java bean that implements {@link QueryRewriter}.
+	 * @since 4.1
+	 */
+	default QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter) {
+		return getQueryRewriter(queryRewriter, () -> BeanUtils.instantiateClass(queryRewriter));
+	}
+
+	/**
+	 * Obtain an instance of {@link QueryRewriter} for the given type.
+	 *
+	 * @param queryRewriter the {@link QueryRewriter} type.
+	 * @param fallback fallback to obtain an instance if no contextual instance is available.
+	 * @return a Java bean that implements {@link QueryRewriter}.
+	 * @since 4.1
+	 */
+	default QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter,
+			Supplier<QueryRewriter> fallback) {
+
+		if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
+			return QueryRewriter.IdentityQueryRewriter.INSTANCE;
+		}
+
+		return fallback.get();
 	}
 
 	/**
