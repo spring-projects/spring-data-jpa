@@ -64,6 +64,15 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 	private static final Logger log = LoggerFactory.getLogger(PartTreeJpaQuery.class);
 	private final JpqlQueryTemplates templates = JpqlQueryTemplates.UPPER;
 
+	/**
+	 * Property controlling whether an explicit join is rendered when a derived query predicate navigates an
+	 * owning-side to-one association to reach a plain leaf property. When set to {@literal true} the implicit dotted
+	 * path is rendered instead, which lets the persistence provider collapse the predicate onto the foreign-key column
+	 * (behaviour before Spring Data JPA 4.0). Configured through {@code EntityManagerFactory} properties, e.g.
+	 * {@code spring.data.jpa.derived-query.prefer-fk-column=true}. Defaults to {@literal false} (explicit joins).
+	 */
+	static final String JOIN_ON_TO_ONE_ASSOCIATION_PROPERTY = "spring.data.jpa.derived-query.prefer-fk-column";
+
 	private final PartTree tree;
 	private final JpaParameters parameters;
 
@@ -99,6 +108,8 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		this.escape = escape;
 		this.parameters = method.getParameters();
 		this.persistenceProvider = PersistenceProvider.fromEntityManager(em);
+
+		updateJoinOnToOneAssociation(em);
 
 		Class<?> domainClass = method.getEntityInformation().getJavaType();
 		this.entityInformation = Lazy.of(() -> JpaEntityInformationSupport.getEntityInformation(domainClass, em));
@@ -143,6 +154,21 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 		}
 
 		return super.getExecution(accessor);
+	}
+
+	/**
+	 * Applies the {@value #JOIN_ON_TO_ONE_ASSOCIATION_PROPERTY} {@code EntityManagerFactory} property to the global
+	 * expression-factory configuration. The setting is intentionally global as it affects the whole persistence unit.
+	 *
+	 * @param em must not be {@literal null}.
+	 */
+	private static void updateJoinOnToOneAssociation(EntityManager em) {
+
+		Object value = em.getEntityManagerFactory().getProperties().get(JOIN_ON_TO_ONE_ASSOCIATION_PROPERTY);
+
+		if (value instanceof String stringValue) {
+			ExpressionFactorySupport.setJoinOnToOneAssociation(!Boolean.parseBoolean(stringValue.trim()));
+		}
 	}
 
 	private static void validate(PartTree tree, JpaParameters parameters) {

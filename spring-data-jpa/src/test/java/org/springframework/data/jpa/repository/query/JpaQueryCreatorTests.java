@@ -698,6 +698,56 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
+	@Test // GH-4332
+	void createsExplicitJoinForToOneLeafByDefault() {
+
+		queryCreator(ORDER_WITH_RELATIONS) //
+				.forTree(OrderWithRelations.class, "findByCustomerNameIs") //
+				.withParameters("spring") //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT o FROM %s o LEFT JOIN o.customer c WHERE c.name = ?1",
+						DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class)) //
+				.validateQuery();
+	}
+
+	@Test // GH-4332
+	void rendersImplicitPathForToOneLeafWhenConfigured() {
+
+		boolean previous = ExpressionFactorySupport.isJoinOnToOneAssociation();
+		try {
+			ExpressionFactorySupport.setJoinOnToOneAssociation(false);
+
+			queryCreator(ORDER_WITH_RELATIONS) //
+					.forTree(OrderWithRelations.class, "findByCustomerNameIs") //
+					.withParameters("spring") //
+					.as(QueryCreatorTester::create) //
+					.expectJpql("SELECT o FROM %s o WHERE o.customer.name = ?1",
+							DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class)) //
+					.validateQuery();
+		} finally {
+			ExpressionFactorySupport.setJoinOnToOneAssociation(previous);
+		}
+	}
+
+	@Test // GH-4332
+	void keepsImplicitPathForToOneId() {
+
+		boolean previous = ExpressionFactorySupport.isJoinOnToOneAssociation();
+		try {
+			ExpressionFactorySupport.setJoinOnToOneAssociation(false);
+
+			queryCreator(ORDER_WITH_RELATIONS) //
+					.forTree(OrderWithRelations.class, "findByCustomerId") //
+					.withParameters(1L) //
+					.as(QueryCreatorTester::create) //
+					.expectJpql("SELECT o FROM %s o WHERE o.customer.id = ?1",
+							DefaultJpaEntityMetadata.unqualify(OrderWithRelations.class)) //
+					.validateQuery();
+		} finally {
+			ExpressionFactorySupport.setJoinOnToOneAssociation(previous);
+		}
+	}
+
 	@Test // GH-3588
 	void dtoProjection() {
 

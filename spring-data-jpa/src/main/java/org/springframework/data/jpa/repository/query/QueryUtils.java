@@ -856,6 +856,22 @@ public abstract class QueryUtils {
 				return trailingPath;
 			}
 
+			// GH-4332: when configured, avoid rendering an explicit join for an owning-side to-one association that is
+			// only traversed to reach a plain leaf property (e.g. find…ByAbonentCode maps to Contract.abonent.code).
+			// Traversing the path implicitly lets the persistence provider collapse the predicate onto the
+			// foreign-key column, which is the behaviour before 4.0. Nested to-one paths that already require a parent
+			// join (e.g. HHH-12712 / HHH-12999) are left untouched.
+			if (!isJoinOnToOneAssociation() && !isForSelection && !hasRequiredOuterJoin && !isLeafProperty
+					&& !isRelationshipId && isToOneAssociation(resolver, property)) {
+				Path<T> trailingPath = from.get(segment);
+				PropertyPath current = property;
+				while (current.hasNext()) {
+					current = current.next();
+					trailingPath = trailingPath.get(current.getSegment());
+				}
+				return trailingPath;
+			}
+
 			// get or create the join
 			JoinType joinType = requiresOuterJoin ? JoinType.LEFT : JoinType.INNER;
 			Join<?, ?> join = getOrCreateJoin(from, segment, joinType);
