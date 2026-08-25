@@ -73,6 +73,7 @@ import com.querydsl.core.types.Predicate;
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
+ * @author itaekyung
  */
 public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
 		UserRepositoryCustom, ListQuerydslPredicateExecutor<User> {
@@ -786,25 +787,25 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<UserExcerpt> findMultiselectRecordProjection();
 
 	/**
-	 * Retrieves a user age by email.
+	 * Retrieves a user's age by email.
 	 */
 	@Query("select u.age from User u where u.emailAddress = ?1")
 	Optional<Integer> findAgeByAnnotatedQuery(String emailAddress);
 
 	/**
-	 * Retrieves a user address by email.
+	 * Retrieves a user's address by email.
 	 */
 	@Query("select u.address from User u where u.emailAddress = ?1")
 	Optional<Address> findAddressByAnnotatedQuery(String emailAddress);
 
 	/**
-	 * Retrieves a user roles by email.
+	 * Retrieves a user's roles by email.
 	 */
 	@Query("select u.roles from User u where u.emailAddress = ?1")
 	Set<Role> findRolesByAnnotatedQuery(String emailAddress);
 
 	/**
-	 * Retrieves a user address city by email.
+	 * Retrieves a user's address city by email.
 	 */
 	@Query("select u.address.city from User u where u.emailAddress = ?1")
 	String findCityByAnnotatedQuery(String emailAddress);
