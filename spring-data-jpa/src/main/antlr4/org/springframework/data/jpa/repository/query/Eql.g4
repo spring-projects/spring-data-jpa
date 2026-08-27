@@ -318,6 +318,7 @@ scalar_expression
     | boolean_expression
     | case_expression
     | entity_type_expression
+    | entity_id_or_version_function
     ;
 
 conditional_expression
@@ -415,6 +416,7 @@ comparison_expression
     | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)     #DatetimeComparison
     | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)      #EntityComparison
     | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression) #ArithmeticComparison
+    | entity_id_or_version_function op=(EQUAL | NOT_EQUAL) input_parameter                      #EntityIdOrVersionComparison
     | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression                      #EntityTypeComparison
     | string_expression REGEXP string_literal                                                   #RegexpComparison
     ;
@@ -575,6 +577,19 @@ string_cast_function
     : CAST '(' scalar_expression (AS)? STRING ')'
     ;
 
+entity_id_or_version_function
+    : id_function
+    | version_function
+    ;
+
+id_function
+    : ID '(' (general_identification_variable | single_valued_object_path_expression) ')'
+    ;
+
+version_function
+    : VERSION '(' (general_identification_variable | single_valued_object_path_expression) ')'
+    ;
+
 function_invocation
     : (FUNCTION|identification_variable) '(' function_name (',' function_arg)* ')'
     ;
@@ -670,7 +685,9 @@ identification_variable
     | SIGN
     | TIME
     | TYPE
-    | VALUE)
+    | VALUE
+    | ID
+    | VERSION)
     | type_literal
     ;
 
@@ -846,6 +863,7 @@ reserved_word
        |FETCH
        |FLOOR
        |FUNCTION
+       |ID
        |IN
        |INDEX
        |INNER
@@ -893,7 +911,8 @@ reserved_word
        |TYPE
        |UPDATE
        |UPPER
-       |VALUE)
+       |VALUE
+       |VERSION)
        ;
 /*
     Lexer rules
@@ -977,6 +996,7 @@ FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
 GROUP                       : G R O U P;
 HAVING                      : H A V I N G;
+ID                          : I D;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
@@ -1035,6 +1055,7 @@ UNION                       : U N I O N;
 UPDATE                      : U P D A T E;
 UPPER                       : U P P E R;
 VALUE                       : V A L U E;
+VERSION                     : V E R S I O N;
 WHEN                        : W H E N;
 WHERE                       : W H E R E;
 
