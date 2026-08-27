@@ -24,6 +24,7 @@ grammar Eql;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Jewoo Shin
+ * @author Wantaek Choi
  * @since 3.2
  */
 }
@@ -804,6 +805,7 @@ reserved_word
        |BOTH
        |BY
        |CASE
+       |CAST
        |CEILING
        |COALESCE
        |CONCAT
