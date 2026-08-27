@@ -37,6 +37,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author TaeHyun Kang
  * @author Jewoo Shin
+ * @author Wantaek Choi
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -724,6 +725,32 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		}
 
 		return QueryTokenStream.ofFunction(ctx.TYPE(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitId_function(JpqlParser.Id_functionContext ctx) {
+		return QueryTokenStream.ofFunction(ctx.ID(), renderIdOrVersionArgument(ctx.general_identification_variable(),
+				ctx.single_valued_object_path_expression()));
+	}
+
+	@Override
+	public QueryTokenStream visitVersion_function(JpqlParser.Version_functionContext ctx) {
+		return QueryTokenStream.ofFunction(ctx.VERSION(), renderIdOrVersionArgument(ctx.general_identification_variable(),
+				ctx.single_valued_object_path_expression()));
+	}
+
+	private QueryTokenStream renderIdOrVersionArgument(JpqlParser.General_identification_variableContext variable,
+			JpqlParser.Single_valued_object_path_expressionContext path) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		if (variable != null) {
+			builder.append(visit(variable));
+		} else if (path != null) {
+			builder.append(visit(path));
+		}
+
+		return builder;
 	}
 
 	@Override
