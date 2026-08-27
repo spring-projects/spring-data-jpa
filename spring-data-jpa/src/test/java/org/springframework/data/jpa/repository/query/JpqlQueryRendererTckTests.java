@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Mark Paluch
  * @author Jewoo Shin
+ * @author Wantaek Choi
  */
 abstract class JpqlQueryRendererTckTests {
 
@@ -1479,6 +1480,12 @@ abstract class JpqlQueryRendererTckTests {
 
 		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
 		assertQuery(source);
+	}
+
+	@Test
+	void castShouldBeAValidStateField() {
+
+		assertQuery("select m.cast from Movie m where m.cast is not null");
 	}
 
 	@Test // GH-3496
