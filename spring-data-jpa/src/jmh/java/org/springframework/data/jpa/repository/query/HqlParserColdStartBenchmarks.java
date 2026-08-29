@@ -29,6 +29,7 @@ import org.openjdk.jmh.annotations.Warmup;
 
 /**
  * @author Arai
+ * @author Greg Taube
  */
 @Testable
 @Fork(10)
@@ -65,7 +66,17 @@ public class HqlParserColdStartBenchmarks {
 			""";
 
 	@Benchmark
-	public Object parse() {
+	public Object parseHql() {
 		return JpaQueryEnhancer.forHql(QUERY);
+	}
+
+	@Benchmark
+	public Object parseEql() {
+		return JpaQueryEnhancer.forEql(QUERY);
+	}
+
+	@Benchmark
+	public Object parseJpql() {
+		return JpaQueryEnhancer.forJpql(QUERY);
 	}
 }

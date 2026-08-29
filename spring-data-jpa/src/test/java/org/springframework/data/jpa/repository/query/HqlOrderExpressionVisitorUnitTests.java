@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Greg Taube
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -264,6 +265,12 @@ class HqlOrderExpressionVisitorUnitTests {
 
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(
 				() -> renderOrderBy(JpaSort.unsafe("case when firstname in (:parameter) then 1 else 0 end"), "var_1"));
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> renderOrderBy(
+				JpaSort.unsafe("case when firstname is distinct from lastname then 1 else 0 end"), "var_1"));
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> renderOrderBy(
+				JpaSort.unsafe("case when firstname contains lastname then 1 else 0 end"), "var_1"));
 	}
 
 	@Test // GH-3172

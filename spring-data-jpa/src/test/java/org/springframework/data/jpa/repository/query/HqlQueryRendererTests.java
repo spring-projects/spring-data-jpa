@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Oscar Fanchin
  * @author Jewoo Shin
  * @author Arai
+ * @author Greg Taube
  * @since 3.1
  */
 class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
@@ -232,6 +233,15 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 					AND e.total IS DISTINCT FROM :total
 					AND e.tags CONTAINS :tag
 				""");
+	}
+
+	@ParameterizedTest // GH-4326
+	@ValueSource(strings = { "=", ">", ">=", "<", "<=", "<>", "!=", "^=", "IS DISTINCT FROM",
+			"IS NOT DISTINCT FROM", "CONTAINS", "NOT CONTAINS", "INCLUDES", "NOT INCLUDES", "INTERSECTS",
+			"NOT INTERSECTS" })
+	void binaryPredicates(String operator) {
+
+		assertQuery("SELECT e FROM Employee e WHERE e.first %s e.second".formatted(operator));
 	}
 
 	@ParameterizedTest // GH-3689

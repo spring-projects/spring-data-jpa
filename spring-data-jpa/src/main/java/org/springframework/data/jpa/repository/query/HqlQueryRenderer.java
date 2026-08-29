@@ -2043,7 +2043,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
+	public QueryTokenStream visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 

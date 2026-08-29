@@ -165,7 +165,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
+	public Expression<?> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
 
 		Expression<Comparable> condition = visitRequired(ctx.expression(0));
 		Expression<Comparable> lower = visitRequired(ctx.expression(1));
@@ -220,7 +220,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
+	public Expression<?> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
 
 		Expression<String> condition = visitRequired(ctx.expression(0));
 		Expression<String> match = visitRequired(ctx.expression(1));
@@ -295,7 +295,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitInPredicate(HqlParser.InPredicateContext ctx) {
+	public Expression<?> visitInExpression(HqlParser.InExpressionContext ctx) {
 
 		if (ctx.inList().simplePath() != null) {
 			throw new UnsupportedOperationException(
