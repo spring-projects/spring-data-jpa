@@ -59,6 +59,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Greg Taube
  * @since 4.0
  */
 class QueriesFactory {
@@ -171,6 +172,10 @@ class QueriesFactory {
 			aotStringQuery = aotStringQuery.rewrite(rewritten);
 		}
 
+		if (!queryMethod.isPageQuery()) {
+			return new AotQueries(aotStringQuery);
+		}
+
 		if (StringUtils.hasText(countQuery)) {
 			return AotQueries.from(aotStringQuery, StringAotQuery.of(queryFunction.apply(countQuery)));
 		}
@@ -194,6 +199,10 @@ class QueriesFactory {
 		boolean nativeQuery = query.isPresent() && query.getBoolean("nativeQuery");
 		AotQuery aotQuery = createNamedAotQuery(returnedType, selector, queryName, queryMethod, nativeQuery);
 		String countQuery = query.isPresent() ? query.getString("countQuery") : null;
+
+		if (!queryMethod.isPageQuery()) {
+			return new AotQueries(aotQuery);
+		}
 
 		if (StringUtils.hasText(countQuery)) {
 			return AotQueries.from(aotQuery,
@@ -271,6 +280,10 @@ class QueriesFactory {
 		PartTree partTree = new PartTree(queryMethod.getName(), repositoryInformation.getDomainType());
 		AotQuery aotQuery = createQuery(partTree, returnedType, queryMethod.getParameters(), templates,
 				queryMethod.getEntityInformation());
+
+		if (!queryMethod.isPageQuery()) {
+			return new AotQueries(aotQuery);
+		}
 
 		if (query.isPresent() && StringUtils.hasText(query.getString("countQuery"))) {
 			return AotQueries.from(aotQuery, StringAotQuery.of(DeclaredQuery.jpqlQuery(query.getString("countQuery"))));

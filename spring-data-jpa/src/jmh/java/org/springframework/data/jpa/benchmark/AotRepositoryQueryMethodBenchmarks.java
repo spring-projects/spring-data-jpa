@@ -69,6 +69,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Greg Taube
  */
 @Testable
 @Fork(1)
@@ -92,7 +93,7 @@ public class AotRepositoryQueryMethodBenchmarks {
 					new StandardEnvironment(), Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE);
 
 			repositoryContext = new TestJpaAotRepositoryContext<>(new DefaultListableBeanFactory(), PersonRepository.class,
-					null, configurationSource);
+					RepositoryComposition.empty(), configurationSource);
 		}
 
 		EntityManager entityManager;
@@ -131,14 +132,13 @@ public class AotRepositoryQueryMethodBenchmarks {
 
 				new JpaRepositoryContributor(repositoryContext, entityManager.getEntityManagerFactory())
 						.contribute(generationContext);
+				generationContext.writeGeneratedContent();
 
 				TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
 
-					try {
-						this.aot = compiled.getClassLoader().loadClass(PersonRepository.class.getName() + "Impl__Aot");
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
+					this.aot = compiled.getAllCompiledClasses().stream()
+						.filter(it -> it.getName().contains(PersonRepository.class.getSimpleName()))
+						.findFirst().orElseThrow();
 				});
 			}
 
@@ -214,6 +214,17 @@ public class AotRepositoryQueryMethodBenchmarks {
 	protected PersonRepository doCreateRepository(EntityManager entityManager) {
 		JpaRepositoryFactory repositoryFactory = new JpaRepositoryFactory(entityManager);
 		return repositoryFactory.getRepository(PersonRepository.class);
+	}
+
+	@Benchmark
+	public TestGenerationContext aotRepositoryContribution(BenchmarkParameters parameters) {
+
+		TestGenerationContext generationContext = new TestGenerationContext(PersonRepository.class);
+
+		new JpaRepositoryContributor(BenchmarkParameters.repositoryContext,
+				parameters.entityManager.getEntityManagerFactory()).contribute(generationContext);
+
+		return generationContext;
 	}
 
 	@Benchmark
