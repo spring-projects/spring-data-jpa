@@ -210,6 +210,23 @@ class JpqlQueryTransformerTests {
 				"select count(distinct name, lastname) from User where foo = ?1");
 	}
 
+	@Test // GH-4341
+	void createsCountQueryForConstructorQueriesWithFunctionArguments() {
+
+		assertCountQuery("select distinct new com.example.Dto(coalesce(name, lastname)) from User where foo = ?1",
+				"select count(distinct coalesce(name, lastname)) from User where foo = ?1");
+
+		assertCountQuery("select distinct new com.example.Dto(cast(age as string)) from User",
+				"select count(distinct cast(age as string)) from User");
+	}
+
+	@Test // GH-4341
+	void createsCountQueryForDistinctExpressionSelection() {
+
+		assertCountQuery("select distinct case when u.age > 18 then 'adult' else 'minor' end from User u",
+				"select count(distinct case when u.age > 18 then 'adult' else 'minor' end) from User u");
+	}
+
 	@Test
 	void createsCountQueryForJoins() {
 
