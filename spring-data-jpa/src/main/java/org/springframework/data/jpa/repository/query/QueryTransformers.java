@@ -44,6 +44,7 @@ class QueryTransformers {
 			List<QueryToken> target = new ArrayList<>(selection.size());
 			boolean skipNext = false;
 			boolean containsNew = false;
+			int nestingLevel = 0;
 
 			for (QueryToken token : selection) {
 
@@ -52,13 +53,15 @@ class QueryTransformers {
 					continue;
 				}
 
-				if (token.equals(TOKEN_AS)) {
-					skipNext = true;
-					continue;
+				if (token.equals(TOKEN_OPEN_PAREN)) {
+					nestingLevel++;
+				} else if (token.equals(TOKEN_CLOSE_PAREN)) {
+					nestingLevel--;
 				}
 
-				if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
-					token = QueryTokens.token(token.value());
+				if (nestingLevel == 0 && token.equals(TOKEN_AS)) {
+					skipNext = true;
+					continue;
 				}
 
 				if (!containsNew && token.equals(TOKEN_NEW)) {
@@ -68,7 +71,34 @@ class QueryTransformers {
 				target.add(token);
 			}
 
+			normalizeSpacing(target);
+
 			return new CountSelectionTokenStream(target, containsNew);
+		}
+
+		/**
+		 * Flattening a composed {@link QueryTokenStream} into a plain token list loses the spacing information that is
+		 * otherwise contributed by the renderer composition. Reconstruct whitespace by rewriting each token into an
+		 * expression (rendered with a trailing space) unless it is followed by a token that must not be preceded by a
+		 * space (comma, closing or opening parenthesis).
+		 *
+		 * @param tokens the token list to normalize.
+		 */
+		private static void normalizeSpacing(List<QueryToken> tokens) {
+
+			for (int i = 0; i < tokens.size(); i++) {
+
+				QueryToken token = tokens.get(i);
+				QueryToken next = i + 1 < tokens.size() ? tokens.get(i + 1) : null;
+
+				boolean spaceAfter = next != null && !token.equals(TOKEN_OPEN_PAREN) && !token.equals(TOKEN_COMMA)
+						&& !token.equals(TOKEN_DOT) && !next.equals(TOKEN_CLOSE_PAREN) && !next.equals(TOKEN_OPEN_PAREN)
+						&& !next.equals(TOKEN_COMMA) && !next.equals(TOKEN_DOT);
+
+				if (spaceAfter != token.isExpression()) {
+					tokens.set(i, spaceAfter ? QueryTokens.expression(token.value()) : QueryTokens.token(token.value()));
+				}
+			}
 		}
 
 		/**
@@ -90,13 +120,16 @@ class QueryTransformers {
 			for (QueryToken token : this) {
 
 				if (token.equals(TOKEN_OPEN_PAREN)) {
-					nestingLevel++;
-					continue;
-				}
 
-				if (token.equals(TOKEN_CLOSE_PAREN)) {
-					nestingLevel--;
-					continue;
+					// skip the constructor parenthesis only, retain nested parentheses (e.g. function calls)
+					if (++nestingLevel == 1) {
+						continue;
+					}
+				} else if (token.equals(TOKEN_CLOSE_PAREN)) {
+
+					if (--nestingLevel == 0) {
+						continue;
+					}
 				}
 
 				if (nestingLevel > 0) {
