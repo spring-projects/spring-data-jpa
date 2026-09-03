@@ -1219,6 +1219,25 @@ class HqlQueryTransformerTests {
 				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
 	}
 
+	@Test // GH-4342
+	void sortShouldBeAppliedOnlyOnceToSetOperationsOfParenthesizedQueries() {
+
+		String source = "(SELECT tb FROM Test tb WHERE tb.type = 'A') UNION (SELECT tb FROM Test tb WHERE tb.type = 'B')";
+		String target = createQueryFor(source, Sort.by("Type").ascending());
+
+		assertThat(target).isEqualTo("(SELECT tb FROM Test tb WHERE tb.type = 'A')" //
+				+ "UNION (SELECT tb FROM Test tb WHERE tb.type = 'B') order by tb.Type asc");
+	}
+
+	@Test // GH-4342
+	void sortShouldNotBeAppliedToParenthesizedQueryArm() {
+
+		String source = "(SELECT tb FROM Test tb WHERE tb.type = 'A')";
+		String target = createQueryFor(source, Sort.by("Type").ascending());
+
+		assertThat(target).isEqualTo("(SELECT tb FROM Test tb WHERE tb.type = 'A') order by tb.Type asc");
+	}
+
 	@ParameterizedTest // GH-3427
 	@ValueSource(strings = { "", "res" })
 	void sortShouldBeAppendedToSubSelectWithSetOperatorInSubselect(String alias) {
