@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
  * @author Donghun Shin
  * @author Greg Turnquist
  * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
@@ -56,60 +57,45 @@ public abstract class HibernateUtils {
 	 */
 	public @Nullable static String getHibernateQuery(Object query) {
 
-		try {
-			if (HIBERNATE_ADAPTER.isSqmQuery(query)) {
-
-				String hql = HIBERNATE_ADAPTER.getQueryString(query);
-
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
-
-				return HIBERNATE_ADAPTER.getSqmStatement(query);
-			}
-
-			if (HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
-
-				String hql = HIBERNATE_ADAPTER.getHqlString(query);
-
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
-
-				return HIBERNATE_ADAPTER.getSqmStatement(query);
-			}
-
-			if (HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
-				return HIBERNATE_ADAPTER.getSqlString(query);
-			}
-
-			// Couple of cases in which this still breaks, see HHH-15389
-		} catch (RuntimeException o_O) {}
-
-		// Try the old way, as it still works in some cases (haven't investigated in which exactly)
-		if (query instanceof Query<?> hibernateQuery) {
-			return hibernateQuery.getQueryString();
-		} else {
-			throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
-		}
-	}
-
-	public static boolean isNativeQuery(Object query) {
-
 		if (HIBERNATE_ADAPTER.isSqmQuery(query)) {
-			return false;
-		}
 
-		if (query instanceof NativeQuery<?>) {
-			return true;
+			String hql = HIBERNATE_ADAPTER.getQueryString(query);
+			return queryStringOrFallack(query, hql);
 		}
 
 		if (HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
 
-			return false;
+			String hql = HIBERNATE_ADAPTER.getHqlString(query);
+			return queryStringOrFallack(query, hql);
 		}
 
 		if (HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
+			return HIBERNATE_ADAPTER.getSqlString(query);
+		}
+
+		if (query instanceof Query<?> hibernateQuery) {
+			return hibernateQuery.getQueryString();
+		}
+
+		throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
+	}
+
+	private static String queryStringOrFallack(Object query, String hql) {
+
+		if (!hql.equals("<criteria>")) {
+			return hql;
+		}
+
+		return HIBERNATE_ADAPTER.getSqmStatement(query);
+	}
+
+	public static boolean isNativeQuery(Object query) {
+
+		if (HIBERNATE_ADAPTER.isSqmQuery(query) || HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
+			return false;
+		}
+
+		if (query instanceof NativeQuery<?> || HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
 			return true;
 		}
 

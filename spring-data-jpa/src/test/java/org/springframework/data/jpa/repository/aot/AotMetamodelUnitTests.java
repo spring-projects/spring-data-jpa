@@ -32,10 +32,10 @@ import jakarta.persistence.Table;
 
 import java.util.Map;
 
+import org.hibernate.dialect.Dialect;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.jpa.repository.aot.AotMetamodel.NoOpConnectionProvider;
-import org.springframework.data.jpa.repository.aot.AotMetamodel.SpringDataJpaAotDialect;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 
 /**
@@ -47,17 +47,20 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
  */
 class AotMetamodelUnitTests {
 
-	@Test // GH-4103
+	@Test // GH-4103, GH-4197
 	void dialectSupportsSequences() {
-		assertThat(AotMetamodel.SpringDataJpaAotDialect.INSTANCE.getSequenceSupport().supportsSequences()).isTrue();
-		assertThat(AotMetamodel.SpringDataJpaAotDialect.INSTANCE.getSequenceSupport().supportsPooledSequences()).isTrue();
+
+		Dialect dialect = AotDialectFactory.INSTANCE;
+
+		assertThat(dialect.getSequenceSupport().supportsSequences()).isTrue();
+		assertThat(dialect.getSequenceSupport().supportsPooledSequences()).isTrue();
 	}
 
-	@Test // GH-4092
+	@Test // GH-4092, , GH-4197
 	void initializesPropertiesWithDefaults() {
 
 		assertThat(initProperties(Map.of())) //
-				.containsEntry("hibernate.dialect", SpringDataJpaAotDialect.INSTANCE) //
+				.containsEntry("hibernate.dialect", AotDialectFactory.INSTANCE) //
 				.containsEntry("hibernate.boot.allow_jdbc_metadata_access", false) //
 				.containsEntry("hibernate.connection.provider_class", NoOpConnectionProvider.INSTANCE) //
 				.containsEntry("hibernate.jpa_callbacks.enabled", false) //

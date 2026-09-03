@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -60,6 +59,7 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.javapoet.AnnotationSpec;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
 import org.springframework.util.ClassUtils;
@@ -76,6 +76,12 @@ import org.springframework.util.StringUtils;
  * @since 4.0
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
+
+	/**
+	 * Prevent warnings (that could potentially break the build, like for deprecations) from being emitted by the generated sources.
+	 */
+	private static final AnnotationSpec SUPPRESS_WARNINGS = AnnotationSpec.builder(SuppressWarnings.class)
+			.addMember("value", "{$S, $S, $S, $S}", "deprecation", "rawtypes", "removal", "unchecked").build();
 
 	private final AotRepositoryContext context;
 	private final EntityManagerFactory entityManagerFactory;
@@ -109,7 +115,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 	@Override
 	protected void customizeClass(AotRepositoryClassBuilder classBuilder) {
-		classBuilder.customize(builder -> builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class)));
+		classBuilder.customize(builder -> builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class))
+				.addAnnotation(SUPPRESS_WARNINGS));
 	}
 
 	@Override
@@ -119,8 +126,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		constructorBuilder.addParameter("entityManager", EntityManager.class, customizer -> {
 
-			customizer.bindToField().origin(
-					StringUtils.hasText(entityManagerFactoryRef)
+			customizer.bindToField()
+					.origin(StringUtils.hasText(entityManagerFactoryRef)
 							? new RuntimeBeanReference(entityManagerFactoryRef, EntityManager.class)
 							: new RuntimeBeanReference(EntityManager.class));
 		});

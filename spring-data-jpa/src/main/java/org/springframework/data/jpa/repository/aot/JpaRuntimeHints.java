@@ -92,9 +92,12 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 							.onReachableType(QuerydslPredicateExecutor.class));
 		}
 
-		// streaming results requires reflective access to jakarta.persistence.Query#getResultAsStream
-		hints.reflection().registerType(jakarta.persistence.Query.class,
-				hint -> hint.withMethod("getResultStream", Collections.emptyList(), ExecutableMode.INVOKE));
+		// JpaPortableQueries reflective access of EntityManger and EntityHandler (if present)
+		hints.reflection().registerType(jakarta.persistence.EntityManager.class, MemberCategory.INVOKE_PUBLIC_METHODS);
+		if (ClassUtils.isPresent("jakarta.persistence.EntityHandler", classLoader)) {
+			hints.reflection().registerType(TypeReference.of("jakarta.persistence.EntityHandler"),
+					MemberCategory.INVOKE_PUBLIC_METHODS);
+		}
 
 		hints.reflection().registerType(NamedEntityGraph.class,
 				hint -> hint.onReachableType(EntityGraph.class).withMembers(MemberCategory.INVOKE_PUBLIC_METHODS));
@@ -102,12 +105,12 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 		if (ClassUtils.isPresent("org.hibernate.Hibernate", classLoader)) {
 
 			/*
-			   Fetching a single results causes: 
+			   Fetching a single results causes:
 			       java.lang.IllegalArgumentException: Class org.hibernate.query.sqm.tree.select.SqmQueryPart[] is instantiated reflectively but was never registered.Register the class by adding "unsafeAllocated" for the class in reflect-config.json.
 			       at org.graalvm.nativeimage.builder/com.oracle.svm.core.graal.snippets.SubstrateAllocationSnippets.arrayHubErrorStub(SubstrateAllocationSnippets.java:345)
 			       at org.hibernate.internal.util.collections.StandardStack.push(StandardStack.java:48)
 			       at org.hibernate.query.sqm.sql.BaseSqmToSqlAstConverter.visitQuerySpec(BaseSqmToSqlAstConverter.java:2073)
-			   
+			
 			   both formats:
 			   - org.hibernate.query.sqm.tree.select.SqmQueryPart[]
 			   - [Lorg.hibernate.query.sqm.tree.select.SqmQueryPart;
@@ -115,6 +118,48 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 			 */
 			hints.reflection().registerType(TypeReference.of("org.hibernate.query.sqm.tree.select.SqmQueryPart[]"),
 					MemberCategory.UNSAFE_ALLOCATED);
+
+			// --> Hibernate 7 & 8 copatibility with tons of moved types between generations
+
+			registerHibernateContract(hints, classLoader, "org.hibernate.query.spi.SqmQuery", "getSqmStatement");
+			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.spi.SqmStatementAccess",
+					"getSqmStatement");
+			registerHibernateContract(hints, classLoader, "org.hibernate.query.MutationOrSelectionQuery", "isSelectionQuery",
+					"asSelectionQuery");
+
+			for (String memento : List.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento", // Hibernate 7
+					"org.hibernate.query.named.NamedSqmQueryMemento", // Hibernate 8.0.0.Beta1
+					"org.hibernate.query.named.spi.NamedSqmQueryMemento")) { // Hibernate 8 after 8.0.0.Beta1
+				registerHibernateContract(hints, classLoader, memento, "getHqlString", "getSqmStatement");
+			}
+
+			for (String memento : List.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento", // Hibernate 7
+					"org.hibernate.query.named.NamedNativeQueryMemento", // Hibernate 8.0.0.Beta1
+					"org.hibernate.query.named.spi.NamedNativeQueryMemento")) { // Hibernate 8 after 8.0.0.Beta1
+				registerHibernateContract(hints, classLoader, memento, "getSqlString");
+			}
+
+			// Criteria to HQL rendering
+			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.tree.SqmVisitableNode", "toHqlString");
+			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.tree.spi.SqmVisitableNode", "toHqlString");
 		}
+	}
+
+	/**
+	 * Register methods used by {@code HibernateAdapter} if present in the hibernate version used.
+	 */
+	private static void registerHibernateContract(RuntimeHints hints, @Nullable ClassLoader classLoader, String typeName,
+			String... methodNames) {
+
+		if (!ClassUtils.isPresent(typeName, classLoader)) {
+			return;
+		}
+
+		hints.reflection().registerType(TypeReference.of(typeName), hint -> {
+
+			for (String methodName : methodNames) {
+				hint.withMethod(methodName, Collections.emptyList(), ExecutableMode.INVOKE);
+			}
+		});
 	}
 }

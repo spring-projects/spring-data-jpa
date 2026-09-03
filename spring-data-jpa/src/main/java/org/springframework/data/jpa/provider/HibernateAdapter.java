@@ -15,35 +15,35 @@
  */
 package org.springframework.data.jpa.provider;
 
+import java.util.function.Supplier;
+
 import jakarta.persistence.Query;
 
+import org.hibernate.Version;
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.util.ClassUtils;
 
 /**
- * Adapter bridging the contracts that changed between the Hibernate generations we support.
- * <p>
- * Hibernate 8 renamed and relocated the types Spring Data inspects to extract query strings, so the entire interaction
- * has to go through reflection to keep a single binary compatible with both generations. See GH-4197.
+ * Adapter bridging the contracts between hibernate 7 and 8.
  *
  * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 4.2
  */
 interface HibernateAdapter {
 
+	String HIBERNATE_8_SQM_STATEMENT_ACCESS = "org.hibernate.query.sqm.spi.SqmStatementAccess";
+
 	/**
-	 * Select the adapter matching the Hibernate version on the classpath. Detection is based on type presence rather
-	 * than on the declared version, which is not reliable in shaded or repackaged distributions.
+	 * Select the adapter matching the Hibernate version on the classpath. Detection is based on type presence rather than
+	 * on the declared version, which is not reliable in shaded or repackaged distributions.
 	 */
 	static HibernateAdapter create() {
 
 		ClassLoader classLoader = HibernateAdapter.class.getClassLoader();
 
-		// Hibernate 8 replaced SqmQuery with SqmStatementAccess as the SQM access point.
-		return ClassUtils.isPresent(Hibernate8Adapter.SQM_STATEMENT_ACCESS, classLoader) //
-				? new Hibernate8Adapter(classLoader) //
+		return isHibernate8(() -> classLoader) ? new Hibernate8Adapter(classLoader) //
 				: new Hibernate7Adapter(classLoader);
 	}
 
@@ -68,4 +68,12 @@ interface HibernateAdapter {
 	 */
 	@Nullable
 	SelectionQuery<?> asSelectionQuery(Query query);
+
+	static boolean isHibernate8(Supplier<ClassLoader> classLoader) {
+
+		if (Version.getVersionString().startsWith("8.")) {
+			return true;
+		}
+		return ClassUtils.isPresent(HIBERNATE_8_SQM_STATEMENT_ACCESS, classLoader.get());
+	}
 }

@@ -17,14 +17,12 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.TemporalType;
 import jakarta.persistence.metamodel.EmbeddableType;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
-import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Map;
@@ -35,33 +33,14 @@ import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
 import org.hibernate.cfg.SchemaToolingSettings;
-import org.hibernate.dialect.DatabaseVersion;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.pagination.LimitHandler;
-import org.hibernate.dialect.pagination.OffsetFetchLimitHandler;
-import org.hibernate.dialect.sequence.ANSISequenceSupport;
-import org.hibernate.dialect.sequence.SequenceSupport;
 import org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
-import org.hibernate.metamodel.mapping.EntityMappingType;
-import org.hibernate.metamodel.spi.RuntimeModelCreationContext;
-import org.hibernate.query.common.TemporalUnit;
-import org.hibernate.query.sqm.mutation.spi.MultiTableHandler;
-import org.hibernate.query.sqm.mutation.spi.MultiTableHandlerBuildResult;
-import org.hibernate.query.sqm.mutation.spi.SqmMultiTableInsertStrategy;
-import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
-import org.hibernate.sql.ast.SqlAstTranslatorFactory;
-import org.hibernate.sql.ast.spi.StandardSqlAstTranslatorFactory;
-import org.hibernate.sql.exec.spi.JdbcParameterBindings;
-import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.data.util.Lazy;
-import org.springframework.data.util.ReflectionUtils;
 import org.springframework.orm.jpa.persistenceunit.PersistenceManagedTypes;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 import org.springframework.util.ClassUtils;
@@ -91,7 +70,8 @@ class AotMetamodel implements Metamodel {
 			SchemaToolingSettings.JAKARTA_HBM2DDL_DATABASE_ACTION, "none" // has also precedence over HBM2DDL_AUTO
 	);
 	private final Lazy<EntityManagerFactory> entityManagerFactory;
-	private final Lazy<EntityManager> entityManager = Lazy.of(() -> getEntityManagerFactory().createEntityManager(Map.of()));
+	private final Lazy<EntityManager> entityManager = Lazy
+			.of(() -> getEntityManagerFactory().createEntityManager(Map.of()));
 
 	public AotMetamodel(PersistenceManagedTypes managedTypes, Map<String, Object> jpaProperties) {
 		this(managedTypes.getManagedClassNames(), managedTypes.getPersistenceUnitRootUrl(), jpaProperties);
@@ -133,7 +113,7 @@ class AotMetamodel implements Metamodel {
 				.newLinkedHashMap(jpaProperties.size() + FAILSAFE_AOT_PROPERTIES.size() + 1);
 
 		// we allow explicit Dialect Overrides, but put in a default one to avoid potential db access
-		properties.put(JdbcSettings.DIALECT, SpringDataJpaAotDialect.INSTANCE);
+		properties.put(JdbcSettings.DIALECT, AotDialectFactory.INSTANCE);
 
 		// apply user defined properties
 		properties.putAll(jpaProperties);
@@ -196,150 +176,6 @@ class AotMetamodel implements Metamodel {
 
 	public EntityManagerFactory getEntityManagerFactory() {
 		return entityManagerFactory.get();
-	}
-
-	/**
-	 * A {@link Dialect} to satisfy the bootstrap requirements of {@link JdbcSettings#DIALECT} during the AOT Phase.
-	 * Printed to log files (info level) when the {@link org.hibernate.engine.jdbc.env.spi.JdbcEnvironment} is created.
-	 */
-	@NullUnmarked
-	@SuppressWarnings("deprecation")
-	static class SpringDataJpaAotDialect extends Dialect {
-
-		static SpringDataJpaAotDialect INSTANCE = new SpringDataJpaAotDialect(DatabaseVersion.make(1, 0));
-
-		protected SpringDataJpaAotDialect(DatabaseVersion version) {
-			super(version);
-		}
-
-		public boolean isCurrentTimestampSelectStringCallable() {
-			return false;
-		}
-
-		public String getCurrentTimestampSelectString() {
-			return "call current_timestamp()";
-		}
-
-		@Override
-		public LimitHandler getLimitHandler() {
-			return OffsetFetchLimitHandler.INSTANCE;
-		}
-
-		@Override
-		public SequenceSupport getSequenceSupport() {
-			return ANSISequenceSupport.INSTANCE;
-		}
-
-		@Override
-		public SqlAstTranslatorFactory getSqlAstTranslatorFactory() {
-			// javadoc implies null would trigger default which is not the case
-			return new StandardSqlAstTranslatorFactory();
-		}
-
-		@Override
-		@SuppressWarnings("deprecation")
-		public String timestampdiffPattern(TemporalUnit unit, TemporalType fromTemporalType, TemporalType toTemporalType) {
-			if (unit == null) {
-				return "(?3-?2)";
-			}
-			return "datediff(?1,?2,?3)";
-		}
-
-		@Override
-		public SqmMultiTableInsertStrategy getFallbackSqmInsertStrategy(EntityMappingType entityDescriptor,
-				RuntimeModelCreationContext runtimeModelCreationContext) {
-			return FallbackSqmMultiTableInsertStrategy.INSTANCE;
-		}
-
-		@Override
-		public SqmMultiTableMutationStrategy getFallbackSqmMutationStrategy(EntityMappingType entityDescriptor,
-				RuntimeModelCreationContext runtimeModelCreationContext) {
-			return FallbackSqmMultiTableMutationStrategy.INSTANCE;
-		}
-
-		/**
-		 * Empty {@link MultiTableHandler} stub for AOT fallback strategies (no-op execution).
-		 */
-		static class EmptyMultiTableHandler {
-
-			private static final MultiTableHandler INSTANCE = createMultiTableHandler();
-
-			private static MultiTableHandler createMultiTableHandler() {
-
-				return (MultiTableHandler) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
-						new Class[] { MultiTableHandler.class }, (proxy, method, args) -> {
-
-							if (method.getName().equals("createJdbcParameterBindings")) {
-								return JdbcParameterBindings.NO_BINDINGS;
-							}
-
-							if (method.getReturnType().isPrimitive()) {
-								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
-							}
-
-							return null;
-						});
-			}
-		}
-
-		/**
-		 * Fallback {@link SqmMultiTableInsertStrategy} for AOT when no dialect-specific strategy is used.
-		 */
-		static class FallbackSqmMultiTableInsertStrategy {
-
-			private static final SqmMultiTableInsertStrategy INSTANCE = createStrategy();
-
-			private static SqmMultiTableInsertStrategy createStrategy() {
-				return (SqmMultiTableInsertStrategy) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
-						new Class[] { SqmMultiTableInsertStrategy.class }, (proxy, method, args) -> {
-
-							if (method.getName().equals("buildHandler")) {
-								return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE,
-										JdbcParameterBindings.NO_BINDINGS);
-							}
-
-							if (method.getReturnType().equals(void.class)) {
-								return null;
-							}
-
-							if (method.getReturnType().isPrimitive()) {
-								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
-							}
-
-							return null;
-						});
-			}
-		}
-
-		/**
-		 * Fallback {@link SqmMultiTableMutationStrategy} for AOT when no dialect-specific strategy is used.
-		 */
-		static class FallbackSqmMultiTableMutationStrategy {
-
-			private static final SqmMultiTableMutationStrategy INSTANCE = createStrategy();
-
-			private static SqmMultiTableMutationStrategy createStrategy() {
-				return (SqmMultiTableMutationStrategy) Proxy.newProxyInstance(AotMetamodel.class.getClassLoader(),
-						new Class[] { SqmMultiTableMutationStrategy.class }, (proxy, method, args) -> {
-
-							if (method.getName().equals("buildHandler")) {
-								return new MultiTableHandlerBuildResult(EmptyMultiTableHandler.INSTANCE,
-										JdbcParameterBindings.NO_BINDINGS);
-							}
-
-							if (method.getReturnType().equals(void.class)) {
-								return null;
-							}
-
-							if (method.getReturnType().isPrimitive()) {
-								return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
-							}
-
-							return null;
-						});
-			}
-		}
-
 	}
 
 	static class NoOpConnectionProvider extends UserSuppliedConnectionProviderImpl {

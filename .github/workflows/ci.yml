@@ -11,8 +11,14 @@ jobs:
   build-java:
     strategy:
       matrix:
-        java-version: [ base, main ]
-    name: Build project
+        include:
+          - java-version: base
+            profiles: -Pall-dbs
+          - java-version: main
+            profiles: -Pall-dbs
+          - java-version: main
+            profiles: -Pall-dbs,h8
+    name: Build project (${{ matrix.java-version }}, ${{ matrix.profiles }})
     runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v6
@@ -29,5 +35,5 @@ jobs:
           COMMERCIAL_ARTIFACTORY_USR: '${{ secrets.COMMERCIAL_ARTIFACTORY_USERNAME }}'
           COMMERCIAL_ARTIFACTORY_PSW: '${{ secrets.COMMERCIAL_ARTIFACTORY_PASSWORD }}'
         with:
-          additional-options: -Pall-dbs
+          additional-options: ${{ matrix.profiles }}
           settings-xml: '${{ vars.SETTINGS_XML }}'

@@ -40,6 +40,7 @@
 		<oracle>23.26.3.0.0</oracle>
 		<springdata.commons>4.2.0-SNAPSHOT</springdata.commons>
 		<spring-instrument-agent>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</spring-instrument-agent>
+		<skip-eclipselink-tests>false</skip-eclipselink-tests>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
@@ -80,11 +81,23 @@
 		<profile>
 			<id>h8</id>
 			<properties>
-				<hibernate>8.0.0-SNAPSHOT</hibernate>
-				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
-				<spring>7.1.0-SNAPSHOT</spring>
+				<hibernate>8.0.0.Beta1</hibernate>
+				<jakarta-persistence-api>4.0.0-M5</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent />
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
+			</properties>
+		</profile>
+		<profile>
+			<id>h8-snapshot</id>
+			<properties>
+				<hibernate>8.0.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent />
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
 			<repositories>
 				<repository>
@@ -101,9 +114,10 @@
 			<properties>
 				<hibernate>8.1.0-SNAPSHOT</hibernate>
 				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
-				<spring>7.1.0-SNAPSHOT</spring>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent />
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
 			<repositories>
 				<repository>

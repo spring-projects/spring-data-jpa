@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
+import java.util.List;
+
 /**
  * {@link HibernateAdapter} for the Hibernate 7 contracts.
  * <p>
@@ -22,12 +24,14 @@ package org.springframework.data.jpa.provider;
  * the inherited {@literal null} answer and the caller's {@code instanceof} check covers it.
  *
  * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 4.2
  */
 final class Hibernate7Adapter extends AbstractHibernateAdapter {
 
 	Hibernate7Adapter(ClassLoader classLoader) {
-		super(classLoader, "org.hibernate.query.spi.SqmQuery", "org.hibernate.query.sqm.spi.NamedSqmQueryMemento",
-				"org.hibernate.query.sql.spi.NamedNativeQueryMemento");
+		super(classLoader, List.of("org.hibernate.query.spi.SqmQuery"),
+				List.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento"),
+				List.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento"));
 	}
 }

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
@@ -28,7 +29,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -169,7 +169,63 @@ public class AotRepositoryFragmentSupport {
 		return source;
 	}
 
-	@SuppressWarnings("NullAway")
+	/*
+	 * JPA 4.0 deprecated lots of methods in favor of TypedQuery - needs to be updated once we drop support for JPA 3.2, meanwhiel we've to live with this.
+	 * Need to work with raw types to avoid casting issues.
+	 */
+
+	@SuppressWarnings({ "removal", "rawtypes" })
+	protected static List getResultList(Query query) {
+		return query.getResultList();
+	}
+
+	@SuppressWarnings({ "removal", "rawtypes" })
+	protected static Stream getResultStream(Query query) {
+		return query.getResultStream();
+	}
+
+	@SuppressWarnings("removal")
+	protected static @Nullable Object getSingleResultOrNull(Query query) {
+		return query.getSingleResultOrNull();
+	}
+
+	@SuppressWarnings("removal")
+	protected static int executeUpdate(Query query) {
+		return query.executeUpdate();
+	}
+
+	@SuppressWarnings("removal")
+	protected static void setFirstResult(Query query, int firstResult) {
+		query.setFirstResult(firstResult);
+	}
+
+	@SuppressWarnings("removal")
+	protected static void setMaxResults(Query query, int maxResults) {
+		query.setMaxResults(maxResults);
+	}
+
+	@SuppressWarnings("removal")
+	protected static void setLockMode(Query query, LockModeType lockMode) {
+		query.setLockMode(lockMode);
+	}
+
+	/**
+	 * Limit the given query to {@code maxResults}, keeping the window aligned if the query is already limited to a larger
+	 * maximum.
+	 */
+	@SuppressWarnings("removal")
+	protected static void applyMaxResults(Query query, int maxResults) {
+
+		if (query.getMaxResults() != Integer.MAX_VALUE) {
+			if (query.getMaxResults() > maxResults && query.getFirstResult() > 0) {
+				query.setFirstResult(query.getFirstResult() - (query.getMaxResults() - maxResults));
+			}
+		}
+
+		query.setMaxResults(maxResults);
+	}
+
+	@SuppressWarnings({ "NullAway", "removal" })
 	protected long getCount(Query query) {
 
 		List<?> totals = query.getResultList();
