@@ -15,13 +15,14 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import static net.javacrumbs.jsonunit.assertj.JsonAssertions.*;
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
-
 import org.springframework.aot.generate.GeneratedFiles;
 import org.springframework.aot.test.generate.TestGenerationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -30,6 +31,10 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.aot.ApplicationContextAotGenerator;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.InputStreamSource;
+import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.jpa.repository.config.InfrastructureConfig;
 
@@ -37,12 +42,23 @@ import org.springframework.data.jpa.repository.config.InfrastructureConfig;
  * Integration tests for AOT processing.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 class AotContributionIntegrationTests {
 
 	@EnableJpaRepositories(considerNestedRepositories = true, includeFilters = {
 			@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = QuerydslUserRepository.class) })
 	static class AotConfiguration extends InfrastructureConfig {
+
+	}
+
+	/**
+	 * {@link UserRepository} covers the query methods that emit the interesting calls: {@link Limit}, {@link Pageable},
+	 * {@link Page}, {@link Slice}, {@link Stream}, projections, {@code @Modifying} and {@code @Lock}.
+	 */
+	@EnableJpaRepositories(considerNestedRepositories = true,
+			includeFilters = { @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = UserRepository.class) })
+	static class UserRepositoryAotConfiguration extends InfrastructureConfig {
 
 	}
 
@@ -63,6 +79,42 @@ class AotContributionIntegrationTests {
 
 		assertThatJson(json).inPath("$.methods[?(@.name == 'existsById')].fragment").isArray().first().isObject()
 				.containsEntry("fragment", "org.springframework.data.jpa.repository.support.SimpleJpaRepository");
+	}
+
+	@Test // GH-4197
+	void shouldSuppressWarningsUsersCannotFixInGeneratedSource() throws IOException {
+
+		String source = generatedFragmentSource(generate(AotConfiguration.class));
+
+		assertThat(source).containsSubsequence("@SuppressWarnings(", "deprecation", "rawtypes", "removal", "unchecked")
+				.contains("class QuerydslUserRepositoryImpl__AotRepository");
+	}
+
+	@Test // GH-4197
+	void generatedFragmentDoesNotCallQueryMethodsDeprecatedAndMarkedForRemoval() throws IOException {
+
+		String source = generatedFragmentSource(generate(UserRepositoryAotConfiguration.class), UserRepository.class);
+
+		assertThat(source).doesNotContainPattern(
+				"\\.\\s*(getResultList|getResultStream|getSingleResult|getSingleResultOrNull|executeUpdate|setMaxResults|setFirstResult|setLockMode|getMaxResults|getFirstResult)\\s*\\(");
+
+		// positive control: the helpers are in use, so the patterns above are absent for the right reason
+		assertThat(source).contains("getResultList(", "getSingleResultOrNull(", "setMaxResults(");
+	}
+
+	private static String generatedFragmentSource(TestGenerationContext generationContext) throws IOException {
+		return generatedFragmentSource(generationContext, QuerydslUserRepository.class);
+	}
+
+	private static String generatedFragmentSource(TestGenerationContext generationContext, Class<?> repositoryInterface)
+			throws IOException {
+
+		InputStreamSource source = generationContext.getGeneratedFiles().getGeneratedFile(GeneratedFiles.Kind.SOURCE,
+				repositoryInterface.getName().replace('.', '/') + "Impl__AotRepository.java");
+
+		assertThat(source).describedAs("Generated repository fragment source").isNotNull();
+
+		return new InputStreamResource(source).getContentAsString(StandardCharsets.UTF_8);
 	}
 
 	private static TestGenerationContext generate(Class<?>... configurationClasses) {

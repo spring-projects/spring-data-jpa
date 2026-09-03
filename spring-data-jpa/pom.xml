@@ -373,6 +373,7 @@
 						</goals>
 						<phase>test</phase>
 						<configuration>
+							<skip>${skip-eclipselink-tests}</skip>
 							<includes>
 								<include>**/Eclipse*ink*Tests.java</include>
 							</includes>

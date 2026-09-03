@@ -27,3 +27,10 @@ I'd like to get more detailed logging information on what methods are called ins
 
 [qanda]
 I want to use Spring Data JPA auditing capabilities but have my database already configured to set modification and creation date on entities. How can I prevent Spring Data from setting the date programmatically? :: Set the `set-dates` attribute of the `auditing` namespace element to `false`.
+
+
+[[faq.hibernate]]
+== Hibernate
+
+[qanda]
+Can I use Hibernate 8 with Spring Data JPA? :: Spring Data JPA currently relies on JPA 3.2 and Hibernate 7, but offers best-effort support for preview releases of Hibernate 8 (Beta1) and Jakarta Persistence 4.0 (M5).

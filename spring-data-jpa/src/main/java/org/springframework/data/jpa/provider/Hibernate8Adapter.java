@@ -18,41 +18,45 @@ package org.springframework.data.jpa.provider;
 import jakarta.persistence.Query;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.util.ReflectionUtils;
 
 /**
  * {@link HibernateAdapter} for the Hibernate 8 contracts.
  *
  * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 4.2
  */
 final class Hibernate8Adapter extends AbstractHibernateAdapter {
 
 	static final String SQM_STATEMENT_ACCESS = "org.hibernate.query.sqm.spi.SqmStatementAccess";
 
-	private final @Nullable Class<?> mutationOrSelectionQuery;
-	private final @Nullable Method isSelectionQuery;
-	private final @Nullable Method asSelectionQuery;
+	private final Class<?> mutationOrSelectionQuery;
+	private final Method isSelectionQuery;
+	private final Method asSelectionQuery;
 
 	Hibernate8Adapter(ClassLoader classLoader) {
 
-		super(classLoader, SQM_STATEMENT_ACCESS, "org.hibernate.query.named.spi.NamedSqmQueryMemento",
-				"org.hibernate.query.named.spi.NamedNativeQueryMemento");
+		// the mementos moved from org.hibernate.query.named to org.hibernate.query.named.spi after 8.0.0.Beta1
+		super(classLoader, List.of(SQM_STATEMENT_ACCESS),
+				List.of("org.hibernate.query.named.spi.NamedSqmQueryMemento", "org.hibernate.query.named.NamedSqmQueryMemento"),
+				List.of("org.hibernate.query.named.spi.NamedNativeQueryMemento",
+						"org.hibernate.query.named.NamedNativeQueryMemento"));
 
-		this.mutationOrSelectionQuery = loadClass("org.hibernate.query.MutationOrSelectionQuery", classLoader);
-		this.isSelectionQuery = findMethod(mutationOrSelectionQuery, "isSelectionQuery");
-		this.asSelectionQuery = findMethod(mutationOrSelectionQuery, "asSelectionQuery");
+		this.mutationOrSelectionQuery = requireClass(List.of("org.hibernate.query.MutationOrSelectionQuery"), classLoader);
+		this.isSelectionQuery = requireMethod(mutationOrSelectionQuery, "isSelectionQuery");
+		this.asSelectionQuery = requireMethod(mutationOrSelectionQuery, "asSelectionQuery");
 	}
 
 	@Override
 	public @Nullable SelectionQuery<?> asSelectionQuery(Query query) {
 
-		if (mutationOrSelectionQuery == null || isSelectionQuery == null || asSelectionQuery == null
-				|| !mutationOrSelectionQuery.isInstance(query)
+		// mutations legitimately answer null here, the contract itself is required and resolved upfront
+		if (!mutationOrSelectionQuery.isInstance(query)
 				|| !Boolean.TRUE.equals(ReflectionUtils.invokeMethod(isSelectionQuery, query))) {
 			return null;
 		}
@@ -60,9 +64,5 @@ final class Hibernate8Adapter extends AbstractHibernateAdapter {
 		Object selectionQuery = ReflectionUtils.invokeMethod(asSelectionQuery, query);
 
 		return selectionQuery instanceof SelectionQuery<?> candidate ? candidate : null;
-	}
-
-	private static @Nullable Method findMethod(@Nullable Class<?> type, String methodName) {
-		return type != null ? ReflectionUtils.findMethod(type, methodName) : null;
 	}
 }

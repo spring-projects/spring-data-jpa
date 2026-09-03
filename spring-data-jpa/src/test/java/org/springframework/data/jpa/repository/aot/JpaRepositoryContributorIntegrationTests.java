@@ -15,7 +15,10 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import jakarta.persistence.EntityManager;
 
@@ -28,7 +31,6 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.query.QueryTypeMismatchException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Limit;
@@ -433,12 +435,19 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test // GH-3830
+	@Test // GH-3830, GH-4197
 	void shouldApplyNamedDto() {
 
 		// named queries cannot be rewritten
-		assertThatExceptionOfType(QueryTypeMismatchException.class)
-				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress()));
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress())) //
+				.satisfies(exception -> {
+
+					// Hibernate 8.0.0.Beta1 throws QueryTypeMismatchException
+					// Hinbernate 8.0 SNAPSHOT throws IllegalArgumentException (JPA compliant)
+					Throwable yeahWhatever = exception instanceof QueryTypeMismatchException ? exception : exception.getCause();
+					assertThat(yeahWhatever).isInstanceOf(QueryTypeMismatchException.class);
+				});
 	}
 
 	@Test // GH-3830
@@ -600,7 +609,6 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThatException().isThrownBy(() -> fragment.deleteAnnotatedQueryByEmailAddress("foo"))
 				.withRootCauseInstanceOf(NoSuchMethodException.class);
 	}
-
 
 	@Test // GH-3830
 	void shouldApplyModifying() {

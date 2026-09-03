@@ -25,6 +25,7 @@ import jakarta.persistence.criteria.CriteriaUpdate;
 
 import java.lang.reflect.Method;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -36,6 +37,7 @@ import org.springframework.util.ReflectionUtils;
  * fails with a {@link NoSuchMethodError} when running against 4. Only that case pays for reflection. See GH-4197.
  *
  * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 4.2
  */
 public abstract class JpaPortableQueries {
@@ -47,8 +49,8 @@ public abstract class JpaPortableQueries {
 			Class.class);
 	private static final Method CREATE_NATIVE_QUERY_WITH_MAPPING = resolveMethod("createNativeQuery", String.class,
 			String.class);
-	private static final Method CREATE_UPDATE_QUERY = resolveCriteriaQueryMethod(CriteriaUpdate.class);
-	private static final Method CREATE_DELETE_QUERY = resolveCriteriaQueryMethod(CriteriaDelete.class);
+	private static final Method CREATE_UPDATE_QUERY = resolveCriteriaStatementMethod(CriteriaUpdate.class);
+	private static final Method CREATE_DELETE_QUERY = resolveCriteriaStatementMethod(CriteriaDelete.class);
 
 	// Method references are resolved on first execution, so the direct calls below are never linked under JPA 4.
 	private static final boolean JPA_32 = CREATE_QUERY.getReturnType() == Query.class;
@@ -100,8 +102,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createNativeQuery(queryString, resultClass) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_NATIVE_QUERY_WITH_TYPE, entityManager, queryString,
-						resultClass);
+				: (Query) ReflectionUtils.invokeMethod(CREATE_NATIVE_QUERY_WITH_TYPE, entityManager, queryString, resultClass);
 	}
 
 	/**
@@ -131,6 +132,7 @@ public abstract class JpaPortableQueries {
 	/**
 	 * Create an update query using the runtime Jakarta Persistence API.
 	 */
+	@SuppressWarnings("removal")
 	public static Query createQuery(EntityManager entityManager, CriteriaUpdate<?> criteriaUpdate) {
 
 		Assert.notNull(entityManager, "EntityManager must not be null");
@@ -144,6 +146,7 @@ public abstract class JpaPortableQueries {
 	/**
 	 * Create a delete query using the runtime Jakarta Persistence API.
 	 */
+	@SuppressWarnings("removal")
 	public static Query createQuery(EntityManager entityManager, CriteriaDelete<?> criteriaDelete) {
 
 		Assert.notNull(entityManager, "EntityManager must not be null");
@@ -163,16 +166,42 @@ public abstract class JpaPortableQueries {
 		return method;
 	}
 
-	private static Method resolveCriteriaQueryMethod(Class<?> criteriaType) {
+	/**
+	 * Resolve the factory method for criteria mutations.
+	 * <p>
+	 * JPA 4.0 deprecated {@code createQuery(CriteriaStatement)} so we prefer {@code createStatement(CriteriaStatement)}
+	 * where possible.
+	 *
+	 * @param criteriaType the criteria type to resolve the method for.
+	 * @return the most appropriate method to use.
+	 */
+	private static Method resolveCriteriaStatementMethod(Class<?> criteriaType) {
+
+		Method method = findCriteriaMethod("createStatement", criteriaType);
+
+		if (method == null) {
+			method = findCriteriaMethod("createQuery", criteriaType);
+		}
+
+		if (method != null) {
+			return method;
+		}
+
+		throw new IllegalStateException(
+				"Cannot resolve EntityManager.createStatement(%1$s) nor EntityManager.createQuery(%1$s)"
+						.formatted(criteriaType.getSimpleName()));
+	}
+
+	private static @Nullable Method findCriteriaMethod(String methodName, Class<?> criteriaType) {
 
 		for (Method method : EntityManager.class.getMethods()) {
-			if (method.getName().equals("createQuery") && method.getParameterCount() == 1
+			if (method.getName().equals(methodName) && method.getParameterCount() == 1
 					&& method.getParameterTypes()[0].isAssignableFrom(criteriaType)
 					&& Query.class.isAssignableFrom(method.getReturnType())) {
 				return method;
 			}
 		}
 
-		throw new IllegalStateException("Cannot resolve EntityManager.createQuery(%s)".formatted(criteriaType.getSimpleName()));
+		return null;
 	}
 }
