@@ -226,7 +226,7 @@ offsetClause
     ;
 
 fetchClause
-    : FETCH (FIRST | NEXT) (parameterOrIntegerLiteral | parameterOrNumberLiteral '%') (ROW | ROWS) (ONLY | WITH TIES)
+    : FETCH (FIRST | NEXT) (parameterOrIntegerLiteral | parameterOrNumberLiteral PERCENT) (ROW | ROWS) (ONLY | WITH TIES)
     ;
 
 /*******************
