@@ -36,6 +36,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Yannick Brandt
  * @author Oscar Fanchin
  * @author Jewoo Shin
+ * @author OhKyu Chan
  * @since 3.1
  */
 class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
@@ -1152,6 +1153,23 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				"join fetch p.calls " + //
 				"order by p " + //
 				"limit 50");
+	}
+
+	@Test // GH-4345
+	void fetchClauseShouldSupportPercentKeyword() {
+
+		assertQuery("select c " + //
+				"from Call c " + //
+				"order by c.duration " + //
+				"fetch first 10 percent rows only");
+		assertQuery("select c " + //
+				"from Call c " + //
+				"order by c.duration " + //
+				"fetch next 2.5 percent rows with ties");
+		assertQuery("select c " + //
+				"from Call c " + //
+				"order by c.duration " + //
+				"fetch first :percentage percent rows only");
 	}
 
 	@Test // GH-2962
