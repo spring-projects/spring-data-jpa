@@ -22,6 +22,7 @@ import jakarta.persistence.EntityManagerFactory;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,8 +89,8 @@ class DefaultJpaContextIntegrationTests {
 	@BeforeEach
 	void createEntityManagers() {
 
-		this.firstEm = firstEmf.createEntityManager();
-		this.secondEm = secondEmf.createEntityManager();
+		this.firstEm = firstEmf.createEntityManager(Map.of());
+		this.secondEm = secondEmf.createEntityManager(Map.of());
 
 		this.jpaContext = new DefaultJpaContext(new HashSet<>(Arrays.asList(firstEm, secondEm)));
 	}

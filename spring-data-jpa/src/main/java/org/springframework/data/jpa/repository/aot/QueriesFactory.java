@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -50,7 +52,9 @@ import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.support.PropertiesBasedNamedQueries;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.orm.jpa.EntityManagerFactoryInfo;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -59,11 +63,13 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author Oscar Fanchin
  * @since 4.0
  */
 class QueriesFactory {
 
 	private final EntityManagerFactory entityManagerFactory;
+	private final @Nullable Hibernate8NamedQueryLookup hibernate8NamedQueryLookup;
 	private final NamedQueries namedQueries;
 	private final Metamodel metamodel;
 	private final EscapeCharacter escapeCharacter;
@@ -80,6 +86,7 @@ class QueriesFactory {
 		this.metamodel = metamodel;
 		this.namedQueries = getNamedQueries(configurationSource, classLoader);
 		this.entityManagerFactory = entityManagerFactory;
+		this.hibernate8NamedQueryLookup = Hibernate8NamedQueryLookup.create(entityManagerFactory);
 
 		Optional<Character> escapeCharacter = configurationSource.getAttribute("escapeCharacter", Character.class);
 		this.escapeCharacter = escapeCharacter.map(EscapeCharacter::of).orElse(EscapeCharacter.DEFAULT);
@@ -254,6 +261,11 @@ class QueriesFactory {
 
 		for (Class<?> candidate : candidates) {
 
+			// Hibernate 8 rejects a null result type, the untyped lookup below covers that case instead.
+			if (candidate == null && hibernate8NamedQueryLookup != null) {
+				continue;
+			}
+
 			Map<String, ? extends TypedQueryReference<?>> namedQueries = entityManagerFactory.getNamedQueries(candidate);
 
 			if (namedQueries.containsKey(queryName)) {
@@ -261,7 +273,73 @@ class QueriesFactory {
 			}
 		}
 
-		return null;
+		return hibernate8NamedQueryLookup != null ? hibernate8NamedQueryLookup.findNamedQuery(queryName) : null;
+	}
+
+	/**
+	 * Work around Hibernate 8 not exposing untyped named queries through
+	 * {@link EntityManagerFactory#getNamedQueries(Class)}: {@literal null} throws and {@link Object} returns nothing.
+	 * The chain stays reflective because Hibernate 8 relocated {@code NamedObjectRepository}. See GH-4197.
+	 */
+	private static class Hibernate8NamedQueryLookup {
+
+		private final Object namedObjectRepository;
+		private final Method forEachNamedQuery;
+
+		private Hibernate8NamedQueryLookup(Object namedObjectRepository, Method forEachNamedQuery) {
+			this.namedObjectRepository = namedObjectRepository;
+			this.forEachNamedQuery = forEachNamedQuery;
+		}
+
+		static @Nullable Hibernate8NamedQueryLookup create(EntityManagerFactory entityManagerFactory) {
+
+			Object nativeEntityManagerFactory = entityManagerFactory instanceof EntityManagerFactoryInfo info
+					? info.getNativeEntityManagerFactory()
+					: entityManagerFactory;
+			Method getQueryEngine = ReflectionUtils.findMethod(nativeEntityManagerFactory.getClass(), "getQueryEngine");
+
+			if (getQueryEngine == null) {
+				return null;
+			}
+
+			Object queryEngine = ReflectionUtils.invokeMethod(getQueryEngine, nativeEntityManagerFactory);
+
+			if (queryEngine == null) {
+				return null;
+			}
+
+			Method getNamedObjectRepository = ReflectionUtils.findMethod(queryEngine.getClass(), "getNamedObjectRepository");
+
+			if (getNamedObjectRepository == null) {
+				return null;
+			}
+
+			Object namedObjectRepository = ReflectionUtils.invokeMethod(getNamedObjectRepository, queryEngine);
+
+			if (namedObjectRepository == null) {
+				return null;
+			}
+
+			Method forEachNamedQuery = ReflectionUtils.findMethod(namedObjectRepository.getClass(), "forEachNamedQuery",
+					BiConsumer.class);
+
+			return forEachNamedQuery != null ? new Hibernate8NamedQueryLookup(namedObjectRepository, forEachNamedQuery) : null;
+		}
+
+		@Nullable TypedQueryReference<?> findNamedQuery(String queryName) {
+
+			AtomicReference<TypedQueryReference<?>> result = new AtomicReference<>();
+
+			BiConsumer<String, TypedQueryReference<?>> consumer = (name, reference) -> {
+				if (queryName.equals(name)) {
+					result.set(reference);
+				}
+			};
+
+			ReflectionUtils.invokeMethod(forEachNamedQuery, namedObjectRepository, consumer);
+
+			return result.get();
+		}
 	}
 
 	private AotQueries buildPartTreeQuery(RepositoryInformation repositoryInformation, ReturnedType returnedType,

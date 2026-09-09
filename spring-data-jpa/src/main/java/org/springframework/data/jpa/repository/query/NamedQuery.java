@@ -20,6 +20,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.TypedQuery;
 
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
@@ -34,6 +36,7 @@ import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
+import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.util.StringUtils;
 
 /**
@@ -82,7 +85,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
 
-		Query namedQuery = em.createNamedQuery(queryName);
+		Query namedQuery = JpaPortableQueries.createNamedQuery(em, queryName);
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();
 
@@ -139,8 +142,8 @@ final class NamedQuery extends AbstractJpaQuery {
 		 * potential rollback of the running tx.
 		 */
 
-		try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager()) {
-			lookupEm.createNamedQuery(queryName);
+		try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager(Map.of())) {
+			JpaPortableQueries.createNamedQuery(lookupEm, queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
 
@@ -206,7 +209,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		Class<?> typeToRead = getTypeToRead(processor.getReturnedType());
 
 		Query query = typeToRead == null //
-				? em.createNamedQuery(queryName) //
+				? JpaPortableQueries.createNamedQuery(em, queryName) //
 				: em.createNamedQuery(queryName, typeToRead);
 
 		return parameterBinder.get().bindAndPrepare(query, accessor);
