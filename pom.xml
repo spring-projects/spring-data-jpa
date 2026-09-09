@@ -32,7 +32,7 @@
 		<hibernate>7.4.7.Final</hibernate>
 		<hibernate-74-snapshots>7.4.1-SNAPSHOT</hibernate-74-snapshots>
 		<hsqldb>2.7.4</hsqldb>
-		<h2>2.3.232</h2>
+		<h2>2.5.250</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
 		<jsqlparser>5.3</jsqlparser>
 		<mysql-connector-java>26.7.0</mysql-connector-java>
