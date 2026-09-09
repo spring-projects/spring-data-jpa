@@ -41,6 +41,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
  *
  * @author Mark Paluch
  * @author Christoph Strobl
+ * @author YeongJae Min
  * @since 3.1
  */
 public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort sort,
@@ -126,6 +127,18 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		}
 
 		@Override
+		public Predicate compareInclusive(Order order, Expression<Comparable> propertyExpression, @Nullable Object value) {
+
+			if (value != null) {
+				Predicate inclusive = order.isAscending() ? cb.greaterThanOrEqualTo(propertyExpression, (Comparable) value)
+						: cb.lessThanOrEqualTo(propertyExpression, (Comparable) value);
+				return isNullsLast(order) ? cb.or(inclusive, cb.isNull(propertyExpression)) : inclusive;
+			}
+
+			return compare(order, propertyExpression, value);
+		}
+
+		@Override
 		public Predicate compare(String property, Expression<Comparable> propertyExpression, @Nullable Object value) {
 			return value == null ? cb.isNull(propertyExpression) : cb.equal(propertyExpression, value);
 		}
@@ -173,12 +186,35 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 		}
 
 		@Override
+		public JpqlQueryBuilder.Predicate compareInclusive(Order order, JpqlQueryBuilder.Expression propertyExpression,
+				@Nullable Object value) {
+
+			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
+
+			QueryUtils.checkSortExpression(order);
+
+			if (value != null) {
+				JpqlQueryBuilder.Predicate inclusive = order.isAscending()
+						? where.gte(factory.capture(order.getProperty(), value))
+						: where.lte(factory.capture(order.getProperty(), value));
+				return isNullsLast(order) ? inclusive.or(where.isNull()).nest() : inclusive;
+			}
+
+			return compare(order, propertyExpression, value);
+		}
+
+		@Override
 		public JpqlQueryBuilder.Predicate compare(String property, JpqlQueryBuilder.Expression propertyExpression,
 				@Nullable Object value) {
 
 			JpqlQueryBuilder.WhereStep where = JpqlQueryBuilder.where(propertyExpression);
 
 			return value == null ? where.isNull() : where.eq(factory.capture(property, value));
+		}
+
+		@Override
+		public JpqlQueryBuilder.Predicate nest(JpqlQueryBuilder.Predicate predicate) {
+			return predicate.nest();
 		}
 
 		@Override
