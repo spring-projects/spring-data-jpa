@@ -31,7 +31,9 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.aot.JpaCodeBlocks.QueryBlockBuilder;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -47,6 +49,7 @@ import org.springframework.javapoet.CodeBlock;
  * Unit tests for {@link JpaCodeBlocks}.
  *
  * @author Christoph Strobl
+ * @author YeongJae Min
  */
 class JpaCodeBlocksUnitTests {
 
@@ -58,6 +61,29 @@ class JpaCodeBlocksUnitTests {
 				.lockMode(LockModeType.PESSIMISTIC_READ).build();
 
 		assertThat(codeBlock.toString()).containsSubsequence(".setLockMode(", "LockModeType.PESSIMISTIC_READ)");
+	}
+
+	@Test // GH-3839, GH-3984
+	void obtainsQueryRewriterFromFragmentSupport() throws NoSuchMethodException {
+
+		CodeBlock codeBlock = initQueryBuilder()
+				.filter(new AotQueries(jpqlQuery("SELECT d FROM DummyEntity d", List.of(), Limit.unlimited(), false, false))) //
+				.queryRewriter(MyQueryRewriter.class).build();
+
+		assertThat(codeBlock.toString()).containsSubsequence("QueryRewriter queryRewriter = getQueryRewriter(",
+				"MyQueryRewriter.class)");
+		assertThat(codeBlock.toString()).doesNotContain("new MyQueryRewriter()");
+	}
+
+	@Test // GH-3839, GH-3984
+	void usesNoArgsConstructorAsFallbackIfAvailable() throws NoSuchMethodException {
+
+		CodeBlock codeBlock = initQueryBuilder()
+				.filter(new AotQueries(jpqlQuery("SELECT d FROM DummyEntity d", List.of(), Limit.unlimited(), false, false))) //
+				.queryRewriter(NoArgsQueryRewriter.class).build();
+
+		assertThat(codeBlock.toString()).containsSubsequence("QueryRewriter queryRewriter = getQueryRewriter(",
+				"NoArgsQueryRewriter.class, () -> new", "NoArgsQueryRewriter())");
 	}
 
 	QueryBlockBuilder initQueryBuilder() throws NoSuchMethodException {
@@ -98,6 +124,24 @@ class JpaCodeBlocksUnitTests {
 	@Entity
 	static class DummyEntity {
 		@Id Long id;
+	}
+
+	static class MyQueryRewriter implements QueryRewriter {
+
+		private MyQueryRewriter(String value) {}
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query;
+		}
+	}
+
+	static class NoArgsQueryRewriter implements QueryRewriter {
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query;
+		}
 	}
 
 }

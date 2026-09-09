@@ -38,6 +38,7 @@ import org.openjdk.jmh.annotations.Timeout;
 import org.openjdk.jmh.annotations.Warmup;
 
 import org.springframework.aot.test.generate.TestGenerationContext;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -49,6 +50,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.benchmark.model.Person;
 import org.springframework.data.jpa.benchmark.model.Profile;
 import org.springframework.data.jpa.benchmark.repository.PersonRepository;
+import org.springframework.data.jpa.repository.aot.AotRepositoryFragmentSupport;
 import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.data.jpa.repository.aot.TestJpaAotRepositoryContext;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -69,6 +71,7 @@ import org.springframework.util.ObjectUtils;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author YeongJae Min
  */
 @Testable
 @Fork(1)
@@ -92,7 +95,7 @@ public class AotRepositoryQueryMethodBenchmarks {
 					new StandardEnvironment(), Mockito.mock(BeanDefinitionRegistry.class), DefaultBeanNameGenerator.INSTANCE);
 
 			repositoryContext = new TestJpaAotRepositoryContext<>(new DefaultListableBeanFactory(), PersonRepository.class,
-					null, configurationSource);
+					RepositoryComposition.empty(), configurationSource);
 		}
 
 		EntityManager entityManager;
@@ -132,21 +135,20 @@ public class AotRepositoryQueryMethodBenchmarks {
 				new JpaRepositoryContributor(repositoryContext, entityManager.getEntityManagerFactory())
 						.contribute(generationContext);
 
-				TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
+				generationContext.writeGeneratedContent();
 
-					try {
-						this.aot = compiled.getClassLoader().loadClass(PersonRepository.class.getName() + "Impl__Aot");
-					} catch (Exception e) {
-						throw new RuntimeException(e);
-					}
+				TestCompiler.forSystem().withCompilerOptions("-parameters").with(generationContext).compile(compiled -> {
+					this.aot = compiled.getAllCompiledClasses().stream()
+							.filter(AotRepositoryFragmentSupport.class::isAssignableFrom).findFirst()
+							.orElseThrow(() -> new IllegalStateException("No generated AOT repository fragment found"));
 				});
 			}
 
 			try {
 				RepositoryFactoryBeanSupport.FragmentCreationContext creationContext = getCreationContext(repositoryContext);
 				fragments = RepositoryComposition.RepositoryFragments
-						.just(aot.getConstructor(EntityManager.class, RepositoryFactoryBeanSupport.FragmentCreationContext.class)
-								.newInstance(entityManager, creationContext));
+						.just(aot.getConstructor(EntityManager.class, RepositoryFactoryBeanSupport.FragmentCreationContext.class,
+								BeanFactory.class).newInstance(entityManager, creationContext, new DefaultListableBeanFactory()));
 
 				this.repositoryProxy = createRepository(fragments);
 			} catch (Exception e) {
