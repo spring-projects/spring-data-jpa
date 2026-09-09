@@ -38,6 +38,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.CollectionExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.ModifyingExecution;
 import org.springframework.data.jpa.repository.query.JpaQueryExecution.PagedExecution;
@@ -263,18 +264,30 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 	}
 
 	protected Query createQuery(JpaParametersParameterAccessor parameters) {
-		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(parameters), method), method), method);
+		return applyLockMode(applyEntityGraphConfiguration(applyHints(doCreateQuery(parameters), method), method, parameters),
+				method);
 	}
 
 	/**
-	 * Configures the {@link jakarta.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if the
-	 * {@link EntityGraph} annotation is present.
+	 * Configures the {@link jakarta.persistence.EntityGraph} to use for the given {@link JpaQueryMethod} if an
+	 * {@link EntityGraphHint} parameter is present or the {@link EntityGraph} annotation is configured.
 	 *
 	 * @param query must not be {@literal null}.
 	 * @param method must not be {@literal null}.
+	 * @param parameters must not be {@literal null}.
 	 * @return
 	 */
-	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method) {
+	private Query applyEntityGraphConfiguration(Query query, JpaQueryMethod method, JpaParametersParameterAccessor parameters) {
+
+		EntityGraphHint<?> entityGraphHint = parameters.getEntityGraphHint();
+
+		if (entityGraphHint != null) {
+			QueryHints hints = Jpa21Utils.getFetchGraphHint(em, entityGraphHint,
+					getQueryMethod().getEntityInformation().getJavaType());
+
+			hints.forEach(query::setHint);
+			return query;
+		}
 
 		JpaEntityGraph entityGraph = method.getEntityGraph();
 
