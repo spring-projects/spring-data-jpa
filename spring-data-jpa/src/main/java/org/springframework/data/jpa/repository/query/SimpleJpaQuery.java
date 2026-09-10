@@ -22,7 +22,7 @@ import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -73,7 +73,7 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		String queryString = query.getQueryString();
 		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager(Map.of())) {
-			JpaPortableQueries.createQuery(validatingEm, queryString);
+			JpaAdapter.createQuery(validatingEm, queryString);
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider

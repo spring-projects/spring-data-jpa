@@ -22,6 +22,10 @@ import jakarta.persistence.Tuple;
 import java.util.Collection;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.util.JpaAdapter;
+
 import com.querydsl.core.QueryModifiers;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.FactoryExpression;
@@ -29,9 +33,6 @@ import com.querydsl.jpa.JPQLSerializer;
 import com.querydsl.jpa.JPQLTemplates;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAUtil;
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.data.jpa.util.JpaPortableQueries;
 
 /**
  * Customized String-Query implementation that specifically routes tuple query creation to
@@ -58,7 +59,7 @@ class SpringDataJpaQuery<T> extends JPAQuery<T> {
 
 		Query query = getMetadata().getProjection() instanceof JakartaTuple
 				? entityManager.createQuery(queryString, Tuple.class)
-				: JpaPortableQueries.createQuery(entityManager, queryString);
+				: JpaAdapter.createQuery(entityManager, queryString);
 
 		JPAUtil.setConstants(query, serializer.getConstants(), getMetadata().getParams());
 		if (modifiers != null && modifiers.isRestricting()) {

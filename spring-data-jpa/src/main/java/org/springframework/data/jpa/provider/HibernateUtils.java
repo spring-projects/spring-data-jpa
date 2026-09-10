@@ -20,6 +20,8 @@ import org.hibernate.query.Query;
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.util.Lazy;
+
 /**
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
  * against all the Hibernate version we support.
@@ -36,7 +38,10 @@ import org.jspecify.annotations.Nullable;
  */
 public abstract class HibernateUtils {
 
-	private static final HibernateAdapter HIBERNATE_ADAPTER = HibernateAdapter.create();
+	/**
+	 * Deferred singleton.
+	 */
+	private static final Lazy<HibernateAdapter> HIBERNATE_ADAPTER = Lazy.of(HibernateAdapter::create);
 
 	private HibernateUtils() {}
 
@@ -46,7 +51,7 @@ public abstract class HibernateUtils {
 	 * @since 4.2
 	 */
 	static @Nullable SelectionQuery<?> asSelectionQuery(jakarta.persistence.Query query) {
-		return HIBERNATE_ADAPTER.asSelectionQuery(query);
+		return getHibernateAdapter().asSelectionQuery(query);
 	}
 
 	/**
@@ -57,20 +62,22 @@ public abstract class HibernateUtils {
 	 */
 	public @Nullable static String getHibernateQuery(Object query) {
 
-		if (HIBERNATE_ADAPTER.isSqmQuery(query)) {
+		HibernateAdapter adapter = getHibernateAdapter();
 
-			String hql = HIBERNATE_ADAPTER.getQueryString(query);
-			return queryStringOrFallack(query, hql);
+		if (adapter.isSqmQuery(query)) {
+
+			String hql = adapter.getQueryString(query);
+			return queryStringOrFallback(query, hql);
 		}
 
-		if (HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
+		if (adapter.isNamedSqmQuery(query)) {
 
-			String hql = HIBERNATE_ADAPTER.getHqlString(query);
-			return queryStringOrFallack(query, hql);
+			String hql = adapter.getHqlString(query);
+			return queryStringOrFallback(query, hql);
 		}
 
-		if (HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
-			return HIBERNATE_ADAPTER.getSqlString(query);
+		if (adapter.isNamedNativeQuery(query)) {
+			return adapter.getSqlString(query);
 		}
 
 		if (query instanceof Query<?> hibernateQuery) {
@@ -80,22 +87,22 @@ public abstract class HibernateUtils {
 		throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
 	}
 
-	private static String queryStringOrFallack(Object query, String hql) {
+	private static String queryStringOrFallback(Object query, String hql) {
 
 		if (!hql.equals("<criteria>")) {
 			return hql;
 		}
 
-		return HIBERNATE_ADAPTER.getSqmStatement(query);
+		return getHibernateAdapter().getSqmStatement(query);
 	}
 
 	public static boolean isNativeQuery(Object query) {
 
-		if (HIBERNATE_ADAPTER.isSqmQuery(query) || HIBERNATE_ADAPTER.isNamedSqmQuery(query)) {
+		if (getHibernateAdapter().isSqmQuery(query) || getHibernateAdapter().isNamedSqmQuery(query)) {
 			return false;
 		}
 
-		if (query instanceof NativeQuery<?> || HIBERNATE_ADAPTER.isNamedNativeQuery(query)) {
+		if (query instanceof NativeQuery<?> || getHibernateAdapter().isNamedNativeQuery(query)) {
 			return true;
 		}
 
@@ -110,4 +117,9 @@ public abstract class HibernateUtils {
 
 		return false;
 	}
+
+	private static HibernateAdapter getHibernateAdapter() {
+		return HIBERNATE_ADAPTER.get();
+	}
+
 }

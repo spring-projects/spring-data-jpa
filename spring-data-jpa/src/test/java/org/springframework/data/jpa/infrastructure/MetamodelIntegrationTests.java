@@ -17,8 +17,6 @@ package org.springframework.data.jpa.infrastructure;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
@@ -34,11 +32,13 @@ import jakarta.persistence.metamodel.Bindable.BindableType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,7 +78,7 @@ abstract class MetamodelIntegrationTests {
 	@Test
 	void canAccessParametersByIndexForNativeQueries() {
 
-		Query query = JpaPortableQueries.createNativeQuery(em, "SELECT u from User u where u.lastname = ?1");
+		Query query = JpaAdapter.createNativeQuery(em, "SELECT u from User u where u.lastname = ?1");
 
 		assertThat(query.getParameter(1)).isNotNull();
 	}

@@ -23,9 +23,8 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.CriteriaSelect;
 import jakarta.persistence.criteria.CriteriaUpdate;
 
-import java.lang.reflect.Method;
+import java.util.List;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -34,28 +33,39 @@ import org.springframework.util.ReflectionUtils;
  * Persistence API generations.
  * <p>
  * Jakarta Persistence 4 changes the return type of the untyped query factory methods, so code compiled against 3.2
- * fails with a {@link NoSuchMethodError} when running against 4. Only that case pays for reflection. See GH-4197.
+ * fails with a {@link NoSuchMethodError} when running against 4 and therefore we're falling back tom reflection.
  *
  * @author Oscar Fanchin
  * @author Christoph Strobl
  * @since 4.2
  */
-public abstract class JpaPortableQueries {
+public abstract class JpaAdapter {
 
-	private static final Method CREATE_QUERY = resolveMethod("createQuery", String.class);
-	private static final Method CREATE_NAMED_QUERY = resolveMethod("createNamedQuery", String.class);
-	private static final Method CREATE_NATIVE_QUERY = resolveMethod("createNativeQuery", String.class);
-	private static final Method CREATE_NATIVE_QUERY_WITH_TYPE = resolveMethod("createNativeQuery", String.class,
-			Class.class);
-	private static final Method CREATE_NATIVE_QUERY_WITH_MAPPING = resolveMethod("createNativeQuery", String.class,
+	private static final ReflectiveMethod CREATE_QUERY = ReflectiveMethod.get(EntityManager.class, "createQuery",
 			String.class);
-	private static final Method CREATE_UPDATE_QUERY = resolveCriteriaStatementMethod(CriteriaUpdate.class);
-	private static final Method CREATE_DELETE_QUERY = resolveCriteriaStatementMethod(CriteriaDelete.class);
+	private static final ReflectiveMethod CREATE_NAMED_QUERY = ReflectiveMethod.get(EntityManager.class,
+			"createNamedQuery", String.class);
+	private static final ReflectiveMethod CREATE_NATIVE_QUERY = ReflectiveMethod.get(EntityManager.class,
+			"createNativeQuery", String.class);
+	private static final ReflectiveMethod CREATE_NATIVE_QUERY_WITH_TYPE = ReflectiveMethod.get(EntityManager.class,
+			"createNativeQuery", String.class, Class.class);
+	private static final ReflectiveMethod CREATE_NATIVE_QUERY_WITH_MAPPING = ReflectiveMethod.get(EntityManager.class,
+			"createNativeQuery", String.class, String.class);
+	private static final ReflectiveMethod CREATE_UPDATE_QUERY = resolveCriteriaStatementMethod(CriteriaUpdate.class);
+	private static final ReflectiveMethod CREATE_DELETE_QUERY = resolveCriteriaStatementMethod(CriteriaDelete.class);
 
 	// Method references are resolved on first execution, so the direct calls below are never linked under JPA 4.
 	private static final boolean JPA_32 = CREATE_QUERY.getReturnType() == Query.class;
 
-	private JpaPortableQueries() {}
+	private static final List<ReflectiveMethod> REFLECTIVE_METHODS = List.of(CREATE_QUERY, CREATE_NAMED_QUERY,
+			CREATE_NATIVE_QUERY, CREATE_NATIVE_QUERY_WITH_TYPE, CREATE_NATIVE_QUERY_WITH_MAPPING, CREATE_UPDATE_QUERY,
+			CREATE_DELETE_QUERY);
+
+	private JpaAdapter() {}
+
+	public static List<ReflectiveMethod> getReflectiveMethods() {
+		return REFLECTIVE_METHODS;
+	}
 
 	/**
 	 * Create an untyped query using the runtime Jakarta Persistence API.
@@ -66,7 +76,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createQuery(queryString) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_QUERY, entityManager, queryString);
+				: (Query) CREATE_QUERY.invoke(entityManager, queryString);
 	}
 
 	/**
@@ -78,7 +88,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createNamedQuery(queryName) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_NAMED_QUERY, entityManager, queryName);
+				: (Query) CREATE_NAMED_QUERY.invoke(entityManager, queryName);
 	}
 
 	/**
@@ -90,7 +100,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createNativeQuery(queryString) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_NATIVE_QUERY, entityManager, queryString);
+				: (Query) CREATE_NATIVE_QUERY.invoke(entityManager, queryString);
 	}
 
 	/**
@@ -102,7 +112,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createNativeQuery(queryString, resultClass) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_NATIVE_QUERY_WITH_TYPE, entityManager, queryString, resultClass);
+				: (Query) CREATE_NATIVE_QUERY_WITH_TYPE.invoke(entityManager, queryString, resultClass);
 	}
 
 	/**
@@ -114,8 +124,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createNativeQuery(queryString, resultSetMapping) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_NATIVE_QUERY_WITH_MAPPING, entityManager, queryString,
-						resultSetMapping);
+				: (Query) CREATE_NATIVE_QUERY_WITH_MAPPING.invoke(entityManager, queryString, resultSetMapping);
 	}
 
 	/**
@@ -140,7 +149,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createQuery(criteriaUpdate) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_UPDATE_QUERY, entityManager, criteriaUpdate);
+				: (Query) CREATE_UPDATE_QUERY.invoke(entityManager, criteriaUpdate);
 	}
 
 	/**
@@ -154,16 +163,7 @@ public abstract class JpaPortableQueries {
 
 		return JPA_32 //
 				? entityManager.createQuery(criteriaDelete) //
-				: (Query) ReflectionUtils.invokeMethod(CREATE_DELETE_QUERY, entityManager, criteriaDelete);
-	}
-
-	private static Method resolveMethod(String methodName, Class<?>... parameterTypes) {
-
-		Method method = ReflectionUtils.findMethod(EntityManager.class, methodName, parameterTypes);
-
-		Assert.state(method != null, () -> "Cannot resolve EntityManager.%s".formatted(methodName));
-
-		return method;
+				: (Query) CREATE_DELETE_QUERY.invoke(entityManager, criteriaDelete);
 	}
 
 	/**
@@ -175,33 +175,25 @@ public abstract class JpaPortableQueries {
 	 * @param criteriaType the criteria type to resolve the method for.
 	 * @return the most appropriate method to use.
 	 */
-	private static Method resolveCriteriaStatementMethod(Class<?> criteriaType) {
+	private static ReflectiveMethod resolveCriteriaStatementMethod(Class<?> criteriaType) {
 
-		Method method = findCriteriaMethod("createStatement", criteriaType);
+		ReflectionUtils.MethodFilter filter = method -> method.getParameterCount() == 1
+				&& method.getParameterTypes()[0].isAssignableFrom(criteriaType)
+				&& Query.class.isAssignableFrom(method.getReturnType());
+
+		ReflectiveMethod method = ReflectiveMethod.find(EntityManager.class, "createStatement", filter);
 
 		if (method == null) {
-			method = findCriteriaMethod("createQuery", criteriaType);
+			method = ReflectiveMethod.find(EntityManager.class, "createQuery", filter);
 		}
 
-		if (method != null) {
-			return method;
+		if (method == null) {
+			throw new IllegalStateException(
+					"Cannot resolve EntityManager.createStatement(%1$s) nor EntityManager.createQuery(%1$s)"
+							.formatted(criteriaType.getSimpleName()));
 		}
 
-		throw new IllegalStateException(
-				"Cannot resolve EntityManager.createStatement(%1$s) nor EntityManager.createQuery(%1$s)"
-						.formatted(criteriaType.getSimpleName()));
+		return method;
 	}
 
-	private static @Nullable Method findCriteriaMethod(String methodName, Class<?> criteriaType) {
-
-		for (Method method : EntityManager.class.getMethods()) {
-			if (method.getName().equals(methodName) && method.getParameterCount() == 1
-					&& method.getParameterTypes()[0].isAssignableFrom(criteriaType)
-					&& Query.class.isAssignableFrom(method.getReturnType())) {
-				return method;
-			}
-		}
-
-		return null;
-	}
 }

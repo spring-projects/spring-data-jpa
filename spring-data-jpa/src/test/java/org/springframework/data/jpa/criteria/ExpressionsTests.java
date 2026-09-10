@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.core.TypedPropertyPath;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
@@ -155,7 +155,7 @@ class ExpressionsTests {
 
 		QueryExpression<T, S> qe = new QueryExpression<>(from, callable.apply(from));
 
-		JpaPortableQueries.createQuery(entityManager, query); // validate the query
+		JpaAdapter.createQuery(entityManager, query); // validate the query
 		return qe;
 
 	}

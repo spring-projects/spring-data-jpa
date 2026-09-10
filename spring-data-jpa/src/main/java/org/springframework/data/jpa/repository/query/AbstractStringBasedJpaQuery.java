@@ -29,7 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -208,7 +208,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryStringToUse = potentiallyRewriteQuery(queryString, accessor.getSort(), accessor.getPageable());
 
 		Query query = getQueryMethod().isNativeQuery() //
-				? JpaPortableQueries.createNativeQuery(em, queryStringToUse) //
+				? JpaAdapter.createNativeQuery(em, queryStringToUse) //
 				: em.createQuery(queryStringToUse, Long.class);
 
 		countParameterBinder.get().bind(new QueryParameterSetter.BindableQuery(query), accessor,
@@ -242,13 +242,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryToUse = potentiallyRewriteQuery(query.getQueryString(), sort, pageable);
 
 		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
-			return JpaPortableQueries.createQuery(em, queryToUse);
+			return JpaAdapter.createQuery(em, queryToUse);
 		}
 
 		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null //
-				? JpaPortableQueries.createQuery(em, queryToUse) //
+				? JpaAdapter.createQuery(em, queryToUse) //
 				: em.createQuery(queryToUse, typeToRead);
 	}
 

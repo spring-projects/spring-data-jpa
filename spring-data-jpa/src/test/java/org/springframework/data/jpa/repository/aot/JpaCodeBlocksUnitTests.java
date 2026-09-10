@@ -50,14 +50,14 @@ import org.springframework.javapoet.CodeBlock;
  */
 class JpaCodeBlocksUnitTests {
 
-	@Test // GH-4152, GH-4197
+	@Test // GH-4152
 	void appliesLockModeIfPresent() throws NoSuchMethodException {
 
 		CodeBlock codeBlock = initQueryBuilder()
 				.filter(new AotQueries(jpqlQuery("SELECT d FROM DummyEntity d", List.of(), Limit.unlimited(), false, false))) //
 				.lockMode(LockModeType.PESSIMISTIC_READ).build();
 
-		assertThat(codeBlock.toString()).containsSubsequence("setLockMode(query, ", "LockModeType.PESSIMISTIC_READ)");
+		assertThat(codeBlock.toString()).containsSubsequence(".setLockMode(", "LockModeType.PESSIMISTIC_READ)");
 	}
 
 	QueryBlockBuilder initQueryBuilder() throws NoSuchMethodException {

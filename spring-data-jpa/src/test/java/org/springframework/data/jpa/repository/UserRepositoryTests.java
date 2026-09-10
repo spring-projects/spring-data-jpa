@@ -81,7 +81,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.repository.sample.Users;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -151,7 +151,7 @@ class UserRepositoryTests {
 	@Test
 	void testCreation() {
 
-		Query countQuery = JpaPortableQueries.createQuery(em, "select count(u) from User u");
+		Query countQuery = JpaAdapter.createQuery(em, "select count(u) from User u");
 		Long before = (Long) countQuery.getSingleResult();
 
 		flushTestUsers();
@@ -3308,7 +3308,7 @@ class UserRepositoryTests {
 	@Test // DATAJPA-1172
 	void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
-		Query query = JpaPortableQueries.createNativeQuery(em,
+		Query query = JpaAdapter.createNativeQuery(em,
 				"select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).hasSize(2);
 	}

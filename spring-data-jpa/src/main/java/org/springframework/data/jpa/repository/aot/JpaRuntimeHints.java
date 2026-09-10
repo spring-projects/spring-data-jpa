@@ -31,14 +31,19 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 import org.springframework.data.jpa.domain.support.AuditingBeanFactoryPostProcessor;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.provider.HibernateAdapter;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector.DefaultQueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.QuerydslJpaPredicateExecutor;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.data.jpa.util.JpaAdapter;
+import org.springframework.data.jpa.util.ReflectiveMethod;
+import org.springframework.data.jpa.util.ReflectiveMethods;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Runtime hints for JPA AOT processing.
@@ -110,7 +115,7 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 			       at org.graalvm.nativeimage.builder/com.oracle.svm.core.graal.snippets.SubstrateAllocationSnippets.arrayHubErrorStub(SubstrateAllocationSnippets.java:345)
 			       at org.hibernate.internal.util.collections.StandardStack.push(StandardStack.java:48)
 			       at org.hibernate.query.sqm.sql.BaseSqmToSqlAstConverter.visitQuerySpec(BaseSqmToSqlAstConverter.java:2073)
-			
+
 			   both formats:
 			   - org.hibernate.query.sqm.tree.select.SqmQueryPart[]
 			   - [Lorg.hibernate.query.sqm.tree.select.SqmQueryPart;
@@ -120,6 +125,15 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 					MemberCategory.UNSAFE_ALLOCATED);
 
 			// --> Hibernate 7 & 8 copatibility with tons of moved types between generations
+
+			HibernateAdapter adapter = HibernateAdapter.create();
+			if (adapter instanceof ReflectiveMethods methods) {
+				registerMethods(hints, methods.getReflectiveMethods());
+			}
+
+			registerMethods(hints, JpaAdapter.getReflectiveMethods());
+
+			// TODO: Review which of these are still required.
 
 			registerHibernateContract(hints, classLoader, "org.hibernate.query.spi.SqmQuery", "getSqmStatement");
 			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.spi.SqmStatementAccess",
@@ -142,6 +156,23 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 			// Criteria to HQL rendering
 			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.tree.SqmVisitableNode", "toHqlString");
 			registerHibernateContract(hints, classLoader, "org.hibernate.query.sqm.tree.spi.SqmVisitableNode", "toHqlString");
+		}
+	}
+
+	private void registerMethods(RuntimeHints hints, List<ReflectiveMethod> methods) {
+
+		for (ReflectiveMethod reflectiveMethod : methods) {
+
+			hints.reflection().registerType(TypeReference.of(reflectiveMethod.getLookupType()), hint -> {
+
+				ReflectionUtils.doWithMethods(reflectiveMethod.getLookupType(), method -> {
+
+					List<TypeReference> parameterTypes = Arrays.stream(method.getParameterTypes()).map(TypeReference::of)
+							.toList();
+					hint.withMethod(method.getName(), parameterTypes, ExecutableMode.INVOKE);
+
+				}, method -> method.getName().equals(reflectiveMethod.getMethodName()));
+			});
 		}
 	}
 
