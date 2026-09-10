@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Oliver Gierke
  * @author Thomas Darimont
  * @author Mark Paluch
+ * @author Maxim Shabanov
  */
 @Transactional
 @ContextConfiguration
@@ -72,6 +73,11 @@ class QuerydslRepositorySupportIntegrationTests {
 		}
 
 		@Bean
+		public MemberRepositoryUsingQueryDsl memberRepo() {
+			return new MemberRepositoryUsingQueryDsl();
+		}
+
+		@Bean
 		public EntityManagerContainer entityManagerContainer() {
 			return new EntityManagerContainer();
 		}
@@ -89,6 +95,7 @@ class QuerydslRepositorySupportIntegrationTests {
 	@Autowired org.springframework.data.jpa.repository.support.QuerydslRepositorySupportTests.UserRepository repository;
 	@Autowired CustomRepoUsingQueryDsl querydslCustom;
 	@Autowired ReconfiguringUserRepositoryImpl reconfiguredRepo;
+	@Autowired MemberRepositoryUsingQueryDsl memberRepository;
 
 	@PersistenceContext(unitName = "querydsl") EntityManager em;
 
@@ -110,6 +117,14 @@ class QuerydslRepositorySupportIntegrationTests {
 
 		assertThat(querydslCustom).isNotNull();
 		assertThat(querydslCustom.getEntityManager().getEntityManagerFactory()) //
+				.isEqualTo(em.getEntityManagerFactory());
+	}
+
+	@Test // GH-4300
+	void createsRepositoryWithMemberRepositoryUsingQueryDsl() {
+
+		assertThat(memberRepository).isNotNull();
+		assertThat(memberRepository.getEntityManager().getEntityManagerFactory()) //
 				.isEqualTo(em.getEntityManagerFactory());
 	}
 
@@ -136,5 +151,9 @@ class QuerydslRepositorySupportIntegrationTests {
 		public CustomRepoUsingQueryDsl() {
 			super(User.class);
 		}
+	}
+
+	static class MemberRepositoryUsingQueryDsl extends QuerydslRepositorySupport<User> {
+
 	}
 }
