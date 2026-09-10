@@ -60,6 +60,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Arai
  * @since 4.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
@@ -142,7 +143,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
+	public Expression<?> visitBinaryExpressionPredicate(HqlParser.BinaryExpressionPredicateContext ctx) {
+
+		if (ctx.op == null) {
+			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, renderContext(ctx).trim()));
+		}
 
 		Expression<Comparable> left = visitRequired(ctx.expression(0));
 		Expression<Comparable> right = visitRequired(ctx.expression(1));
@@ -160,7 +165,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
+	public Expression<?> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 
 		Expression<Comparable> condition = visitRequired(ctx.expression(0));
 		Expression<Comparable> lower = visitRequired(ctx.expression(1));
@@ -215,7 +220,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
+	public Expression<?> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
 
 		Expression<String> condition = visitRequired(ctx.expression(0));
 		Expression<String> match = visitRequired(ctx.expression(1));
@@ -290,7 +295,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitInExpression(HqlParser.InExpressionContext ctx) {
+	public Expression<?> visitInPredicate(HqlParser.InPredicateContext ctx) {
 
 		if (ctx.inList().simplePath() != null) {
 			throw new UnsupportedOperationException(
