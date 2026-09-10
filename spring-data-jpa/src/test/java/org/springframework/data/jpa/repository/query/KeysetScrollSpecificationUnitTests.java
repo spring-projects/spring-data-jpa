@@ -19,14 +19,21 @@ import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+
+import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.sample.SampleWithIdClass;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.provider.HibernateUtils;
 import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -36,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Unit tests for {@link KeysetScrollSpecification}.
  *
  * @author Mark Paluch
+ * @author Seongho Eom
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -72,6 +80,29 @@ class KeysetScrollSpecificationUnitTests {
 						em.getEntityManagerFactory().getPersistenceUnitUtil()));
 
 		assertThat(sort).extracting(Order::getProperty).containsExactly("id", "firstname");
+	}
+
+	@Test // GH-4303
+	void shouldResolveJpaMetamodelAttributeNameForKeysetPredicate() {
+
+		Map<String, Object> keys = Map.of("id", 1L, "isActive", false);
+		KeysetScrollPosition position = ScrollPosition.of(keys, ScrollPosition.Direction.FORWARD);
+		JpaMetamodelEntityInformation<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess, Long> entityInformation = new JpaMetamodelEntityInformation<>(
+				PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class, em.getMetamodel(),
+				em.getEntityManagerFactory().getPersistenceUnitUtil());
+		KeysetScrollSpecification<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> specification = new KeysetScrollSpecification<>(
+				position, Sort.by("isActive"), entityInformation);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> query = builder
+				.createQuery(PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class);
+		Root<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> root = query
+				.from(PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class);
+
+		query.where(specification.createPredicate(root, builder));
+
+		assertThat(HibernateUtils.getHibernateQuery(em.createQuery(query).unwrap(org.hibernate.query.Query.class)))
+				.contains(".active")
+				.doesNotContain(".isActive");
 	}
 
 }

@@ -35,6 +35,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Nulls;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.spi.PersistenceProvider;
 import jakarta.persistence.spi.PersistenceProviderResolver;
 import jakarta.persistence.spi.PersistenceProviderResolverHolder;
@@ -76,12 +77,63 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Diego Krupitza
  * @author Krzysztof Krason
  * @author Jakub Soltys
+ * @author Seongho Eom
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
 class QueryUtilsIntegrationTests {
 
 	@PersistenceContext EntityManager em;
+
+	@Test // GH-4303
+	void resolvesPropertyPathAgainstJpaMetamodelAttributeName() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> query = builder
+				.createQuery(PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class);
+		Root<PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess> from = query
+				.from(PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class);
+
+		Path<?> expression = (Path<?>) QueryUtils.toExpressionRecursively(from,
+				PropertyPath.from("isActive", PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class));
+
+		assertThat(expression.getModel()).isInstanceOf(Attribute.class);
+		assertThat(((Attribute<?, ?>) expression.getModel()).getName()).isEqualTo("active");
+
+		expression = (Path<?>) QueryUtils.toExpressionRecursively(from,
+				PropertyPath.from("isVerified", PartTreeJpaQueryIntegrationTests.IsActivePropertyAccess.class));
+
+		assertThat(expression.getModel()).isInstanceOf(Attribute.class);
+		assertThat(((Attribute<?, ?>) expression.getModel()).getName()).isEqualTo("verified");
+	}
+
+	@Test // GH-4303
+	void prefersDirectJpaAttributeAndResolvesNestedPropertyPath() {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<PartTreeJpaQueryIntegrationTests.IsActiveFieldAccess> fieldAccessQuery = builder
+				.createQuery(PartTreeJpaQueryIntegrationTests.IsActiveFieldAccess.class);
+		Root<PartTreeJpaQueryIntegrationTests.IsActiveFieldAccess> fieldAccessRoot = fieldAccessQuery
+				.from(PartTreeJpaQueryIntegrationTests.IsActiveFieldAccess.class);
+
+		Path<?> expression = (Path<?>) QueryUtils.toExpressionRecursively(fieldAccessRoot,
+				PropertyPath.from("isActive", PartTreeJpaQueryIntegrationTests.IsActiveFieldAccess.class));
+
+		assertThat(expression.getModel()).isInstanceOf(Attribute.class);
+		assertThat(((Attribute<?, ?>) expression.getModel()).getName()).isEqualTo("isActive");
+
+		CriteriaQuery<PartTreeJpaQueryIntegrationTests.NestedIsActivePropertyAccess> nestedQuery = builder
+				.createQuery(PartTreeJpaQueryIntegrationTests.NestedIsActivePropertyAccess.class);
+		Root<PartTreeJpaQueryIntegrationTests.NestedIsActivePropertyAccess> nestedRoot = nestedQuery
+				.from(PartTreeJpaQueryIntegrationTests.NestedIsActivePropertyAccess.class);
+
+		expression = (Path<?>) QueryUtils.toExpressionRecursively(nestedRoot,
+				PropertyPath.from("details.isActive",
+						PartTreeJpaQueryIntegrationTests.NestedIsActivePropertyAccess.class));
+
+		assertThat(expression.getModel()).isInstanceOf(Attribute.class);
+		assertThat(((Attribute<?, ?>) expression.getModel()).getName()).isEqualTo("active");
+	}
 
 	@Test // DATAJPA-403
 	void reusesExistingJoinForExpression() {

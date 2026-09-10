@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Choi Wang Gyu
  * @author Jeongwon Ryu
+ * @author Seongho Eom
  * @since 4.0
  */
 @SuppressWarnings("JavadocDeclaration")
@@ -1634,9 +1635,15 @@ public final class JpqlQueryBuilder {
 	 * @param path
 	 * @param origin
 	 * @param onTheJoin whether the path should target the join itself instead of matching {@link PropertyPath}.
+	 * @param attributePath the path rendered as JPA metamodel attribute names, or {@literal null} to render the parsed
+	 *          {@link PropertyPath#toDotPath() property path}.
 	 */
-	record PathAndOrigin(PropertyPath path, Origin origin,
-			boolean onTheJoin) implements PathExpression {
+	record PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin,
+			@Nullable String attributePath) implements PathExpression {
+
+		PathAndOrigin(PropertyPath path, Origin origin, boolean onTheJoin) {
+			this(path, origin, onTheJoin, null);
+		}
 
 		@Override
 		public PropertyPath getPropertyPath() {
@@ -1647,7 +1654,7 @@ public final class JpqlQueryBuilder {
 		public String render(RenderContext context) {
 
 			if (path().hasNext() || !onTheJoin()) {
-				return context.prefixWithAlias(origin(), path().toDotPath());
+				return context.prefixWithAlias(origin(), attributePath() != null ? attributePath() : path().toDotPath());
 			} else {
 				return context.getAlias(origin());
 			}
@@ -1656,7 +1663,7 @@ public final class JpqlQueryBuilder {
 		public Expression parent() {
 
 			if (origin instanceof Join join) {
-				return new PathAndOrigin(path(), join.source(), false);
+				return new PathAndOrigin(path(), join.source(), false, attributePath());
 			}
 
 			throw new IllegalStateException("Cannot obtain parent expression for non-join origin: " + origin);

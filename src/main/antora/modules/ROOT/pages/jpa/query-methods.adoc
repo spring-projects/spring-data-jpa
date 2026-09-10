@@ -35,6 +35,10 @@ public interface UserRepository extends Repository<User, Long> {
 We create a query using JPQL  translating into the following query: `select u from User u where u.emailAddress = ?1 and u.lastname = ?2`. Spring Data JPA does a property check and traverses nested properties, as described in xref:repositories/query-methods-details.adoc#repositories.query-methods.query-property-expressions[Property Expressions].
 ====
 
+For property-access entities, Spring Data JPA can reconcile an `is`-prefixed Boolean property path with the attribute name derived from its JPA getter.
+This allows a Boolean domain property named `isActive`, backed by an `isActive()` accessor and exposed by JPA as the `active` attribute, to be used in a query method such as `findByIsActiveTrue()`.
+The same rule applies to Kotlin and Java domain types and is limited to `boolean` or `Boolean` accessors whose names start with `is` followed by an uppercase character.
+
 The following table describes the keywords supported for JPA and what a method containing that keyword translates to:
 
 .Supported keywords inside method names

@@ -17,7 +17,12 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Id;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
@@ -62,6 +67,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * @author Jens Schauder
  * @author Krzysztof Krason
  * @author Christoph Strobl
+ * @author Seongho Eom
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -260,6 +266,88 @@ class PartTreeJpaQueryIntegrationTests {
 		assertThat(total).isInstanceOf(Number.class).isNotInstanceOf(Tuple.class);
 	}
 
+	@Test // GH-4303
+	void resolvesPropertyPathAgainstJpaMetamodelAttributeName() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(IsActiveRepository.class, "findByIsActiveTrue");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".active = TRUE");
+
+		queryMethod = getQueryMethod(IsActiveRepository.class, "findByIsEnabledTrue");
+		jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".enabled = TRUE");
+
+		queryMethod = getQueryMethod(IsActiveRepository.class, "findByIsVerifiedTrue");
+		jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".verified = TRUE");
+	}
+
+	@Test // GH-4303
+	void doesNotResolveArbitraryAccessorNameAsJpaAttribute() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(GetFooRepository.class, "findByGetFoo", String.class);
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		assertThatThrownBy(() -> jpaQuery.createQuery(getAccessor(queryMethod, new Object[] { "foo" })))
+				.hasMessageContaining("getFoo");
+	}
+
+	@Test // GH-4303
+	void prefersDirectJpaAttributeName() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(IsActiveFieldAccessRepository.class, "findByIsActiveTrue");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".isActive = TRUE");
+	}
+
+	@Test // GH-4303
+	void resolvesNestedPropertyPathAgainstJpaMetamodelAttributeName() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(NestedIsActiveRepository.class, "findByDetailsIsActiveTrue");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
+				.contains("JOIN", ".details", ".active = TRUE").doesNotContain(".isActive");
+	}
+
+	@Test // GH-4303
+	void resolvesJpaMetamodelAttributeNameForOrderingAndCountOrExistsProjection() throws Exception {
+
+		JpaQueryMethod queryMethod = getQueryMethod(IsActiveRepository.class, "findByOrderByIsActiveDesc");
+		PartTreeJpaQuery jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		Query query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
+				.contains("ORDER BY").containsIgnoringCase(".active DESC").doesNotContain(".isActive");
+
+		queryMethod = getQueryMethod(IsActiveRepository.class, "existsByIsActiveTrue");
+		jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY))).contains(".active = TRUE");
+
+		queryMethod = getQueryMethod(IsActiveRepository.class, "countByIsActiveTrue");
+		jpaQuery = new PartTreeJpaQuery(queryMethod, entityManager);
+
+		query = jpaQuery.createQuery(getAccessor(queryMethod, new Object[0]));
+		assertThat(HibernateUtils.getHibernateQuery(query.unwrap(HIBERNATE_NATIVE_QUERY)))
+				.contains("COUNT", ".active = TRUE").doesNotContain(".isActive");
+	}
+
 	private void testIgnoreCase(String methodName, Object... values) throws Exception {
 
 		Class<?>[] parameterTypes = new Class[values.length];
@@ -351,6 +439,150 @@ class PartTreeJpaQueryIntegrationTests {
 
 	interface ProjectionPagingRepository extends Repository<User, Integer> {
 		Page<UserNameProjection> findByFirstname(String firstname, Pageable pageable);
+	}
+
+	interface IsActiveRepository extends Repository<IsActivePropertyAccess, Long> {
+		List<IsActivePropertyAccess> findByIsActiveTrue();
+
+		List<IsActivePropertyAccess> findByIsEnabledTrue();
+
+		List<IsActivePropertyAccess> findByIsVerifiedTrue();
+
+		List<IsActivePropertyAccess> findByOrderByIsActiveDesc();
+
+		boolean existsByIsActiveTrue();
+
+		long countByIsActiveTrue();
+	}
+
+	interface IsActiveFieldAccessRepository extends Repository<IsActiveFieldAccess, Long> {
+		List<IsActiveFieldAccess> findByIsActiveTrue();
+	}
+
+	interface NestedIsActiveRepository extends Repository<NestedIsActivePropertyAccess, Long> {
+		List<NestedIsActivePropertyAccess> findByDetailsIsActiveTrue();
+	}
+
+	interface GetFooRepository extends Repository<GetFooPropertyAccess, Long> {
+		List<GetFooPropertyAccess> findByGetFoo(String foo);
+	}
+
+	@Entity(name = "IsActivePropertyAccess")
+	static class IsActivePropertyAccess {
+
+		private Long id;
+		private boolean isActive;
+		private boolean isEnabled;
+		private Boolean isVerified;
+
+		@Id
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		@Column(nullable = false)
+		public boolean isActive() {
+			return isActive;
+		}
+
+		public void setActive(boolean active) {
+			isActive = active;
+		}
+
+		@Column(nullable = false)
+		public boolean isEnabled() {
+			return isEnabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			isEnabled = enabled;
+		}
+
+		@Column
+		public Boolean isVerified() {
+			return isVerified;
+		}
+
+		public void setVerified(Boolean verified) {
+			isVerified = verified;
+		}
+	}
+
+	@Entity(name = "GetFooPropertyAccess")
+	static class GetFooPropertyAccess {
+
+		private Long id;
+		private String getFoo;
+
+		@Id
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		@Column
+		public String getFoo() {
+			return getFoo;
+		}
+
+		public void setFoo(String foo) {
+			getFoo = foo;
+		}
+	}
+
+	@Entity(name = "IsActiveFieldAccess")
+	static class IsActiveFieldAccess {
+
+		@Id Long id;
+
+		@Column boolean isActive;
+	}
+
+	@Entity(name = "NestedIsActivePropertyAccess")
+	static class NestedIsActivePropertyAccess {
+
+		private Long id;
+		private ActiveDetails details;
+
+		@Id
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		@Embedded
+		public ActiveDetails getDetails() {
+			return details;
+		}
+
+		public void setDetails(ActiveDetails details) {
+			this.details = details;
+		}
+	}
+
+	@Embeddable
+	static class ActiveDetails {
+
+		private boolean isActive;
+
+		@Column(nullable = false)
+		public boolean isActive() {
+			return isActive;
+		}
+
+		public void setActive(boolean active) {
+			isActive = active;
+		}
 	}
 
 }
