@@ -445,6 +445,16 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>builddef.lst</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>aspectj-maven-plugin</artifactId>
 				<version>1.16.0</version>
@@ -478,6 +488,8 @@
 					<parameters>true</parameters>
 					<verbose>true</verbose>
 					<showWeaveInfo>true</showWeaveInfo>
+					<!-- Keep AJC's argument file out of target/classes so it is not packaged. -->
+					<argumentFileName>../builddef.lst</argumentFileName>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
