@@ -478,6 +478,8 @@
 					<parameters>true</parameters>
 					<verbose>true</verbose>
 					<showWeaveInfo>true</showWeaveInfo>
+					<!-- Keep AJC's argument file out of target/classes so it is not packaged. -->
+					<argumentFileName>../builddef.lst</argumentFileName>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>
