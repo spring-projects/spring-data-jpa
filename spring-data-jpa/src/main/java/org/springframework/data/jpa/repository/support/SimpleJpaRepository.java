@@ -68,7 +68,7 @@ import org.springframework.data.jpa.repository.support.FetchableFluentQueryBySpe
 import org.springframework.data.jpa.repository.support.FluentQuerySupport.ScrollQueryFactory;
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
@@ -266,7 +266,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			String queryString = String.format(DELETE_ALL_QUERY_BY_ID_STRING, entityInformation.getEntityName(),
 					entityInformation.getRequiredIdAttribute().getName());
 
-			Query query = JpaPortableQueries.createQuery(entityManager, queryString);
+			Query query = JpaAdapter.createQuery(entityManager, queryString);
 
 			/*
 			 * Some JPA providers require {@code ids} to be a {@link Collection} so we must convert if it's not already.
@@ -318,7 +318,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 	@Transactional
 	public void deleteAllInBatch() {
 
-		Query query = JpaPortableQueries.createQuery(entityManager, deleteAllQueryString.get());
+		Query query = JpaAdapter.createQuery(entityManager, deleteAllQueryString.get());
 
 		applyQueryHints(query);
 
@@ -497,7 +497,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applySpecificationToCriteria(spec, getDomainClass(), cq);
 
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(JpaPortableQueries.createQuery(this.entityManager, cq));
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(JpaAdapter.createQuery(this.entityManager, cq));
 		return ExistsUtil.exists(query.setMaxResults(1).getResultList().size());
 	}
 
@@ -601,7 +601,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applySpecificationToCriteria(spec, example.getProbeType(), cq);
 
-		TypedQuery<Integer> query = applyRepositoryMethodMetadata(JpaPortableQueries.createQuery(this.entityManager, cq));
+		TypedQuery<Integer> query = applyRepositoryMethodMetadata(JpaAdapter.createQuery(this.entityManager, cq));
 		return ExistsUtil.exists(query.setMaxResults(1).getResultList().size());
 	}
 
@@ -868,7 +868,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 			query.orderBy(toOrders(sort, root, builder));
 		}
 
-		return applyRepositoryMethodMetadata(JpaPortableQueries.createQuery(entityManager, query));
+		return applyRepositoryMethodMetadata(JpaAdapter.createQuery(entityManager, query));
 	}
 
 	/**
@@ -886,7 +886,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applySpecificationToCriteria(spec, domainClass, query);
 
-		return applyRepositoryMethodMetadata(JpaPortableQueries.createQuery(entityManager, query));
+		return applyRepositoryMethodMetadata(JpaAdapter.createQuery(entityManager, query));
 	}
 
 	/**
@@ -904,7 +904,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		applySpecificationToCriteria(spec, domainClass, query);
 
-		return applyRepositoryMethodMetadata(JpaPortableQueries.createQuery(entityManager, query));
+		return applyRepositoryMethodMetadata(JpaAdapter.createQuery(entityManager, query));
 	}
 
 	/**
@@ -942,7 +942,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 		// Remove all Orders the Specifications might have applied
 		query.orderBy(Collections.emptyList());
 
-		return applyRepositoryMethodMetadataForCount(JpaPortableQueries.createQuery(entityManager, query));
+		return applyRepositoryMethodMetadataForCount(JpaAdapter.createQuery(entityManager, query));
 	}
 
 	/**

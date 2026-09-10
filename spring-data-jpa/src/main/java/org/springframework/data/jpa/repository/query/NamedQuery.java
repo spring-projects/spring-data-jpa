@@ -30,13 +30,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.util.Lazy;
-import org.springframework.data.jpa.util.JpaPortableQueries;
 import org.springframework.util.StringUtils;
 
 /**
@@ -85,7 +85,7 @@ final class NamedQuery extends AbstractJpaQuery {
 
 		this.namedCountQueryIsPresent = hasNamedQuery(em, countQueryName);
 
-		Query namedQuery = JpaPortableQueries.createNamedQuery(em, queryName);
+		Query namedQuery = JpaAdapter.createNamedQuery(em, queryName);
 		boolean weNeedToCreateCountQuery = !namedCountQueryIsPresent && method.getParameters().hasLimitingParameters();
 		boolean cantExtractQuery = !extractor.canExtractQuery();
 
@@ -143,7 +143,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		 */
 
 		try (EntityManager lookupEm = em.getEntityManagerFactory().createEntityManager(Map.of())) {
-			JpaPortableQueries.createNamedQuery(lookupEm, queryName);
+			JpaAdapter.createNamedQuery(lookupEm, queryName);
 			return true;
 		} catch (IllegalArgumentException e) {
 
@@ -209,7 +209,7 @@ final class NamedQuery extends AbstractJpaQuery {
 		Class<?> typeToRead = getTypeToRead(processor.getReturnedType());
 
 		Query query = typeToRead == null //
-				? JpaPortableQueries.createNamedQuery(em, queryName) //
+				? JpaAdapter.createNamedQuery(em, queryName) //
 				: em.createNamedQuery(queryName, typeToRead);
 
 		return parameterBinder.get().bindAndPrepare(query, accessor);

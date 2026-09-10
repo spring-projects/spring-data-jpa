@@ -17,7 +17,7 @@ jobs:
           - java-version: main
             profiles: -Pall-dbs
           - java-version: main
-            profiles: -Pall-dbs,h8
+            profiles: -Pall-dbs,hibernate-8
     name: Build project (${{ matrix.java-version }}, ${{ matrix.profiles }})
     runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
     steps:

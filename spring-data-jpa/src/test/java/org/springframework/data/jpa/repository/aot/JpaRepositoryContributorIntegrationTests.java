@@ -15,10 +15,7 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatException;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 
@@ -31,6 +28,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.query.QueryTypeMismatchException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Limit;
@@ -43,7 +41,7 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,8 +72,8 @@ class JpaRepositoryContributorIntegrationTests {
 	@BeforeEach
 	void beforeEach() {
 
-		JpaPortableQueries.createQuery(em, "DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
-		JpaPortableQueries.createQuery(em, "DELETE FROM %s".formatted(Role.class.getName())).executeUpdate();
+		JpaAdapter.createQuery(em, "DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
+		JpaAdapter.createQuery(em, "DELETE FROM %s".formatted(Role.class.getName())).executeUpdate();
 
 		smuggler = em.merge(new Role("Smuggler"));
 		jedi = em.merge(new Role("Jedi"));
@@ -564,7 +562,7 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(result).isNotNull().extracting(User::getEmailAddress).isEqualTo("yoda@jedi.org");
 
-		Object yodaShouldBeGone = JpaPortableQueries
+		Object yodaShouldBeGone = JpaAdapter
 				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
@@ -576,7 +574,7 @@ class JpaRepositoryContributorIntegrationTests {
 		User user = fragment.deleteByEmailAddressAndIdIsNotNull("yoda@jedi.org");
 		assertThat(user).isNotNull().extracting(User::getEmailAddress).isEqualTo("yoda@jedi.org");
 
-		Object yodaShouldBeGone = JpaPortableQueries
+		Object yodaShouldBeGone = JpaAdapter
 				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
@@ -589,7 +587,7 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(count).isEqualTo(1);
 
-		Object yodaShouldBeGone = JpaPortableQueries
+		Object yodaShouldBeGone = JpaAdapter
 				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
@@ -617,7 +615,7 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(affected).isEqualTo(7);
 
-		Object yodaShouldBeGone = JpaPortableQueries
+		Object yodaShouldBeGone = JpaAdapter
 				.createQuery(em, "SELECT u FROM %s u WHERE u.lastname = 'n/a'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();

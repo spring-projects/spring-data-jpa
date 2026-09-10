@@ -47,6 +47,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
+import org.springframework.data.jpa.util.JpaDetector;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.aot.generate.AotRepositoryClassBuilder;
 import org.springframework.data.repository.aot.generate.AotRepositoryConstructorBuilder;
@@ -83,6 +84,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	private static final AnnotationSpec SUPPRESS_WARNINGS = AnnotationSpec.builder(SuppressWarnings.class)
 			.addMember("value", "{$S, $S, $S, $S}", "deprecation", "rawtypes", "removal", "unchecked").build();
 
+
 	private final AotRepositoryContext context;
 	private final EntityManagerFactory entityManagerFactory;
 	private final Metamodel metamodel;
@@ -115,8 +117,15 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 	@Override
 	protected void customizeClass(AotRepositoryClassBuilder classBuilder) {
-		classBuilder.customize(builder -> builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class))
-				.addAnnotation(SUPPRESS_WARNINGS));
+		classBuilder.customize(builder -> {
+			builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class));
+
+			// suppress compiler warnings for the many @Deprecated(since = "4.0", forRemoval = true) instances
+			if (JpaDetector.isJpa4Present()) {
+				builder.addAnnotation(SUPPRESS_WARNINGS);
+			}
+		});
+
 	}
 
 	@Override

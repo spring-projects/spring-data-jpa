@@ -32,8 +32,8 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.data.util.ReflectionUtils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Builds the {@link Dialect} used to satisfy Hibernate's bootstrap requirements
@@ -48,7 +48,7 @@ import org.springframework.util.ClassUtils;
 class AotDialectFactory {
 
 	/**
-	 * Flag if {@link Dialect#getMultiTableMutationSupport()} exists so we need to prevent Hibernate 8 from creating an
+	 * Flag if {@code Dialect#getMultiTableMutationSupport()} exists so we need to prevent Hibernate 8 from creating an
 	 * implementation that we cannot tolerate during AOT.
 	 */
 	private static final boolean NEEDS_IDENTITY_COLUMN_SUPPORT_OVERRIDE = ClassUtils.hasMethod(Dialect.class,
@@ -76,17 +76,17 @@ class AotDialectFactory {
 
 		Class<?> implementation = resolveAvailableType(type.getPackageName(), simpleName, type.getClassLoader());
 
-		Field instanceField = org.springframework.util.ReflectionUtils.findField(implementation, "INSTANCE");
+		Field instanceField = ReflectionUtils.findField(implementation, "INSTANCE");
 
 		if (instanceField != null) {
-			org.springframework.util.ReflectionUtils.makeAccessible(instanceField);
-			return org.springframework.util.ReflectionUtils.getField(instanceField, null);
+			ReflectionUtils.makeAccessible(instanceField);
+			return ReflectionUtils.getField(instanceField, null);
 		}
 
 		try {
 
 			Constructor<?> constructor = implementation.getDeclaredConstructor();
-			org.springframework.util.ReflectionUtils.makeAccessible(constructor);
+			ReflectionUtils.makeAccessible(constructor);
 			return constructor.newInstance();
 		} catch (ReflectiveOperationException ex) {
 			throw new IllegalStateException("Cannot instantiate %s".formatted(implementation.getName()), ex);
@@ -125,7 +125,7 @@ class AotDialectFactory {
 			}
 
 			if (returnType.isPrimitive()) {
-				return ReflectionUtils.getPrimitiveDefault(returnType);
+				return org.springframework.data.util.ReflectionUtils.getPrimitiveDefault(returnType);
 			}
 
 			// just use any value for the enum to satisfy the contract
@@ -184,7 +184,7 @@ class AotDialectFactory {
 					}
 
 					if (method.getReturnType().isPrimitive()) {
-						return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
+						return org.springframework.data.util.ReflectionUtils.getPrimitiveDefault(method.getReturnType());
 					}
 
 					return null;
@@ -209,7 +209,7 @@ class AotDialectFactory {
 			}
 
 			if (method.getReturnType().isPrimitive()) {
-				return ReflectionUtils.getPrimitiveDefault(method.getReturnType());
+				return org.springframework.data.util.ReflectionUtils.getPrimitiveDefault(method.getReturnType());
 			}
 
 			return null;

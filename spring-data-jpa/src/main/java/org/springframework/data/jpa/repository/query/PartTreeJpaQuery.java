@@ -39,7 +39,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryExecution.ScrollExe
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
-import org.springframework.data.jpa.util.JpaPortableQueries;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -242,7 +242,7 @@ public class PartTreeJpaQuery extends AbstractJpaQuery {
 			}
 
 			try {
-				query = creator.useTupleQuery() ? em.createQuery(jpql, Tuple.class) : JpaPortableQueries.createQuery(em, jpql);
+				query = creator.useTupleQuery() ? em.createQuery(jpql, Tuple.class) : JpaAdapter.createQuery(em, jpql);
 			} catch (Exception e) {
 				throw new BadJpqlGrammarException(e.getMessage(), jpql, e);
 			}

@@ -15,10 +15,8 @@
  */
 package org.springframework.data.jpa.provider;
 
-import java.util.List;
-
 /**
- * {@link HibernateAdapter} for the Hibernate 7 contracts.
+ * {@link HibernateAdapter} for the Hibernate 7.
  * <p>
  * Selection queries implement {@code SelectionQuery} directly on this generation, so {@code asSelectionQuery(…)} keeps
  * the inherited {@literal null} answer and the caller's {@code instanceof} check covers it.
@@ -27,11 +25,12 @@ import java.util.List;
  * @author Christoph Strobl
  * @since 4.2
  */
-final class Hibernate7Adapter extends AbstractHibernateAdapter {
+class Hibernate7Adapter extends AbstractHibernateAdapter {
 
 	Hibernate7Adapter(ClassLoader classLoader) {
-		super(classLoader, List.of("org.hibernate.query.spi.SqmQuery"),
-				List.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento"),
-				List.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento"));
+		super(classLoader, ClassNames.of("org.hibernate.query.spi.SqmQuery"),
+				ClassNames.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento"),
+				ClassNames.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento"));
 	}
+
 }

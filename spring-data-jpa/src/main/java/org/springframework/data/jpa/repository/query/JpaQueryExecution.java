@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.convert.ConversionService;
@@ -514,6 +513,7 @@ public abstract class JpaQueryExecution {
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
 		@Override
+		@SuppressWarnings("removal")
 		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
@@ -522,15 +522,11 @@ public abstract class JpaQueryExecution {
 
 			Query jpaQuery = query.createQuery(accessor);
 
-			// JPA 4 declares Query#getResultStream as deprecated, so we now prever the non deprecated TypedQuery variant
+			// JPA 4 declares Query#getResultStream as deprecated, so we now prefer the non deprecated TypedQuery variant
 			// where possible
-			return jpaQuery instanceof TypedQuery<?> typedQuery ? typedQuery.getResultStream() : getResultStream(jpaQuery);
+			return jpaQuery instanceof TypedQuery<?> typedQuery ? typedQuery.getResultStream() : jpaQuery.getResultStream();
 		}
 
-		@SuppressWarnings("removal")
-		private static Stream<?> getResultStream(Query query) {
-			return query.getResultStream();
-		}
 	}
 
 }

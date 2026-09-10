@@ -17,49 +17,53 @@ package org.springframework.data.jpa.provider;
 
 import jakarta.persistence.Query;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.util.ReflectiveMethod;
+import org.springframework.data.jpa.util.ReflectiveMethods;
+import org.springframework.data.util.Streamable;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Reflective support shared by the version-specific {@link HibernateAdapter} implementations.
  *
  * @author Oscar Fanchin
  * @author Christoph Strobl
+ * @author Mark Paluch
  * @since 4.2
  */
-abstract class AbstractHibernateAdapter implements HibernateAdapter {
+abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveMethods {
 
 	private final Class<?> sqmQuery;
 	private final Class<?> namedSqmQuery;
 	private final Class<?> namedNativeQuery;
 
-	private final Method sqmQueryStatement;
-	private final Method namedSqmQueryHqlString;
-	private final Method namedSqmQueryStatement;
-	private final Method namedNativeQuerySqlString;
+	private final ReflectiveMethod sqmQueryStatement;
+	private final ReflectiveMethod namedSqmQueryHqlString;
+	private final ReflectiveMethod namedSqmQueryStatement;
+	private final ReflectiveMethod namedNativeQuerySqlString;
 
 	/**
 	 * @param sqmQuery candidate names of the contract implemented by SQM queries.
 	 * @param namedSqmQuery candidate names of the named SQM query memento.
 	 * @param namedNativeQuery candidate names of the named native query memento.
 	 */
-	AbstractHibernateAdapter(ClassLoader classLoader, List<String> sqmQuery, List<String> namedSqmQuery,
-			List<String> namedNativeQuery) {
+	AbstractHibernateAdapter(ClassLoader classLoader, ClassNames sqmQuery, ClassNames namedSqmQuery,
+			ClassNames namedNativeQuery) {
 
-		this.sqmQuery = requireClass(sqmQuery, classLoader);
-		this.namedSqmQuery = requireClass(namedSqmQuery, classLoader);
-		this.namedNativeQuery = requireClass(namedNativeQuery, classLoader);
+		this.sqmQuery = sqmQuery.getClass(classLoader);
+		this.namedSqmQuery = namedSqmQuery.getClass(classLoader);
+		this.namedNativeQuery = namedNativeQuery.getClass(classLoader);
 
-		this.sqmQueryStatement = requireMethod(this.sqmQuery, "getSqmStatement");
-		this.namedSqmQueryHqlString = requireMethod(this.namedSqmQuery, "getHqlString");
-		this.namedSqmQueryStatement = requireMethod(this.namedSqmQuery, "getSqmStatement");
-		this.namedNativeQuerySqlString = requireMethod(this.namedNativeQuery, "getSqlString");
+		this.sqmQueryStatement = getMethod(this.sqmQuery, "getSqmStatement");
+		this.namedSqmQueryHqlString = getMethod(this.namedSqmQuery, "getHqlString");
+		this.namedSqmQueryStatement = getMethod(this.namedSqmQuery, "getSqmStatement");
+		this.namedNativeQuerySqlString = getMethod(this.namedNativeQuery, "getSqlString");
 	}
 
 	@Override
@@ -90,31 +94,26 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter {
 
 	@Override
 	public String getHqlString(Object query) {
-		return (String) ReflectionUtils.invokeMethod(namedSqmQueryHqlString, query);
+		return (String) namedSqmQueryHqlString.invoke(query);
 	}
 
 	@Override
 	public String getSqlString(Object query) {
-		return (String) ReflectionUtils.invokeMethod(namedNativeQuerySqlString, query);
+		return (String) namedNativeQuerySqlString.invoke(query);
 	}
 
 	@Override
 	public String getSqmStatement(Object query) {
 
-		Method accessor = isSqmQuery(query) ? sqmQueryStatement : namedSqmQueryStatement;
-		Object statement = ReflectionUtils.invokeMethod(accessor, query);
+		ReflectiveMethod method = isSqmQuery(query) ? sqmQueryStatement : namedSqmQueryStatement;
+		Object statement = method.invoke(query);
 
 		if (statement == null) {
 			throw new IllegalStateException("No SQM statement available for %s".formatted(query.getClass()));
 		}
 
-		Method toHqlString = findPublicMethod(statement.getClass(), "toHqlString");
-
-		if (toHqlString == null) {
-			throw new IllegalStateException("Cannot resolve toHqlString() for %s".formatted(statement.getClass()));
-		}
-
-		return (String) ReflectionUtils.invokeMethod(toHqlString, statement);
+		ReflectiveMethod toHqlString = getMethod(statement.getClass(), "toHqlString");
+		return (String) toHqlString.invoke(statement);
 	}
 
 	@Override
@@ -122,55 +121,20 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter {
 		return null;
 	}
 
-	/**
-	 * Resolve the given method preferring a public interface as the declaring type so that the member does not have to be
-	 * made accessible. Hibernate's implementation types live in internal packages and are not necessarily public.
-	 */
-	private static @Nullable Method findPublicMethod(Class<?> type, String methodName) {
-
-		for (Class<?> candidate : ClassUtils.getAllInterfacesForClass(type)) {
-
-			Method method = Modifier.isPublic(candidate.getModifiers()) ? ReflectionUtils.findMethod(candidate, methodName)
-					: null;
-
-			if (method != null) {
-				return method;
-			}
-		}
-
-		Method method = ReflectionUtils.findMethod(type, methodName);
-
-		if (method != null) {
-			ReflectionUtils.makeAccessible(method);
-		}
-
-		return method;
+	@Override
+	public List<ReflectiveMethod> getReflectiveMethods() {
+		return List.of(sqmQueryStatement, namedSqmQueryHqlString, namedSqmQueryStatement, namedNativeQuerySqlString);
 	}
 
 	/**
-	 * Resolve the first of the given candidate types that is present.
+	 * Resolve the method named {@code methodName} on {@code type}.
 	 *
-	 * @throws IllegalStateException if none of the candidates is present.
+	 * @throws IllegalStateException if no such method exists on {@code type}, which indicates an unsupported Hibernate
+	 *           version.
 	 */
-	static Class<?> requireClass(List<String> candidates, ClassLoader classLoader) {
+	static ReflectiveMethod getMethod(Class<?> type, String methodName) {
 
-		for (String candidate : candidates) {
-
-			if (ClassUtils.isPresent(candidate, classLoader)) {
-				return ClassUtils.resolveClassName(candidate, classLoader);
-			}
-		}
-
-		throw new IllegalStateException(
-				"Cannot resolve any of %s. The Hibernate version on the classpath is not supported".formatted(candidates));
-	}
-
-	/**
-	 * @throws IllegalStateException if the given type does not declare a parameterless method of that name.
-	 */
-	static Method requireMethod(Class<?> type, String methodName) {
-
-		Method method = ReflectionUtils.findMethod(type, methodName);
+		ReflectiveMethod method = ReflectiveMethod.find(type, methodName, it -> true);
 
 		if (method == null) {
 			throw new IllegalStateException("Cannot resolve %s.%s(). The Hibernate version on the classpath is not supported"
@@ -178,5 +142,50 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter {
 		}
 
 		return method;
+	}
+
+	/**
+	 * Collection of class name candidates.
+	 */
+	static class ClassNames implements Streamable<String> {
+
+		private final List<String> classNames;
+
+		private ClassNames(List<String> classNames) {
+			this.classNames = classNames;
+		}
+
+		public static ClassNames of(String... classNames) {
+			return new ClassNames(Arrays.asList(classNames));
+		}
+
+		/**
+		 * Resolve the first of the given candidate types that is present.
+		 *
+		 * @throws IllegalStateException if none of the classNames is present.
+		 */
+		Class<?> getClass(ClassLoader classLoader) {
+
+			for (String candidate : classNames) {
+				if (ClassUtils.isPresent(candidate, classLoader)) {
+					return ClassUtils.resolveClassName(candidate, classLoader);
+				}
+			}
+
+			throw new IllegalStateException(
+					"Cannot resolve any of the required classes: %s. The Hibernate version on the classpath is not supported"
+							.formatted(classNames));
+		}
+
+		@Override
+		public Iterator<String> iterator() {
+			return classNames.iterator();
+		}
+
+		@Override
+		public String toString() {
+			return String.join(", ", classNames);
+		}
+
 	}
 }

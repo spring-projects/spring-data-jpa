@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.repository.aot;
 
-import jakarta.persistence.LockModeType;
 import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
 
@@ -29,6 +28,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -167,46 +167,6 @@ public class AotRepositoryFragmentSupport {
 		}
 
 		return source;
-	}
-
-	/*
-	 * JPA 4.0 deprecated lots of methods in favor of TypedQuery - needs to be updated once we drop support for JPA 3.2, meanwhiel we've to live with this.
-	 * Need to work with raw types to avoid casting issues.
-	 */
-
-	@SuppressWarnings({ "removal", "rawtypes" })
-	protected static List getResultList(Query query) {
-		return query.getResultList();
-	}
-
-	@SuppressWarnings({ "removal", "rawtypes" })
-	protected static Stream getResultStream(Query query) {
-		return query.getResultStream();
-	}
-
-	@SuppressWarnings("removal")
-	protected static @Nullable Object getSingleResultOrNull(Query query) {
-		return query.getSingleResultOrNull();
-	}
-
-	@SuppressWarnings("removal")
-	protected static int executeUpdate(Query query) {
-		return query.executeUpdate();
-	}
-
-	@SuppressWarnings("removal")
-	protected static void setFirstResult(Query query, int firstResult) {
-		query.setFirstResult(firstResult);
-	}
-
-	@SuppressWarnings("removal")
-	protected static void setMaxResults(Query query, int maxResults) {
-		query.setMaxResults(maxResults);
-	}
-
-	@SuppressWarnings("removal")
-	protected static void setLockMode(Query query, LockModeType lockMode) {
-		query.setLockMode(lockMode);
 	}
 
 	/**
