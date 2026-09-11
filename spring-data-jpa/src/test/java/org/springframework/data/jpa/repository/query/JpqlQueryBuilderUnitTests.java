@@ -46,6 +46,7 @@ import org.springframework.data.jpa.util.TestMetaModel;
  * @author Mark Paluch
  * @author Choi Wang Gyu
  * @author Jeongwon Ryu
+ * @author Junggi Kim
  */
 class JpqlQueryBuilderUnitTests {
 
@@ -218,6 +219,68 @@ class JpqlQueryBuilderUnitTests {
 
 		assertThat(or.parts()).hasSize(3);
 		assertThat(fragment).isEqualTo("o.id = '1' OR o.id = '2' OR o.id = '3'");
+	}
+
+	@Test // GH-4352
+	void andReturnsNullForEmptyPredicates() {
+		assertThat(JpqlQueryBuilder.and(List.of())).isNull();
+	}
+
+	@Test // GH-4352
+	void andReturnsSinglePredicateAsIs() {
+
+		Entity entity = entity(Order.class);
+		Predicate a = where(path(entity, "id")).eq(literal("1"));
+
+		assertThat(JpqlQueryBuilder.and(List.of(a))).isSameAs(a);
+	}
+
+	@Test // GH-4352
+	void andConcatenatesPredicatesIntoFlatAndPredicate() {
+
+		Entity entity = entity(Order.class);
+		PathAndOrigin id = path(entity, "id");
+
+		Predicate a = where(id).eq(literal("1"));
+		Predicate b = where(id).eq(literal("2"));
+		Predicate c = where(id).eq(literal("3"));
+
+		AndPredicate and = (AndPredicate) JpqlQueryBuilder.and(List.of(a, b, c));
+
+		assertThat(and.parts()).containsExactly(a, b, c);
+		assertThat(and.render(ctx(entity))).isEqualTo("o.id = '1' AND o.id = '2' AND o.id = '3'");
+	}
+
+	@Test // GH-4352
+	void andFlattensNestedAndPredicates() {
+
+		Entity entity = entity(Order.class);
+		PathAndOrigin id = path(entity, "id");
+
+		Predicate a = where(id).eq(literal("1"));
+		Predicate b = where(id).eq(literal("2"));
+		Predicate c = where(id).eq(literal("3"));
+
+		AndPredicate and = (AndPredicate) JpqlQueryBuilder.and(List.of(a.and(b), c));
+
+		assertThat(and.parts()).containsExactly(a, b, c);
+		assertThat(and.render(ctx(entity))).isEqualTo("o.id = '1' AND o.id = '2' AND o.id = '3'");
+	}
+
+	@Test // GH-4352
+	void andRetainsNestedOrPredicates() {
+
+		Entity entity = entity(Order.class);
+		PathAndOrigin id = path(entity, "id");
+
+		Predicate a = where(id).eq(literal("1"));
+		Predicate b = where(id).eq(literal("2"));
+		Predicate c = where(id).eq(literal("3"));
+
+		AndPredicate and = (AndPredicate) JpqlQueryBuilder.and(List.of(a, b.or(c)));
+
+		assertThat(and.parts()).hasSize(2);
+		assertThat(and.render(ctx(entity))).isEqualTo("o.id = '1' AND o.id = '2' OR o.id = '3'");
 	}
 
 	@Test // GH-3588
