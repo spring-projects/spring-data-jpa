@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Paluch
  * @author Choi Wang Gyu
  * @author Jeongwon Ryu
+ * @author Junggi Kim
  * @since 4.0
  */
 @SuppressWarnings("JavadocDeclaration")
@@ -416,18 +417,11 @@ public final class JpqlQueryBuilder {
 
 	public static @Nullable Predicate and(List<Predicate> intermediate) {
 
-		Predicate predicate = null;
-
-		for (Predicate other : intermediate) {
-
-			if (predicate == null) {
-				predicate = other;
-			} else {
-				predicate = predicate.and(other);
-			}
+		if (intermediate.isEmpty()) {
+			return null;
 		}
 
-		return predicate;
+		return intermediate.size() == 1 ? intermediate.get(0) : AndPredicate.of(intermediate);
 	}
 
 	public static @Nullable Predicate or(List<Predicate> intermediate) {
