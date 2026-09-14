@@ -1,5 +1,5 @@
 /*
- * Copyright 2026-present the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.jpa.util;
+package org.springframework.data.jpa.repository.aot;
 
-import java.util.Collection;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.hibernate.dialect.Dialect;
+import org.junit.jupiter.api.Test;
 
 /**
- * Exposes methods that are used through reflection.
- * <p>
- * Reflective methods can be introspected by components that e.g. need to register reflective hints while keeping a
- * single reference that performs lookup.
- *
- * @author Mark Paluch
- * @since 4.2
+ * @author Christoph Strobl
  */
-public interface ReflectiveMethods {
+class AotDialectFactoryUnitTests {
 
-	/**
-	 * Returns the list of {@link ReflectiveMethod methods}.
-	 */
-	Collection<ReflectiveMethod> getReflectiveMethods();
+	@Test // GH-4197
+	void usesDedicatedNamingPolicyForAotDialect() {
 
+		Dialect dialect = AotDialectFactory.INSTANCE;
+
+		assertThat(dialect.toString()).contains("SpringDataJpaAotDialect");
+		assertThat(dialect.getClass().getSimpleName()).isEqualTo("SpringDataJpaAotDialect");
+	}
 }

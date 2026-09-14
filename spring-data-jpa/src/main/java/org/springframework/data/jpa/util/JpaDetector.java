@@ -15,7 +15,6 @@
  */
 package org.springframework.data.jpa.util;
 
-import org.springframework.data.jpa.repository.aot.JpaRepositoryContributor;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -23,14 +22,15 @@ import org.springframework.util.ClassUtils;
  * safely used without any preliminary classpath checks.
  *
  * @author Mark Paluch
+ * @since 4.2
  */
 public abstract class JpaDetector {
 
 	private static final boolean JPA32_PRESENT = ClassUtils.isPresent("jakarta.persistence.FindOption",
-			JpaRepositoryContributor.class.getClassLoader());
+		JpaDetector.class.getClassLoader());
 
 	private static final boolean JPA4_PRESENT = ClassUtils.isPresent("jakarta.persistence.EntityAgent",
-			JpaRepositoryContributor.class.getClassLoader());
+		JpaDetector.class.getClassLoader());
 
 	/**
 	 * Determine whether JPA 3.2 (or newer) is present.

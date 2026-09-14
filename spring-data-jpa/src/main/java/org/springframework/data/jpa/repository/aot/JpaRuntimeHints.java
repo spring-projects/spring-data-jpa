@@ -18,6 +18,7 @@ package org.springframework.data.jpa.repository.aot;
 import jakarta.persistence.NamedEntityGraph;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -159,7 +160,7 @@ class JpaRuntimeHints implements RuntimeHintsRegistrar {
 		}
 	}
 
-	private void registerMethods(RuntimeHints hints, List<ReflectiveMethod> methods) {
+	private void registerMethods(RuntimeHints hints, Collection<ReflectiveMethod> methods) {
 
 		for (ReflectiveMethod reflectiveMethod : methods) {
 

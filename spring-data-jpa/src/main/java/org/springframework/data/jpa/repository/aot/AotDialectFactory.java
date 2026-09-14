@@ -29,6 +29,7 @@ import org.hibernate.query.sqm.mutation.spi.SqmMultiTableInsertStrategy;
 import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
 import org.jspecify.annotations.Nullable;
+import org.springframework.cglib.core.Predicate;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
@@ -54,6 +55,12 @@ class AotDialectFactory {
 	private static final boolean NEEDS_IDENTITY_COLUMN_SUPPORT_OVERRIDE = ClassUtils.hasMethod(Dialect.class,
 			"getMultiTableMutationSupport");
 
+	/**
+	 * {@link org.hibernate.engine.jdbc.connections.internal.DatabaseConnectionInfoImpl#toInfoString()} captures
+	 * {@link Dialect#getClass()} for rendering the dialect name, and CGLIB...something does not read well.
+	 */
+	private static final String DIALECT_NAME = "SpringDataJpaAotDialect";
+
 	static final Dialect INSTANCE = create();
 
 	static Dialect create() {
@@ -62,6 +69,7 @@ class AotDialectFactory {
 		enhancer.setSuperclass(Dialect.class);
 		enhancer.setClassLoader(Dialect.class.getClassLoader());
 		enhancer.setCallback(new AotDialectInterceptor());
+		enhancer.setNamingPolicy(AotDialectFactory::proxyNamingPolicy);
 
 		return (Dialect) enhancer.create(new Class<?>[] { DatabaseVersion.class },
 				new Object[] { DatabaseVersion.make(1, 0) });
@@ -137,6 +145,19 @@ class AotDialectFactory {
 		};
 
 		return Proxy.newProxyInstance(interfaceType.getClassLoader(), new Class<?>[] { interfaceType }, handler);
+	}
+
+	private static String proxyNamingPolicy(String prefix, String source, Object key, Predicate names) {
+
+		String base = Dialect.class.getPackageName() + "." + DIALECT_NAME;
+		String attempt = base;
+		int index = 2;
+
+		while (names.evaluate(attempt)) {
+			attempt = base + "_" + index++;
+		}
+
+		return attempt;
 	}
 
 	/**

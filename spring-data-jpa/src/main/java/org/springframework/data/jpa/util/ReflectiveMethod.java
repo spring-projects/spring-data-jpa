@@ -46,6 +46,7 @@ public class ReflectiveMethod {
 	private final Method method;
 
 	private ReflectiveMethod(Class<?> lookupType, Method method) {
+
 		this.lookupType = lookupType;
 
 		this.method = method;
