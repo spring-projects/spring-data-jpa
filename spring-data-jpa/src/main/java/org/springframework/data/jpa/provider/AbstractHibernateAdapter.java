@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.jpa.util.ReflectiveMethod;
 import org.springframework.data.jpa.util.ReflectiveMethods;
 import org.springframework.data.util.Streamable;
@@ -53,8 +52,8 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 	 * @param namedSqmQuery candidate names of the named SQM query memento.
 	 * @param namedNativeQuery candidate names of the named native query memento.
 	 */
-	AbstractHibernateAdapter(ClassLoader classLoader, ClassNames sqmQuery, ClassNames namedSqmQuery,
-			ClassNames namedNativeQuery) {
+	AbstractHibernateAdapter(ClassLoader classLoader, CandiateClassNames sqmQuery, CandiateClassNames namedSqmQuery,
+			CandiateClassNames namedNativeQuery) {
 
 		this.sqmQuery = sqmQuery.getClass(classLoader);
 		this.namedSqmQuery = namedSqmQuery.getClass(classLoader);
@@ -147,20 +146,26 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 	/**
 	 * Collection of class name candidates.
 	 */
-	static class ClassNames implements Streamable<String> {
+	static class CandiateClassNames implements Streamable<String> {
 
 		private final List<String> classNames;
 
-		private ClassNames(List<String> classNames) {
+		private CandiateClassNames(List<String> classNames) {
 			this.classNames = classNames;
 		}
 
-		public static ClassNames of(String... classNames) {
-			return new ClassNames(Arrays.asList(classNames));
+		/**
+		 * Create a new {@link CandiateClassNames} from the given class names. Resolution attempts are made in the order.
+		 *
+		 * @param classNames must not be {@literal null}.
+		 * @return new instance of {@link CandiateClassNames}.
+		 */
+		public static CandiateClassNames of(String... classNames) {
+			return new CandiateClassNames(Arrays.asList(classNames));
 		}
 
 		/**
-		 * Resolve the first of the given candidate types that is present.
+		 * Resolve the first of the held candidate types that is present.
 		 *
 		 * @throws IllegalStateException if none of the classNames is present.
 		 */
@@ -173,7 +178,7 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 			}
 
 			throw new IllegalStateException(
-					"Cannot resolve any of the required classes: %s. The Hibernate version on the classpath is not supported"
+					"Cannot resolve any of the required classes: [%s]. The Hibernate version on the classpath is not supported"
 							.formatted(classNames));
 		}
 

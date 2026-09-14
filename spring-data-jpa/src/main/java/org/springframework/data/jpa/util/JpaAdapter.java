@@ -55,7 +55,7 @@ public abstract class JpaAdapter {
 	private static final ReflectiveMethod CREATE_DELETE_QUERY = resolveCriteriaStatementMethod(CriteriaDelete.class);
 
 	// Method references are resolved on first execution, so the direct calls below are never linked under JPA 4.
-	private static final boolean JPA_32 = CREATE_QUERY.getReturnType() == Query.class;
+	private static final boolean JPA_32 = JpaDetector.isJpa32Present() && !JpaDetector.isJpa4Present();
 
 	private static final List<ReflectiveMethod> REFLECTIVE_METHODS = List.of(CREATE_QUERY, CREATE_NAMED_QUERY,
 			CREATE_NATIVE_QUERY, CREATE_NATIVE_QUERY_WITH_TYPE, CREATE_NATIVE_QUERY_WITH_MAPPING, CREATE_UPDATE_QUERY,

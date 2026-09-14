@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.data.jpa.util.ReflectiveMethod;
 
 /**
@@ -35,8 +34,6 @@ import org.springframework.data.jpa.util.ReflectiveMethod;
  */
 class Hibernate8Adapter extends AbstractHibernateAdapter {
 
-	static final String SQM_STATEMENT_ACCESS = "org.hibernate.query.sqm.spi.SqmStatementAccess";
-
 	private final Class<?> mutationOrSelectionQuery;
 	private final ReflectiveMethod isSelectionQuery;
 	private final ReflectiveMethod asSelectionQuery;
@@ -44,13 +41,14 @@ class Hibernate8Adapter extends AbstractHibernateAdapter {
 	Hibernate8Adapter(ClassLoader classLoader) {
 
 		// the mementos moved from org.hibernate.query.named to org.hibernate.query.named.spi after 8.0.0.Beta1
-		super(classLoader, ClassNames.of(SQM_STATEMENT_ACCESS),
-				ClassNames.of("org.hibernate.query.named.spi.NamedSqmQueryMemento",
+		super(classLoader, CandiateClassNames.of(HIBERNATE_8_SQM_STATEMENT_ACCESS),
+				CandiateClassNames.of("org.hibernate.query.named.spi.NamedSqmQueryMemento",
 						"org.hibernate.query.named.NamedSqmQueryMemento"),
-				ClassNames.of("org.hibernate.query.named.spi.NamedNativeQueryMemento",
+				CandiateClassNames.of("org.hibernate.query.named.spi.NamedNativeQueryMemento",
 						"org.hibernate.query.named.NamedNativeQueryMemento"));
 
-		this.mutationOrSelectionQuery = ClassNames.of("org.hibernate.query.MutationOrSelectionQuery").getClass(classLoader);
+		this.mutationOrSelectionQuery = CandiateClassNames.of("org.hibernate.query.MutationOrSelectionQuery")
+				.getClass(classLoader);
 		this.isSelectionQuery = getMethod(mutationOrSelectionQuery, "isSelectionQuery");
 		this.asSelectionQuery = getMethod(mutationOrSelectionQuery, "asSelectionQuery");
 	}
@@ -59,8 +57,7 @@ class Hibernate8Adapter extends AbstractHibernateAdapter {
 	public @Nullable SelectionQuery<?> asSelectionQuery(Query query) {
 
 		// mutations legitimately answer null here, the contract itself is required and resolved upfront
-		if (!mutationOrSelectionQuery.isInstance(query)
-				|| !Boolean.TRUE.equals(isSelectionQuery.invoke(query))) {
+		if (!mutationOrSelectionQuery.isInstance(query) || !Boolean.TRUE.equals(isSelectionQuery.invoke(query))) {
 			return null;
 		}
 
@@ -70,6 +67,7 @@ class Hibernate8Adapter extends AbstractHibernateAdapter {
 
 	@Override
 	public List<ReflectiveMethod> getReflectiveMethods() {
+
 		List<ReflectiveMethod> methods = new ArrayList<>(super.getReflectiveMethods());
 		methods.add(isSelectionQuery);
 		methods.add(asSelectionQuery);
