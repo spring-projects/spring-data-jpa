@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -1155,21 +1156,24 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				"limit 50");
 	}
 
-	@Test // GH-4345
-	void fetchClauseShouldSupportPercentKeyword() {
+	@ParameterizedTest // GH-4345
+	@CsvSource({ //
+			"first, 10, ROW only", //
+			"FIRST, 10, rows only", //
+			"first, 10, ROWS with ties", //
+			"NEXT, 2.5, rows only", //
+			"next, 2.5, row with TIES", //
+			"next, 2.5, rows with ties", //
+			"first, :percentage, rows ONLY", //
+			"next, :percentage, rows with ties", //
+	})
+	void shouldSupportFetchWithPercentKeyword(String batch, String percentage, String rows) {
 
-		assertQuery("select c " + //
-				"from Call c " + //
-				"order by c.duration " + //
-				"fetch first 10 percent rows only");
-		assertQuery("select c " + //
-				"from Call c " + //
-				"order by c.duration " + //
-				"fetch next 2.5 percent rows with ties");
-		assertQuery("select c " + //
-				"from Call c " + //
-				"order by c.duration " + //
-				"fetch first :percentage percent rows only");
+		assertQuery("""
+				SELECT c
+				FROM Call c
+				ORDER BY c.duration
+				FETCH %s %s PERCENT %s""".formatted(batch, percentage, rows));
 	}
 
 	@Test // GH-2962
