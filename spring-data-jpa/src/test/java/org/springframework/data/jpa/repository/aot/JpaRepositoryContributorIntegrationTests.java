@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
@@ -49,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author YeongJae Min
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -61,8 +63,14 @@ class JpaRepositoryContributorIntegrationTests {
 
 	@Configuration
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
+
 		public JpaRepositoryContributorConfiguration() {
 			super(UserRepository.class);
+		}
+
+		@Bean
+		UserRepository.BeanBackedQueryRewriter beanBackedQueryRewriter() {
+			return new UserRepository.BeanBackedQueryRewriter("User");
 		}
 	}
 
@@ -707,6 +715,14 @@ class JpaRepositoryContributorIntegrationTests {
 		Page<User> page = fragment.findAndApplyQueryRewriter(kylo.getEmailAddress(), Pageable.unpaged());
 
 		assertThat(page).isNotEmpty();
+	}
+
+	@Test // GH-3839, GH-3984
+	void shouldApplyBeanBackedQueryRewriter() {
+
+		User result = fragment.findAndApplyBeanBackedQueryRewriter(kylo.getEmailAddress());
+
+		assertThat(result).isNotNull();
 	}
 
 	void todo() {

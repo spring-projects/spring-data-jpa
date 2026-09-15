@@ -21,6 +21,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +68,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author YeongJae Min
  * @since 4.0
  */
 class JpaCodeBlocks {
@@ -181,7 +184,13 @@ class JpaCodeBlocks {
 			if (queries.result() instanceof StringAotQuery && queryRewriter != QueryRewriter.IdentityQueryRewriter.class) {
 
 				queryRewriterName = context.localVariable("queryRewriter");
-				builder.addStatement("$T $L = new $T()", queryRewriter, queryRewriterName, queryRewriter);
+				if (hasAccessibleNoArgsConstructor(queryRewriter)) {
+					builder.addStatement("$T $L = getQueryRewriter($T.class, () -> new $T())", QueryRewriter.class,
+							queryRewriterName, queryRewriter, queryRewriter);
+				} else {
+					builder.addStatement("$T $L = getQueryRewriter($T.class)", QueryRewriter.class, queryRewriterName,
+							queryRewriter);
+				}
 			}
 
 			if (queries.result() instanceof StringAotQuery sq) {
@@ -248,6 +257,35 @@ class JpaCodeBlocks {
 			CodeBlock.Builder builder = CodeBlock.builder();
 			builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
 			return builder.build();
+		}
+
+		private boolean hasAccessibleNoArgsConstructor(Class<?> type) {
+
+			try {
+				Constructor<?> constructor = type.getDeclaredConstructor();
+				boolean samePackage = type.getPackageName()
+						.equals(context.getRepositoryInformation().getRepositoryInterface().getPackageName());
+
+				return isAccessible(type, samePackage) && isAccessible(constructor, samePackage);
+			} catch (NoSuchMethodException e) {
+				return false;
+			}
+		}
+
+		private static boolean isAccessible(Class<?> type, boolean samePackage) {
+
+			if (Modifier.isPrivate(type.getModifiers()) || (!Modifier.isPublic(type.getModifiers()) && !samePackage)) {
+				return false;
+			}
+
+			Class<?> enclosingClass = type.getEnclosingClass();
+			return enclosingClass == null || isAccessible(enclosingClass, samePackage);
+		}
+
+		private static boolean isAccessible(Constructor<?> constructor, boolean samePackage) {
+
+			return Modifier.isPublic(constructor.getModifiers())
+					|| (!Modifier.isPrivate(constructor.getModifiers()) && samePackage);
 		}
 
 		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, boolean isProjecting,

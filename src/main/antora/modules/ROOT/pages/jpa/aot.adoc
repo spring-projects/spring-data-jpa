@@ -30,7 +30,8 @@ Mind that using Value Expressions requires expression parsing and contextual inf
 **Limitations**
 
 * Requires Hibernate for AOT processing.
-* `QueryRewriter` must be a no-args class. `QueryRewriter` beans are not yet supported.
+* `QueryRewriter` types declared on query methods are resolved from the application context.
+If no bean is available, AOT repositories fall back to no-args class instantiation.
 * Methods accepting `ScrollPosition` (e.g. `Keyset` pagination) are not yet supported.
 * Custom Collection return types (e.g. `io.vavr.collection`, `org.eclipse.collections`) are not yet supported.
 
