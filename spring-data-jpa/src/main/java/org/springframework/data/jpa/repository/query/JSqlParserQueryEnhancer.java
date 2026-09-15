@@ -116,7 +116,7 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 			try {
 				return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
 			} catch (ParseException ex) {
-				if (allowComplex && CCJSqlParserUtil.getNestingDepth(sql) <= CCJSqlParserUtil.ALLOWED_NESTING_DEPTH) {
+				if (allowComplex && CCJSqlParserUtil.getNestingDepth(sql) <= parser.getAsInt(Feature.allowedNestingDepth)) {
 					// beware: the parser must not be reused, but needs to be re-initiated
 					parser = CCJSqlParserUtil.newParser(sql);
 					return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
