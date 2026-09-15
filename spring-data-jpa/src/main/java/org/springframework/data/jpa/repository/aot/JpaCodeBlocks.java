@@ -46,6 +46,7 @@ import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
+import org.springframework.data.jpa.repository.query.Jpa21Utils;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
@@ -349,17 +350,17 @@ class JpaCodeBlocks {
 			builder.add(doCreateQuery(count, queryVariableName, queryStringNameVariableName, queryRewriterName, query,
 					sqlResultSetMapping, pageable, queryReturnType));
 
-			if (!count && lockModeType != null) {
-				builder.addStatement("$L.setLockMode($T.$L)", queryVariableName, LockModeType.class, lockModeType.toString());
-			}
-
-			if (entityGraph != null) {
-				builder.add(applyEntityGraph(entityGraph, queryVariableName));
-			}
-
 			if (queryHints.isPresent()) {
 				builder.add(applyHints(queryVariableName, queryHints));
 				builder.add("\n");
+			}
+
+			if (!count) {
+				builder.add(applyEntityGraph(entityGraph, queryVariableName));
+			}
+
+			if (!count && lockModeType != null) {
+				builder.addStatement("$L.setLockMode($T.$L)", queryVariableName, LockModeType.class, lockModeType.toString());
 			}
 
 			for (ParameterBinding binding : query.getParameterBindings()) {
@@ -565,7 +566,42 @@ class JpaCodeBlocks {
 			throw new UnsupportedOperationException("Not supported yet for: " + origin);
 		}
 
-		private CodeBlock applyEntityGraph(AotEntityGraph entityGraph, String queryVariableName) {
+		private CodeBlock applyEntityGraph(@Nullable AotEntityGraph entityGraph, String queryVariableName) {
+
+			CodeBlock.Builder builder = CodeBlock.builder();
+			String entityGraphHintParameter = getEntityGraphHintParameterName();
+
+			if (entityGraphHintParameter != null) {
+
+				builder.beginControlFlow("if ($L != null)", entityGraphHintParameter);
+				builder.addStatement("$T.getFetchGraphHint($L, $L, $T.class).forEach($L::setHint)", Jpa21Utils.class,
+						context.fieldNameOf(EntityManager.class), entityGraphHintParameter, context.getDomainType(),
+						queryVariableName);
+
+				if (entityGraph != null) {
+					builder.nextControlFlow("else");
+					builder.add(applyDeclaredEntityGraph(entityGraph, queryVariableName));
+				}
+
+				builder.endControlFlow();
+				return builder.build();
+			}
+
+			if (entityGraph != null) {
+				builder.add(applyDeclaredEntityGraph(entityGraph, queryVariableName));
+			}
+
+			return builder.build();
+		}
+
+		private @Nullable String getEntityGraphHintParameterName() {
+
+			return queryMethod.getParameters().hasEntityGraphHintParameter()
+					? context.getParameterName(queryMethod.getParameters().getEntityGraphHintIndex())
+					: null;
+		}
+
+		private CodeBlock applyDeclaredEntityGraph(AotEntityGraph entityGraph, String queryVariableName) {
 
 			CodeBlock.Builder builder = CodeBlock.builder();
 
