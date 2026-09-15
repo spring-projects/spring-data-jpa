@@ -34,7 +34,7 @@
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.5.250</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
-		<jsqlparser>5.3</jsqlparser>
+		<jsqlparser>5.4</jsqlparser>
 		<mysql-connector-java>26.7.0</mysql-connector-java>
 		<postgresql>42.7.13</postgresql>
 		<oracle>23.26.3.0.0</oracle>
