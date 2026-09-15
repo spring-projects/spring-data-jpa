@@ -126,14 +126,14 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 	}
 
 	/**
-	 * Resolve the method named {@code methodName} on {@code type}.
+	 * Resolve the no-argument method named {@code methodName} on {@code type}.
 	 *
 	 * @throws IllegalStateException if no such method exists on {@code type}, which indicates an unsupported Hibernate
 	 *           version.
 	 */
 	static ReflectiveMethod getMethod(Class<?> type, String methodName) {
 
-		ReflectiveMethod method = ReflectiveMethod.find(type, methodName, it -> true);
+		ReflectiveMethod method = ReflectiveMethod.find(type, methodName, it -> it.getParameterCount() == 0);
 
 		if (method == null) {
 			throw new IllegalStateException("Cannot resolve %s.%s(). The Hibernate version on the classpath is not supported"

@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Set;
 
 import org.hibernate.dialect.DatabaseVersion;
 import org.hibernate.dialect.Dialect;
@@ -30,9 +31,11 @@ import org.hibernate.query.sqm.mutation.spi.SqmMultiTableMutationStrategy;
 import org.hibernate.sql.exec.spi.JdbcParameterBindings;
 import org.jspecify.annotations.Nullable;
 import org.springframework.cglib.core.Predicate;
+import org.springframework.cglib.proxy.Callback;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.cglib.proxy.NoOp;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -61,6 +64,14 @@ class AotDialectFactory {
 	 */
 	private static final String DIALECT_NAME = "SpringDataJpaAotDialect";
 
+	/**
+	 * Methods that {@link AotDialectInterceptor} needs to answer itself. Other calls are routed to {@link NoOp} doing
+	 * things lazily to work around potential {@code --add-opens}.
+	 */
+	private static final Set<String> INTERCEPTED_METHODS = Set.of("getLimitHandler", "getSequenceSupport",
+			"getSqlAstTranslatorFactory", "getFallbackSqmInsertStrategy", "getFallbackSqmMutationStrategy",
+			"isCurrentTimestampSelectStringCallable", "getCurrentTimestampSelectString", "timestampdiffPattern");
+
 	static final Dialect INSTANCE = create();
 
 	static Dialect create() {
@@ -68,11 +79,21 @@ class AotDialectFactory {
 		Enhancer enhancer = new Enhancer();
 		enhancer.setSuperclass(Dialect.class);
 		enhancer.setClassLoader(Dialect.class.getClassLoader());
-		enhancer.setCallback(new AotDialectInterceptor());
+		enhancer.setCallbackFilter(method -> isIntercepted(method) ? 0 : 1);
+		enhancer.setCallbacks(new Callback[] { new AotDialectInterceptor(), NoOp.INSTANCE });
 		enhancer.setNamingPolicy(AotDialectFactory::proxyNamingPolicy);
 
 		return (Dialect) enhancer.create(new Class<?>[] { DatabaseVersion.class },
 				new Object[] { DatabaseVersion.make(1, 0) });
+	}
+
+	private static boolean isIntercepted(Method method) {
+
+		if (method.getName().equals("getIdentityColumnSupport")) {
+			return NEEDS_IDENTITY_COLUMN_SUPPORT_OVERRIDE;
+		}
+
+		return INTERCEPTED_METHODS.contains(method.getName());
 	}
 
 	/**
@@ -181,13 +202,13 @@ class AotDialectFactory {
 				// Hibernate 8's getMultiTableMutationSupport() defaults to PERSISTENT_TABLE, which - unlike the
 				// getFallbackSqmInsertStrategy/getFallbackSqmMutationStrategy hooks above - always eagerly builds a
 				// real strategy at boot, hitting the identity-column support this fake Dialect does not implement.
-				case "getIdentityColumnSupport" ->
-					NEEDS_IDENTITY_COLUMN_SUPPORT_OVERRIDE ? noOpProxy(method.getReturnType()) : proxy.invokeSuper(obj, args);
+				case "getIdentityColumnSupport" -> noOpProxy(method.getReturnType());
 				case "isCurrentTimestampSelectStringCallable" -> false;
 				case "getCurrentTimestampSelectString" -> "call current_timestamp()";
 				// unit == null, kept as reflection-friendly positional check to avoid importing TemporalUnit
 				case "timestampdiffPattern" -> args[0] == null ? "(?3-?2)" : "datediff(?1,?2,?3)";
-				default -> proxy.invokeSuper(obj, args);
+				// should not be reachable -> if we get to this point something is clearly off
+				default -> throw new IllegalStateException("Unexpected method " + method + " routed to AotDialectInterceptor");
 			};
 		}
 	}
