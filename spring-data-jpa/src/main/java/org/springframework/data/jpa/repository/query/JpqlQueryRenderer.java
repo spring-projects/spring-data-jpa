@@ -691,6 +691,21 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitJdbc_date_literal(JpqlParser.Jdbc_date_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_time_literal(JpqlParser.Jdbc_time_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_timestamp_literal(JpqlParser.Jdbc_timestamp_literalContext ctx) {
+		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+	}
+
+	@Override
 	public QueryTokenStream visitBoolean_expression(JpqlParser.Boolean_expressionContext ctx) {
 
 		if (ctx.subquery() != null) {
