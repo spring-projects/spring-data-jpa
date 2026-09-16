@@ -15,16 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryUtils.*;
+import static org.springframework.data.jpa.repository.query.QueryUtils.checkSortExpression;
 
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.parser.CCJSqlParser;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.parser.ParseException;
-import net.sf.jsqlparser.parser.feature.Feature;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.delete.Delete;
@@ -74,6 +72,8 @@ import org.springframework.util.StringUtils;
  */
 public class JSqlParserQueryEnhancer implements QueryEnhancer {
 
+	private static final String NOT_A_VALID_SQL_QUERY = "The query you provided is not a valid SQL Query";
+
 	private final QueryProvider query;
 	private final ParsedType parsedType;
 	private final boolean hasConstructorExpression;
@@ -103,30 +103,19 @@ public class JSqlParserQueryEnhancer implements QueryEnhancer {
 	/**
 	 * Parses a query string with JSqlParser.
 	 *
-	 * @param sql the query to parse
+	 * @param sql the query to parse. Must not be {@literal empty}.
 	 * @param classOfT the query to parse
 	 * @return the parsed query
+	 * @throws IllegalArgumentException if the query is an empty string or not a valid SQL query.
 	 */
 	static <T extends Statement> T parseStatement(String sql, Class<T> classOfT) {
 
+		Assert.hasText(sql, NOT_A_VALID_SQL_QUERY);
+
 		try {
-
-			CCJSqlParser parser = CCJSqlParserUtil.newParser(sql);
-			boolean allowComplex = parser.getConfiguration().getAsBoolean(Feature.allowComplexParsing);
-			try {
-				return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
-			} catch (ParseException ex) {
-				if (allowComplex && CCJSqlParserUtil.getNestingDepth(sql) <= parser.getAsInt(Feature.allowedNestingDepth)) {
-					// beware: the parser must not be reused, but needs to be re-initiated
-					parser = CCJSqlParserUtil.newParser(sql);
-					return classOfT.cast(parser.withAllowComplexParsing(true).Statement());
-				} else {
-					throw ex;
-				}
-			}
-
+			return classOfT.cast(CCJSqlParserUtil.newParser(sql).withAllowComplexParsing(true).Statement());
 		} catch (ParseException e) {
-			throw new IllegalArgumentException("The query you provided is not a valid SQL Query", e);
+			throw new IllegalArgumentException(NOT_A_VALID_SQL_QUERY, e);
 		}
 	}
 
