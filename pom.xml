@@ -29,7 +29,7 @@
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.1</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.4.8.Final</hibernate>
+		<hibernate>7.4.9.Final</hibernate>
 		<hibernate-74-snapshots>7.4.1-SNAPSHOT</hibernate-74-snapshots>
 		<hsqldb>2.7.4</hsqldb>
 		<h2>2.5.250</h2>
@@ -84,7 +84,7 @@
 				<hibernate>8.0.0.Beta1</hibernate>
 				<jakarta-persistence-api>4.0.0-M5</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent />
+				<spring-instrument-agent/>
 				<!-- No EclipseLink for JPA 4.0 -> skip it -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
@@ -95,7 +95,7 @@
 				<hibernate>8.0.0-SNAPSHOT</hibernate>
 				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent />
+				<spring-instrument-agent/>
 				<!-- No EclipseLink for JPA 4.0 -> skip it -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
@@ -116,7 +116,7 @@
 				<hibernate>8.1.0-SNAPSHOT</hibernate>
 				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent />
+				<spring-instrument-agent/>
 				<!-- No EclipseLink for JPA 4.0 -> skip it -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
