@@ -1208,25 +1208,22 @@ class HqlQueryTransformerTests {
 		assertThat(results).contains("select count(*) from some_function(:date, :integerValue)");
 	}
 
-	@Test // GH-3427
-	void sortShouldBeAppendedWithSpacingInCaseOfSetOperator() {
+	@Test // GH-3427, GH-4342
+	void shouldApplySortToSetQueries() {
 
 		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B') UNION SELECT tb FROM Test tb WHERE (tb.type='C')";
-		String target = createQueryFor(source, Sort.by("Type").ascending());
 
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
+		assertThat(createQueryFor(source, Sort.by("Type").ascending()))
+				.isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
 				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') " //
 				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
-	}
 
-	@Test // GH-4342
-	void sortShouldBeAppliedOnlyOnceToSetOperationsOfParenthesizedQueries() {
+		source = "(SELECT tb FROM Test tb WHERE tb.type = 'A') UNION (SELECT tb FROM Test tb WHERE tb.type = 'B') UNION (SELECT tb FROM Test tb WHERE tb.type = 'C')";
 
-		String source = "(SELECT tb FROM Test tb WHERE tb.type = 'A') UNION (SELECT tb FROM Test tb WHERE tb.type = 'B')";
-		String target = createQueryFor(source, Sort.by("Type").ascending());
-
-		assertThat(target).isEqualTo("(SELECT tb FROM Test tb WHERE tb.type = 'A')" //
-				+ "UNION (SELECT tb FROM Test tb WHERE tb.type = 'B') order by tb.Type asc");
+		assertThat(createQueryFor(source, Sort.by("Type").ascending()))
+				.isEqualTo("(SELECT tb FROM Test tb WHERE tb.type = 'A') " //
+						+ "UNION (SELECT tb FROM Test tb WHERE tb.type = 'B') "
+						+ "UNION (SELECT tb FROM Test tb WHERE tb.type = 'C') order by tb.Type asc");
 	}
 
 	@Test // GH-4342

@@ -35,7 +35,6 @@ import org.springframework.util.ObjectUtils;
  * @author Oscar Fanchin
  * @since 3.1
  */
-@SuppressWarnings("ConstantValue")
 class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
@@ -44,9 +43,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
 
 	/**
-	 * Whether the visitor is currently within a parenthesized (nested) query expression. {@link Sort} must only be
-	 * applied to the outermost query level, not to individual arms of a set operation such as
-	 * {@code (SELECT …) UNION (SELECT …)}.
+	 * Whether the visitor is currently within a parenthesized (nested) query expression.
 	 */
 	private boolean nestedQueryExpression = false;
 
@@ -77,7 +74,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		for (int i = 0; i < orderedQueries.size(); i++) {
 
 			if (i != 0) {
-				builder.append(visit(ctx.setOperator(i - 1)));
+				builder.appendExpression(visit(ctx.setOperator(i - 1)));
 			}
 
 			if (i == orderedQueries.size() - 1 && !nestedQueryExpression) {

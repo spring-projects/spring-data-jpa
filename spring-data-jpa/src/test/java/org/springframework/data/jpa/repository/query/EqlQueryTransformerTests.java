@@ -851,13 +851,13 @@ class EqlQueryTransformerTests {
 				""");
 	}
 
-	@Test // GH-3427
-	void sortShouldBeAppendedToFullSelectOnlyInCaseOfSetOperator() {
+	@Test // GH-3427, GH-4342
+	void shouldApplySortToSetQueries() {
 
 		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B') UNION SELECT tb FROM Test tb WHERE (tb.type='C')";
-		String target = createQueryFor(source, Sort.by("Type").ascending());
 
-		assertThat(target).isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
+		assertThat(createQueryFor(source, Sort.by("Type").ascending()))
+				.isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
 				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') " //
 				+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
 	}
