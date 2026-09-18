@@ -15,50 +15,37 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
-
-import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
- * Tests built around examples of EQL found in the JPA spec
- * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc<br/>
- * <br/>
- * IMPORTANT: Purely verifies the parser without any transformations.
+ * EQL rendering tests following the
+ * <a href= "https://eclipse.dev/eclipselink/documentation/4.0/jpa/extensions/jpql.htm">EclipseLink JPQL extensions</a>.
+ * Shared JPQL cases live in {@link AbstractQueryRendererTests}.
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jewoo Shin
+ * @author Oscar Fanchin
+ * @since 3.2
  */
-class EqlQueryRendererTests extends JpqlQueryRendererTckTests {
+class EqlQueryRendererTests extends AbstractQueryRendererTests {
 
-	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
-
-	/**
-	 * Parse the query using {@link EqlParser} then run it through the query-preserving {@link EqlQueryRenderer}.
-	 */
+	@Override
 	String parseWithoutChanges(String query) {
 
 		JpaQueryEnhancer.EqlQueryParser parser = JpaQueryEnhancer.EqlQueryParser.parseQuery(query);
 
-		return TokenRenderer.render(new EqlQueryRenderer().visit(parser.getContext()));
-	}
-
-	static Stream<Arguments> reservedWords() {
-		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
+		return QueryRenderer.TokenRenderer.render(new EqlQueryRenderer().visit(parser.getContext()));
 	}
 
 	/**
-	 * @see #fromClauseDowncastingExample3fixed()
+	 * The spec example uses double quotes where a string literal requires single quotes.
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
-	void fromClauseDowncastingExample3_SPEC_BUG() {
+	void rejectsStringLiteralInDoubleQuotes() {
 
-		assertQuery("""
+		assertBadGrammar("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -67,48 +54,20 @@ class EqlQueryRendererTests extends JpqlQueryRendererTckTests {
 	}
 
 	@Test
-	void currentTimeLiterals() {
-
-		assertQuery("SELECT e FROM Employee e WHERE CURRENT_DATE > CURRENT_TIME");
-		assertQuery("SELECT e FROM Employee e WHERE CURRENT_TIME > CURRENT_TIMESTAMP");
-		assertQuery("SELECT e.name, CURRENT_DATE FROM Employee e");
-		assertQuery("SELECT e.name, CURRENT_TIME FROM Employee e");
-		assertQuery("SELECT e.name, CURRENT_TIMESTAMP FROM Employee e");
-	}
-
-	@Test
-	void numericCasting() {
-		assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
-	}
-
-	@Test
-	void betweenDates() {
-		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
-	}
-
-	@Test
-	void joinFetch() {
-
-		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address");
-		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address a ORDER BY a.city");
-		assertQuery("SELECT e FROM Employee e JOIN FETCH e.address AS a ORDER BY a.city");
-	}
-
-	@Test
-	void on() {
+	void joinOn() {
 
 		assertQuery("SELECT e FROM Employee e LEFT JOIN e.address ON a.city = :city");
 		assertQuery("SELECT e FROM Employee e LEFT JOIN MailingAddress a ON e.address = a.address");
 	}
 
 	@Test
-	void subselectsInFromClause() {
+	void subqueryInFromClause() {
 		assertQuery(
 				"SELECT e, c.city FROM Employee e, (SELECT DISTINCT a.city FROM Address a) c WHERE e.address.city = c.city");
 	}
 
 	@Test
-	void eclipseLinkSpecialOperators() {
+	void funcAndOperator() {
 
 		assertQuery("SELECT p FROM Phone p WHERE FUNC('TO_NUMBER', e.areaCode) > 613");
 		assertQuery("SELECT FUNC('YEAR', e.startDate) AS YEAR, COUNT(e) FROM Employee e GROUP BY YEAR");
@@ -129,20 +88,16 @@ class EqlQueryRendererTests extends JpqlQueryRendererTckTests {
 	}
 
 	@Test
-	void column() {
+	void columnAndTable() {
 
 		assertQuery("SELECT e FROM Employee e WHERE COLUMN('MANAGER_ID', e) = :id");
 		assertQuery("SELECT e FROM Employee e WHERE COLUMN('ROWID', e) = :id");
-	}
-
-	@Test
-	void table() {
 		assertQuery(
 				"SELECT e, a.LAST_UPDATE_USER FROM Employee e, TABLE('AUDIT') a WHERE a.TABLE = 'EMPLOYEE' AND a.ROWID = COLUMN('ROWID', e)");
 	}
 
 	@Test // GH-3175
-	void coalesceFunctions() {
+	void functionAsPredicate() {
 
 		assertQuery("SELECT b FROM Bundle b WHERE coalesce(b.deleted, false) AND b.latestImport = true");
 		assertQuery("SELECT b FROM Bundle b WHERE NOT coalesce(b.deleted, false) AND b.latestImport = true");

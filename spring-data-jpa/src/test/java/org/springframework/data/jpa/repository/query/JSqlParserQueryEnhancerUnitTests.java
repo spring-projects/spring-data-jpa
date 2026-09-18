@@ -39,7 +39,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Christoph Strobl
  * @author Soomin Kim
  */
-class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class JSqlParserQueryEnhancerUnitTests extends AbstractQueryEnhancerTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
