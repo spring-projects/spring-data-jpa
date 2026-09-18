@@ -849,14 +849,15 @@ class JpqlQueryTransformerTests {
 				""");
 	}
 
-	@Test // GH-3427
-	void sortShouldBeAppendedToFullSelectOnlyInCaseOfSetOperator() {
+	@Test // GH-3427, GH-4342
+	void shouldApplySortToSetQueries() {
 
-		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B')";
-		String target = createQueryFor(source, Sort.by("Type").ascending());
+		String source = "SELECT tb FROM Test tb WHERE (tb.type='A') UNION SELECT tb FROM Test tb WHERE (tb.type='B') UNION SELECT tb FROM Test tb WHERE (tb.type='C')";
 
-		assertThat(target).isEqualTo(
-				"SELECT tb FROM Test tb WHERE (tb.type = 'A') UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') order by tb.Type asc");
+		assertThat(createQueryFor(source, Sort.by("Type").ascending()))
+				.isEqualTo("SELECT tb FROM Test tb WHERE (tb.type = 'A') " //
+						+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'B') " //
+						+ "UNION SELECT tb FROM Test tb WHERE (tb.type = 'C') order by tb.Type asc");
 	}
 
 	static Stream<Arguments> queriesWithReservedWordsAsIdentifiers() {
