@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Jewoo Shin
  * @author OhKyu Chan
  * @author Arai
+ * @author Greg Taube
  * @since 3.1
  */
 class HqlQueryRendererTests extends AbstractQueryRendererTests {
@@ -963,6 +964,13 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 
 	@Nested
 	class Predicates {
+
+		@ParameterizedTest // GH-4326
+		@ValueSource(strings = { "=", ">", ">=", "<", "<=", "<>", "!=", "^=", "IS DISTINCT FROM", "IS NOT DISTINCT FROM",
+				"CONTAINS", "NOT CONTAINS", "INCLUDES", "NOT INCLUDES", "INTERSECTS", "NOT INTERSECTS" })
+		void binaryPredicates(String operator) {
+			assertQuery("SELECT e FROM Employee e WHERE e.first %s e.second".formatted(operator));
+		}
 
 		@Test
 		void comparisonOperators() {
