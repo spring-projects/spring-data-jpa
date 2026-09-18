@@ -580,12 +580,8 @@ primaryExpression
     | entityIdReference                                             # EntityIdExpression
     | entityVersionReference                                        # EntityVersionExpression
     | entityNaturalIdReference                                      # EntityNaturalIdExpression
-    | syntacticDomainPath pathContinuation?                         # SyntacticPathExpression
-    | function (
-        pathContinuation
-        | slicedPathAccessFragment pathContinuation?
-        | indexedPathAccessFragment pathContinuation?
-      )?                                                            # FunctionExpression
+    | syntacticDomainPath (pathContinuation | pathAccessFragment)?    # SyntacticPathExpression
+    | function ('.' generalPathFragment | pathAccessFragment)?        # FunctionExpression
     | generalPathFragment                                           # GeneralPathExpression
     ;
 
@@ -604,11 +600,14 @@ path
     ;
 
 generalPathFragment
-    : simplePath indexedPathAccessFragment?
+    : simplePath pathAccessFragment?
     ;
 
-indexedPathAccessFragment
-    : '[' expression ']' ('.' generalPathFragment)?
+pathAccessFragment
+    : '[' expression (
+        ']' ('.' generalPathFragment)?
+        | ':' expression ']' pathContinuation?
+      )
     ;
 
 /**
@@ -674,23 +673,11 @@ entityNaturalIdReference
  *         * INDICES( path )
  *         * VALUE( path )
  *         * KEY( path )
- *         * path[ selector ]
- *         * ARRAY_GET( embeddableArrayPath, index ).path
- *         * COALESCE( array1, array2 )[ selector ].path
  */
 syntacticDomainPath
     : treatedNavigablePath
     | collectionValueNavigablePath
     | mapKeyNavigablePath
-    | simplePath indexedPathAccessFragment
-    | simplePath slicedPathAccessFragment
-    ;
-
-/**
- * The slice operator to obtain elements between the lower and upper bound.
- */
-slicedPathAccessFragment
-    : '[' expression ':' expression ']'
     ;
 
 /**
@@ -780,7 +767,6 @@ simpleSetReturningFunction
  */
 standardFunction
     : castFunction
-    | treatedNavigablePath
     | extractFunction
     | truncFunction
     | formatFunction
@@ -830,8 +816,10 @@ castTargetType
  * The two formats for the 'substring() function: one defined by JPQL, the other by ANSI SQL
  */
 substringFunction
-    : SUBSTRING '(' expression ',' substringFunctionStartArgument (',' substringFunctionLengthArgument)? ')'
-    | SUBSTRING '(' expression FROM substringFunctionStartArgument (FOR substringFunctionLengthArgument)? ')'
+    : SUBSTRING '(' expression (
+        ',' substringFunctionStartArgument (',' substringFunctionLengthArgument)?
+        | FROM substringFunctionStartArgument (FOR substringFunctionLengthArgument)?
+      ) ')'
     ;
 
 substringFunctionStartArgument
@@ -1068,8 +1056,18 @@ columnFunction
  * The function name, followed by a parenthesized list of ','-separated expressions
  */
 genericFunction
-    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')' pathContinuation?
-      nthSideClause? nullsClause? withinGroupClause? filterClause? overClause?
+    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')'
+      (pathContinuation? genericFunctionClauses)?
+    ;
+
+// A continuation belongs here only when followed by function clauses.
+// Otherwise, primaryExpression owns the continuation.
+genericFunctionClauses
+    : nthSideClause nullsClause? withinGroupClause? filterClause? overClause?
+    | nullsClause withinGroupClause? filterClause? overClause?
+    | withinGroupClause filterClause? overClause?
+    | filterClause overClause?
+    | overClause
     ;
 
 /**
@@ -1288,13 +1286,8 @@ jsonObjectFunction
     : JSON_OBJECT '(' jsonObjectFunctionEntry? (',' jsonObjectFunctionEntry)* jsonNullClause? ')';
 
 jsonObjectFunctionEntry
-    : (expressionOrPredicate|jsonObjectKeyValueEntry|jsonObjectAssignmentEntry);
-
-jsonObjectKeyValueEntry
-    : KEY? expressionOrPredicate VALUE expressionOrPredicate;
-
-jsonObjectAssignmentEntry
-    : expressionOrPredicate ':' expressionOrPredicate;
+    : KEY expressionOrPredicate VALUE expressionOrPredicate
+    | expressionOrPredicate ((VALUE | ':') expressionOrPredicate)?;
 
 /**
  * The 'json_query(, PASSING … AS … WITH WRAPPER ERROR|NULL|DEFAULT on ERROR|EMPTY)' function
@@ -1448,8 +1441,7 @@ predicate
     ;
 
 expressionOrPredicate
-    : expression
-    | predicate
+    : predicate
     ;
 
 collectionQuantifier

@@ -236,6 +236,35 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				""");
 	}
 
+	@ParameterizedTest // GH-4326
+	@ValueSource(strings = { "e.payments[coalesce(:index, 0)].lines[1].amount",
+			"e.payments[coalesce(:start, 0):coalesce(:end, 2)].id", "some_function(e.names)[coalesce(:index, 0)].name",
+			"some_function(e.names)[coalesce(:start, 0):coalesce(:end, 2)].name", "some_function(e).names[0].name",
+			"some_function(e).names[0:2].name", "treat(e.payments AS Payment)[0].id", "treat(e.payments AS Payment)[0:2].id",
+			"treat(e AS Employee).payments[0].id" })
+	void nestedPathAccess(String expression) {
+		assertQuery("SELECT " + expression + " FROM Employee e");
+	}
+
+	@ParameterizedTest // GH-4326
+	@ValueSource(strings = { "FROM FIRST", "IGNORE NULLS", "WITHIN GROUP (ORDER BY e.id)",
+			"FILTER (WHERE e.active = true)", "OVER (PARTITION BY e.department)",
+			"FROM LAST RESPECT NULLS WITHIN GROUP (ORDER BY e.id) FILTER (WHERE e.active = true) OVER (PARTITION BY e.department)" })
+	void functionPathContinuationWithClauses(String clauses) {
+		assertQuery("SELECT some_function(e).name " + clauses + " FROM Employee e");
+		assertQuery("SELECT some_function(e) " + clauses + ".name FROM Employee e");
+		assertQuery("SELECT some_function(e).names " + clauses + "[0].name FROM Employee e");
+	}
+
+	@ParameterizedTest // GH-4326
+	@ValueSource(
+			strings = { "coalesce((e.salary + 1), 0)", "some_function(e.active = true AND (e.salary > 0 OR e.bonus > 0))",
+					"some_function((e.id, e.name))", "CASE e.active WHEN true THEN (e.salary + 1) ELSE 0 END",
+					"CASE WHEN e.active = true THEN coalesce(e.salary, 0) ELSE 0 END" })
+	void expressionsAndPredicates(String expression) {
+		assertQuery("SELECT " + expression + " FROM Employee e");
+	}
+
 	@ParameterizedTest // GH-3689
 	@ValueSource(strings = { "RESPECT NULLS", "IGNORE NULLS" })
 	void generic(String nullHandling) {
@@ -337,6 +366,9 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 	void substring() {
 
 		super.substring();
+
+		assertQuery("select substring(lower(coalesce(e.name, '')), 1, 2) from Employee e");
+		assertQuery("select substring(lower(coalesce(e.name, '')) FROM 1 FOR 2) from Employee e");
 
 		assertQuery("select substring(c.number, 1, position('/0' in c.number)) " + //
 				"from Call c");
@@ -1713,6 +1745,12 @@ class HqlQueryRendererTests extends JpqlQueryRendererTckTests {
 
 	@Test // GH-3883
 	void jsonObject() {
+
+		assertQuery("select json_object(lower(e.name), coalesce(e.salary, 0)) from Employee e");
+		assertQuery("select json_object(lower(e.name) VALUE coalesce(e.salary, 0)) from Employee e");
+		assertQuery("select json_object(KEY lower(e.name) VALUE coalesce(e.salary, 0)) from Employee e");
+		assertQuery("select json_object(lower(e.name) : coalesce(e.salary, 0)) from Employee e");
+		assertQuery("select json_object(KEY, VALUE, KEY KEY VALUE VALUE) from Employee e");
 
 		assertQuery("select json_object('key', 'value')");
 		assertQuery("select json_object('key' VALUE 'value')");

@@ -707,6 +707,10 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.appendInline(visit(ctx.syntacticDomainPath()));
 
+		if (ctx.pathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.pathAccessFragment()));
+		}
+
 		if (ctx.pathContinuation() != null) {
 			builder.appendInline(visit(ctx.pathContinuation()));
 		}
@@ -721,16 +725,13 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.appendInline(visit(ctx.function()));
 
-		if (ctx.indexedPathAccessFragment() != null) {
-			builder.appendInline(visit(ctx.indexedPathAccessFragment()));
+		if (ctx.pathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.pathAccessFragment()));
 		}
 
-		if (ctx.slicedPathAccessFragment() != null) {
-			builder.appendInline(visit(ctx.slicedPathAccessFragment()));
-		}
-
-		if (ctx.pathContinuation() != null) {
-			builder.appendInline(visit(ctx.pathContinuation()));
+		if (ctx.generalPathFragment() != null) {
+			builder.append(TOKEN_DOT);
+			builder.appendInline(visit(ctx.generalPathFragment()));
 		}
 
 		return builder;
@@ -817,41 +818,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.mapKeyNavigablePath());
 		}
 
-		if (ctx.indexedPathAccessFragment() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.simplePath()));
-			builder.append(visit(ctx.indexedPathAccessFragment()));
-
-			return builder;
-		}
-
-		if (ctx.slicedPathAccessFragment() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.simplePath()));
-			builder.append(visit(ctx.slicedPathAccessFragment()));
-
-			return builder;
-		}
-
 		return QueryRenderer.empty();
-	}
-
-	@Override
-	public QueryTokenStream visitSlicedPathAccessFragment(HqlParser.SlicedPathAccessFragmentContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
-		builder.appendInline(visit(ctx.expression(0)));
-		builder.append(TOKEN_COLON);
-		builder.appendInline(visit(ctx.expression(1)));
-		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
-
-		return builder;
 	}
 
 	@Override
@@ -1642,18 +1609,28 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
+	public QueryTokenStream visitPathAccessFragment(HqlParser.PathAccessFragmentContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
-		builder.appendInline(visit(ctx.expression()));
+		builder.appendInline(visit(ctx.expression(0)));
+
+		if (ctx.expression(1) != null) {
+			builder.append(TOKEN_COLON);
+			builder.appendInline(visit(ctx.expression(1)));
+		}
+
 		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
 
 		if (ctx.generalPathFragment() != null) {
 
 			builder.append(TOKEN_DOT);
 			builder.append(visit(ctx.generalPathFragment()));
+		}
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
 		}
 
 		return builder;
@@ -1701,6 +1678,18 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.pathContinuation() != null) {
 			builder.append(visit(ctx.pathContinuation()));
 		}
+
+		if (ctx.genericFunctionClauses() != null) {
+			builder.appendExpression(visit(ctx.genericFunctionClauses()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitGenericFunctionClauses(HqlParser.GenericFunctionClausesContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.nthSideClause() != null) {
 			builder.appendExpression(visit(ctx.nthSideClause()));

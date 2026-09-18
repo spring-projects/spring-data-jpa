@@ -66,6 +66,26 @@ abstract class JpqlQueryRendererTckTests {
 		assertQuery("SELECT e FROM Employee e JOIN e.projects p JOIN e.projects p2 WHERE p.name = :p1 AND p2.name = :p2");
 	}
 
+	@ParameterizedTest // GH-4326
+	@ValueSource(strings = { "e.manager", "e.projects", "e.contactInfo.address", "e.contactInfo.phones", "e.order",
+			"TREAT(e.manager AS Manager)", "TREAT(e.projects AS LargeProject)" })
+	void associationJoinPaths(String path) {
+
+		assertQuery("SELECT e FROM Employee e JOIN " + path + " a");
+		assertQuery("SELECT e FROM Employee e LEFT JOIN FETCH " + path + " a");
+		assertQuery("SELECT e FROM Employee e JOIN " + path + " a ON a.id = :id");
+	}
+
+	@Test // GH-4326
+	void nestedFunctionInvocations() {
+
+		assertQuery("SELECT FUNCTION('round', FUNCTION('abs', e.salary)) + 1 FROM Employee e");
+		assertQuery("SELECT LOWER(FUNCTION('normalize', FUNCTION('trim', e.name))) FROM Employee e");
+		assertQuery("SELECT EXTRACT(YEAR FROM FUNCTION('date', e.createdAt)) FROM Employee e");
+		assertQuery(
+				"SELECT e FROM Employee e WHERE e.createdAt BETWEEN FUNCTION('date', :startDate) AND FUNCTION('date', :endDate)");
+	}
+
 	@Test
 	void joinFetch() {
 

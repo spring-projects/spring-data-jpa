@@ -29,6 +29,7 @@ import org.openjdk.jmh.annotations.Warmup;
 
 /**
  * @author Arai
+ * @author Mark Paluch
  */
 @Testable
 @Fork(10)
@@ -37,7 +38,7 @@ import org.openjdk.jmh.annotations.Warmup;
 @BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Timeout(time = 5)
-public class HqlParserColdStartBenchmarks {
+public class JpaQueryParserColdStartBenchmarks {
 
 	private static final String QUERY = """
 			select new com.example.InvoiceSummary(
@@ -65,7 +66,18 @@ public class HqlParserColdStartBenchmarks {
 			""";
 
 	@Benchmark
-	public Object parse() {
+	public Object hql() {
 		return JpaQueryEnhancer.forHql(QUERY);
 	}
+
+	@Benchmark
+	public Object jpql() {
+		return JpaQueryEnhancer.forJpql(QUERY);
+	}
+
+	@Benchmark
+	public Object eql() {
+		return JpaQueryEnhancer.forEql(QUERY);
+	}
+
 }
