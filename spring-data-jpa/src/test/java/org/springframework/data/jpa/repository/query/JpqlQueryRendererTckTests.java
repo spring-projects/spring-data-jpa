@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  *
  * @author Mark Paluch
  * @author Jewoo Shin
+ * @author Wantaek Choi
  */
 abstract class JpqlQueryRendererTckTests {
 
@@ -1479,6 +1480,23 @@ abstract class JpqlQueryRendererTckTests {
 
 		String source = "select new com.company.%s.thing.stuff.ClassName(e.id) from Experience e".formatted(reservedWord);
 		assertQuery(source);
+	}
+
+	@Test
+	void idAndVersionFunctionsShouldWork() {
+
+		assertQuery("select id(e) from Employee e");
+		assertQuery("select version(e) from Employee e");
+		assertQuery("select id(e.dept) from Employee e");
+		assertQuery("select e from Employee e where id(e) = :id");
+	}
+
+	@Test
+	void idAndVersionShouldRemainUsableAsNames() {
+
+		assertQuery("select e.id, e.version from Employee e where e.id = :id");
+		assertQuery("select v from Version v");
+		assertQuery("select new com.company.id.thing.ClassName(e.a) from Experience e");
 	}
 
 	@Test // GH-3496
