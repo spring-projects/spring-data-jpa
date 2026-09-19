@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Mark Paluch
  * @author Arai
+ * @author OhKyu Chan
  * @since 4.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
@@ -719,11 +720,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		Expression<Number> left = visitRequired(ctx.expression(0));
 		Expression<Number> right = visitRequired(ctx.expression(1));
 
-		if (ctx.op.getText().equals("*")) {
-			return cb.prod(left, right);
-		} else {
-			return cb.quot(left, right);
-		}
+		return switch (ctx.op.getText()) {
+			case "*" -> cb.prod(left, right);
+			case "%" -> cb.mod((Expression) left, (Expression) right);
+			default -> cb.quot(left, right);
+		};
 	}
 
 	@Override
