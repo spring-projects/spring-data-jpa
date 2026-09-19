@@ -45,6 +45,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Paluch
  * @author Oscar Fanchin
  * @author Greg Taube
+ * @author OhKyu Chan
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -215,6 +216,14 @@ class HqlOrderExpressionVisitorUnitTests {
 		assertThat(renderOrderBy(JpaSort.unsafe("sqrt(age)"), "var_1")).startsWithIgnoringCase("order by sqrt(var_1.age)");
 		assertThat(renderOrderBy(JpaSort.unsafe("exp(age)"), "var_1")).startsWithIgnoringCase("order by exp(var_1.age)");
 		assertThat(renderOrderBy(JpaSort.unsafe("ln(age)"), "var_1")).startsWithIgnoringCase("order by ln(var_1.age)");
+	}
+
+	@Test // GH-4359
+	void modulo() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("age % 2"), "var_1")).startsWithIgnoringCase("order by var_1.age % 2");
+		assertThat(renderOrderBy(JpaSort.unsafe("age * 2 % 7"), "var_1"))
+				.startsWithIgnoringCase("order by var_1.age * 2 % 7");
 	}
 
 	@Test // GH-3172, 4255

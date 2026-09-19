@@ -564,7 +564,7 @@ expression
     | op=('+' | '-') expression                                     # SignedExpression
     | expression datetimeField                                      # ToDurationExpression
     | expression BY datetimeField                                   # FromDurationExpression
-    | expression op=('*' | '/') expression                          # MultiplicationExpression
+    | expression op=('*' | '/' | '%') expression                    # MultiplicationExpression
     | expression op=('+' | '-') expression                          # AdditionExpression
     | expression '||' expression                                    # HqlConcatenationExpression
     | DAY OF WEEK                                                   # DayOfWeekExpression
