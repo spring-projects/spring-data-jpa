@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.core.TypeInformation;
+import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.provider.ProxyIdAccessor;
 import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.mapping.IdentifierAccessor;
@@ -36,6 +37,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Michael J. Simons
+ * @author Gieun Nam
  * @since 1.3
  */
 class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentProperty>
@@ -45,23 +47,21 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			+ org.springframework.data.annotation.Version.class.getName() + " but needs to use "
 			+ jakarta.persistence.Version.class.getName() + " to trigger optimistic locking correctly";
 
-	private final ProxyIdAccessor proxyIdAccessor;
+	private final PersistenceProvider persistenceProvider;
+
 	private final JpaMetamodel metamodel;
 
 	/**
 	 * Creates a new {@link JpaPersistentEntityImpl} using the given {@link TypeInformation} and {@link Comparator}.
 	 *
 	 * @param information must not be {@literal null}.
-	 * @param proxyIdAccessor must not be {@literal null}.
 	 * @param metamodel must not be {@literal null}.
 	 */
-	public JpaPersistentEntityImpl(TypeInformation<T> information, ProxyIdAccessor proxyIdAccessor,
-			JpaMetamodel metamodel) {
+	public JpaPersistentEntityImpl(TypeInformation<T> information, JpaMetamodel metamodel) {
 
 		super(information, null);
-
-		this.proxyIdAccessor = proxyIdAccessor;
 		this.metamodel = metamodel;
+		this.persistenceProvider = PersistenceProvider.fromMetamodel(metamodel.getMetamodel());
 	}
 
 	@Override
@@ -71,7 +71,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 
 	@Override
 	public IdentifierAccessor getIdentifierAccessor(Object bean) {
-		return new JpaProxyAwareIdentifierAccessor(this, bean, proxyIdAccessor);
+		return new JpaProxyAwareIdentifierAccessor(this, bean, persistenceProvider);
 	}
 
 	@Override
@@ -98,7 +98,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 	private static class JpaProxyAwareIdentifierAccessor extends IdPropertyIdentifierAccessor {
 
 		private final Object bean;
-		private final ProxyIdAccessor proxyIdAccessor;
+		private final PersistenceProvider persistenceProvider;
 
 		/**
 		 * Creates a new {@link JpaProxyAwareIdentifierAccessor} for the given {@link JpaPersistentEntity}, target bean and
@@ -106,23 +106,23 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		 *
 		 * @param entity must not be {@literal null}.
 		 * @param bean must not be {@literal null}.
-		 * @param proxyIdAccessor must not be {@literal null}.
+		 * @param persistenceProvider must not be {@literal null}.
 		 */
-		JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean, ProxyIdAccessor proxyIdAccessor) {
+		JpaProxyAwareIdentifierAccessor(JpaPersistentEntity<?> entity, Object bean, PersistenceProvider persistenceProvider) {
 
 			super(entity, bean);
 
-			Assert.notNull(proxyIdAccessor, "Proxy identifier accessor must not be null");
+			Assert.notNull(persistenceProvider, "Proxy identifier accessor must not be null");
 
-			this.proxyIdAccessor = proxyIdAccessor;
+			this.persistenceProvider = persistenceProvider;
 			this.bean = bean;
 		}
 
 		@Override
 		public @Nullable Object getIdentifier() {
 
-			return proxyIdAccessor.shouldUseAccessorFor(bean) //
-					? proxyIdAccessor.getIdentifierFrom(bean)//
+			return persistenceProvider.shouldUseAccessorFor(bean) //
+					? persistenceProvider.getIdentifierFrom(bean)//
 					: super.getIdentifier();
 		}
 	}
