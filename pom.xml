@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -30,16 +29,18 @@
 		<antlr>4.13.2</antlr> <!-- align with Hibernate's parser -->
 		<eclipselink>5.0.1</eclipselink>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.4.5.Final</hibernate>
+		<hibernate>7.4.9.Final</hibernate>
 		<hibernate-74-snapshots>7.4.1-SNAPSHOT</hibernate-74-snapshots>
 		<hsqldb>2.7.4</hsqldb>
-		<h2>2.3.232</h2>
+		<h2>2.5.250</h2>
 		<jakarta-persistence-api>3.2.0</jakarta-persistence-api>
-		<jsqlparser>5.3</jsqlparser>
+		<jsqlparser>5.4</jsqlparser>
 		<mysql-connector-java>26.7.0</mysql-connector-java>
 		<postgresql>42.7.13</postgresql>
 		<oracle>23.26.3.0.0</oracle>
 		<springdata.commons>4.2.0-SNAPSHOT</springdata.commons>
+		<spring-instrument-agent>-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar</spring-instrument-agent>
+		<skip-eclipselink-tests>false</skip-eclipselink-tests>
 
 		<hibernate.groupId>org.hibernate</hibernate.groupId>
 		<antora-javadoc-artifactId>spring-data-jpa</antora-javadoc-artifactId>
@@ -71,6 +72,59 @@
 				<repository>
 					<id>sonatype-central</id>
 					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-8</id>
+			<properties>
+				<hibernate>8.0.0.Beta1</hibernate>
+				<jakarta-persistence-api>4.0.0-M5</jakarta-persistence-api>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent/>
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
+			</properties>
+		</profile>
+		<profile>
+			<id>hibernate-8-snapshots</id>
+			<properties>
+				<hibernate>8.0.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent/>
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<snapshots/>
+					<releases>
+						<enabled>false</enabled>
+					</releases>
+				</repository>
+			</repositories>
+		</profile>
+		<profile>
+			<id>hibernate-8-next</id>
+			<properties>
+				<hibernate>8.1.0-SNAPSHOT</hibernate>
+				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
+				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
+				<spring-instrument-agent/>
+				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<skip-eclipselink-tests>true</skip-eclipselink-tests>
+			</properties>
+			<repositories>
+				<repository>
+					<id>sonatype-central</id>
+					<url>https://central.sonatype.com/repository/maven-snapshots</url>
+					<snapshots/>
 					<releases>
 						<enabled>false</enabled>
 					</releases>

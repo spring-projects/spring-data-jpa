@@ -138,61 +138,24 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitJoin_association_path_expression(EqlParser.Join_association_path_expressionContext ctx) {
 
+		if (ctx.TREAT() == null) {
+			return visit(ctx.join_path_expression());
+		}
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.TREAT() == null) {
+		builder.appendExpression(visit(ctx.join_path_expression()));
+		builder.append(QueryTokens.expression(ctx.AS()));
+		builder.appendExpression(visit(ctx.subtype()));
 
-			if (ctx.join_collection_valued_path_expression() != null) {
-				builder.appendExpression(visit(ctx.join_collection_valued_path_expression()));
-			} else if (ctx.join_single_valued_path_expression() != null) {
-				builder.appendExpression(visit(ctx.join_single_valued_path_expression()));
-			}
-		} else {
-			QueryRendererBuilder nested = QueryRenderer.builder();
-
-			if (ctx.join_collection_valued_path_expression() != null) {
-
-				nested.appendExpression(visit(ctx.join_collection_valued_path_expression()));
-				nested.append(QueryTokens.expression(ctx.AS()));
-				nested.appendExpression(visit(ctx.subtype()));
-
-			} else if (ctx.join_single_valued_path_expression() != null) {
-
-				nested.appendExpression(visit(ctx.join_single_valued_path_expression()));
-				nested.append(QueryTokens.expression(ctx.AS()));
-				nested.appendExpression(visit(ctx.subtype()));
-			}
-
-			builder.append(QueryTokens.token(ctx.TREAT()));
-			builder.append(TOKEN_OPEN_PAREN);
-			builder.appendInline(nested);
-			builder.append(TOKEN_CLOSE_PAREN);
-		}
-
-		return builder;
+		return QueryTokenStream.ofFunction(ctx.TREAT(), builder);
 	}
 
 	@Override
-	public QueryTokenStream visitJoin_collection_valued_path_expression(
-			EqlParser.Join_collection_valued_path_expressionContext ctx) {
+	public QueryTokenStream visitJoin_path_expression(EqlParser.Join_path_expressionContext ctx) {
 
 		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
 
-		if (ctx.identification_variable() != null) {
-			items.add(ctx.identification_variable());
-		}
-
-		items.addAll(ctx.single_valued_embeddable_object_field());
-		items.add(ctx.collection_valued_field());
-
-		return QueryTokenStream.concat(items, this::visit, TOKEN_DOT);
-	}
-
-	@Override
-	public QueryTokenStream visitJoin_single_valued_path_expression(
-			EqlParser.Join_single_valued_path_expressionContext ctx) {
-
-		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
 		if (ctx.identification_variable() != null) {
 			items.add(ctx.identification_variable());
 		}

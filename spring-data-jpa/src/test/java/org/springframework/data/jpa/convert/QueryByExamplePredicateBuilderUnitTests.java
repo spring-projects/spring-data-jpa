@@ -36,6 +36,7 @@ import jakarta.persistence.metamodel.Type;
 
 import java.lang.reflect.Member;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -131,8 +132,8 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 		doReturn(expressionMock).when(cb).literal(any(Boolean.class));
 		doReturn(truePredicate).when(cb).isTrue(eq(expressionMock));
-		doReturn(andPredicate).when(cb).and(ArgumentMatchers.<Predicate[]> any());
-		doReturn(orPredicate).when(cb).or(ArgumentMatchers.<Predicate[]> any());
+		doReturn(andPredicate).when(cb).and(ArgumentMatchers.<List<Predicate>> any());
+		doReturn(orPredicate).when(cb).or(ArgumentMatchers.<List<Predicate>> any());
 	}
 
 	@Test // DATAJPA-218
@@ -177,7 +178,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 		p.firstname = "foo";
 		p.age = 2L;
 
-		when(cb.and(any(Predicate[].class))).thenReturn(andPredicate);
+		when(cb.and(anyList())).thenReturn(andPredicate);
 
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, of(p), EscapeCharacter.DEFAULT))
 				.isEqualTo(andPredicate);
@@ -195,12 +196,12 @@ class QueryByExamplePredicateBuilderUnitTests {
 
 		Example<Person> example = of(person, ExampleMatcher.matchingAny());
 
-		when(cb.or(any(Predicate[].class))).thenReturn(orPredicate);
+		when(cb.or(anyList())).thenReturn(orPredicate);
 
 		assertThat(QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT))
 				.isEqualTo(orPredicate);
 
-		verify(cb).or(ArgumentMatchers.any(Predicate[].class));
+		verify(cb).or(anyList());
 	}
 
 	@Test // DATAJPA-1372

@@ -17,43 +17,73 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link BadJpqlGrammarException}.
  *
  * @author Mark Paluch
  */
+@ParameterizedClass(name = "{0}")
+@MethodSource("parsers")
 class BadJpqlGrammarExceptionUnitTests {
+
+	private final String grammar;
+	private final Consumer<String> parseQuery;
+
+	BadJpqlGrammarExceptionUnitTests(String grammar, Consumer<String> parseQuery) {
+		this.grammar = grammar;
+		this.parseQuery = parseQuery;
+	}
+
+	static Stream<Arguments> parsers() {
+		return Stream.of(Arguments.of("HQL", (Consumer<String>) JpaQueryEnhancer.HqlQueryParser::parseQuery),
+				Arguments.of("EQL", (Consumer<String>) JpaQueryEnhancer.EqlQueryParser::parseQuery),
+				Arguments.of("JPQL", (Consumer<String>) JpaQueryEnhancer.JpqlQueryParser::parseQuery));
+	}
 
 	@Test // GH-3757
 	void shouldContainOriginalText() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class)
-				.isThrownBy(() -> JpaQueryEnhancer.HqlQueryParser
-						.parseQuery("SELECT e FROM Employee e WHERE FOO(x).bar RESPECTING NULLS"))
+				.isThrownBy(() -> parseQuery.accept("SELECT e FROM Employee e WHERE FUNCTION('foo', x + )"))
 				.withMessageContaining("no viable alternative")
-				.withMessageContaining("SELECT e FROM Employee e WHERE FOO(x).bar *RESPECTING NULLS")
-				.withMessageContaining("Bad HQL grammar [SELECT e FROM Employee e WHERE FOO(x).bar RESPECTING NULLS]");
+				.withMessageContaining("SELECT e FROM Employee e WHERE FUNCTION('foo', x + *)")
+				.withMessageContaining("Bad " + grammar + " grammar [SELECT e FROM Employee e WHERE FUNCTION('foo', x + )]");
+	}
+
+	@Test // GH-4326
+	void shouldReportMismatchedFunctionClause() {
+
+		assertThatExceptionOfType(BadJpqlGrammarException.class)
+				.isThrownBy(() -> parseQuery.accept("SELECT e FROM Employee e WHERE FUNCTION('foo', x) = 1 RESPECTING NULLS"))
+				.withMessageContaining("mismatched input 'RESPECTING'").withMessageContaining(
+						"Bad " + grammar + " grammar [SELECT e FROM Employee e WHERE FUNCTION('foo', x) = 1 RESPECTING NULLS]");
 	}
 
 	@Test // GH-3757
 	void shouldReportExtraneousInput() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class)
-				.isThrownBy(() -> JpaQueryEnhancer.HqlQueryParser.parseQuery("select * from User group by name"))
+				.isThrownBy(() -> parseQuery.accept("select * from User group by name"))
 				.withMessageContaining("extraneous input '*'")
-				.withMessageContaining("Bad HQL grammar [select * from User group by name]");
+				.withMessageContaining("Bad " + grammar + " grammar [select * from User group by name]");
 	}
 
 	@Test // GH-3757
 	void shouldReportMismatchedInput() {
 
 		assertThatExceptionOfType(BadJpqlGrammarException.class)
-				.isThrownBy(() -> JpaQueryEnhancer.HqlQueryParser.parseQuery("SELECT AVG(m.price) AS m.avg FROM Magazine m"))
+				.isThrownBy(() -> parseQuery.accept("SELECT AVG(m.price) AS m.avg FROM Magazine m"))
 				.withMessageContaining("mismatched input '.'").withMessageContaining("expecting one of the following tokens:")
-				.withMessageContaining("EXCEPT")
-				.withMessageContaining("Bad HQL grammar [SELECT AVG(m.price) AS m.avg FROM Magazine m]");
+				.withMessageContaining("FROM")
+				.withMessageContaining("Bad " + grammar + " grammar [SELECT AVG(m.price) AS m.avg FROM Magazine m]");
 	}
 
 }

@@ -56,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the behavior of projections.
  *
  * @author Jens Schauder
+ * @author Oscar Fanchin
  */
 @Transactional
 @ExtendWith(SpringExtension.class)
@@ -230,6 +231,7 @@ class ProjectionsIntegrationTests {
 			Properties properties = new Properties();
 			properties.setProperty("hibernate.hbm2ddl.auto", "create");
 			properties.setProperty("hibernate.dialect", "org.hibernate.dialect.HSQLDialect");
+			properties.setProperty("hibernate.xml_mapping_enabled", "false");
 			factoryBean.setJpaProperties(properties);
 
 			return factoryBean;

@@ -169,7 +169,23 @@ public class AotRepositoryFragmentSupport {
 		return source;
 	}
 
-	@SuppressWarnings("NullAway")
+	/**
+	 * Limit the given query to {@code maxResults}, keeping the window aligned if the query is already limited to a larger
+	 * maximum.
+	 */
+	@SuppressWarnings("removal")
+	protected static void applyMaxResults(Query query, int maxResults) {
+
+		if (query.getMaxResults() != Integer.MAX_VALUE) {
+			if (query.getMaxResults() > maxResults && query.getFirstResult() > 0) {
+				query.setFirstResult(query.getFirstResult() - (query.getMaxResults() - maxResults));
+			}
+		}
+
+		query.setMaxResults(maxResults);
+	}
+
+	@SuppressWarnings({ "NullAway", "removal" })
 	protected long getCount(Query query) {
 
 		List<?> totals = query.getResultList();

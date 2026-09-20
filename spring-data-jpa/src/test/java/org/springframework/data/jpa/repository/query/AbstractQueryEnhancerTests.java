@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Mark Paluch
  */
-abstract class QueryEnhancerTckTests {
+abstract class AbstractQueryEnhancerTests {
 
 	@ParameterizedTest
 	@MethodSource("nativeCountQueries") // GH-2773

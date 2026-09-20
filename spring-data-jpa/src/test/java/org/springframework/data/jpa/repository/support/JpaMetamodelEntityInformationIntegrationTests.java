@@ -23,6 +23,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Disabled;
@@ -151,7 +152,7 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 	void findsIdClassOnMappedSuperclass() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersistenceUnitName());
-		EntityManager em = emf.createEntityManager();
+		EntityManager em = emf.createEntityManager(Map.of());
 
 		EntityInformation<Sample, BaseIdClass> information = new JpaMetamodelEntityInformation<>(Sample.class,
 				em.getMetamodel(), em.getEntityManagerFactory().getPersistenceUnitUtil());
@@ -262,7 +263,7 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 	void correctlyDeterminesIdValueForNestedIdClassesWithNonPrimitiveNonManagedType() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersistenceUnitName());
-		EntityManager em = emf.createEntityManager();
+		EntityManager em = emf.createEntityManager(Map.of());
 
 		JpaEntityInformation<EntityWithNestedIdClass, ?> information = getEntityInformation(EntityWithNestedIdClass.class,
 				em);
@@ -305,7 +306,7 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 	void prefersPrivateGetterOverFieldAccess() {
 
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory(getMetadadataPersistenceUnitName());
-		EntityManager em = emf.createEntityManager();
+		EntityManager em = emf.createEntityManager(Map.of());
 
 		JpaEntityInformation<EntityWithPrivateIdGetter, ?> information = getEntityInformation(
 				EntityWithPrivateIdGetter.class, em);

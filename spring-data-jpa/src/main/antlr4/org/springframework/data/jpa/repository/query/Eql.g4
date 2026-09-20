@@ -24,6 +24,7 @@ grammar Eql;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Jewoo Shin
+ * @author Wantaek Choi
  * @since 3.2
  */
 }
@@ -101,17 +102,11 @@ join_condition
     ;
 
 join_association_path_expression
-    : join_collection_valued_path_expression
-    | join_single_valued_path_expression
-    | TREAT '(' join_collection_valued_path_expression AS subtype ')'
-    | TREAT '(' join_single_valued_path_expression AS subtype ')'
+    : join_path_expression
+    | TREAT '(' join_path_expression AS subtype ')'
     ;
 
-join_collection_valued_path_expression
-    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* collection_valued_field
-    ;
-
-join_single_valued_path_expression
+join_path_expression
     : (identification_variable '.')? (single_valued_embeddable_object_field '.')* single_valued_object_field
     ;
 
@@ -147,8 +142,7 @@ general_subpath
     ;
 
 simple_subpath
-    : general_identification_variable
-    | general_identification_variable ('.' single_valued_object_field)*
+    : general_identification_variable ('.' single_valued_object_field)*
     ;
 
 treated_subpath
@@ -451,7 +445,6 @@ arithmetic_primary
     | case_expression
     | arithmetic_cast_function
     | type_cast_function
-    | function_invocation
     | '(' subquery ')'
     ;
 
@@ -462,7 +455,6 @@ string_expression
     | functions_returning_strings
     | aggregate_expression
     | case_expression
-    | function_invocation
     | string_cast_function
     | type_cast_function
     | '(' subquery ')'
@@ -475,7 +467,6 @@ datetime_expression
     | functions_returning_datetime
     | aggregate_expression
     | case_expression
-    | function_invocation
     | date_time_timestamp_literal
     | '(' subquery ')'
     ;
@@ -804,6 +795,7 @@ reserved_word
        |BOTH
        |BY
        |CASE
+       |CAST
        |CEILING
        |COALESCE
        |CONCAT

@@ -53,6 +53,7 @@ import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -955,7 +956,7 @@ class JpaQueryCreatorTests {
 			if (builder instanceof DefaultCreatorBuilder dcb) {
 				entityManager.createQuery(this.jpql.get(), dcb.returnedType.getReturnedType());
 			} else {
-				entityManager.createQuery(this.jpql.get());
+				JpaAdapter.createQuery(entityManager, this.jpql.get());
 			}
 			return this;
 		}

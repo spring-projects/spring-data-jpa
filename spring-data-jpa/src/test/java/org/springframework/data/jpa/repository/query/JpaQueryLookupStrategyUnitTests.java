@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,6 +25,7 @@ import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -82,7 +84,7 @@ class JpaQueryLookupStrategyUnitTests {
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
-		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.createEntityManager(Map.of())).thenReturn(em);
 		when(em.getDelegate()).thenReturn(em);
 		queryMethodFactory = new DefaultJpaQueryMethodFactory(extractor);
 	}
@@ -161,7 +163,7 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("annotatedQueryNameOnly", String.class, String.class, String.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		when(em.createNamedQuery("missing-query")).thenThrow(new IllegalArgumentException());
+		whenCreateNamedQuery(em, "missing-query").thenThrow(new IllegalArgumentException());
 
 		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
@@ -177,7 +179,7 @@ class JpaQueryLookupStrategyUnitTests {
 				Pageable.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		when(em.createNamedQuery("foo.count")).thenThrow(new IllegalArgumentException());
+		whenCreateNamedQuery(em, "foo.count").thenThrow(new IllegalArgumentException());
 
 		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))
@@ -205,7 +207,7 @@ class JpaQueryLookupStrategyUnitTests {
 		Method method = UserRepository.class.getMethod("findByNamedQuery", String.class, Pageable.class);
 		RepositoryMetadata metadata = new DefaultRepositoryMetadata(UserRepository.class);
 
-		when(em.createNamedQuery("foo.count")).thenThrow(new IllegalArgumentException());
+		whenCreateNamedQuery(em, "foo.count").thenThrow(new IllegalArgumentException());
 
 		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> strategy.resolveQuery(method, metadata, projectionFactory, namedQueries))

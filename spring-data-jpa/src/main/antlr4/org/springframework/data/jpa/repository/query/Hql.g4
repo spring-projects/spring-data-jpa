@@ -226,7 +226,7 @@ offsetClause
     ;
 
 fetchClause
-    : FETCH (FIRST | NEXT) (parameterOrIntegerLiteral | parameterOrNumberLiteral '%') (ROW | ROWS) (ONLY | WITH TIES)
+    : FETCH (FIRST | NEXT) (parameterOrIntegerLiteral | parameterOrNumberLiteral PERCENT) (ROW | ROWS) (ONLY | WITH TIES)
     ;
 
 /*******************
@@ -580,8 +580,8 @@ primaryExpression
     | entityIdReference                                             # EntityIdExpression
     | entityVersionReference                                        # EntityVersionExpression
     | entityNaturalIdReference                                      # EntityNaturalIdExpression
-    | syntacticDomainPath pathContinuation?                         # SyntacticPathExpression
-    | function                                                      # FunctionExpression
+    | syntacticDomainPath (pathContinuation | pathAccessFragment)?    # SyntacticPathExpression
+    | function ('.' generalPathFragment | pathAccessFragment)?        # FunctionExpression
     | generalPathFragment                                           # GeneralPathExpression
     ;
 
@@ -600,11 +600,14 @@ path
     ;
 
 generalPathFragment
-    : simplePath indexedPathAccessFragment?
+    : simplePath pathAccessFragment?
     ;
 
-indexedPathAccessFragment
-    : '[' expression ']' ('.' generalPathFragment)?
+pathAccessFragment
+    : '[' expression (
+        ']' ('.' generalPathFragment)?
+        | ':' expression ']' pathContinuation?
+      )
     ;
 
 /**
@@ -670,27 +673,11 @@ entityNaturalIdReference
  *         * INDICES( path )
  *         * VALUE( path )
  *         * KEY( path )
- *         * path[ selector ]
- *         * ARRAY_GET( embeddableArrayPath, index ).path
- *         * COALESCE( array1, array2 )[ selector ].path
  */
 syntacticDomainPath
     : treatedNavigablePath
     | collectionValueNavigablePath
     | mapKeyNavigablePath
-    | simplePath indexedPathAccessFragment
-    | simplePath slicedPathAccessFragment
-    | toOneFkReference
-    | function pathContinuation
-    | function indexedPathAccessFragment pathContinuation?
-    | function slicedPathAccessFragment
-    ;
-
-/**
- * The slice operator to obtain elements between the lower and upper bound.
- */
-slicedPathAccessFragment
-    : '[' expression ':' expression ']'
     ;
 
 /**
@@ -759,6 +746,7 @@ function
     | columnFunction                             # ColumnFunctionInvocation
     | jsonFunction                               # JsonFunctionInvocation
     | xmlFunction                                # XmlFunctionInvocation
+    | toOneFkReference                           # ToOneFkReferenceInvocation
     | genericFunction                            # GenericFunctionInvocation
     ;
 
@@ -779,7 +767,6 @@ simpleSetReturningFunction
  */
 standardFunction
     : castFunction
-    | treatedNavigablePath
     | extractFunction
     | truncFunction
     | formatFunction
@@ -829,8 +816,10 @@ castTargetType
  * The two formats for the 'substring() function: one defined by JPQL, the other by ANSI SQL
  */
 substringFunction
-    : SUBSTRING '(' expression ',' substringFunctionStartArgument (',' substringFunctionLengthArgument)? ')'
-    | SUBSTRING '(' expression FROM substringFunctionStartArgument (FOR substringFunctionLengthArgument)? ')'
+    : SUBSTRING '(' expression (
+        ',' substringFunctionStartArgument (',' substringFunctionLengthArgument)?
+        | FROM substringFunctionStartArgument (FOR substringFunctionLengthArgument)?
+      ) ')'
     ;
 
 substringFunctionStartArgument
@@ -1067,8 +1056,18 @@ columnFunction
  * The function name, followed by a parenthesized list of ','-separated expressions
  */
 genericFunction
-    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')' pathContinuation?
-      nthSideClause? nullsClause? withinGroupClause? filterClause? overClause?
+    : genericFunctionName '(' (genericFunctionArguments | ASTERISK)? ')'
+      (pathContinuation? genericFunctionClauses)?
+    ;
+
+// A continuation belongs here only when followed by function clauses.
+// Otherwise, primaryExpression owns the continuation.
+genericFunctionClauses
+    : nthSideClause nullsClause? withinGroupClause? filterClause? overClause?
+    | nullsClause withinGroupClause? filterClause? overClause?
+    | withinGroupClause filterClause? overClause?
+    | filterClause overClause?
+    | overClause
     ;
 
 /**
@@ -1287,13 +1286,8 @@ jsonObjectFunction
     : JSON_OBJECT '(' jsonObjectFunctionEntry? (',' jsonObjectFunctionEntry)* jsonNullClause? ')';
 
 jsonObjectFunctionEntry
-    : (expressionOrPredicate|jsonObjectKeyValueEntry|jsonObjectAssignmentEntry);
-
-jsonObjectKeyValueEntry
-    : KEY? expressionOrPredicate VALUE expressionOrPredicate;
-
-jsonObjectAssignmentEntry
-    : expressionOrPredicate ':' expressionOrPredicate;
+    : KEY expressionOrPredicate VALUE expressionOrPredicate
+    | expressionOrPredicate ((VALUE | ':') expressionOrPredicate)?;
 
 /**
  * The 'json_query(, PASSING … AS … WITH WRAPPER ERROR|NULL|DEFAULT on ERROR|EMPTY)' function
@@ -1428,25 +1422,26 @@ xmltableDefaultClause
 // Predicates
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
-    : '(' predicate ')'                     # GroupedPredicate
-    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE) # IsBooleanPredicate
-    | expression IS NOT? DISTINCT FROM expression # IsDistinctFromPredicate
-    | expression NOT? MEMBER OF? path       # MemberOfPredicate
-    | inExpression                          # InPredicate
-    | betweenExpression                     # BetweenPredicate
-    | expression NOT? (CONTAINS|INCLUDES|INTERSECTS) expression   # ContainsPredicate
-    | relationalExpression                  # RelationalPredicate
-    | stringPatternMatching                 # LikePredicate
-    | existsExpression                      # ExistsPredicate
-    | NOT predicate                         # NotPredicate
-    | predicate AND predicate               # AndPredicate
-    | predicate OR predicate                # OrPredicate
-    | expression                            # ExpressionPredicate
+    : '(' predicate ')'                                             # GroupedPredicate
+    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE)                    # IsBooleanPredicate
+    | expression NOT? MEMBER OF? path                               # MemberOfPredicate
+    | expression NOT? IN inList                                     # InPredicate
+    | expression NOT? BETWEEN expression AND expression             # BetweenPredicate
+    | expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
+    | expression (
+        NOT? (CONTAINS|INCLUDES|INTERSECTS)
+        | IS NOT? DISTINCT FROM
+        | op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=')
+      ) expression                                                  # BinaryExpressionPredicate
+    | EXISTS ((ELEMENTS | INDICES) '(' simplePath ')' | expression) # ExistsPredicate
+    | NOT predicate                                                 # NotPredicate
+    | predicate AND predicate                                       # AndPredicate
+    | predicate OR predicate                                        # OrPredicate
+    | expression                                                    # ExpressionPredicate
     ;
 
 expressionOrPredicate
-    : expression
-    | predicate
+    : predicate
     ;
 
 collectionQuantifier
@@ -1474,41 +1469,15 @@ indicesKeysQuantifier
     | KEYS
     ;
 
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-relational-comparisons
-// NOTE: The TIP shows that "!=" is also supported. Hibernate's source code shows that "^=" is another NOT_EQUALS option as well.
-relationalExpression
-    : expression op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=' ) expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-between-predicate
-betweenExpression
-    : expression NOT? BETWEEN expression AND expression
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-like-predicate
-stringPatternMatching
-    : expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL |parameter))?
-    ;
-
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-elements-indices
 // TBD
 
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-in-predicate
-inExpression
-    : expression NOT? IN inList
-    ;
-
 inList
     : (ELEMENTS | INDICES) '(' simplePath ')'
     | '(' subquery ')'
     | parameter
     | '(' (expressionOrPredicate (',' expressionOrPredicate)*)? ')'
-    ;
-
-// https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-exists-predicate
-existsExpression
-    : EXISTS (ELEMENTS | INDICES) '(' simplePath ')'
-    | EXISTS expression
     ;
 
 // Projection
