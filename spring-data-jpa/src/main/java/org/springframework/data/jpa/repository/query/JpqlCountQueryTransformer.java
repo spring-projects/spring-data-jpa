@@ -15,13 +15,16 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.*;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_AS;
+import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_UNDERSCORE;
+
+import java.util.List;
 
 import org.jspecify.annotations.Nullable;
-
+import org.springframework.data.jpa.repository.query.JpqlParser.Constructor_expressionContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Constructor_itemContext;
+import org.springframework.data.jpa.repository.query.JpqlParser.Select_itemContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
-import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
-import org.springframework.util.StringUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed JPQL query into a
@@ -32,8 +35,8 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @since 3.1
  */
-@SuppressWarnings("ConstantValue")
-class JpqlCountQueryTransformer extends JpqlQueryRenderer {
+class JpqlCountQueryTransformer extends JpqlQueryRenderer
+		implements CountSelectionSupport<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> {
 
 	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
@@ -69,22 +72,7 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		QueryRendererBuilder countBuilder = QueryRenderer.builder();
-		countBuilder.append(TOKEN_SELECT_COUNT);
-
-		if (countProjection != null) {
-			countBuilder.append(QueryTokens.token(countProjection));
-		} else {
-			if (primaryFromAlias == null) {
-				countBuilder.append(TOKEN_DOUBLE_UNDERSCORE);
-			} else {
-				countBuilder.append(QueryTokens.token(primaryFromAlias));
-			}
-		}
-
-		countBuilder.append(TOKEN_CLOSE_PAREN);
-
-		builder.appendExpression(countBuilder);
+		builder.appendExpression(QueryTransformers.selectCount(countProjection, primaryFromAlias));
 
 		if (ctx.from_clause() != null) {
 			builder.appendExpression(visit(ctx.from_clause()));
@@ -108,60 +96,66 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer {
 	}
 
 	@Override
-	public QueryRendererBuilder visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
-
-		boolean usesDistinct = ctx.DISTINCT() != null;
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(QueryTokens.expression(ctx.SELECT()));
-		builder.append(TOKEN_COUNT_FUNC);
-
-		QueryRendererBuilder nested = QueryRenderer.builder();
-		if (countProjection == null) {
-			if (usesDistinct) {
-				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-				nested.append(getDistinctCountSelection(QueryTokenStream.concat(ctx.select_item(), this::visit, TOKEN_COMMA)));
-			} else if (StringUtils.hasText(primaryFromAlias)) {
-				nested.append(QueryTokens.token(primaryFromAlias));
-			} else {
-				if (ctx.select_item().isEmpty()) {
-					// cannot happen as per grammar, but you never know…
-					nested.append(QueryTokens.token("1"));
-				} else {
-					nested.append(visit(ctx.select_item().get(0)));
-				}
-			}
-		} else {
-			if (usesDistinct) {
-				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-			}
-			nested.append(QueryTokens.token(countProjection));
-		}
-
-		builder.appendInline(nested);
-		builder.append(TOKEN_CLOSE_PAREN);
-
-		return builder;
+	public QueryTokenStream visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
+		return renderCountSelection(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
+				ctx.select_item());
 	}
 
-	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
+	@Override
+	public QueryTokenStream visitSelect_item(JpqlParser.Select_itemContext ctx) {
+		return visit(ctx.select_expression());
+	}
 
-		QueryRendererBuilder nested = new QueryRendererBuilder();
-		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
+	@Override
+	public QueryTokenStream visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
+		return renderConstructor(ctx);
+	}
 
-		if (countSelection.requiresPrimaryAlias()) {
-			if (primaryFromAlias != null) {
-				nested.append(QueryTokens.token(primaryFromAlias));
-			} else {
-				// no alias available
-				nested.append(countSelection.withoutConstructorExpression());
-			}
-		} else {
-			// keep all the select items to distinct against
-			nested.append(countSelection);
+	@Override
+	public @Nullable String getPrimaryAlias() {
+		return primaryFromAlias;
+	}
+
+	@Override
+	public @Nullable String getCountProjection() {
+		return countProjection;
+	}
+
+	@Override
+	public QueryTokenStream renderSelectItem(Select_itemContext selectItem) {
+		return visit(selectItem);
+	}
+
+	@Override
+	public QueryTokenStream renderConstructorArgument(Constructor_itemContext argument) {
+		return visit(argument);
+	}
+
+	@Override
+	public QueryTokenStream renderCountSelectionFallback(List<Select_itemContext> selectItems) {
+
+		if (selectItems.isEmpty()) {
+			// cannot happen as per grammar, but you never know…
+			return QueryTokens.token("1");
 		}
-		return nested;
+
+		// count(*) is not supported - use first select item
+		return renderSelectItem(selectItems.get(0));
+	}
+
+	@Override
+	public @Nullable Constructor_expressionContext getConstructorExpression(Select_itemContext selectItem) {
+		return selectItem.select_expression().constructor_expression();
+	}
+
+	@Override
+	public List<Constructor_itemContext> getConstructorArguments(Constructor_expressionContext constructorExpression) {
+		return constructorExpression.constructor_item();
+	}
+
+	@Override
+	public boolean isPath(Constructor_itemContext argument) {
+		return argument.single_valued_path_expression() != null || argument.identification_variable() != null;
 	}
 
 }

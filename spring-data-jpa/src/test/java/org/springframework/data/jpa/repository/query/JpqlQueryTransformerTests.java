@@ -199,6 +199,20 @@ class JpqlQueryTransformerTests {
 				"select count(distinct u) from User u where u.foo = ?1");
 	}
 
+	@Test // GH-4341
+	void createsCountQueryForDistinctFunctionSelection() {
+
+		assertThat(createCountQueryFor("select distinct coalesce(u.name, u.lastname) from User u where u.foo = ?1"))
+				.isEqualTo("select count(distinct coalesce(u.name, u.lastname)) from User u where u.foo = ?1");
+	}
+
+	@Test // GH-4341
+	void createsCountQueryForDistinctExpressionSelection() {
+
+		assertThat(createCountQueryFor("select distinct case when u.age > 18 then 'adult' else 'minor' end from User u"))
+				.isEqualTo("select count(distinct case when u.age > 18 then 'adult' else 'minor' end) from User u");
+	}
+
 	@Test
 	void createsCountQueryForConstructorQueries() {
 
