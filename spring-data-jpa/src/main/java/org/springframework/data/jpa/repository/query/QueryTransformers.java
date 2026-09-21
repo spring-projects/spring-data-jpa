@@ -17,125 +17,43 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 
 /**
  * Utility class encapsulating common query transformations.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 3.2.5
  */
 class QueryTransformers {
 
-	static class CountSelectionTokenStream implements QueryTokenStream {
+	/**
+	 * Render the {@code select count(…)} projection of a count query using the given {@code countProjection} or the
+	 * primary {@literal FROM} alias falling back to {@code __} if neither is available.
+	 *
+	 * @param countProjection the count projection to use, if any.
+	 * @param primaryFromAlias the primary {@literal FROM} alias, if any.
+	 */
+	static QueryRendererBuilder selectCount(@Nullable String countProjection, @Nullable String primaryFromAlias) {
 
-		private final List<QueryToken> tokens;
-		private final boolean requiresPrimaryAlias;
+		QueryRendererBuilder builder = QueryRenderer.builder();
+		builder.append(TOKEN_SELECT_COUNT);
 
-		CountSelectionTokenStream(List<QueryToken> tokens, boolean requiresPrimaryAlias) {
-			this.tokens = tokens;
-			this.requiresPrimaryAlias = requiresPrimaryAlias;
+		if (countProjection != null) {
+			builder.append(QueryTokens.token(countProjection));
+		} else if (primaryFromAlias != null) {
+			builder.append(QueryTokens.token(primaryFromAlias));
+		} else {
+			builder.append(TOKEN_DOUBLE_UNDERSCORE);
 		}
 
-		static CountSelectionTokenStream create(QueryTokenStream selection) {
+		builder.append(TOKEN_CLOSE_PAREN);
 
-			List<QueryToken> target = new ArrayList<>(selection.size());
-			boolean skipNext = false;
-			boolean containsNew = false;
-
-			for (QueryToken token : selection) {
-
-				if (skipNext) {
-					skipNext = false;
-					continue;
-				}
-
-				if (token.equals(TOKEN_AS)) {
-					skipNext = true;
-					continue;
-				}
-
-				if (!token.equals(TOKEN_COMMA) && token.isExpression()) {
-					token = QueryTokens.token(token.value());
-				}
-
-				if (!containsNew && token.equals(TOKEN_NEW)) {
-					containsNew = true;
-				}
-
-				target.add(token);
-			}
-
-			return new CountSelectionTokenStream(target, containsNew);
-		}
-
-		/**
-		 * Filter constructor expression and return the selection list of the constructor.
-		 *
-		 * @return the selection list of the constructor without {@code NEW}, class name, and the first level of
-		 *         parentheses.
-		 * @since 3.5.2
-		 */
-		public CountSelectionTokenStream withoutConstructorExpression() {
-
-			if (!requiresPrimaryAlias()) {
-				return this;
-			}
-
-			List<QueryToken> target = new ArrayList<>(size());
-			int nestingLevel = 0;
-
-			for (QueryToken token : this) {
-
-				if (token.equals(TOKEN_OPEN_PAREN)) {
-					nestingLevel++;
-					continue;
-				}
-
-				if (token.equals(TOKEN_CLOSE_PAREN)) {
-					nestingLevel--;
-					continue;
-				}
-
-				if (nestingLevel > 0) {
-					target.add(token);
-				}
-			}
-
-			return new CountSelectionTokenStream(target, requiresPrimaryAlias());
-		}
-
-		@Override
-		public Iterator<QueryToken> iterator() {
-			return tokens.iterator();
-		}
-
-		@Override
-		public List<QueryToken> toList() {
-			return tokens;
-		}
-
-		@Override
-		public int size() {
-			return tokens.size();
-		}
-
-		@Override
-		public boolean isExpression() {
-			return true;
-		}
-
-		@Override
-		public boolean isEmpty() {
-			return tokens.isEmpty();
-		}
-
-		public boolean requiresPrimaryAlias() {
-			return requiresPrimaryAlias;
-		}
-
+		return builder;
 	}
-
 }
