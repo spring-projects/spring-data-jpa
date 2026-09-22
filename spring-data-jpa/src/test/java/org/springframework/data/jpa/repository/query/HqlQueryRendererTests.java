@@ -452,16 +452,23 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 		@Test // GH-3739
 		void dateTimeLiterals() {
 
-			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t'09:00:00'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts'2012-01-03 09:00:00'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts'something weird'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts2012-01-03 09:00:00+1}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts2012-01-03 09:00:00-1}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts2012-01-03 09:00:00+1:00}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts2012-01-03 09:00:00-1:00}");
+			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t '09:00:00'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts '2012-01-03 09:00:00'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts 'something weird'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts 2012-01-03 09:00:00+1}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts 2012-01-03 09:00:00-1}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts 2012-01-03 09:00:00+1:00}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts 2012-01-03 09:00:00-1:00}");
+
 			assertQuery("SELECT e FROM Employee e WHERE e.version = OFFSET DATETIME 2012-01-03 09:00:00+1:01");
 			assertQuery("SELECT e FROM Employee e WHERE e.version = OFFSET DATETIME 2012-01-03 09:00:00-1:01");
+
+			// rendered in the JDBC escape format defined by the JDBC specification, no matter how the input was spaced
+			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}",
+					"SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'}");
+			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts2012-01-03 09:00:00+1}",
+					"SELECT e FROM Employee e WHERE e.version = {ts 2012-01-03 09:00:00+1}");
 		}
 
 		@ParameterizedTest // GH-3025

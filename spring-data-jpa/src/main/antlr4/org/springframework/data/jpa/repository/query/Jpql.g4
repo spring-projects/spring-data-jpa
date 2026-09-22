@@ -688,18 +688,18 @@ date_time_timestamp_literal
     ;
 
 jdbc_date_literal
-    : DATE_ESCAPE_START generic_temporal_literal_text '}'
+    : DATE_ESCAPE_START jdbc_temporal_literal_text '}'
     ;
 
 jdbc_time_literal
-    : TIME_ESCAPE_START generic_temporal_literal_text '}'
+    : TIME_ESCAPE_START jdbc_temporal_literal_text '}'
     ;
 
 jdbc_timestamp_literal
-    : TIMESTAMP_ESCAPE_START generic_temporal_literal_text '}'
+    : TIMESTAMP_ESCAPE_START jdbc_temporal_literal_text '}'
     ;
 
-generic_temporal_literal_text
+jdbc_temporal_literal_text
     : STRINGLITERAL
     ;
 

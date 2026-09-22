@@ -653,17 +653,28 @@ class EqlQueryRenderer extends EqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitJdbc_date_literal(EqlParser.Jdbc_date_literalContext ctx) {
-		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+		return renderJdbcTemporalLiteral(ctx.DATE_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
 	}
 
 	@Override
 	public QueryTokenStream visitJdbc_time_literal(EqlParser.Jdbc_time_literalContext ctx) {
-		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+		return renderJdbcTemporalLiteral(ctx.TIME_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
 	}
 
 	@Override
 	public QueryTokenStream visitJdbc_timestamp_literal(EqlParser.Jdbc_timestamp_literalContext ctx) {
-		return QueryTokenStream.ofJdbcEscape(ctx, ctx.generic_temporal_literal_text(), this::visit);
+		return renderJdbcTemporalLiteral(ctx.TIMESTAMP_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
+	}
+
+	private QueryTokenStream renderJdbcTemporalLiteral(TerminalNode temporalNode, ParserRuleContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(temporalNode));
+		builder.appendInline(visit(ctx));
+		builder.append(TOKEN_CLOSE_BRACE);
+
+		return builder;
 	}
 
 	@Override

@@ -408,24 +408,24 @@ offsetDateTimeWithMinutes
  * A JDBC-style timestamp escape, as required by JPQL
  */
 jdbcTimestampLiteral
-    : TIMESTAMP_ESCAPE_START (dateTime | genericTemporalLiteralText) '}'
+    : TIMESTAMP_ESCAPE_START (dateTime | jdbcTemporalLiteralText) '}'
     ;
 
 /**
  * A JDBC-style date escape, as required by JPQL
  */
 jdbcDateLiteral
-    : DATE_ESCAPE_START (date | genericTemporalLiteralText) '}'
+    : DATE_ESCAPE_START (date | jdbcTemporalLiteralText) '}'
     ;
 
 /**
  * A JDBC-style time escape, as required by JPQL
  */
 jdbcTimeLiteral
-    : TIME_ESCAPE_START (time | genericTemporalLiteralText) '}'
+    : TIME_ESCAPE_START (time | jdbcTemporalLiteralText) '}'
     ;
 
-genericTemporalLiteralText
+jdbcTemporalLiteralText
     : STRING_LITERAL
     ;
 

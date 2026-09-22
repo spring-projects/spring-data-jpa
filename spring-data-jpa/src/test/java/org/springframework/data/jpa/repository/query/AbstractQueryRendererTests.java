@@ -15,11 +15,14 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /**
@@ -46,7 +49,16 @@ abstract class AbstractQueryRendererTests {
 	void assertQuery(String query) {
 
 		String slimmedDownQuery = reduceWhitespace(query);
-		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(slimmedDownQuery);
+		assertQuery(query, slimmedDownQuery);
+	}
+
+	/**
+	 * Assert that {@code query} renders as {@code expected}, ignoring insignificant whitespace in the input.
+	 */
+	void assertQuery(String query, String expected) {
+
+		String slimmedDownQuery = reduceWhitespace(query);
+		assertThat(parseWithoutChanges(slimmedDownQuery)).isEqualTo(expected);
 	}
 
 	/**
@@ -418,15 +430,17 @@ abstract class AbstractQueryRendererTests {
 			assertQuery("SELECT e FROM Employee e WHERE e.gender = org.acme.Gender.MALE");
 		}
 
-		@Test // GH-4294
-		void temporalLiterals() {
-
-			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t'09:00:00'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.startTime = {t '09:00:00'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts'2012-01-03 09:00:00.000000001'}");
-			assertQuery("SELECT e FROM Employee e WHERE e.version = {ts '2012-01-03 09:00:00.000000001'}");
+		@ParameterizedTest // GH-4294
+		@CsvSource(value = """
+			SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'},
+			SELECT e FROM Employee e WHERE e.startDate = {d'2012-01-03'}, SELECT e FROM Employee e WHERE e.startDate = {d '2012-01-03'}
+			SELECT e FROM Employee e WHERE e.startTime = {t '09:00:00'},
+			SELECT e FROM Employee e WHERE e.startTime = {t'09:00:00'}, SELECT e FROM Employee e WHERE e.startTime = {t '09:00:00'}
+			SELECT e FROM Employee e WHERE e.version = {ts '2012-01-03 09:00:00.000000001'},
+			SELECT e FROM Employee e WHERE e.version = {ts'2012-01-03 09:00:00.000000001'}, SELECT e FROM Employee e WHERE e.version = {ts '2012-01-03 09:00:00.000000001'}
+			""")
+		void temporalLiterals(String query, @Nullable String expected) {
+			assertQuery(query, expected != null ? expected : query);
 		}
 
 		@Test
