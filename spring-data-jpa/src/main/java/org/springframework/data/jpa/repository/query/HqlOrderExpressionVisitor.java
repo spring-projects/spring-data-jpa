@@ -613,7 +613,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		return cb
-				.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+				.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override
@@ -634,7 +634,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		return cb
-				.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+				.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override
@@ -644,7 +644,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			return visitRequired(ctx.dateTime());
 		}
 
-		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override

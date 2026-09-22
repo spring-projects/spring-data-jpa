@@ -500,21 +500,21 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	@Override
 	public QueryTokenStream visitJdbcTimestampLiteral(HqlParser.JdbcTimestampLiteralContext ctx) {
 
-		ParserRuleContext literal = ctx.dateTime() != null ? ctx.dateTime() : ctx.genericTemporalLiteralText();
+		ParserRuleContext literal = ctx.dateTime() != null ? ctx.dateTime() : ctx.jdbcTemporalLiteralText();
 		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcDateLiteral(HqlParser.JdbcDateLiteralContext ctx) {
 
-		ParserRuleContext literal = ctx.date() != null ? ctx.date() : ctx.genericTemporalLiteralText();
+		ParserRuleContext literal = ctx.date() != null ? ctx.date() : ctx.jdbcTemporalLiteralText();
 		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcTimeLiteral(HqlParser.JdbcTimeLiteralContext ctx) {
 
-		ParserRuleContext literal = ctx.time() != null ? ctx.time() : ctx.genericTemporalLiteralText();
+		ParserRuleContext literal = ctx.time() != null ? ctx.time() : ctx.jdbcTemporalLiteralText();
 		return QueryTokenStream.ofJdbcEscape(ctx, literal, this::visit);
 	}
 
