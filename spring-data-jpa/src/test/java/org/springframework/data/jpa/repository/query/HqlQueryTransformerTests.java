@@ -1270,6 +1270,51 @@ class HqlQueryTransformerTests {
 				ReturnedType.of(Object.class, Object.class, new SpelAwareProxyProjectionFactory())));
 	}
 
+	@Test // GH-4341
+	void createsDistinctCountQueryForCte() {
+
+		assertThat(createCountQueryFor("""
+				WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u)
+						SELECT DISTINCT new org.springframework.data.jpa.repository.sample.UserExcerptDto(c.firstname, c.lastname)
+						FROM cte_select c
+				""")).isEqualToIgnoringWhitespace(
+				"WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u) SELECT count(DISTINCT c.firstname, c.lastname) FROM cte_select c");
+	}
+
+	@Test // GH-4341
+	void createsDistinctCountQueryForSetReturningFunction() {
+
+		assertThat(createCountQueryFor(
+				"select distinct new com.example.Dto(x.id, x.value) from some_function(:date, :integerValue) x"))
+				.isEqualTo("select count(distinct x.id, x.value) from some_function(:date, :integerValue) x");
+	}
+
+	@Test // GH-3902
+	void createsCountQueryForTrailingSelectClause() {
+
+		assertThat(createCountQueryFor("from User u left outer join u.roles r where r in (select r from Role r) select u "))
+				.isEqualTo("from User u left outer join u.roles r where r in (select r from Role r) select count(u)");
+	}
+
+	@Test // GH-3269, GH-3689
+	void createsCountQueryForDistinctSelectAliasesWithoutPrimaryAlias() {
+
+		assertThat(createCountQueryFor("select distinct 1 as x from Employee"))
+				.isEqualTo("select count(distinct 1) from Employee");
+		assertThat(createCountQueryFor("SELECT DISTINCT abc AS x FROM T")).isEqualTo("SELECT count(DISTINCT abc) FROM T");
+		assertThat(createCountQueryFor("select distinct a as x, b as y from Employee"))
+				.isEqualTo("select count(distinct a, b) from Employee");
+		assertThat(createCountQueryFor("select distinct sum(amount) as x from Employee GROUP BY n"))
+				.isEqualTo("select count(distinct sum(amount)) from Employee GROUP BY n");
+		assertThat(createCountQueryFor("select distinct a, b, sum(amount) as c, d from Employee GROUP BY n"))
+				.isEqualTo("select count(distinct a, b, sum(amount), d) from Employee GROUP BY n");
+		assertThat(createCountQueryFor("select distinct a, count(b) as c from Employee GROUP BY n"))
+				.isEqualTo("select count(distinct a, count(b)) from Employee GROUP BY n");
+		assertThat(createCountQueryFor(
+				"select distinct substring(e.firstname, 1, position('a' in e.lastname)) as x from from Employee"))
+				.isEqualTo("select count(distinct substring(e.firstname, 1, position('a' in e.lastname))) from from Employee");
+	}
+
 	private String createCountQueryFor(String query) {
 		return createCountQueryFor(query, null);
 	}

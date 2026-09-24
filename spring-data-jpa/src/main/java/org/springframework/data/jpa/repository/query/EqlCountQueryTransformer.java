@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_AS;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_UNDERSCORE;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.jpa.repository.query.EqlParser.Constructor_expressionContext;
 import org.springframework.data.jpa.repository.query.EqlParser.Constructor_itemContext;
 import org.springframework.data.jpa.repository.query.EqlParser.Select_itemContext;
@@ -35,16 +35,16 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRenderer
  * @author Christoph Strobl
  * @since 3.4
  */
-@SuppressWarnings({ "NullAway" })
 class EqlCountQueryTransformer extends EqlQueryRenderer
-		implements CountSelectionSupport<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> {
+		implements CountSelection.Grammar<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> {
 
-	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
+	private final CountSelection<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> countSelection;
 
 	EqlCountQueryTransformer(@Nullable String countProjection, QueryInformation queryInformation) {
-		this.countProjection = countProjection;
+
 		this.primaryFromAlias = queryInformation.getAlias();
+		this.countSelection = new CountSelection<>(countProjection, primaryFromAlias, true, false, this);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.appendExpression(QueryTransformers.selectCount(countProjection, primaryFromAlias));
+		builder.appendExpression(countSelection.render());
 
 		if (ctx.from_clause() != null) {
 			builder.appendExpression(visit(ctx.from_clause()));
@@ -98,7 +98,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer
 
 	@Override
 	public QueryTokenStream visitSelect_clause(EqlParser.Select_clauseContext ctx) {
-		return renderCountSelection(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
+		return countSelection.render(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
 				ctx.select_item());
 	}
 
@@ -109,40 +109,7 @@ class EqlCountQueryTransformer extends EqlQueryRenderer
 
 	@Override
 	public QueryTokenStream visitConstructor_expression(EqlParser.Constructor_expressionContext ctx) {
-		return renderConstructor(ctx);
-	}
-
-	@Override
-	public @Nullable String getPrimaryAlias() {
-		return primaryFromAlias;
-	}
-
-	@Override
-	public @Nullable String getCountProjection() {
-		return countProjection;
-	}
-
-	@Override
-	public QueryTokenStream renderSelectItem(Select_itemContext selectItem) {
-		return visit(selectItem);
-	}
-
-	@Override
-	public QueryTokenStream renderConstructorArgument(Constructor_itemContext argument) {
-		return visit(argument);
-	}
-
-	@Override
-	public QueryTokenStream renderCountSelectionFallback(List<Select_itemContext> selectItems) {
-
-		if (selectItems.isEmpty()) {
-
-			// cannot happen as per grammar, but you never know…
-			return QueryTokens.token("1");
-		}
-
-		// count(*) is not supported - use first select item
-		return renderSelectItem(selectItems.get(0));
+		return countSelection.renderConstructor(ctx);
 	}
 
 	@Override
@@ -159,4 +126,5 @@ class EqlCountQueryTransformer extends EqlQueryRenderer
 	public boolean isPath(Constructor_itemContext argument) {
 		return argument.single_valued_path_expression() != null || argument.identification_variable() != null;
 	}
+
 }
