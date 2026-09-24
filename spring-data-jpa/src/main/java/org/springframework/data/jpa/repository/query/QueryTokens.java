@@ -21,11 +21,14 @@ import java.util.function.Supplier;
 
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jspecify.annotations.Nullable;
+import org.springframework.lang.Contract;
 
 /**
  * Utility class to create query tokens.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 3.4
  */
 class QueryTokens {
@@ -83,14 +86,24 @@ class QueryTokens {
 	}
 
 	/**
-	 * Creates a {@link QueryToken expression} from an ANTLR {@link TerminalNode}.
+	 * Creates an {@link QueryToken expression} from an ANTLR {@link TerminalNode}.
 	 */
 	static QueryToken expression(TerminalNode node) {
 		return expression(node.getText());
 	}
 
 	/**
-	 * Creates a {@link QueryToken expression} from an ANTLR {@link Token}.
+	 * Creates an {@link QueryToken expression} from an optional ANTLR {@link TerminalNode}.
+	 *
+	 * @return the expression or {@literal null} if {@code node} is {@literal null}.
+	 */
+	@Contract("null -> null; !null -> new")
+	static @Nullable QueryToken expressionOrNull(@Nullable TerminalNode node) {
+		return node != null ? expression(node) : null;
+	}
+
+	/**
+	 * Creates an {@link QueryToken expression} from an ANTLR {@link Token}.
 	 */
 	static QueryToken expression(Token token) {
 		return expression(token.getText());
