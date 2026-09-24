@@ -15,12 +15,12 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_AS;
-import static org.springframework.data.jpa.repository.query.QueryTokens.TOKEN_DOUBLE_UNDERSCORE;
+import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+
 import org.springframework.data.jpa.repository.query.JpqlParser.Constructor_expressionContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Constructor_itemContext;
 import org.springframework.data.jpa.repository.query.JpqlParser.Select_itemContext;
@@ -36,14 +36,15 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRenderer
  * @since 3.1
  */
 class JpqlCountQueryTransformer extends JpqlQueryRenderer
-		implements CountSelectionSupport<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> {
+		implements CountSelection.Grammar<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> {
 
-	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
+	private final CountSelection<Select_itemContext, Constructor_expressionContext, Constructor_itemContext> countSelection;
 
 	JpqlCountQueryTransformer(@Nullable String countProjection, QueryInformation queryInformation) {
-		this.countProjection = countProjection;
+
 		this.primaryFromAlias = queryInformation.getAlias();
+		this.countSelection = new CountSelection<>(countProjection, primaryFromAlias, true, false, this);
 	}
 
 	@Override
@@ -72,7 +73,7 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.appendExpression(QueryTransformers.selectCount(countProjection, primaryFromAlias));
+		builder.appendExpression(countSelection.render());
 
 		if (ctx.from_clause() != null) {
 			builder.appendExpression(visit(ctx.from_clause()));
@@ -97,50 +98,18 @@ class JpqlCountQueryTransformer extends JpqlQueryRenderer
 
 	@Override
 	public QueryTokenStream visitSelect_clause(JpqlParser.Select_clauseContext ctx) {
-		return renderCountSelection(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
+		return countSelection.render(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
 				ctx.select_item());
 	}
 
 	@Override
 	public QueryTokenStream visitSelect_item(JpqlParser.Select_itemContext ctx) {
-		return visit(ctx.select_expression());
+		return visit(ctx.select_expression()); // skip AS field aliasing
 	}
 
 	@Override
 	public QueryTokenStream visitConstructor_expression(JpqlParser.Constructor_expressionContext ctx) {
-		return renderConstructor(ctx);
-	}
-
-	@Override
-	public @Nullable String getPrimaryAlias() {
-		return primaryFromAlias;
-	}
-
-	@Override
-	public @Nullable String getCountProjection() {
-		return countProjection;
-	}
-
-	@Override
-	public QueryTokenStream renderSelectItem(Select_itemContext selectItem) {
-		return visit(selectItem);
-	}
-
-	@Override
-	public QueryTokenStream renderConstructorArgument(Constructor_itemContext argument) {
-		return visit(argument);
-	}
-
-	@Override
-	public QueryTokenStream renderCountSelectionFallback(List<Select_itemContext> selectItems) {
-
-		if (selectItems.isEmpty()) {
-			// cannot happen as per grammar, but you never know…
-			return QueryTokens.token("1");
-		}
-
-		// count(*) is not supported - use first select item
-		return renderSelectItem(selectItems.get(0));
+		return countSelection.renderConstructor(ctx);
 	}
 
 	@Override
