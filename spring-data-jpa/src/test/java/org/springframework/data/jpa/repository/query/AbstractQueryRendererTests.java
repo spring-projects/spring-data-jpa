@@ -316,6 +316,14 @@ abstract class AbstractQueryRendererTests {
 			assertQuery("SELECT r FROM Room r JOIN r.floor f WHERE f.name = :name");
 		}
 
+		@Test // GH-4336
+		void idAndVersionAsIdentifiers() {
+
+			assertQuery("select e.id, e.version from Employee e where e.id = :id");
+			assertQuery("select v from Version v");
+			assertQuery("select new com.company.id.thing.ClassName(e.a) from Experience e");
+		}
+
 		@Test // GH-2994, GH-3028, GH-3056, GH-3062, GH-3092, GH-3128, GH-3143, GH-3496, GH-3834, GH-4335
 		void reservedWordAsStateField() {
 
@@ -589,6 +597,15 @@ abstract class AbstractQueryRendererTests {
 
 			assertQuery("select cast(i as string) from Item i where cast(i.date as date) <= cast(:currentDateTime as date)");
 			assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
+		}
+
+		@Test // GH-4336
+		void idAndVersionFunctions() {
+
+			assertQuery("select id(e) from Employee e");
+			assertQuery("select version(e) from Employee e");
+			assertQuery("select id(e.dept) from Employee e");
+			assertQuery("select e from Employee e where id(e) = :id");
 		}
 
 		@Test
