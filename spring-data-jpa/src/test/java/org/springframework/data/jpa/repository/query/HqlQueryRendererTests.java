@@ -513,6 +513,13 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 			assertQuery("SELECT (1 year) by day FROM foo f");
 		}
 
+		@ParameterizedTest // GH-4359
+		@ValueSource(strings = { "SELECT c.duration % 10 FROM Call c", "SELECT c FROM Call c WHERE c.duration % 2 = 0",
+				"SELECT c FROM Call c ORDER BY c.duration % 60", "SELECT c.duration * 2 % 7 / 3 FROM Call c" })
+		void moduloOperator(String query) {
+			assertQuery(query);
+		}
+
 		@Test
 		void caseExpressions() {
 
