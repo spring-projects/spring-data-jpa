@@ -1423,21 +1423,24 @@ xmltableDefaultClause
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
     : '(' predicate ')'                                             # GroupedPredicate
-    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE)                    # IsBooleanPredicate
-    | expression NOT? MEMBER OF? path                               # MemberOfPredicate
-    | expression NOT? IN inList                                     # InPredicate
-    | expression NOT? BETWEEN expression AND expression             # BetweenPredicate
-    | expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
-    | expression (
-        NOT? (CONTAINS|INCLUDES|INTERSECTS)
-        | IS NOT? DISTINCT FROM
-        | op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=')
-      ) expression                                                  # BinaryExpressionPredicate
     | EXISTS ((ELEMENTS | INDICES) '(' simplePath ')' | expression) # ExistsPredicate
     | NOT predicate                                                 # NotPredicate
     | predicate AND predicate                                       # AndPredicate
     | predicate OR predicate                                        # OrPredicate
-    | expression                                                    # ExpressionPredicate
+    | expression predicateSuffix?                                   # ExpressionPredicate
+    ;
+
+predicateSuffix
+    : IS NOT? (NULL|EMPTY|TRUE|FALSE)                               # IsBooleanPredicate
+    | NOT? MEMBER OF? path                                          # MemberOfPredicate
+    | NOT? IN inList                                                # InPredicate
+    | NOT? BETWEEN expression AND expression                        # BetweenPredicate
+    | NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
+    | (
+        NOT? (CONTAINS|INCLUDES|INTERSECTS)
+        | IS NOT? DISTINCT FROM
+        | op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=')
+      ) expression                                                  # BinaryExpressionPredicate
     ;
 
 expressionOrPredicate

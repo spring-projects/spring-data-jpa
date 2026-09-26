@@ -972,6 +972,18 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 			assertQuery("SELECT e FROM Employee e WHERE e.first %s e.second".formatted(operator));
 		}
 
+		@ParameterizedTest
+		@ValueSource(strings = { "e.name IS NULL", "e.name IS NOT NULL", "e.tags IS EMPTY", "e.tags IS NOT EMPTY",
+				"e.active IS TRUE", "e.active IS NOT FALSE", ":tag MEMBER OF e.tags", ":tag NOT MEMBER e.tags", "e.id IN (1, 2)",
+				"e.id NOT IN :ids", "e.id IN (SELECT o.id FROM Order o)", "e.salary BETWEEN :min AND :max",
+				"e.salary NOT BETWEEN 1 AND 2", "lower(e.name) LIKE :name", "e.name NOT ILIKE REGEXP :name ESCAPE '!'",
+				"e.active", "NOT e.active", "NOT (e.active = true AND e.salary > 0)",
+				"EXISTS (SELECT o FROM Order o WHERE o.employee = e)", "NOT EXISTS (SELECT o FROM Order o WHERE o.employee = e)",
+				"(e.name IS NULL OR e.name = :name) AND e.id IN :ids" })
+		void predicates(String predicate) {
+			assertQuery("SELECT e FROM Employee e WHERE " + predicate);
+		}
+
 		@Test
 		void comparisonOperators() {
 
