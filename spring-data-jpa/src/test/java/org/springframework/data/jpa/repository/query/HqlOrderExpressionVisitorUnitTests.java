@@ -231,6 +231,19 @@ class HqlOrderExpressionVisitorUnitTests {
 				.startsWithIgnoringCase("order by trim(both ' ' from var_1.lastname)");
 	}
 
+	@Test
+	void betweenAndNullness() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age between 18 and 65 then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.age between 18 and 65");
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age not between 18 and 65 then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.age not between 18 and 65");
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname is null then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname is null");
+		assertThat(renderOrderBy(JpaSort.unsafe("case when firstname is not null then 1 else 0 end"), "var_1"))
+				.containsIgnoringCase("var_1.firstname is not null");
+	}
+
 	@Test // GH-4255
 	void like() {
 

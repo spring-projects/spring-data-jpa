@@ -143,14 +143,42 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitBinaryExpressionPredicate(HqlParser.BinaryExpressionPredicateContext ctx) {
+	public Expression<?> visitExpressionPredicate(HqlParser.ExpressionPredicateContext ctx) {
 
-		if (ctx.op == null) {
-			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, renderContext(ctx).trim()));
+		HqlParser.PredicateSuffixContext suffix = ctx.predicateSuffix();
+
+		if (suffix instanceof HqlParser.BinaryExpressionPredicateContext binary) {
+			return binaryExpressionPredicate(ctx, binary);
 		}
 
-		Expression<Comparable> left = visitRequired(ctx.expression(0));
-		Expression<Comparable> right = visitRequired(ctx.expression(1));
+		if (suffix instanceof HqlParser.BetweenPredicateContext between) {
+			return betweenPredicate(ctx, between);
+		}
+
+		if (suffix instanceof HqlParser.IsBooleanPredicateContext isBoolean) {
+			return isBooleanPredicate(ctx, isBoolean);
+		}
+
+		if (suffix instanceof HqlParser.LikePredicateContext like) {
+			return likePredicate(ctx, like);
+		}
+
+		if (suffix instanceof HqlParser.InPredicateContext in) {
+			return inPredicate(ctx, in);
+		}
+
+		return super.visitExpressionPredicate(ctx);
+	}
+
+	private Expression<?> binaryExpressionPredicate(HqlParser.ExpressionPredicateContext predicate,
+			HqlParser.BinaryExpressionPredicateContext ctx) {
+
+		if (ctx.op == null) {
+			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, renderContext(predicate).trim()));
+		}
+
+		Expression<Comparable> left = visitRequired(predicate.expression());
+		Expression<Comparable> right = visitRequired(ctx.expression());
 		String op = ctx.op.getText();
 
 		return switch (op) {
@@ -164,12 +192,12 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		};
 	}
 
-	@Override
-	public Expression<?> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
+	private Expression<?> betweenPredicate(HqlParser.ExpressionPredicateContext predicate,
+			HqlParser.BetweenPredicateContext ctx) {
 
-		Expression<Comparable> condition = visitRequired(ctx.expression(0));
-		Expression<Comparable> lower = visitRequired(ctx.expression(1));
-		Expression<Comparable> upper = visitRequired(ctx.expression(2));
+		Expression<Comparable> condition = visitRequired(predicate.expression());
+		Expression<Comparable> lower = visitRequired(ctx.expression(0));
+		Expression<Comparable> upper = visitRequired(ctx.expression(1));
 
 		if (ctx.NOT() == null) {
 			return cb.between(condition, lower, upper);
@@ -179,10 +207,10 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
-	public Expression<?> visitIsBooleanPredicate(HqlParser.IsBooleanPredicateContext ctx) {
+	private @Nullable Expression<?> isBooleanPredicate(HqlParser.ExpressionPredicateContext predicate,
+			HqlParser.IsBooleanPredicateContext ctx) {
 
-		Expression<?> condition = visitRequired(ctx.expression());
+		Expression<?> condition = visitRequired(predicate.expression());
 
 		if (ctx.NULL() != null) {
 			if (ctx.NOT() == null) {
@@ -219,11 +247,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		return null;
 	}
 
-	@Override
-	public Expression<?> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
+	private Expression<?> likePredicate(HqlParser.ExpressionPredicateContext predicate,
+			HqlParser.LikePredicateContext ctx) {
 
-		Expression<String> condition = visitRequired(ctx.expression(0));
-		Expression<String> match = visitRequired(ctx.expression(1));
+		Expression<String> condition = visitRequired(predicate.expression());
+		Expression<String> match = visitRequired(ctx.expression());
 		Expression<Character> escape = null;
 
 		if (ctx.ESCAPE() != null) {
@@ -263,9 +291,10 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			}
 
 			throw new UnsupportedOperationException(
-					"ILIKE pattern [%s] not supported by %s ".formatted(renderContext(ctx), cb));
+					"ILIKE pattern [%s] not supported by %s ".formatted(renderContext(predicate), cb));
 		} else {
-			throw new UnsupportedOperationException("Unsupported string matching pattern: " + renderContext(ctx).trim());
+			throw new UnsupportedOperationException(
+					"Unsupported string matching pattern: " + renderContext(predicate).trim());
 		}
 	}
 
@@ -294,8 +323,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		return builder.toString();
 	}
 
-	@Override
-	public Expression<?> visitInPredicate(HqlParser.InPredicateContext ctx) {
+	private Expression<?> inPredicate(HqlParser.ExpressionPredicateContext predicate, HqlParser.InPredicateContext ctx) {
 
 		if (ctx.inList().simplePath() != null) {
 			throw new UnsupportedOperationException(
@@ -306,7 +334,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, "IN clause with a parameter"));
 		}
 
-		CriteriaBuilder.In<Object> in = cb.in(visitRequired(ctx.expression()));
+		CriteriaBuilder.In<Object> in = cb.in(visitRequired(predicate.expression()));
 
 		ctx.inList().expressionOrPredicate()
 				.forEach(expressionOrPredicateContext -> in.value(visitRequired(expressionOrPredicateContext)));
