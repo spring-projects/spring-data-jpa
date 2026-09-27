@@ -53,6 +53,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Eduard Dudar
  * @author Mark Paluch
  * @author Young-ho Kim
+ * @author Hyun Lee
  */
 class QueryUtilsUnitTests {
 
@@ -389,6 +390,23 @@ class QueryUtilsUnitTests {
 
 		Sort sort = Sort.by(source);
 		assertThat(applySorting("select e from 员工 e", sort, "e")).endsWith("order by e.%s asc".formatted(source));
+	}
+
+	@ParameterizedTest // GH-4364
+	@ValueSource(strings = { "निर्माणतिथि", "Jose\u0301", "วันที่" })
+	void allowsCombiningMarksInSortProperties(String source) {
+
+		Sort sort = Sort.by(source);
+		assertThat(applySorting("select e from Employee e", sort, "e")).endsWith("order by e.%s asc".formatted(source));
+	}
+
+	@ParameterizedTest // GH-4364
+	@ValueSource(strings = { "id\u0301'name", "id\u0301\u00A0name", "id=\u0338name", "id\u20DDname" })
+	void rejectsUnsafeSortExpressionsWithCombiningMarks(String source) {
+
+		Sort sort = Sort.by(source);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> applySorting("select e from Employee e", sort, "e"));
 	}
 
 	@Test // DATAJPA-377
