@@ -359,7 +359,10 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 				"e.payments[coalesce(:start, 0):coalesce(:end, 2)].id", "some_function(e.names)[coalesce(:index, 0)].name",
 				"some_function(e.names)[coalesce(:start, 0):coalesce(:end, 2)].name", "some_function(e).names[0].name",
 				"some_function(e).names[0:2].name", "treat(e.payments AS Payment)[0].id",
-				"treat(e.payments AS Payment)[0:2].id", "treat(e AS Employee).payments[0].id" })
+				"treat(e.payments AS Payment)[0:2].id", "treat(e AS Employee).payments[0].id",
+				"treat(e AS Employee).manager.name", "treat(e AS Employee).manager.payments[0:2].id",
+				"treat(treat(e AS Employee).manager AS Manager).name", "key(e.phones).number.prefix",
+				"value(e.phones).numbers[0]", "element(e.phones).number", "length(treat(e AS Employee).manager.name)" })
 		void nestedPaths(String expression) {
 			assertQuery("SELECT " + expression + " FROM Employee e");
 		}
@@ -784,6 +787,10 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 			assertQuery("select column(tbl.foo as int) from Entity tbl");
 			assertQuery("select column(tbl.foo as varchar(255)) from Entity tbl");
 			assertQuery("select column(tbl.foo) from Entity tbl");
+			assertQuery("select column(tbl.foo.bar) from Entity tbl");
+			assertQuery("select column(tbl.'foo') from Entity tbl");
+			assertQuery("select column(treat(tbl AS Sub).foo as int) from Entity tbl");
+			assertQuery("select max(tbl.foo), column(tbl.bar) from Entity tbl group by column(tbl.bar)");
 		}
 	}
 
@@ -981,6 +988,16 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 				"EXISTS (SELECT o FROM Order o WHERE o.employee = e)", "NOT EXISTS (SELECT o FROM Order o WHERE o.employee = e)",
 				"(e.name IS NULL OR e.name = :name) AND e.id IN :ids" })
 		void predicates(String predicate) {
+			assertQuery("SELECT e FROM Employee e WHERE " + predicate);
+		}
+
+		@ParameterizedTest
+		@ValueSource(strings = { "((e.active))", "(e.active) AND e.salary > 0", "NOT ((e.active) OR e.salary > 0)",
+				"(e.first, e.second) = (1, 2)", "(e.first, e.second) IN ((1, 2), (3, 4))", "(e.salary + 1) * 2 > :min",
+				"(e.name IS NULL, e.active) = (true, true)", "(SELECT max(o.amount) FROM Order o) > e.salary",
+				"((SELECT max(o.amount) FROM Order o)) > e.salary",
+				"CASE WHEN (e.name IS NULL OR e.name = '') THEN (e.salary) ELSE (e.salary, 1) END IS NOT NULL" })
+		void groupedPredicatesAndTuples(String predicate) {
 			assertQuery("SELECT e FROM Employee e WHERE " + predicate);
 		}
 

@@ -645,18 +645,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_PAREN);
-		builder.append(QueryTokenStream.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
-		builder.append(TOKEN_CLOSE_PAREN);
-
-		return builder;
-	}
-
-	@Override
 	public QueryTokenStream visitHqlConcatenationExpression(HqlParser.HqlConcatenationExpressionContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
@@ -670,7 +658,18 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
-		return QueryTokenStream.group(visit(ctx.expression()));
+
+		if (ctx.expressionOrPredicate().size() == 1) {
+			return QueryTokenStream.group(visit(ctx.expressionOrPredicate(0)));
+		}
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(TOKEN_OPEN_PAREN);
+		builder.append(QueryTokenStream.concat(ctx.expressionOrPredicate(), this::visit, TOKEN_COMMA));
+		builder.append(TOKEN_CLOSE_PAREN);
+
+		return builder;
 	}
 
 	@Override
@@ -707,12 +706,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.appendInline(visit(ctx.syntacticDomainPath()));
 
-		if (ctx.pathAccessFragment() != null) {
-			builder.appendInline(visit(ctx.pathAccessFragment()));
-		}
-
 		if (ctx.pathContinuation() != null) {
 			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		if (ctx.pathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.pathAccessFragment()));
 		}
 
 		return builder;
@@ -1083,8 +1082,11 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		QueryRendererBuilder nested = QueryRenderer.builder();
 		nested.appendInline(visit(ctx.path()));
-		nested.append(TOKEN_DOT);
-		nested.append(visit(ctx.jpaNonstandardFunctionName()));
+
+		if (ctx.STRING_LITERAL() != null) {
+			nested.append(TOKEN_DOT);
+			nested.append(QueryTokens.token(ctx.STRING_LITERAL()));
+		}
 
 		if (ctx.castTarget() != null) {
 			nested.append(QueryTokens.expression(ctx.AS()));
@@ -1947,10 +1949,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.append(QueryTokenStream.ofFunction(ctx.TREAT(), nested));
 
-		if (ctx.pathContinuation() != null) {
-			builder.append(visit(ctx.pathContinuation()));
-		}
-
 		return builder;
 	}
 
@@ -1963,10 +1961,6 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.append(TOKEN_OPEN_PAREN);
 		builder.append(visit(ctx.path()));
 		builder.append(TOKEN_CLOSE_PAREN);
-
-		if (ctx.pathContinuation() != null) {
-			builder.append(visit(ctx.pathContinuation()));
-		}
 
 		return builder;
 	}
@@ -1981,21 +1975,12 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		builder.append(visit(ctx.path()));
 		builder.append(TOKEN_CLOSE_PAREN);
 
-		if (ctx.pathContinuation() != null) {
-			builder.append(visit(ctx.pathContinuation()));
-		}
-
 		return builder;
 	}
 
 	@Override
 	public QueryTokenStream visitToOneFkReference(HqlParser.ToOneFkReferenceContext ctx) {
 		return QueryTokenStream.ofFunction(ctx.FK(), visit(ctx.path()));
-	}
-
-	@Override
-	public QueryTokenStream visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
-		return QueryTokenStream.group(visit(ctx.predicate()));
 	}
 
 	@Override

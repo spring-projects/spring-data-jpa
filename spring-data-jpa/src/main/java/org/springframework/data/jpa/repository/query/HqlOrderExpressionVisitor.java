@@ -727,11 +727,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 
 	@Override
 	public Expression<?> visitGroupedExpression(HqlParser.GroupedExpressionContext ctx) {
-		return visit(ctx.expression());
-	}
 
-	@Override
-	public Expression<?> visitTupleExpression(HqlParser.TupleExpressionContext ctx) {
+		if (ctx.expressionOrPredicate().size() == 1) {
+			return visit(ctx.expressionOrPredicate(0));
+		}
+
 		return (Expression<?>) cb
 				.tuple(ctx.expressionOrPredicate().stream().map(this::visitRequired).toArray(Expression[]::new));
 	}
