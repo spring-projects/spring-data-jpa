@@ -49,7 +49,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class SelectClause {
+	class HqlSelectClause {
 
 		@Test
 		void selectClause() {
@@ -98,7 +98,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class FromClause {
+	class HqlFromClause {
 
 		@Test
 		void rootEntities() {
@@ -133,7 +133,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class Joins {
+	class HqlJoins {
 
 		@Test
 		void explicitJoins() {
@@ -208,7 +208,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class SetReturningFunctions {
+	class HqlSetReturningFunctions {
 
 		@ParameterizedTest // GH-3864
 		@ValueSource(strings = { ":date, :integerValue", ":date", "", ":date, :integerValue, :longValue" })
@@ -287,7 +287,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class PathExpressions {
+	class HqlPathExpressions {
 
 		@Test // GH-3711
 		void entityReferences() {
@@ -382,7 +382,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class Literals {
+	class HqlLiterals {
 
 		@Test
 		void stringLiterals() {
@@ -485,7 +485,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class Expressions {
+	class HqlExpressions {
 
 		@Test
 		void stringConcatenation() {
@@ -608,7 +608,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class Functions {
+	class HqlFunctions {
 
 		@Test // GH-3689
 		void stringFunctions() {
@@ -795,7 +795,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class JsonFunctions {
+	class HqlJsonFunctions {
 
 		@Test // GH-3883
 		void jsonArray() {
@@ -904,7 +904,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class XmlFunctions {
+	class HqlXmlFunctions {
 
 		@Test // GH-3883
 		void xmlElement() {
@@ -970,7 +970,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class Predicates {
+	class HqlPredicates {
 
 		@ParameterizedTest // GH-4326
 		@ValueSource(strings = { "=", ">", ">=", "<", "<=", "<>", "!=", "^=", "IS DISTINCT FROM", "IS NOT DISTINCT FROM",
@@ -1131,7 +1131,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class GroupByAndHaving {
+	class HqlGroupByAndHaving {
 
 		@Test
 		void groupBy() {
@@ -1165,7 +1165,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class OrderByAndLimit {
+	class HqlOrderByAndLimit {
 
 		@Test
 		void orderBy() {
@@ -1243,7 +1243,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class SetOperations {
+	class HqlSetOperations {
 
 		@Test
 		void union() {
@@ -1252,7 +1252,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class CommonTableExpressions {
+	class HqlCommonTableExpressions {
 
 		@Test // GH-2981
 		void withClause() {
@@ -1291,7 +1291,7 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 	}
 
 	@Nested
-	class UpdateInsertAndDelete {
+	class HqlUpdateInsertAndDelete {
 
 		@Test
 		void update() {

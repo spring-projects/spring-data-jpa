@@ -605,7 +605,7 @@ abstract class AbstractQueryRendererTests {
 		void castInComparison() {
 
 			assertQuery("select cast(i as string) from Item i where cast(i.date as date) <= cast(:currentDateTime as date)");
-			assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
+			assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary AS NUMERIC(10, 2)) > 0.0");
 		}
 
 		@Test

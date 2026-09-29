@@ -53,6 +53,11 @@ class EqlQueryRendererTests extends AbstractQueryRendererTests {
 				""");
 	}
 
+	@Test // GH-3863
+	void acceptsCastWithoutAs() {
+		assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
+	}
+
 	@Test
 	void joinOn() {
 

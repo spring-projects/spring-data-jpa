@@ -910,7 +910,7 @@ overlayFunctionLengthArgument
  * The deprecated current_date function required by JPQL
  */
 currentDateFunction
-    : CURRENT_DATE ('(' ')')?
+    : CURRENT_DATE (parens='(' ')')?
     | CURRENT DATE
     ;
 
@@ -918,7 +918,7 @@ currentDateFunction
  * The deprecated current_time function required by JPQL
  */
 currentTimeFunction
-    : CURRENT_TIME ('(' ')')?
+    : CURRENT_TIME (parens='(' ')')?
     | CURRENT TIME
     ;
 
@@ -926,7 +926,7 @@ currentTimeFunction
  * The deprecated current_timestamp function required by JPQL
  */
 currentTimestampFunction
-    : CURRENT_TIMESTAMP ('(' ')')?
+    : CURRENT_TIMESTAMP (parens='(' ')')?
     | CURRENT TIMESTAMP
     ;
 
@@ -934,7 +934,7 @@ currentTimestampFunction
  * The instant function, and deprecated current_instant function
  */
 instantFunction
-    : CURRENT_INSTANT ('(' ')')? //deprecated legacy syntax
+    : CURRENT_INSTANT (parens='(' ')')? //deprecated legacy syntax
     | INSTANT
     ;
 
@@ -942,7 +942,7 @@ instantFunction
  * The 'local datetime' function (or literal if you prefer)
  */
 localDateTimeFunction
-    : LOCAL_DATETIME ('(' ')')?
+    : LOCAL_DATETIME (parens='(' ')')?
     | LOCAL DATETIME
     ;
 
@@ -950,7 +950,7 @@ localDateTimeFunction
  * The 'offset datetime' function (or literal if you prefer)
  */
 offsetDateTimeFunction
-    : OFFSET_DATETIME ('(' ')')?
+    : OFFSET_DATETIME (parens='(' ')')?
     | OFFSET DATETIME
     ;
 
@@ -958,7 +958,7 @@ offsetDateTimeFunction
  * The 'local date' function (or literal if you prefer)
  */
 localDateFunction
-    : LOCAL_DATE ('(' ')')?
+    : LOCAL_DATE (parens='(' ')')?
     | LOCAL DATE
     ;
 
@@ -966,7 +966,7 @@ localDateFunction
  * The 'local time' function (or literal if you prefer)
  */
 localTimeFunction
-    : LOCAL_TIME ('(' ')')?
+    : LOCAL_TIME (parens='(' ')')?
     | LOCAL TIME
     ;
 
