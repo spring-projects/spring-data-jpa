@@ -154,4 +154,8 @@ public class JpaMetamodel {
 				.filter(SingularAttribute::isId) //
 				.findFirst();
 	}
+
+	public Metamodel getMetamodel() {
+		return metamodel;
+	}
 }
