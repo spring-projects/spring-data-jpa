@@ -555,9 +555,10 @@ temporalLiteral
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-expressions
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-concatenation
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-numeric-arithmetic
+// Grouped predicates and tuples are parsed here, not by predicate: otherwise '(' starts competing alternatives that
+// SLL prediction can only tell apart at the closing parenthesis or the first comma.
 expression
-    : '(' expression ')'                                            # GroupedExpression
-    | '(' expressionOrPredicate (',' expressionOrPredicate)+ ')'    # TupleExpression
+    : '(' expressionOrPredicate (',' expressionOrPredicate)* ')'    # GroupedExpression
     | '(' subquery ')'                                              # SubqueryExpression
     | primaryExpression                                             # PlainPrimaryExpression
     | op=('+' | '-') numericLiteral                                 # SignedNumericLiteral
@@ -580,7 +581,7 @@ primaryExpression
     | entityIdReference                                             # EntityIdExpression
     | entityVersionReference                                        # EntityVersionExpression
     | entityNaturalIdReference                                      # EntityNaturalIdExpression
-    | syntacticDomainPath (pathContinuation | pathAccessFragment)?    # SyntacticPathExpression
+    | syntacticDomainPath pathContinuation? pathAccessFragment?       # SyntacticPathExpression
     | function ('.' generalPathFragment | pathAccessFragment)?        # FunctionExpression
     | generalPathFragment                                           # GeneralPathExpression
     ;
@@ -674,6 +675,8 @@ entityNaturalIdReference
  *         * VALUE( path )
  *         * KEY( path )
  */
+// Callers own the path continuation. A continuation inside these rules as well would make every '.' of a following
+// simplePath ambiguous for SLL prediction.
 syntacticDomainPath
     : treatedNavigablePath
     | collectionValueNavigablePath
@@ -684,21 +687,21 @@ syntacticDomainPath
  * A 'treat()' function that "breaks" a path expression
  */
 treatedNavigablePath
-    : TREAT '(' path AS simplePath ')' pathContinuation?
+    : TREAT '(' path AS simplePath ')'
     ;
 
 /**
  * A 'value()' function that "breaks" a path expression
  */
 collectionValueNavigablePath
-    : elementValueQuantifier '(' path ')' pathContinuation?
+    : elementValueQuantifier '(' path ')'
     ;
 
 /**
  * A 'key()' or 'index()' function that "breaks" a path expression
  */
 mapKeyNavigablePath
-    : indexKeyQuantifier '(' path ')' pathContinuation?
+    : indexKeyQuantifier '(' path ')'
     ;
 
 /**
@@ -1046,8 +1049,10 @@ jpaNonstandardFunctionName
     | identifier
     ;
 
+// The column name is part of path. A separate '.' identifier here would let SLL prediction treat the end of any
+// simplePath as a possible column() argument until the rest of the query is read.
 columnFunction
-    : COLUMN '(' path '.' jpaNonstandardFunctionName (AS castTarget)? ')'
+    : COLUMN '(' path ('.' STRING_LITERAL)? (AS castTarget)? ')'
     ;
 
 /**
@@ -1422,22 +1427,24 @@ xmltableDefaultClause
 // Predicates
 // https://docs.jboss.org/hibernate/orm/6.1/userguide/html_single/Hibernate_User_Guide.html#hql-conditional-expressions
 predicate
-    : '(' predicate ')'                                             # GroupedPredicate
-    | expression IS NOT? (NULL|EMPTY|TRUE|FALSE)                    # IsBooleanPredicate
-    | expression NOT? MEMBER OF? path                               # MemberOfPredicate
-    | expression NOT? IN inList                                     # InPredicate
-    | expression NOT? BETWEEN expression AND expression             # BetweenPredicate
-    | expression NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
-    | expression (
+    : EXISTS ((ELEMENTS | INDICES) '(' simplePath ')' | expression) # ExistsPredicate
+    | NOT predicate                                                 # NotPredicate
+    | predicate AND predicate                                       # AndPredicate
+    | predicate OR predicate                                        # OrPredicate
+    | expression predicateSuffix?                                   # ExpressionPredicate
+    ;
+
+predicateSuffix
+    : IS NOT? (NULL|EMPTY|TRUE|FALSE)                               # IsBooleanPredicate
+    | NOT? MEMBER OF? path                                          # MemberOfPredicate
+    | NOT? IN inList                                                # InPredicate
+    | NOT? BETWEEN expression AND expression                        # BetweenPredicate
+    | NOT? (LIKE | ILIKE) REGEXP? expression (ESCAPE (STRING_LITERAL | JAVA_STRING_LITERAL | parameter))? # LikePredicate
+    | (
         NOT? (CONTAINS|INCLUDES|INTERSECTS)
         | IS NOT? DISTINCT FROM
         | op=('=' | '>' | '>=' | '<' | '<=' | '<>' | '!=' | '^=')
       ) expression                                                  # BinaryExpressionPredicate
-    | EXISTS ((ELEMENTS | INDICES) '(' simplePath ')' | expression) # ExistsPredicate
-    | NOT predicate                                                 # NotPredicate
-    | predicate AND predicate                                       # AndPredicate
-    | predicate OR predicate                                        # OrPredicate
-    | expression                                                    # ExpressionPredicate
     ;
 
 expressionOrPredicate
