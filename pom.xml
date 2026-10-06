@@ -81,8 +81,8 @@
 		<profile>
 			<id>hibernate-8</id>
 			<properties>
-				<hibernate>8.0.0.Beta1</hibernate>
-				<jakarta-persistence-api>4.0.0-M5</jakarta-persistence-api>
+				<hibernate>8.0.0.Beta3</hibernate>
+				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent/>
 				<!-- No EclipseLink for JPA 4.0 -> skip it -->
@@ -93,7 +93,7 @@
 			<id>hibernate-8-snapshots</id>
 			<properties>
 				<hibernate>8.0.0-SNAPSHOT</hibernate>
-				<jakarta-persistence-api>4.0.0-M6</jakarta-persistence-api>
+				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent/>
 				<!-- No EclipseLink for JPA 4.0 -> skip it -->
