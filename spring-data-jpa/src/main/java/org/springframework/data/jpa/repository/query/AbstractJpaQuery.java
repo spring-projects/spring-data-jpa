@@ -158,7 +158,7 @@ public abstract class AbstractJpaQuery implements RepositoryQuery {
 
 	/**
 	 * @param execution
-	 * @param values
+	 * @param accessor
 	 * @return
 	 */
 	private @Nullable Object doExecute(JpaQueryExecution execution, JpaParametersParameterAccessor accessor) {

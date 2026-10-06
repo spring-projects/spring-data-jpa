@@ -76,6 +76,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private boolean validateQueries = true;
 	private JpaRepositoryFragmentsContributor fragmentsContributor = JpaRepositoryFragmentsContributor.DEFAULT;
 	private QueryEnhancerSelector queryEnhancerSelector = QueryEnhancerSelector.DEFAULT_SELECTOR;
 	private JpaQueryMethodFactory queryMethodFactory;
@@ -155,6 +156,16 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	 */
 	public void setEscapeCharacter(EscapeCharacter escapeCharacter) {
 		this.escapeCharacter = escapeCharacter;
+	}
+
+	/**
+	 * Configures whether queries should be validated on creation.
+	 *
+	 * @param validateQueries
+	 * @since 4.2
+	 */
+	public void setValidateQueries(boolean validateQueries) {
+		this.validateQueries = validateQueries;
 	}
 
 	/**
@@ -259,7 +270,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 			ValueExpressionDelegate valueExpressionDelegate) {
 
 		JpaQueryConfiguration queryConfiguration = new JpaQueryConfiguration(queryRewriterProvider, queryEnhancerSelector,
-				new CachingValueExpressionDelegate(valueExpressionDelegate), escapeCharacter);
+				new CachingValueExpressionDelegate(valueExpressionDelegate), escapeCharacter, validateQueries);
 
 		return Optional.of(JpaQueryLookupStrategy.create(entityManager, queryMethodFactory, key, queryConfiguration));
 	}
