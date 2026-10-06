@@ -52,6 +52,7 @@ import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.provider.QueryExtractor;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -204,6 +205,46 @@ class SimpleJpaQueryUnitTests {
 		assertThatExceptionOfType(QueryCreationException.class) //
 				.isThrownBy(() -> createJpaQuery(method)) //
 				.withMessageContaining("User u");
+	}
+
+	@Test // GH-4362
+	void validatesRewrittenQuery() throws Exception {
+
+		createJpaQuery(SampleRepository.class.getMethod("findWithQueryRewriter"));
+
+		verifyCreateQuery(verify(em), "select u from User u /* rewritten */");
+	}
+
+	@Test // GH-4362
+	void configurationDisablesValidation() throws Exception {
+
+		JpaQueryConfiguration config = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+				QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT, false);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(SampleRepository.class.getMethod("findWithQueryRewriter"),
+				metadata, factory, extractor);
+
+		JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em,
+				queryMethod.getRequiredDeclaredQuery(), queryMethod.getDeclaredCountQuery(), config);
+
+		verify(em, never()).createQuery(anyString());
+	}
+
+	@Test // GH-4362
+	void validatesRewrittenCountQuery() throws Exception {
+
+		createJpaQuery(SampleRepository.class.getMethod("pageWithQueryRewriter", Pageable.class));
+
+		verifyCreateQuery(verify(em), "select u from User u /* rewritten */");
+		verifyCreateQuery(verify(em), "select count(u) from User u /* rewritten */");
+	}
+
+	@Test // GH-4362
+	void validatesRewrittenDtoProjectionQuery() throws Exception {
+
+		createJpaQuery(SampleRepository.class.getMethod("projectWithUnknownPaths"));
+
+		verifyCreateQuery(verify(em),
+				"select new org.springframework.data.jpa.repository.query.SimpleJpaQueryUnitTests$UnrelatedType(u.unknown) from User u");
 	}
 
 	@Test
@@ -404,6 +445,12 @@ class SimpleJpaQueryUnitTests {
 		@Query(USER_QUERY)
 		Page<User> pageByAnnotatedQuery(Pageable pageable);
 
+		@Query(value = USER_QUERY, queryRewriter = SuffixingQueryRewriter.class)
+		List<User> findWithQueryRewriter();
+
+		@Query(value = USER_QUERY, queryRewriter = SuffixingQueryRewriter.class)
+		Page<User> pageWithQueryRewriter(Pageable pageable);
+
 		@Query("select u from User u")
 		Collection<UserProjection> projectWithExplicitQuery();
 
@@ -443,4 +490,14 @@ class SimpleJpaQueryUnitTests {
 		public UnrelatedType(String name) {}
 
 	}
+
+	static class SuffixingQueryRewriter implements QueryRewriter {
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query + " /* rewritten */";
+		}
+
+	}
+
 }
