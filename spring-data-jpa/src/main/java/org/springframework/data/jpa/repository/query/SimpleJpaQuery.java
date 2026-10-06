@@ -54,6 +54,14 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, query, countQuery, queryConfiguration);
 
+		if (queryConfiguration.validateQueries()) {
+			validate();
+		}
+	}
+
+	private void validate() {
+
+		JpaQueryMethod method = getQueryMethod();
 		if (method.isProcedureQuery()) {
 			return;
 		}

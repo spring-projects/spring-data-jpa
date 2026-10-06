@@ -216,6 +216,20 @@ class SimpleJpaQueryUnitTests {
 	}
 
 	@Test // GH-4362
+	void configurationDisablesValidation() throws Exception {
+
+		JpaQueryConfiguration config = new JpaQueryConfiguration(QueryRewriterProvider.simple(),
+				QueryEnhancerSelector.DEFAULT_SELECTOR, ValueExpressionDelegate.create(), EscapeCharacter.DEFAULT, false);
+		JpaQueryMethod queryMethod = new JpaQueryMethod(SampleRepository.class.getMethod("findWithQueryRewriter"),
+				metadata, factory, extractor);
+
+		JpaQueryLookupStrategy.DeclaredQueryLookupStrategy.createStringQuery(queryMethod, em,
+				queryMethod.getRequiredDeclaredQuery(), queryMethod.getDeclaredCountQuery(), config);
+
+		verify(em, never()).createQuery(anyString());
+	}
+
+	@Test // GH-4362
 	void validatesRewrittenCountQuery() throws Exception {
 
 		createJpaQuery(SampleRepository.class.getMethod("pageWithQueryRewriter", Pageable.class));

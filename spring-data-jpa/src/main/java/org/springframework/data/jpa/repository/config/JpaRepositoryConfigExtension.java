@@ -157,6 +157,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 		if (source instanceof AnnotationRepositoryConfigurationSource) {
 			builder.addPropertyValue("queryEnhancerSelector",
 					source.getAttribute("queryEnhancerSelector", Class.class).orElse(null));
+			source.getAttribute("validateQueries", Boolean.class)
+					.ifPresent(validate -> builder.addPropertyValue("validateQueries", validate));
 		}
 	}
 

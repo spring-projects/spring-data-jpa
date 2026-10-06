@@ -57,6 +57,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 	private EntityPathResolver entityPathResolver = SimpleEntityPathResolver.INSTANCE;
 	private JpaRepositoryFragmentsContributor repositoryFragmentsContributor = JpaRepositoryFragmentsContributor.DEFAULT;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
+	private boolean validateQueries = true;
 	private @Nullable JpaQueryMethodFactory queryMethodFactory;
 	private @Nullable Function<@Nullable BeanFactory, QueryEnhancerSelector> queryEnhancerSelectorSource;
 
@@ -119,6 +120,15 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 
 	public void setEscapeCharacter(char escapeCharacter) {
 		this.escapeCharacter = EscapeCharacter.of(escapeCharacter);
+	}
+
+	/**
+	 * @param validateQueries
+	 * @since 4.2
+	 * @see JpaRepositoryFactory#setValidateQueries(boolean)
+	 */
+	public void setValidateQueries(boolean validateQueries) {
+		this.validateQueries = validateQueries;
 	}
 
 	/**
@@ -191,6 +201,7 @@ public class JpaRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(entityManager);
 		factory.setEntityPathResolver(entityPathResolver);
 		factory.setEscapeCharacter(escapeCharacter);
+		factory.setValidateQueries(validateQueries);
 		factory.setFragmentsContributor(getRepositoryFragmentsContributor());
 
 		if (queryMethodFactory != null) {
