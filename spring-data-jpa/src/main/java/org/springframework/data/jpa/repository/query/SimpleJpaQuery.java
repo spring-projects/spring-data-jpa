@@ -58,7 +58,7 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			return;
 		}
 
-		validateQuery(getSortedQuery(Sort.unsorted(), getReturnedType(method.getResultProcessor())),
+		validateQuery(getSortedQuery(Sort.unsorted(), method.getResultProcessor()),
 				"Query validation failed for '%s'", method);
 
 		if (method.isPageQuery()) {

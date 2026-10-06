@@ -142,7 +142,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		Sort sort = accessor.getSort();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 		ReturnedType returnedType = getReturnedType(processor);
-		QueryProvider sortedQuery = getSortedQuery(sort, returnedType);
+		QueryProvider sortedQuery = getSortedQuery(sort, processor);
 		Query query = createJpaQuery(sortedQuery, sort, accessor.getPageable(), returnedType);
 
 		// it is ok to reuse the binding contained in the ParameterBinder, although we create a new query String because the
@@ -183,6 +183,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 
 		knownProjections.put(returnedJavaType, true);
 		return returnedType;
+	}
+
+	QueryProvider getSortedQuery(Sort sort, ResultProcessor processor) {
+
+		ReturnedType returnedType = getReturnedType(processor);
+		return getSortedQuery(sort, returnedType);
 	}
 
 	QueryProvider getSortedQuery(Sort sort, ReturnedType returnedType) {
