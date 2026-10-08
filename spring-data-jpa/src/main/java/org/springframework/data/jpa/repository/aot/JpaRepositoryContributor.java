@@ -74,6 +74,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  * @since 4.0
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
@@ -148,7 +149,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		constructorBuilder.customize(builder -> {
 
 			if (queryEnhancerSelector.isPresent()) {
-				builder.addStatement("super(new T$(), context)", queryEnhancerSelector.get());
+				builder.addStatement("super(new $T(), context)", queryEnhancerSelector.get());
 			} else {
 				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
 			}
