@@ -29,13 +29,49 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.query.DeclaredQuery;
+import org.springframework.data.jpa.repository.query.QueryEnhancerFactory;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 
 /**
  * Integration tests for the {@link UserRepository} AOT fragment.
  *
  * @author Mark Paluch
+ * @author JungKyun Ryu
  */
 class JpaRepositoryContributorConfigurationTests {
+
+	@Test
+	void shouldGenerateFragmentWithCustomQueryEnhancerSelector() {
+
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+			context.register(CustomQueryEnhancerSelectorConfiguration.class);
+			context.refreshForAotProcessing(new RuntimeHints());
+
+			assertThat(context.getBean("fragment")).isInstanceOf(AotRepositoryFragmentSupport.class);
+		}
+	}
+
+	@Configuration
+	static class CustomQueryEnhancerSelectorConfiguration extends AotFragmentTestConfigurationSupport {
+
+		CustomQueryEnhancerSelectorConfiguration() {
+			super(UserRepository.class, MyConfiguration.class);
+		}
+
+		@EnableJpaRepositories(queryEnhancerSelector = CustomQueryEnhancerSelector.class,
+				/* avoid creating repository instances */ includeFilters = {
+						@ComponentScan.Filter(value = EnableJpaRepositories.class) })
+		static class MyConfiguration {}
+	}
+
+	public static class CustomQueryEnhancerSelector implements QueryEnhancerSelector {
+
+		@Override
+		public QueryEnhancerFactory select(DeclaredQuery query) {
+			return QueryEnhancerSelector.DEFAULT_SELECTOR.select(query);
+		}
+	}
 
 	@Configuration
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
