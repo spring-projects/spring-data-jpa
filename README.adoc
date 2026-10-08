@@ -90,7 +90,7 @@ class AppConfig {
     return lemfb;
   }
 }
-----
+------
 
 === Maven configuration
 
