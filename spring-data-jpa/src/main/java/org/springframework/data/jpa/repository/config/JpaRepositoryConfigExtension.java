@@ -100,6 +100,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Hyunsang Han
+ * @author 안승현
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -489,9 +490,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 						String prefix = "spring.jpa.properties.";
 						Map<String, Object> partialProperties = Stream.of(eps.getPropertyNames())
 								.filter(propertyName -> propertyName.startsWith(prefix))
-								.collect(Collectors.toMap(
-										k -> k.substring(prefix.length()),
-										propertySource::getProperty));
+								.collect(Collectors.toMap(k -> k.substring(prefix.length()), propertySource::getProperty));
 
 						partialProperties.forEach(collectedProperties::putIfAbsent);
 					}

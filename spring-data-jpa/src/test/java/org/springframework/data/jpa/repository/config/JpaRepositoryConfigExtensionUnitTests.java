@@ -40,13 +40,13 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigUtils;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.data.jpa.repository.config.JpaRepositoryConfigExtension.JpaProperties;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
-import org.springframework.core.env.MapPropertySource;
 
 /**
  * Unit tests for {@link JpaRepositoryConfigExtension}.
@@ -55,6 +55,7 @@ import org.springframework.core.env.MapPropertySource;
  * @author Mark Paluch
  * @author Jens Schauder
  * @author Yanming Zhou
+ * @author 안승현
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -190,38 +191,35 @@ class JpaRepositoryConfigExtensionUnitTests {
 
 	@Test // GH-4379
 	void collectsJpaPropertiesAccordingToPropertySourcePrecedence() {
-		MockEnvironment environment  = new MockEnvironment();
 
-		environment.getPropertySources().addFirst(new MapPropertySource("application", Map.of(
-				"spring.jpa.properties.hibernate.cache.use_second_level_cache", "false",
-				"spring.jpa.properties.hibernate.show_sql", "true")));
+		MockEnvironment environment = new MockEnvironment();
 
-		environment.getPropertySources().addLast(new MapPropertySource("defaults", Map.of(
-				"spring.jpa.properties.hibernate.cache.use_second_level_cache", "true",
-				"spring.jpa.properties.hibernate.format_sql", "true")));
+		environment.getPropertySources().addFirst(
+				new MapPropertySource("application", Map.of("spring.jpa.properties.hibernate.cache.use_second_level_cache",
+						"false", "spring.jpa.properties.hibernate.show_sql", "true")));
+
+		environment.getPropertySources().addLast(
+				new MapPropertySource("defaults", Map.of("spring.jpa.properties.hibernate.cache.use_second_level_cache", "true",
+						"spring.jpa.properties.hibernate.format_sql", "true")));
 
 		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
 
-		assertThat(jpaProperties)
-				.containsEntry("hibernate.cache.use_second_level_cache", "false")
-				.containsEntry("hibernate.show_sql", "true")
-				.containsEntry("hibernate.format_sql", "true");
+		assertThat(jpaProperties).containsEntry("hibernate.cache.use_second_level_cache", "false")
+				.containsEntry("hibernate.show_sql", "true").containsEntry("hibernate.format_sql", "true");
 	}
 
 	@Test // GH-4379
 	void explicitJpaPropertiesOverrideWellKnownNamingStrategies() {
+
 		MockEnvironment environment = new MockEnvironment()
 				.withProperty("spring.jpa.hibernate.naming.implicit-strategy", "Implicit")
 				.withProperty("spring.jpa.hibernate.naming.physical-strategy", "Physical")
-				.withProperty("spring.jpa.properties." + MappingSettings.IMPLICIT_NAMING_STRATEGY,
-						"ExplicitImplicit")
-				.withProperty("spring.jpa.properties." + MappingSettings.PHYSICAL_NAMING_STRATEGY,
-						"ExplicitPhysical");
+				.withProperty("spring.jpa.properties." + MappingSettings.IMPLICIT_NAMING_STRATEGY, "ExplicitImplicit")
+				.withProperty("spring.jpa.properties." + MappingSettings.PHYSICAL_NAMING_STRATEGY, "ExplicitPhysical");
 
 		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
 
-		assertThat(jpaProperties)
-				.containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "ExplicitImplicit")
+		assertThat(jpaProperties).containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "ExplicitImplicit")
 				.containsEntry(MappingSettings.PHYSICAL_NAMING_STRATEGY, "ExplicitPhysical");
 	}
 
