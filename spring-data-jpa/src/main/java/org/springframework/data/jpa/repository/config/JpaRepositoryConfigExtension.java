@@ -480,6 +480,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			if (environment instanceof ConfigurableEnvironment ce) {
 
+				Map<String, Object> collectedProperties = new LinkedHashMap<>();
+
 				ce.getPropertySources().forEach(propertySource -> {
 
 					if (propertySource instanceof EnumerablePropertySource<?> eps) {
@@ -487,11 +489,14 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 						String prefix = "spring.jpa.properties.";
 						Map<String, Object> partialProperties = Stream.of(eps.getPropertyNames())
 								.filter(propertyName -> propertyName.startsWith(prefix))
-								.collect(Collectors.toMap(k -> k.substring(prefix.length()), propertySource::getProperty));
+								.collect(Collectors.toMap(
+										k -> k.substring(prefix.length()),
+										propertySource::getProperty));
 
-						jpaProperties.putAll(partialProperties);
+						partialProperties.forEach(collectedProperties::putIfAbsent);
 					}
 				});
+				jpaProperties.putAll(collectedProperties);
 			}
 		}
 

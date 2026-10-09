@@ -46,6 +46,7 @@ import org.springframework.data.repository.config.RepositoryConfigurationSource;
 import org.springframework.instrument.classloading.ShadowingClassLoader;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor;
+import org.springframework.core.env.MapPropertySource;
 
 /**
  * Unit tests for {@link JpaRepositoryConfigExtension}.
@@ -185,6 +186,43 @@ class JpaRepositoryConfigExtensionUnitTests {
 
 		assertThat(jpaProperties).containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "Implicit");
 		assertThat(jpaProperties).containsEntry("foo", "bar");
+	}
+
+	@Test // GH-4379
+	void collectsJpaPropertiesAccordingToPropertySourcePrecedence() {
+		MockEnvironment environment  = new MockEnvironment();
+
+		environment.getPropertySources().addFirst(new MapPropertySource("application", Map.of(
+				"spring.jpa.properties.hibernate.cache.use_second_level_cache", "false",
+				"spring.jpa.properties.hibernate.show_sql", "true")));
+
+		environment.getPropertySources().addLast(new MapPropertySource("defaults", Map.of(
+				"spring.jpa.properties.hibernate.cache.use_second_level_cache", "true",
+				"spring.jpa.properties.hibernate.format_sql", "true")));
+
+		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
+
+		assertThat(jpaProperties)
+				.containsEntry("hibernate.cache.use_second_level_cache", "false")
+				.containsEntry("hibernate.show_sql", "true")
+				.containsEntry("hibernate.format_sql", "true");
+	}
+
+	@Test // GH-4379
+	void explicitJpaPropertiesOverrideWellKnownNamingStrategies() {
+		MockEnvironment environment = new MockEnvironment()
+				.withProperty("spring.jpa.hibernate.naming.implicit-strategy", "Implicit")
+				.withProperty("spring.jpa.hibernate.naming.physical-strategy", "Physical")
+				.withProperty("spring.jpa.properties." + MappingSettings.IMPLICIT_NAMING_STRATEGY,
+						"ExplicitImplicit")
+				.withProperty("spring.jpa.properties." + MappingSettings.PHYSICAL_NAMING_STRATEGY,
+						"ExplicitPhysical");
+
+		Map<String, Object> jpaProperties = new JpaProperties(environment).getJpaProperties();
+
+		assertThat(jpaProperties)
+				.containsEntry(MappingSettings.IMPLICIT_NAMING_STRATEGY, "ExplicitImplicit")
+				.containsEntry(MappingSettings.PHYSICAL_NAMING_STRATEGY, "ExplicitPhysical");
 	}
 
 	private void assertOnlyOnePersistenceAnnotationBeanPostProcessorRegistered(DefaultListableBeanFactory factory,
