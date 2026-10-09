@@ -17,12 +17,14 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.springframework.data.jpa.repository.query.QueryTokens.*;
 
+import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
-import org.springframework.data.jpa.repository.query.HqlParser.SelectClauseContext;
+import org.springframework.data.jpa.repository.query.HqlParser.InstantiationArgumentContext;
+import org.springframework.data.jpa.repository.query.HqlParser.InstantiationContext;
+import org.springframework.data.jpa.repository.query.HqlParser.SelectionContext;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
-import org.springframework.data.jpa.repository.query.QueryTransformers.CountSelectionTokenStream;
-import org.springframework.util.StringUtils;
 
 /**
  * An ANTLR {@link org.antlr.v4.runtime.tree.ParseTreeVisitor} that transforms a parsed HQL query into a
@@ -34,19 +36,19 @@ import org.springframework.util.StringUtils;
  * @author Oscar Fanchin
  * @since 3.1
  */
-@SuppressWarnings("ConstantValue")
-class HqlCountQueryTransformer extends HqlQueryRenderer {
+class HqlCountQueryTransformer extends HqlQueryRenderer
+		implements CountSelection.Grammar<SelectionContext, InstantiationContext, InstantiationArgumentContext> {
 
-	private final @Nullable String countProjection;
 	private final @Nullable String primaryFromAlias;
-	private final boolean containsCTE;
-	private final boolean containsFromFunction;
+	private final CountSelection<SelectionContext, InstantiationContext, InstantiationArgumentContext> countSelection;
 
 	HqlCountQueryTransformer(@Nullable String countProjection, HibernateQueryInformation queryInformation) {
-		this.countProjection = countProjection;
+
 		this.primaryFromAlias = queryInformation.getAlias();
-		this.containsCTE = queryInformation.hasCte();
-		this.containsFromFunction = queryInformation.hasFromFunction();
+
+		// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
+		boolean primaryAliasCountable = !queryInformation.hasCte() && !queryInformation.hasFromFunction();
+		this.countSelection = new CountSelection<>(countProjection, primaryFromAlias, primaryAliasCountable, true, this);
 	}
 
 	@Override
@@ -87,23 +89,7 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (!isSubquery(ctx) && ctx.selectClause() == null) {
-
-			QueryRendererBuilder countBuilder = QueryRenderer.builder();
-			countBuilder.append(TOKEN_SELECT_COUNT);
-
-			if (countProjection != null) {
-				countBuilder.append(QueryTokens.token(countProjection));
-			} else {
-				if (primaryFromAlias == null) {
-					countBuilder.append(TOKEN_DOUBLE_UNDERSCORE);
-				} else {
-					countBuilder.append(QueryTokens.token(primaryFromAlias));
-				}
-			}
-
-			countBuilder.append(TOKEN_CLOSE_PAREN);
-
-			builder.appendExpression(countBuilder);
+			builder.appendExpression(countSelection.render());
 		}
 
 		if (ctx.fromClause() != null) {
@@ -154,44 +140,12 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 	@Override
 	public QueryTokenStream visitSelectClause(HqlParser.SelectClauseContext ctx) {
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-		builder.append(QueryTokens.expression(ctx.SELECT()));
-
 		if (isSubquery(ctx)) {
-			return visitSubQuerySelectClause(ctx, builder);
+			return super.visitSelectClause(ctx);
 		}
 
-		builder.append(TOKEN_COUNT_FUNC);
-		boolean usesDistinct = ctx.DISTINCT() != null;
-		QueryRendererBuilder nested = QueryRenderer.builder();
-		if (countProjection == null) {
-			if (usesDistinct) {
-				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-				nested.append(getDistinctCountSelection(visit(ctx.selectionList())));
-			} else {
-
-				// with CTE primary alias fails with hibernate (WITH entities AS (…) SELECT count(c) FROM entities c)
-				if (containsCTE || containsFromFunction) {
-					nested.append(QueryTokens.token("*"));
-				} else {
-
-					if (StringUtils.hasText(primaryFromAlias)) {
-						nested.append(QueryTokens.token(primaryFromAlias));
-					} else {
-						nested.append(QueryTokens.token("*"));
-					}
-				}
-			}
-		} else {
-			if (usesDistinct) {
-				nested.append(QueryTokens.expression(ctx.DISTINCT()));
-			}
-			nested.append(QueryTokens.token(countProjection));
-		}
-
-		builder.appendInline(nested);
-		builder.append(TOKEN_CLOSE_PAREN);
-		return builder;
+		return countSelection.render(QueryTokens.expression(ctx.SELECT()), QueryTokens.expressionOrNull(ctx.DISTINCT()),
+				ctx.selectionList().selection());
 	}
 
 	@Override
@@ -201,42 +155,42 @@ class HqlCountQueryTransformer extends HqlQueryRenderer {
 			return super.visitSelection(ctx);
 		}
 
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(visit(ctx.selectExpression()));
-
-		// do not append variables to skip AS field aliasing
-
-		return builder;
+		return visit(ctx.selectExpression()); // skip AS field aliasing
 	}
 
-	private QueryRendererBuilder visitSubQuerySelectClause(SelectClauseContext ctx, QueryRendererBuilder builder) {
+	@Override
+	public QueryTokenStream visitInstantiation(HqlParser.InstantiationContext ctx) {
 
-		if (ctx.DISTINCT() != null) {
-			builder.append(QueryTokens.expression(ctx.DISTINCT()));
+		if (isSubquery(ctx)) {
+			return super.visitInstantiation(ctx);
 		}
 
-		builder.append(visit(ctx.selectionList()));
-		return builder;
+		return countSelection.renderConstructor(ctx);
 	}
 
-	private QueryRendererBuilder getDistinctCountSelection(QueryTokenStream selectionListbuilder) {
+	@Override
+	public @Nullable InstantiationContext getConstructorExpression(SelectionContext selectItem) {
+		return selectItem.selectExpression().instantiation();
+	}
 
-		QueryRendererBuilder nested = new QueryRendererBuilder();
-		CountSelectionTokenStream countSelection = CountSelectionTokenStream.create(selectionListbuilder);
+	@Override
+	public List<InstantiationArgumentContext> getConstructorArguments(InstantiationContext constructorExpression) {
+		return constructorExpression.instantiationArguments().instantiationArgument();
+	}
 
-		if (countSelection.requiresPrimaryAlias()) {
+	@Override
+	public boolean isPath(InstantiationArgumentContext argument) {
 
-			if (primaryFromAlias != null) {
-				nested.append(QueryTokens.token(primaryFromAlias));
-			} else {
-				nested.append(countSelection.withoutConstructorExpression());
-			}
-		} else {
-			// keep all the select items to distinct against
-			nested.append(selectionListbuilder);
+		if (argument.expressionOrPredicate() == null
+				|| !(argument.expressionOrPredicate().predicate() instanceof HqlParser.ExpressionPredicateContext predicate)) {
+			return false;
 		}
-		return nested;
+
+		if (!(predicate.expression() instanceof HqlParser.PlainPrimaryExpressionContext expression)) {
+			return false;
+		}
+
+		return expression.primaryExpression() instanceof HqlParser.GeneralPathExpressionContext;
 	}
 
 }

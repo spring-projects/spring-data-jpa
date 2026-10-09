@@ -376,6 +376,25 @@ class HqlQueryTransformerTests extends AbstractQueryTransformerTests {
 				.endsWith("select count(*) from maxId m join SnapshotReference sr on sr.snapshot.id = m.snapshotId");
 	}
 
+	@Test // GH-4341
+	void createsDistinctCountQueryForCte() {
+
+		assertThat(createCountQueryFor("""
+				WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u)
+						SELECT DISTINCT new org.springframework.data.jpa.repository.sample.UserExcerptDto(c.firstname, c.lastname)
+						FROM cte_select c
+				""")).isEqualToIgnoringWhitespace(
+				"WITH cte_select AS (select u.firstname as firstname, u.lastname as lastname from User u) SELECT count(DISTINCT c.firstname, c.lastname) FROM cte_select c");
+	}
+
+	@Test // GH-4341
+	void createsDistinctCountQueryForSetReturningFunction() {
+
+		assertThat(createCountQueryFor(
+				"select distinct new com.example.Dto(x.id, x.value) from some_function(:date, :integerValue) x"))
+				.isEqualTo("select count(distinct x.id, x.value) from some_function(:date, :integerValue) x");
+	}
+
 	@Test // GH-3902
 	void createsCountQueryForTrailingSelectClause() {
 

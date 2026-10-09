@@ -297,6 +297,20 @@ abstract class AbstractQueryTransformerTests {
 					.isEqualTo("SELECT count(u) FROM User u where u.foo.bar = ?1");
 		}
 
+		@Test // GH-4341
+		void createsCountQueryForDistinctFunctionSelection() {
+
+			assertThat(createCountQueryFor("select distinct coalesce(u.name, u.lastname) from User u where u.foo = ?1"))
+				.isEqualTo("select count(distinct coalesce(u.name, u.lastname)) from User u where u.foo = ?1");
+		}
+
+		@Test // GH-4341
+		void createsCountQueryForDistinctExpressionSelection() {
+
+			assertThat(createCountQueryFor("select distinct case when u.age > 18 then 'adult' else 'minor' end from User u"))
+				.isEqualTo("select count(distinct case when u.age > 18 then 'adult' else 'minor' end) from User u");
+		}
+
 		@Test // GH-2032, GH-3792, GH-3902
 		void createsCountQueryForFromQuery() {
 
@@ -325,13 +339,16 @@ abstract class AbstractQueryTransformerTests {
 					.isEqualTo("SELECT count(e) FROM Employee e where e.name = :name");
 		}
 
-		@Test // GH-3902
+		@Test // GH-3902, GH-4341
 		void createsCountQueryWithoutPrimaryAlias() {
 
 			String countQuery4 = "SELECT %s FROM Person".formatted(countProjectionWithoutAlias("id"));
 			assertThat(createCountQueryFor("SELECT id FROM Person")).isEqualTo(countQuery4);
 			String countQuery3 = "SELECT %s FROM Person".formatted(countProjectionWithoutAlias("id"));
 			assertThat(createCountQueryFor("SELECT id, name FROM Person")).isEqualTo(countQuery3);
+
+			assertThat(createCountQueryFor("SELECT id AS x FROM Person"))
+					.isEqualTo("SELECT %s FROM Person".formatted(countProjectionWithoutAlias("id")));
 
 			String countQuery2 = "SELECT %s FROM Order WHERE this.customer.firstname = 'John' AND this.customer.lastname = 'Wick'"
 					.formatted(countProjectionWithoutAlias("this.quantity"));
@@ -389,18 +406,30 @@ abstract class AbstractQueryTransformerTests {
 					.isEqualTo("select count(distinct a, count(b)) from Employee e GROUP BY n");
 		}
 
-		@Test
+		@Test // GH-4341
 		void createsCountQueryForConstructorExpressions() {
 
 			assertThat(createCountQueryFor("select distinct new com.example.User(u.name) from User u where u.foo = ?1"))
 					.isEqualTo("select count(distinct u) from User u where u.foo = ?1");
+
 			assertThat(createCountQueryFor(
 					"select distinct new com.User(u.name) from User u left outer join u.roles r WHERE r = ?1"))
 					.isEqualTo("select count(distinct u) from User u left outer join u.roles r WHERE r = ?1");
 
-			// no primary alias
 			assertThat(createCountQueryFor("select distinct new com.example.User(name, lastname) from User where foo = ?1"))
 					.isEqualTo("select count(distinct name, lastname) from User where foo = ?1");
+
+			assertThat(createCountQueryFor("select distinct new com.example.User(coalesce(u.name, u.lastname)) from User u where u.foo = ?1"))
+				.isEqualTo("select count(distinct coalesce(u.name, u.lastname)) from User u where u.foo = ?1");
+
+			assertThat(createCountQueryFor("select distinct new com.example.User(coalesce(u.name, u.lastname), 10) from User u where u.foo = ?1"))
+				.isEqualTo("select count(distinct coalesce(u.name, u.lastname), 10) from User u where u.foo = ?1");
+
+			assertThat(createCountQueryFor("select distinct new com.example.User(cast(u.age as string)) from User u"))
+				.isEqualTo("select count(distinct cast(u.age as string)) from User u");
+
+			assertThat(createCountQueryFor("select distinct new com.example.User(coalesce(name, lastname)) from User where foo = ?1"))
+				.isEqualTo("select count(distinct coalesce(name, lastname)) from User where foo = ?1");
 		}
 
 		@Test // DATAJPA-343
@@ -413,11 +442,13 @@ abstract class AbstractQueryTransformerTests {
 					.isEqualTo("select count(o) from Foo o where cb.id in (select b from Bar b)");
 		}
 
-		@Test // DATAJPA-456
+		@Test // DATAJPA-456, GH-4341
 		void usesGivenCountProjection() {
 
 			assertThat(createCountQueryFor("select p.lastname,p.firstname from Person p", "p.lastname"))
 					.isEqualTo("select count(p.lastname) from Person p");
+			assertThat(createCountQueryFor("select distinct p.lastname, p.firstname from Person p", "p.lastname"))
+					.isEqualTo("select count(distinct p.lastname) from Person p");
 		}
 
 		@Test // GH-2511
