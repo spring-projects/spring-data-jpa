@@ -100,6 +100,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Hyunsang Han
+ * @author 안승현
  */
 public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensionSupport {
 
@@ -480,6 +481,8 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			if (environment instanceof ConfigurableEnvironment ce) {
 
+				Map<String, Object> collectedProperties = new LinkedHashMap<>();
+
 				ce.getPropertySources().forEach(propertySource -> {
 
 					if (propertySource instanceof EnumerablePropertySource<?> eps) {
@@ -489,9 +492,10 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 								.filter(propertyName -> propertyName.startsWith(prefix))
 								.collect(Collectors.toMap(k -> k.substring(prefix.length()), propertySource::getProperty));
 
-						jpaProperties.putAll(partialProperties);
+						partialProperties.forEach(collectedProperties::putIfAbsent);
 					}
 				});
+				jpaProperties.putAll(collectedProperties);
 			}
 		}
 
