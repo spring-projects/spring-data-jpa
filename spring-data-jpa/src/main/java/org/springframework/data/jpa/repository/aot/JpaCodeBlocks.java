@@ -66,6 +66,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  * @since 4.0
  */
 class JpaCodeBlocks {
@@ -723,7 +724,7 @@ class JpaCodeBlocks {
 								methodReturn.toClass(), DefaultConversionService.class, Streamable.class,
 								context.localVariable("resultList"), TypeDescriptor.class);
 					} else if (isSet(methodReturn)) {
-						builder.addStatement("return ($T) convertOne($L, false, $T.class)", List.class,
+						builder.addStatement("return ($T) convertOne($L, false, $T.class)", methodReturn.getTypeName(),
 								context.localVariable("resultList"), methodReturn.toClass());
 					} else {
 						builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
