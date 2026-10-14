@@ -52,6 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oscar Fanchin
+ * @author JungKyun Ryu
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -599,6 +600,22 @@ class JpaRepositoryContributorIntegrationTests {
 		Streamable<User> users = fragment.deleteStreamableByEmailAddress("yoda@jedi.org");
 
 		assertThat(users).hasSize(1);
+	}
+
+	@Test
+	void shouldReturnSetFromDerivedDelete() {
+
+		Set<User> users = fragment.deleteByLastname("n/a");
+
+		assertThat(users).extracting(User::getEmailAddress)
+				.containsExactlyInAnyOrder("chewie@smuggler.net", "yoda@jedi.org");
+
+		em.flush();
+		em.clear();
+
+		assertThat(em.find(User.class, chewbacca.getId())).isNull();
+		assertThat(em.find(User.class, yoda.getId())).isNull();
+		assertThat(em.find(User.class, leia.getId())).isNotNull();
 	}
 
 	@Test // GH-3830
