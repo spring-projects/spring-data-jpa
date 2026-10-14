@@ -42,6 +42,7 @@ import org.springframework.data.util.Streamable;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  */
 interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -211,6 +212,8 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	int deleteAndReturnCountByEmailAddress(String username);
 
 	Streamable<User> deleteStreamableByEmailAddress(String username);
+
+	Set<User> deleteByLastname(String lastname);
 
 	// cannot generate delete and return a domain object
 	@Modifying
