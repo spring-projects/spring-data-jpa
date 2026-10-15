@@ -31,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.hibernate.cache.internal.NoCachingRegionFactory;
+import org.hibernate.cfg.CacheSettings;
 import org.hibernate.cfg.JdbcSettings;
 import org.hibernate.cfg.PersistenceSettings;
 import org.hibernate.cfg.QuerySettings;
@@ -85,6 +87,9 @@ class AotMetamodel implements Metamodel {
 	 * Collection of know properties causing problems during AOT if set differntly
 	 */
 	private static final Map<String, Object> FAILSAFE_AOT_PROPERTIES = Map.of( //
+			CacheSettings.USE_QUERY_CACHE, false, //
+			CacheSettings.USE_SECOND_LEVEL_CACHE, false, //
+			CacheSettings.CACHE_REGION_FACTORY, NoCachingRegionFactory.class, //
 			JdbcSettings.ALLOW_METADATA_ON_BOOT, false, //
 			JdbcSettings.CONNECTION_PROVIDER, NoOpConnectionProvider.INSTANCE, //
 			QuerySettings.QUERY_STARTUP_CHECKING, false, //
