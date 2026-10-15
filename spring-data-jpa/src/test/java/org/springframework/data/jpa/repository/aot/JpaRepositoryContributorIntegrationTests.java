@@ -406,6 +406,22 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
+	@Test // GH-4387
+	void testDerivedQueryReturningStreamableWrapperOfProjections() {
+
+		UserRepository.UserDtoProjections users = fragment.findUserProjectionWrapperByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
+	@Test // GH-4387
+	void testDerivedQueryReturningArrayOfProjections() {
+
+		UserDtoProjection[] users = fragment.findUserProjectionArrayByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
 	@Test // GH-3830
 	void testDerivedQueryReturningPageOfProjections() {
 
@@ -592,7 +608,7 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(users).hasSize(1);
 	}
 
-	@Test
+	@Test // GH-4387
 	void shouldReturnSetFromDerivedDelete() {
 
 		Set<User> users = fragment.deleteByLastname("n/a");
