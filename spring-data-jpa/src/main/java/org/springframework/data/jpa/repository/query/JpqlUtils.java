@@ -79,6 +79,16 @@ class JpqlUtils {
 				return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
 			}
 
+			// GH-4332: when configured, avoid rendering an explicit join for an owning-side to-one association that is
+			// only traversed to reach a plain leaf property (e.g. find…ByAbonentCode maps to Contract.abonent.code).
+			// Rendering the implicit dotted path lets the persistence provider collapse the predicate onto the
+			// foreign-key column (WHERE contracts.abonent = ?), which is the behaviour before 4.0. The nested to-one
+			// path is preserved whenever a parent join is already required (e.g. HHH-12712 / HHH-12999).
+			if (!isJoinOnToOneAssociation() && !isForSelection && !hasRequiredOuterJoin && !isLeafProperty
+					&& !isRelationshipId && isToOneAssociation(resolver, property)) {
+				return new JpqlQueryBuilder.PathAndOrigin(property, source, false);
+			}
+
 			// get or create the join
 			JpqlQueryBuilder.Join joinSource = requiresOuterJoin ? JpqlQueryBuilder.leftJoin(source, segment)
 					: JpqlQueryBuilder.innerJoin(source, segment);
