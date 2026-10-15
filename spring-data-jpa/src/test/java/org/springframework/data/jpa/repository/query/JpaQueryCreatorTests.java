@@ -29,7 +29,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Tuple;
 import jakarta.persistence.metamodel.Metamodel;
 
-import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -64,7 +63,6 @@ import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.ParameterAccessor;
-import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Lazy;
@@ -809,76 +807,38 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
-	@Test
-	void withinRangeConsidersLowerBoundOnlyRange() throws Exception {
+	@Test // GH-4385
+	void withinRangeConsidersLowerBoundOnlyRange() {
 
 		Range<Similarity> range = Range.rightUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
 
 		assertThat(renderVectorWithinQuery(range)).isEqualTo(
-				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, :vector) <= :range_lower",
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, ?1) <= ?2",
 				DefaultJpaEntityMetadata.unqualify(WithVector.class));
 	}
 
-	@Test
-	void withinRangeConsidersUpperBoundOnlyRange() throws Exception {
+	@Test // GH-4385
+	void withinRangeConsidersUpperBoundOnlyRange() {
 
 		Range<Similarity> range = Range.leftUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
 
 		assertThat(renderVectorWithinQuery(range)).isEqualTo(
-				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, :vector) >= :range_upper",
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, ?1) >= ?2",
 				DefaultJpaEntityMetadata.unqualify(WithVector.class));
 	}
 
-	/**
-	 * Renders a {@code findByEmbeddingNear(Vector, Range<Score>)} query for {@link WithVector} using a real,
-	 * reflection-backed {@link JpaParametersParameterAccessor} — {@code Range<Score>} parameters require genuine generic
-	 * type information that a mocked {@link org.springframework.core.MethodParameter} (as used by
-	 * {@link StubJpaParameterParameterAccessor}) cannot provide.
-	 */
-	private String renderVectorWithinQuery(Range<Similarity> range) throws Exception {
+	private String renderVectorWithinQuery(Range<Similarity> range) {
 
 		Vector vector = Vector.of(0.1f, 0.2f, 0.3f, 0.4f, 0.5f);
 
-		Method method = VectorSample.class.getMethod("findByEmbeddingNear", Vector.class, Range.class);
-		JpaParameters jpaParameters = new JpaParameters(ParametersSource.of(method));
-		JpaParametersParameterAccessor accessor = new JpaParametersParameterAccessor(jpaParameters,
-				new Object[] { vector, range });
-
-		PartTree tree = new PartTree("findByEmbeddingNear", WithVector.class);
-		ReturnedType returnedType = ReturnedType.of(WithVector.class, WithVector.class,
-				new SpelAwareProxyProjectionFactory());
-
-		JpaQueryCreator creator = queryCreator(tree, returnedType, VECTOR, JpqlQueryTemplates.UPPER, accessor);
-
-		return creator.createQuery(Sort.unsorted());
-	}
-
-	interface VectorSample {
-		List<WithVector> findByEmbeddingNear(Vector vector, Range<Score> range);
+		return queryCreator(VECTOR) //
+				.forTree(WithVector.class, "findByEmbeddingNear") //
+				.withParameters(vector, range) //
+				.render();
 	}
 
 	QueryCreatorBuilder queryCreator(Metamodel metamodel) {
 		return new DefaultCreatorBuilder(metamodel);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel, Object... arguments) {
-		return queryCreator(tree, returnedType, metamodel, JpqlQueryTemplates.UPPER, arguments);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
-			JpqlQueryTemplates templates, Object... arguments) {
-
-		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(
-				StubJpaParameterParameterAccessor.accessor(arguments), EscapeCharacter.DEFAULT, templates);
-		return queryCreator(tree, returnedType, metamodel, templates, parameterMetadataProvider);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
-			JpqlQueryTemplates templates, Class<?>... argumentTypes) {
-
-		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(
-				StubJpaParameterParameterAccessor.accessor(argumentTypes), EscapeCharacter.DEFAULT, templates);
-		return queryCreator(tree, returnedType, metamodel, templates, parameterMetadataProvider);
 	}
 
 	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
@@ -891,12 +851,6 @@ class JpaQueryCreatorTests {
 				EscapeCharacter.DEFAULT, templates);
 		return new JpaQueryCreator(tree, false, returnedType, parameterMetadataProvider, templates,
 				entityManager.getMetamodel());
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private JpaParametersParameterAccessor accessor(Class<?>... argumentTypes) {
-
-		return StubJpaParameterParameterAccessor.accessor(argumentTypes);
 	}
 
 	@Entity
