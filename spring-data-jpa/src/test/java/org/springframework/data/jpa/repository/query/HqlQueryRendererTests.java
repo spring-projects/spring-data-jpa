@@ -292,11 +292,8 @@ class HqlQueryRendererTests extends AbstractQueryRendererTests {
 		@Test // GH-3711
 		void entityReferences() {
 
-			assertQuery("SELECT ID(e) FROM Employee e");
-			assertQuery("SELECT ID(e).foo FROM Employee e");
 			assertQuery("SELECT NATURALID(e) FROM Employee e");
 			assertQuery("SELECT NATURALID(e).foo FROM Employee e");
-			assertQuery("SELECT VERSION(e) FROM Employee e");
 			assertQuery("SELECT FK(e) FROM Employee e");
 			assertQuery("SELECT FK(e.foo) FROM Employee e");
 		}

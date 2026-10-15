@@ -718,28 +718,12 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitId_function(JpqlParser.Id_functionContext ctx) {
-		return QueryTokenStream.ofFunction(ctx.ID(), renderIdOrVersionArgument(ctx.general_identification_variable(),
-				ctx.single_valued_object_path_expression()));
+		return QueryTokenStream.ofFunction(ctx.ID(), super.visit(ctx.getRuleContext(ParserRuleContext.class, 0)));
 	}
 
 	@Override
 	public QueryTokenStream visitVersion_function(JpqlParser.Version_functionContext ctx) {
-		return QueryTokenStream.ofFunction(ctx.VERSION(), renderIdOrVersionArgument(ctx.general_identification_variable(),
-				ctx.single_valued_object_path_expression()));
-	}
-
-	private QueryTokenStream renderIdOrVersionArgument(JpqlParser.General_identification_variableContext variable,
-			JpqlParser.Single_valued_object_path_expressionContext path) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		if (variable != null) {
-			builder.append(visit(variable));
-		} else if (path != null) {
-			builder.append(visit(path));
-		}
-
-		return builder;
+		return QueryTokenStream.ofFunction(ctx.VERSION(), super.visit(ctx.getRuleContext(ParserRuleContext.class, 0)));
 	}
 
 	@Override
