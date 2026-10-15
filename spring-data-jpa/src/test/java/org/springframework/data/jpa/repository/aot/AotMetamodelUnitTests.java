@@ -32,10 +32,12 @@ import jakarta.persistence.Table;
 
 import java.util.Map;
 
+import org.hibernate.cache.internal.NoCachingRegionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.jpa.boot.internal.PersistenceUnitInfoDescriptor;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.jpa.repository.aot.AotMetamodel.NoOpConnectionProvider;
+
+import org.springframework.data.jpa.repository.aot.AotMetamodel.*;
 import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
 
 /**
@@ -47,7 +49,7 @@ import org.springframework.orm.jpa.persistenceunit.SpringPersistenceUnitInfo;
  */
 class AotMetamodelUnitTests {
 
-	@Test // GH-4103, GH-4197
+	@Test // GH-4103, GH-4197, GH-4380
 	void dialectSupportsSequences() {
 
 		Dialect dialect = AotDialectFactory.INSTANCE;
@@ -56,11 +58,14 @@ class AotMetamodelUnitTests {
 		assertThat(dialect.getSequenceSupport().supportsPooledSequences()).isTrue();
 	}
 
-	@Test // GH-4092, , GH-4197
+	@Test // GH-4092, , GH-4197, GH-4380
 	void initializesPropertiesWithDefaults() {
 
 		assertThat(initProperties(Map.of())) //
 				.containsEntry("hibernate.dialect", AotDialectFactory.INSTANCE) //
+				.containsEntry("hibernate.cache.use_query_cache", false) //
+				.containsEntry("hibernate.cache.use_second_level_cache", false) //
+				.containsEntry("hibernate.cache.region.factory_class", NoCachingRegionFactory.class) //
 				.containsEntry("hibernate.boot.allow_jdbc_metadata_access", false) //
 				.containsEntry("hibernate.connection.provider_class", NoOpConnectionProvider.INSTANCE) //
 				.containsEntry("hibernate.jpa_callbacks.enabled", false) //
@@ -70,9 +75,10 @@ class AotMetamodelUnitTests {
 	@Test // GH-4092
 	void allowsDialectOverridesViaProperties() {
 
-		assertThat(initProperties(Map.of("hibernate.dialect", "H2Dialect", "jpa.bla.bla", "42")))
+		assertThat(initProperties(
+				Map.of("hibernate.dialect", "H2Dialect", "jpa.bla.bla", "42", "hibernate.cache.use_query_cache", "true")))
 				.containsEntry("hibernate.dialect", "H2Dialect") //
-				.containsEntry("jpa.bla.bla", "42");
+				.containsEntry("jpa.bla.bla", "42").containsEntry("hibernate.cache.use_query_cache", false);
 	}
 
 	@Test // GH-4092, GH-4130
