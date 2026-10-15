@@ -35,7 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hibernate.cfg.MappingSettings;
@@ -482,18 +481,22 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 			if (environment instanceof ConfigurableEnvironment ce) {
 
+				Map<String, Object> actualProperties = new LinkedHashMap<>();
 				ce.getPropertySources().forEach(propertySource -> {
 
 					if (propertySource instanceof EnumerablePropertySource<?> eps) {
 
 						String prefix = "spring.jpa.properties.";
-						Map<String, Object> partialProperties = Stream.of(eps.getPropertyNames())
+						Stream.of(eps.getPropertyNames())
 								.filter(propertyName -> propertyName.startsWith(prefix))
-								.collect(Collectors.toMap(k -> k.substring(prefix.length()), propertySource::getProperty));
-
-						jpaProperties.putAll(partialProperties);
+								.forEach(it -> {
+									String key = it.substring(prefix.length());
+									actualProperties.putIfAbsent(key, propertySource.getProperty(it));
+								});
 					}
 				});
+
+				jpaProperties.putAll(actualProperties);
 			}
 		}
 
