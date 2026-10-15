@@ -294,9 +294,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-415
 	Collection<User> findByIdIn(@Param("ids") Integer... ids);
 
+	Collection<User> findUsersByIdIn(int[] ids);
+
 	// DATAJPA-461
 	@Query("select u from User u where u.id in ?1")
 	Collection<User> findByIdsCustomWithPositionalVarArgs(Integer... ids);
+
+	@Query("select u from User u where u.id in ?1")
+	Collection<User> findByIdsCustomWithPositionalPrimitiveArray(int[] ids);
+
+	User[] findArrayByLastname(String lastname);
 
 	// DATAJPA-461
 	@Query("select u from User u where u.id in :ids")
@@ -326,8 +333,14 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	int removeOneMoreByLastname(String lastname);
 
+	Number removeNumberByLastname(String lastname);
+
+	Short removeShortByLastname(String lastname);
+
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
+
+	User[] deleteArrayByLastname(String lastname);
 
 	@Modifying
 	User deleteModifyingByLastname(String lastname);

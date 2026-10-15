@@ -1124,6 +1124,37 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser, secondUser);
 	}
 
+	@Test // GH-4387
+	void bindsPrimitiveArrayToInClauseOfDerivedQuery() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findUsersByIdIn(new int[] { firstUser.getId(), secondUser.getId() });
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4387
+	void bindsPrimitiveArrayToInClauseOfDeclaredQuery() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository
+				.findByIdsCustomWithPositionalPrimitiveArray(new int[] { firstUser.getId(), secondUser.getId() });
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4387
+	void returnsArrayOfEntities() {
+
+		flushTestUsers();
+
+		User[] result = repository.findArrayByLastname(firstUser.getLastname());
+
+		assertThat(result).containsExactly(firstUser);
+	}
+
 	@Test // DATAJPA-415
 	void shouldSupportModifyingQueryWithVarArgs() {
 
@@ -1737,6 +1768,15 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser);
 	}
 
+	@Test // GH-4387
+	void deleteByShouldReturnArrayOfDeletedElements() {
+
+		flushTestUsers();
+
+		User[] result = repository.deleteArrayByLastname(firstUser.getLastname());
+		assertThat(result).containsExactly(firstUser);
+	}
+
 	@Test // GH-3995
 	void deleteOneByShouldReturnDeletedElement() {
 
@@ -1802,6 +1842,15 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.removeOneMoreByLastname(secondUser.getLastname())).isOne();
+	}
+
+	@Test // GH-4387
+	void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsNumberOrShort() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeNumberByLastname(firstUser.getLastname()).intValue()).isOne();
+		assertThat(repository.removeShortByLastname(secondUser.getLastname())).isEqualTo((short) 1);
 	}
 
 	@Test // DATAJPA-460

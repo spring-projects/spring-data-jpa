@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.QueryHint;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -157,6 +158,10 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	Streamable<UserDtoProjection> findUserProjectionStreamableByLastnameStartingWith(String lastname);
 
+	UserDtoProjections findUserProjectionWrapperByLastnameStartingWith(String lastname);
+
+	UserDtoProjection[] findUserProjectionArrayByLastnameStartingWith(String lastname);
+
 	Page<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname, Pageable page);
 
 	Names findDtoByEmailAddress(String emailAddress);
@@ -283,6 +288,14 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	}
 
 	record Names(String firstname, String lastname) {
+	}
+
+	record UserDtoProjections(Streamable<UserDtoProjection> projections) implements Streamable<UserDtoProjection> {
+
+		@Override
+		public Iterator<UserDtoProjection> iterator() {
+			return projections.iterator();
+		}
 	}
 
 	static class MyQueryRewriter implements QueryRewriter {
