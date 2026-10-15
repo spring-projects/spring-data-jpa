@@ -21,9 +21,6 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.LongSupplier;
@@ -45,7 +42,6 @@ import org.springframework.data.javapoet.TypeNames;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
@@ -105,7 +101,7 @@ class JpaCodeBlocks {
 		private @Nullable AotEntityGraph entityGraph;
 		private @Nullable String sqlResultSetMapping;
 		private @Nullable Class<?> queryReturnType;
-		private @Nullable Class<?> queryRewriter = QueryRewriter.IdentityQueryRewriter.class;
+		private @Nullable String queryRewriterField;
 
 		private QueryBlockBuilder(AotQueryMethodGenerationContext context, JpaQueryMethod queryMethod) {
 
@@ -156,8 +152,8 @@ class JpaCodeBlocks {
 			return this;
 		}
 
-		public QueryBlockBuilder queryRewriter(@Nullable Class<?> queryRewriter) {
-			this.queryRewriter = queryRewriter == null ? QueryRewriter.IdentityQueryRewriter.class : queryRewriter;
+		public QueryBlockBuilder queryRewriterField(@Nullable String queryRewriterField) {
+			this.queryRewriterField = queryRewriterField;
 			return this;
 		}
 
@@ -181,19 +177,7 @@ class JpaCodeBlocks {
 			CodeBlock.Builder builder = CodeBlock.builder();
 
 			String queryStringVariableName = null;
-			String queryRewriterName = null;
-
-			if (queries.result() instanceof StringAotQuery && queryRewriter != QueryRewriter.IdentityQueryRewriter.class) {
-
-				queryRewriterName = context.localVariable("queryRewriter");
-				if (hasAccessibleNoArgsConstructor(queryRewriter)) {
-					builder.addStatement("$T $L = getQueryRewriter($T.class, () -> new $T())", QueryRewriter.class,
-							queryRewriterName, queryRewriter, queryRewriter);
-				} else {
-					builder.addStatement("$T $L = getQueryRewriter($T.class)", QueryRewriter.class, queryRewriterName,
-							queryRewriter);
-				}
-			}
+			String queryRewriterName = queryRewriterField == null ? null : "this." + queryRewriterField;
 
 			if (queries.result() instanceof StringAotQuery sq) {
 
@@ -259,35 +243,6 @@ class JpaCodeBlocks {
 			CodeBlock.Builder builder = CodeBlock.builder();
 			builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
 			return builder.build();
-		}
-
-		private boolean hasAccessibleNoArgsConstructor(Class<?> type) {
-
-			try {
-				Constructor<?> constructor = type.getDeclaredConstructor();
-				boolean samePackage = type.getPackageName()
-						.equals(context.getRepositoryInformation().getRepositoryInterface().getPackageName());
-
-				return isAccessible(type, samePackage) && isAccessible(constructor, samePackage);
-			} catch (NoSuchMethodException e) {
-				return false;
-			}
-		}
-
-		private static boolean isAccessible(Class<?> type, boolean samePackage) {
-
-			if (Modifier.isPrivate(type.getModifiers()) || (!Modifier.isPublic(type.getModifiers()) && !samePackage)) {
-				return false;
-			}
-
-			Class<?> enclosingClass = type.getEnclosingClass();
-			return enclosingClass == null || isAccessible(enclosingClass, samePackage);
-		}
-
-		private static boolean isAccessible(Constructor<?> constructor, boolean samePackage) {
-
-			return Modifier.isPublic(constructor.getModifiers())
-					|| (!Modifier.isPrivate(constructor.getModifiers()) && samePackage);
 		}
 
 		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, boolean isProjecting,

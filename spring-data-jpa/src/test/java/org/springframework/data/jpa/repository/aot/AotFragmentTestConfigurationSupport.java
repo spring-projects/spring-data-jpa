@@ -109,8 +109,8 @@ public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProce
 				.addConstructorArgValue(new RuntimeBeanReference(EntityManager.class))
 				.addConstructorArgValue(
 						getCreationContext(repositoryContext, beanFactory.getBean(Environment.class), beanFactory))
-				.addConstructorArgValue(beanFactory)
 				.getBeanDefinition();
+		aotGeneratedRepository.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 		generationContext.writeGeneratedContent();
 

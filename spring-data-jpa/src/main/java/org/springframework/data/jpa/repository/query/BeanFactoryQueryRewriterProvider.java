@@ -15,8 +15,6 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import java.util.function.Supplier;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -27,7 +25,6 @@ import org.springframework.data.util.Lazy;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
- * @author YeongJae Min
  * @since 3.0
  */
 public class BeanFactoryQueryRewriterProvider implements QueryRewriterProvider {
@@ -39,26 +36,16 @@ public class BeanFactoryQueryRewriterProvider implements QueryRewriterProvider {
 	}
 
 	@Override
-	public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
-		return getQueryRewriter(method.getQueryRewriter());
-	}
-
-	@Override
-	public QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter) {
-		return getQueryRewriter(queryRewriter, () -> BeanUtils.instantiateClass(queryRewriter));
-	}
-
-	@Override
 	@SuppressWarnings("unchecked")
-	public QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter,
-			Supplier<QueryRewriter> fallback) {
+	public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
 
+		Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
 		if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
 			return QueryRewriter.IdentityQueryRewriter.INSTANCE;
 		}
 
 		Lazy<QueryRewriter> rewriter = Lazy.of(() -> beanFactory.getBeanProvider((Class<QueryRewriter>) queryRewriter)
-				.getIfAvailable(fallback));
+				.getIfAvailable(() -> BeanUtils.instantiateClass(queryRewriter)));
 
 		return new DelegatingQueryRewriter(rewriter);
 	}

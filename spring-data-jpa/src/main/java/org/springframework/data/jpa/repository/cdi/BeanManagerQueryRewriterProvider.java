@@ -20,7 +20,6 @@ import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
 
 import java.util.Iterator;
-import java.util.function.Supplier;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.jpa.repository.QueryRewriter;
@@ -34,7 +33,6 @@ import org.springframework.data.util.Lazy;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
- * @author YeongJae Min
  * @since 3.0
  */
 public class BeanManagerQueryRewriterProvider implements QueryRewriterProvider {
@@ -46,20 +44,10 @@ public class BeanManagerQueryRewriterProvider implements QueryRewriterProvider {
 	}
 
 	@Override
-	public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
-		return getQueryRewriter(method.getQueryRewriter());
-	}
-
-	@Override
-	public QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter) {
-		return getQueryRewriter(queryRewriter, () -> BeanUtils.instantiateClass(queryRewriter));
-	}
-
-	@Override
 	@SuppressWarnings("unchecked")
-	public QueryRewriter getQueryRewriter(Class<? extends QueryRewriter> queryRewriter,
-			Supplier<QueryRewriter> fallback) {
+	public QueryRewriter getQueryRewriter(JpaQueryMethod method) {
 
+		Class<? extends QueryRewriter> queryRewriter = method.getQueryRewriter();
 		if (queryRewriter == QueryRewriter.IdentityQueryRewriter.class) {
 			return QueryRewriter.IdentityQueryRewriter.INSTANCE;
 		}
@@ -76,7 +64,7 @@ public class BeanManagerQueryRewriterProvider implements QueryRewriterProvider {
 			return new DelegatingQueryRewriter(rewriter);
 		}
 
-		return fallback.get();
+		return BeanUtils.instantiateClass(queryRewriter);
 	}
 
 }
