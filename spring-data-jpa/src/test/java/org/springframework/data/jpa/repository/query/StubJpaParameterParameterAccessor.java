@@ -76,6 +76,8 @@ public class StubJpaParameterParameterAccessor extends JpaParametersParameterAcc
 			Class<?> parameterType = parameterTypes[i];
 			MethodParameter mock = Mockito.mock(MethodParameter.class);
 			when(mock.getParameterType()).thenReturn((Class) parameterType);
+			when(mock.getExecutable()).thenReturn(Object.class.getConstructors()[0]);
+			when(mock.getGenericParameterType()).thenReturn(parameterType);
 			JpaParameter parameter = new JpaParameter(mock, TypeInformation.of(parameterType));
 			parametersList.add(parameter);
 		}
