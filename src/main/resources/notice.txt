@@ -1,4 +1,4 @@
-Spring Data JPA 4.0.7 (2025.1.7)
+Spring Data JPA 4.0.8 (2025.1.8)
 Copyright (c) 2015-2026 Pivotal Software, Inc.
 
 This product is licensed to you under the Apache License, Version 2.0
