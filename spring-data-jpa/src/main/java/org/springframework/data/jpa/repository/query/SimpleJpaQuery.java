@@ -18,8 +18,13 @@ package org.springframework.data.jpa.repository.query;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import java.util.Map;
+
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.RepositoryQuery;
 
@@ -49,7 +54,20 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 
 		super(method, em, query, countQuery, queryConfiguration);
 
-		validateQuery(getQuery(), "Query validation failed for '%s'", method);
+		if (queryConfiguration.validateQueries()) {
+			validate();
+		}
+	}
+
+	private void validate() {
+
+		JpaQueryMethod method = getQueryMethod();
+		if (method.isProcedureQuery()) {
+			return;
+		}
+
+		validateQuery(getSortedQuery(Sort.unsorted(), method.getResultProcessor()),
+				"Query validation failed for '%s'", method);
 
 		if (method.isPageQuery()) {
 			validateQuery(getCountQuery(), "Count query validation failed for '%s'", method);
@@ -57,20 +75,15 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 	}
 
 	/**
-	 * Validates the given query for syntactical correctness.
-	 *
-	 * @param query
-	 * @param errorMessage
+	 * Validates the given query for syntactical correctness considering
+	 * {@link org.springframework.data.jpa.repository.QueryRewriter} and DTO projection rewriting.
 	 */
 	private void validateQuery(QueryProvider query, String errorMessage, JpaQueryMethod method) {
 
-		if (getQueryMethod().isProcedureQuery()) {
-			return;
-		}
+		String queryString = potentiallyRewriteQuery(query.getQueryString(), Sort.unsorted(), Pageable.unpaged());
 
-		String queryString = query.getQueryString();
-		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager()) {
-			validatingEm.createQuery(queryString);
+		try (EntityManager validatingEm = getEntityManager().getEntityManagerFactory().createEntityManager(Map.of())) {
+			JpaAdapter.createQuery(validatingEm, queryString);
 		} catch (RuntimeException e) {
 
 			// Needed as there's ambiguities in how an invalid query string shall be expressed by the persistence provider
@@ -78,4 +91,5 @@ class SimpleJpaQuery extends AbstractStringBasedJpaQuery {
 			throw QueryCreationException.create(method, errorMessage.formatted(queryString), e);
 		}
 	}
+
 }

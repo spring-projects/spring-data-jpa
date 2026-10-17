@@ -30,6 +30,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -51,6 +53,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
@@ -76,6 +81,7 @@ import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.repository.sample.UserRepository.NameOnly;
 import org.springframework.data.jpa.repository.sample.Users;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -105,6 +111,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  * @author Yanming Zhou
  * @author Ilya Bakaev
+ * @author Oscar Fanchin
  * @author YeongJae Min
  */
 @ExtendWith(SpringExtension.class)
@@ -145,7 +152,7 @@ class UserRepositoryTests {
 	@Test
 	void testCreation() {
 
-		Query countQuery = em.createQuery("select count(u) from User u");
+		Query countQuery = JpaAdapter.createQuery(em, "select count(u) from User u");
 		Long before = (Long) countQuery.getSingleResult();
 
 		flushTestUsers();
@@ -813,6 +820,8 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	// Hibernate 7 permissively flattens the selected collection-valued path.
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 no longer flattens collection-valued paths")
 	void executesAnnotatedCollectionMethodCorrectly() {
 
 		flushTestUsers();
@@ -820,6 +829,18 @@ class UserRepositoryTests {
 		repository.save(firstUser);
 
 		List<User> result = repository.findColleaguesFor(firstUser);
+		assertThat(result).containsOnly(thirdUser);
+	}
+
+	@Test
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 permits the original collection-valued query")
+	void executesAnnotatedCollectionMethodCorrectlyH8() {
+
+		flushTestUsers();
+		firstUser.addColleague(thirdUser);
+		repository.save(firstUser);
+
+		List<User> result = repository.findColleaguesForH8(firstUser);
 		assertThat(result).containsOnly(thirdUser);
 	}
 
@@ -1102,6 +1123,37 @@ class UserRepositoryTests {
 		Collection<User> result = repository.findByIdIn(firstUser.getId(), secondUser.getId());
 
 		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4387
+	void bindsPrimitiveArrayToInClauseOfDerivedQuery() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository.findUsersByIdIn(new int[] { firstUser.getId(), secondUser.getId() });
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4387
+	void bindsPrimitiveArrayToInClauseOfDeclaredQuery() {
+
+		flushTestUsers();
+
+		Collection<User> result = repository
+				.findByIdsCustomWithPositionalPrimitiveArray(new int[] { firstUser.getId(), secondUser.getId() });
+
+		assertThat(result).containsOnly(firstUser, secondUser);
+	}
+
+	@Test // GH-4387
+	void returnsArrayOfEntities() {
+
+		flushTestUsers();
+
+		User[] result = repository.findArrayByLastname(firstUser.getLastname());
+
+		assertThat(result).containsExactly(firstUser);
 	}
 
 	@Test // DATAJPA-415
@@ -1856,6 +1908,15 @@ class UserRepositoryTests {
 		assertThat(result).containsOnly(firstUser);
 	}
 
+	@Test // GH-4387
+	void deleteByShouldReturnArrayOfDeletedElements() {
+
+		flushTestUsers();
+
+		User[] result = repository.deleteArrayByLastname(firstUser.getLastname());
+		assertThat(result).containsExactly(firstUser);
+	}
+
 	@Test // GH-3995
 	void deleteOneByShouldReturnDeletedElement() {
 
@@ -1921,6 +1982,15 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.removeOneMoreByLastname(secondUser.getLastname())).isOne();
+	}
+
+	@Test // GH-4387
+	void deleteByShouldReturnNumberOfEntitiesRemovedIfReturnTypeIsNumberOrShort() {
+
+		flushTestUsers();
+
+		assertThat(repository.removeNumberByLastname(firstUser.getLastname()).intValue()).isOne();
+		assertThat(repository.removeShortByLastname(secondUser.getLastname())).isEqualTo((short) 1);
 	}
 
 	@Test // DATAJPA-460
@@ -3427,7 +3497,8 @@ class UserRepositoryTests {
 	@Test // DATAJPA-1172
 	void queryProvidesCorrectNumberOfParametersForNativeQuery() {
 
-		Query query = em.createNativeQuery("select 1 from User where firstname=? and lastname=?");
+		Query query = JpaAdapter.createNativeQuery(em,
+				"select 1 from User where firstname=? and lastname=?");
 		assertThat(query.getParameters()).hasSize(2);
 	}
 
@@ -3744,7 +3815,8 @@ class UserRepositoryTests {
 
 		/*
 		TODO: Hibernate-generated HQL for the CriteriaBuilder-based API. Yields only one result in contrast to the CriteriaBuilder one.
-		Query query = em.createQuery("select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
+		Query query = JpaPortableQueries.createQuery(em,
+				"select alias_544097980 from org.springframework.data.jpa.domain.sample.User alias_544097980 left join alias_544097980.attributes alias_975381534 where alias_975381534 in (?1)")
 				.setParameter(1, asList("cOOl", "hIP"));
 
 		List resultList = query.getResultList();
@@ -4023,6 +4095,49 @@ class UserRepositoryTests {
 		// then
 		assertThat(repository.findById(firstUser.getId())) //
 				.map(User::getAge).contains(30);
+	}
+
+	@ParameterizedTest(name = "''{0}'' query") // GH-52
+	@MethodSource("queryUnicodeColum")
+	void queryUnicodeColumn(String queryType, BiFunction<UserRepository, LocalDate, List<User>> query) {
+
+		LocalDate today = LocalDate.now();
+		firstUser.setHireDate(LocalDate.of(2020, 1, 1));
+		secondUser.setHireDate(today.plusDays(1));
+		flushTestUsers();
+
+		assertThat(query.apply(repository, today)).containsOnly(firstUser);
+	}
+
+	@ParameterizedTest(name = "''{0}'' query") // GH-52
+	@MethodSource("sortUnicodeColum")
+	void sortUnicodeColum(String queryType, Function<UserRepository, List<User>> query) {
+
+		firstUser.setHireDate(LocalDate.of(2022, 3, 15));
+		secondUser.setHireDate(LocalDate.of(2020, 1, 10));
+		thirdUser.setHireDate(LocalDate.of(2023, 6, 20));
+		fourthUser.setHireDate(LocalDate.of(2021, 8, 5));
+		flushTestUsers();
+
+		assertThat(query.apply(repository)).containsExactly(secondUser, fourthUser, firstUser, thirdUser);
+	}
+
+	static Stream<Arguments> queryUnicodeColum() {
+
+		return Stream.of(
+			Arguments.of("derived", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findUserByHireDateLessThanEqual),
+			Arguments.of("jpql", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findByHireDateJpql),
+			Arguments.of("native", (BiFunction<UserRepository, LocalDate, List<User>>) UserRepository::findByHireDateNativeQuery)
+		);
+	}
+
+	static Stream<Arguments> sortUnicodeColum() {
+
+		return Stream.of(
+			Arguments.of("derived", (Function<UserRepository, List<User>>) UserRepository::findAllByOrderByHireDateAsc),
+			Arguments.of("jpql", (Function<UserRepository, List<User>>) (repo) -> repo.findAndSortAllUsersJpql(Sort.by("hireDate").ascending())),
+			Arguments.of("native", (Function<UserRepository, List<User>>) (repo) -> repo.findAndSortAllUsersNativeQuery(Sort.by("入职日期").ascending()))
+		);
 	}
 
 	private Page<User> executeSpecWithSort(Sort sort) {

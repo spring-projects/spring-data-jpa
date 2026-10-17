@@ -1,0 +1,26 @@
+workflow:
+  generator:
+    project:
+      java:
+        versions:
+          primary: 25
+    workflows:
+      release-train:
+        join:
+          watch: false
+        leave:
+          watch: false
+        ready:
+          watch: false
+        build:
+          env:
+            COMMERCIAL_REPO_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
+            COMMERCIAL_REPO_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
+            COMMERCIAL_RELEASE_REPO_URL: vars.COMMERCIAL_RELEASE_REPO_URL
+            RELEASE_TRAIN_SETTINGS_XML: vars.RELEASE_TRAIN_SETTINGS_XML
+        test:
+          env:
+            COMMERCIAL_REPO_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
+            COMMERCIAL_REPO_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
+            COMMERCIAL_RELEASE_REPO_URL: vars.COMMERCIAL_RELEASE_REPO_URL
+            RELEASE_TRAIN_SETTINGS_XML: vars.RELEASE_TRAIN_SETTINGS_XML

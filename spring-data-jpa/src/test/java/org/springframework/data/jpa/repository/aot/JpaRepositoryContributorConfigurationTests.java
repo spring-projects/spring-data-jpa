@@ -29,24 +29,26 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.query.DeclaredQuery;
+import org.springframework.data.jpa.repository.query.QueryEnhancerFactory;
+import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 
 /**
- * Integration tests for the {@link UserRepository} AOT fragment.
+ * Integration tests for the {@link UserRepository} AOT fragment via {@link JpaRepositoryContributor}.
  *
  * @author Mark Paluch
+ * @author JungKyun Ryu
  */
 class JpaRepositoryContributorConfigurationTests {
 
-	@Configuration
-	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
-		public JpaRepositoryContributorConfiguration() {
-			super(UserRepository.class, MyConfiguration.class);
-		}
+	@Test // GH-4382
+	void shouldGenerateFragmentWithCustomQueryEnhancerSelector() {
 
-		@EnableJpaRepositories(escapeCharacter = 'ö', /* avoid creating repository instances */ includeFilters = {
-				@ComponentScan.Filter(value = EnableJpaRepositories.class) })
-		static class MyConfiguration {
+		try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+			context.register(CustomQueryEnhancerSelectorConfiguration.class);
+			context.refreshForAotProcessing(new RuntimeHints());
 
+			assertThat(context.getBean("fragment")).isInstanceOf(AotRepositoryFragmentSupport.class);
 		}
 	}
 
@@ -67,8 +69,42 @@ class JpaRepositoryContributorConfigurationTests {
 		String json = resource.getContentAsString(StandardCharsets.UTF_8);
 
 		assertThatJson(json).inPath("$.methods[?(@.name == 'streamByLastnameLike')].query").isArray().first().isObject()
-				.containsEntry("query",
-						"SELECT u FROM User u WHERE u.lastname LIKE :lastname ESCAPE 'ö'");
+				.containsEntry("query", "SELECT u FROM User u WHERE u.lastname LIKE :lastname ESCAPE 'ö'");
+	}
+
+	@Configuration
+	static class CustomQueryEnhancerSelectorConfiguration extends AotFragmentTestConfigurationSupport {
+
+		CustomQueryEnhancerSelectorConfiguration() {
+			super(UserRepository.class, MyConfiguration.class);
+		}
+
+		@EnableJpaRepositories(queryEnhancerSelector = CustomQueryEnhancerSelector.class,
+				/* avoid creating repository instances */ includeFilters = {
+						@ComponentScan.Filter(value = EnableJpaRepositories.class) })
+		static class MyConfiguration {}
+	}
+
+	@Configuration
+	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
+		public JpaRepositoryContributorConfiguration() {
+			super(UserRepository.class, MyConfiguration.class);
+		}
+
+		@EnableJpaRepositories(escapeCharacter = 'ö', /* avoid creating repository instances */ includeFilters = {
+				@ComponentScan.Filter(value = EnableJpaRepositories.class) })
+		static class MyConfiguration {
+
+		}
+	}
+
+	public static class CustomQueryEnhancerSelector implements QueryEnhancerSelector {
+
+		@Override
+		public QueryEnhancerFactory select(DeclaredQuery query) {
+			return QueryEnhancerSelector.DEFAULT_SELECTOR.select(query);
+		}
+
 	}
 
 }

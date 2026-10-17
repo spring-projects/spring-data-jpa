@@ -35,6 +35,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,13 +49,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScrollPosition;
+import org.springframework.data.domain.Similarity;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Vector;
+import org.springframework.data.domain.VectorScoringFunctions;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleDepartment;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.domain.sample.EmbeddedIdExampleEmployeePK;
 import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.jpa.util.TestMetaModel;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
@@ -67,6 +73,7 @@ import org.springframework.data.util.Lazy;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oualid Bouh
+ * @author masiljangajji
  */
 class JpaQueryCreatorTests {
 
@@ -80,6 +87,8 @@ class JpaQueryCreatorTests {
 
 	private static final TestMetaModel ORDER_WITH_RELATIONS = TestMetaModel.hibernateModel(OrderWithRelations.class,
 			Customer.class, Supplier.class);
+
+	private static final TestMetaModel VECTOR = TestMetaModel.hibernateModel(WithVector.class);
 
 	@Test // GH-3588
 	void simpleProperty() {
@@ -798,28 +807,38 @@ class JpaQueryCreatorTests {
 				.validateQuery();
 	}
 
+	@Test // GH-4385
+	void withinRangeConsidersLowerBoundOnlyRange() {
+
+		Range<Similarity> range = Range.rightUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
+
+		assertThat(renderVectorWithinQuery(range)).isEqualTo(
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, ?1) <= ?2",
+				DefaultJpaEntityMetadata.unqualify(WithVector.class));
+	}
+
+	@Test // GH-4385
+	void withinRangeConsidersUpperBoundOnlyRange() {
+
+		Range<Similarity> range = Range.leftUnbounded(Range.Bound.inclusive(Similarity.of(0.8, VectorScoringFunctions.COSINE)));
+
+		assertThat(renderVectorWithinQuery(range)).isEqualTo(
+				"SELECT w FROM %s w WHERE cosine_distance(w.embedding, ?1) >= ?2",
+				DefaultJpaEntityMetadata.unqualify(WithVector.class));
+	}
+
+	private String renderVectorWithinQuery(Range<Similarity> range) {
+
+		Vector vector = Vector.of(0.1f, 0.2f, 0.3f, 0.4f, 0.5f);
+
+		return queryCreator(VECTOR) //
+				.forTree(WithVector.class, "findByEmbeddingNear") //
+				.withParameters(vector, range) //
+				.render();
+	}
+
 	QueryCreatorBuilder queryCreator(Metamodel metamodel) {
 		return new DefaultCreatorBuilder(metamodel);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel, Object... arguments) {
-		return queryCreator(tree, returnedType, metamodel, JpqlQueryTemplates.UPPER, arguments);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
-			JpqlQueryTemplates templates, Object... arguments) {
-
-		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(
-				StubJpaParameterParameterAccessor.accessor(arguments), EscapeCharacter.DEFAULT, templates);
-		return queryCreator(tree, returnedType, metamodel, templates, parameterMetadataProvider);
-	}
-
-	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
-			JpqlQueryTemplates templates, Class<?>... argumentTypes) {
-
-		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(
-				StubJpaParameterParameterAccessor.accessor(argumentTypes), EscapeCharacter.DEFAULT, templates);
-		return queryCreator(tree, returnedType, metamodel, templates, parameterMetadataProvider);
 	}
 
 	JpaQueryCreator queryCreator(PartTree tree, ReturnedType returnedType, Metamodel metamodel,
@@ -832,12 +851,6 @@ class JpaQueryCreatorTests {
 				EscapeCharacter.DEFAULT, templates);
 		return new JpaQueryCreator(tree, false, returnedType, parameterMetadataProvider, templates,
 				entityManager.getMetamodel());
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private JpaParametersParameterAccessor accessor(Class<?>... argumentTypes) {
-
-		return StubJpaParameterParameterAccessor.accessor(argumentTypes);
 	}
 
 	@Entity
@@ -891,6 +904,15 @@ class JpaQueryCreatorTests {
 		String productType;
 
 		@ElementCollection List<String> categories;
+	}
+
+	@jakarta.persistence.Entity
+	static class WithVector {
+
+		@Id Long id;
+
+		@JdbcTypeCode(SqlTypes.VECTOR)
+		@Array(length = 5) float[] embedding;
 	}
 
 	static class DtoProductProjection {
@@ -955,7 +977,7 @@ class JpaQueryCreatorTests {
 			if (builder instanceof DefaultCreatorBuilder dcb) {
 				entityManager.createQuery(this.jpql.get(), dcb.returnedType.getReturnedType());
 			} else {
-				entityManager.createQuery(this.jpql.get());
+				JpaAdapter.createQuery(entityManager, this.jpql.get());
 			}
 			return this;
 		}

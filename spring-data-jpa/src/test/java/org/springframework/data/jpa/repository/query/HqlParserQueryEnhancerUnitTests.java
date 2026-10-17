@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Greg Turnquist
  */
-class HqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class HqlParserQueryEnhancerUnitTests extends AbstractQueryEnhancerTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {

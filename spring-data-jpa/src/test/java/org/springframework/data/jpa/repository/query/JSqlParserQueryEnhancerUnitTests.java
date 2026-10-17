@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.ReturnedType;
@@ -38,7 +39,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Christoph Strobl
  * @author Soomin Kim
  */
-class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class JSqlParserQueryEnhancerUnitTests extends AbstractQueryEnhancerTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
@@ -323,6 +324,16 @@ class JSqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		String result = enhancer.rewrite(rewriteInfo);
 		assertThat(result).containsIgnoringCase("UPDATE users");
+	}
+
+	@ParameterizedTest // GH-4355
+	@ValueSource(strings = { "invalid query because you can", "" })
+	void rejectsMalformedQuery(String queryString) {
+
+		DeclaredQuery query = DeclaredQuery.nativeQuery(queryString);
+
+		assertThatIllegalArgumentException().isThrownBy(() -> new JSqlParserQueryEnhancer(query))
+				.withMessageContaining("not a valid SQL Query");
 	}
 
 	private static DefaultQueryRewriteInformation getRewriteInformation(Sort sort) {

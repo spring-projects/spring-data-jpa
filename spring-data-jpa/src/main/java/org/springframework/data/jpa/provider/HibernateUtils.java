@@ -17,10 +17,10 @@ package org.springframework.data.jpa.provider;
 
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
-import org.hibernate.query.spi.SqmQuery;
-import org.hibernate.query.sql.spi.NamedNativeQueryMemento;
-import org.hibernate.query.sqm.spi.NamedSqmQueryMemento;
+import org.hibernate.query.SelectionQuery;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.util.Lazy;
 
 /**
  * Utility functions to work with Hibernate. Mostly using reflection to make sure common functionality can be executed
@@ -31,12 +31,28 @@ import org.jspecify.annotations.Nullable;
  * @author Jens Schauder
  * @author Donghun Shin
  * @author Greg Turnquist
+ * @author Oscar Fanchin
+ * @author Christoph Strobl
  * @since 1.10.2
  * @soundtrack Benny Greb - Soulfood (Live, https://www.youtube.com/watch?v=9_ErMa_CtSw)
  */
 public abstract class HibernateUtils {
 
+	/**
+	 * Deferred singleton.
+	 */
+	private static final Lazy<HibernateAdapter> HIBERNATE_ADAPTER = Lazy.of(HibernateAdapter::create);
+
 	private HibernateUtils() {}
+
+	/**
+	 * Return the {@link SelectionQuery} the given query represents, or {@literal null} if it does not represent one.
+	 *
+	 * @since 4.2
+	 */
+	static @Nullable SelectionQuery<?> asSelectionQuery(jakarta.persistence.Query query) {
+		return getHibernateAdapter().asSelectionQuery(query);
+	}
 
 	/**
 	 * Return the query string of the underlying native Hibernate query.
@@ -46,67 +62,64 @@ public abstract class HibernateUtils {
 	 */
 	public @Nullable static String getHibernateQuery(Object query) {
 
-		try {
-			// Try the new Hibernate implementation first
-			if (query instanceof SqmQuery sqmQuery) {
+		HibernateAdapter adapter = getHibernateAdapter();
 
-				String hql = sqmQuery.getQueryString();
+		if (adapter.isSqmQuery(query)) {
 
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
+			String hql = adapter.getQueryString(query);
+			return queryStringOrFallback(query, hql);
+		}
 
-				return sqmQuery.getSqmStatement().toHqlString();
-			}
+		if (adapter.isNamedSqmQuery(query)) {
 
-			// Try the new Hibernate implementation first
-			if (query instanceof NamedSqmQueryMemento<?> sqmQuery) {
+			String hql = adapter.getHqlString(query);
+			return queryStringOrFallback(query, hql);
+		}
 
-				String hql = sqmQuery.getHqlString();
+		if (adapter.isNamedNativeQuery(query)) {
+			return adapter.getSqlString(query);
+		}
 
-				if (!hql.equals("<criteria>")) {
-					return hql;
-				}
-
-				return sqmQuery.getSqmStatement().toHqlString();
-			}
-
-			if (query instanceof NamedNativeQueryMemento<?> nativeQuery) {
-				return nativeQuery.getSqlString();
-			}
-
-			// Couple of cases in which this still breaks, see HHH-15389
-		} catch (RuntimeException o_O) {}
-
-		// Try the old way, as it still works in some cases (haven't investigated in which exactly)
 		if (query instanceof Query<?> hibernateQuery) {
 			return hibernateQuery.getQueryString();
-		} else {
-			throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
 		}
+
+		throw new IllegalArgumentException("Don't know how to extract the query string from " + query);
+	}
+
+	private static String queryStringOrFallback(Object query, String hql) {
+
+		if (!hql.equals("<criteria>")) {
+			return hql;
+		}
+
+		return getHibernateAdapter().getSqmStatement(query);
 	}
 
 	public static boolean isNativeQuery(Object query) {
 
-		// Try the new Hibernate implementation first
-		if (query instanceof SqmQuery) {
+		if (getHibernateAdapter().isSqmQuery(query) || getHibernateAdapter().isNamedSqmQuery(query)) {
 			return false;
 		}
 
-		if (query instanceof NativeQuery<?>) {
+		if (query instanceof NativeQuery<?> || getHibernateAdapter().isNamedNativeQuery(query)) {
 			return true;
 		}
 
-		// Try the new Hibernate implementation first
-		if (query instanceof NamedSqmQueryMemento<?>) {
-
-			return false;
-		}
-
-		if (query instanceof NamedNativeQueryMemento<?>) {
-			return true;
+		if (query instanceof jakarta.persistence.Query jpaQuery) {
+			try {
+				jpaQuery.unwrap(NativeQuery.class);
+				return true;
+			} catch (RuntimeException o_O) {
+				// Not a native Hibernate query.
+			}
 		}
 
 		return false;
 	}
+
+	private static HibernateAdapter getHibernateAdapter() {
+		return HIBERNATE_ADAPTER.get();
+	}
+
 }

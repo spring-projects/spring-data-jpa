@@ -25,6 +25,7 @@ grammar Jpql;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Jewoo Shin
+ * @author Wantaek Choi
  * @since 3.1
  */
 }
@@ -102,17 +103,11 @@ join_condition
     ;
 
 join_association_path_expression
-    : join_collection_valued_path_expression
-    | join_single_valued_path_expression
-    | TREAT '(' join_collection_valued_path_expression AS subtype ')'
-    | TREAT '(' join_single_valued_path_expression AS subtype ')'
+    : join_path_expression
+    | TREAT '(' join_path_expression AS subtype ')'
     ;
 
-join_collection_valued_path_expression
-    : (identification_variable '.')? (single_valued_embeddable_object_field '.')* collection_valued_field
-    ;
-
-join_single_valued_path_expression
+join_path_expression
     : (identification_variable '.')? (single_valued_embeddable_object_field '.')* single_valued_object_field
     ;
 
@@ -148,8 +143,7 @@ general_subpath
     ;
 
 simple_subpath
-    : general_identification_variable
-    | general_identification_variable ('.' single_valued_object_field)*
+    : general_identification_variable ('.' single_valued_object_field)*
     ;
 
 treated_subpath
@@ -317,6 +311,7 @@ scalar_expression
     | boolean_expression
     | case_expression
     | entity_type_expression
+    | entity_id_or_version_function
     ;
 
 conditional_expression
@@ -414,6 +409,7 @@ comparison_expression
     | datetime_expression comparison_operator (datetime_expression | all_or_any_expression)     #DatetimeComparison
     | entity_expression op=(EQUAL | NOT_EQUAL) (entity_expression | all_or_any_expression)      #EntityComparison
     | arithmetic_expression comparison_operator (arithmetic_expression | all_or_any_expression) #ArithmeticComparison
+    | entity_id_or_version_function op=(EQUAL | NOT_EQUAL) input_parameter                      #EntityIdOrVersionComparison
     | entity_type_expression op=(EQUAL | NOT_EQUAL) entity_type_expression                      #EntityTypeComparison
     | string_expression REGEXP string_literal                                                   #RegexpComparison
     ;
@@ -451,7 +447,6 @@ arithmetic_primary
     | case_expression
     | arithmetic_cast_function
     | type_cast_function
-    | function_invocation
     | '(' subquery ')'
     ;
 
@@ -462,7 +457,6 @@ string_expression
     | functions_returning_strings
     | aggregate_expression
     | case_expression
-    | function_invocation
     | string_cast_function
     | type_cast_function
     | '(' subquery ')'
@@ -475,7 +469,6 @@ datetime_expression
     | functions_returning_datetime
     | aggregate_expression
     | case_expression
-    | function_invocation
     | date_time_timestamp_literal
     | '(' subquery ')'
     ;
@@ -574,6 +567,19 @@ string_cast_function
     : CAST '(' scalar_expression (AS)? STRING ')'
     ;
 
+entity_id_or_version_function
+    : id_function
+    | version_function
+    ;
+
+id_function
+    : ID '(' (general_identification_variable | single_valued_object_path_expression) ')'
+    ;
+
+version_function
+    : VERSION '(' (general_identification_variable | single_valued_object_path_expression) ')'
+    ;
+
 function_invocation
     : FUNCTION '(' function_name (',' function_arg)* ')'
     ;
@@ -662,7 +668,9 @@ identification_variable
     | SIGN
     | TIME
     | TYPE
-    | VALUE)
+    | VALUE
+    | ID
+    | VERSION)
     | type_literal
     ;
 
@@ -692,9 +700,25 @@ pattern_value
 
 date_time_timestamp_literal
     : STRINGLITERAL
-    | DATELITERAL
-    | TIMELITERAL
-    | TIMESTAMPLITERAL
+    | jdbc_date_literal
+    | jdbc_time_literal
+    | jdbc_timestamp_literal
+    ;
+
+jdbc_date_literal
+    : DATE_ESCAPE_START jdbc_temporal_literal_text '}'
+    ;
+
+jdbc_time_literal
+    : TIME_ESCAPE_START jdbc_temporal_literal_text '}'
+    ;
+
+jdbc_timestamp_literal
+    : TIMESTAMP_ESCAPE_START jdbc_temporal_literal_text '}'
+    ;
+
+jdbc_temporal_literal_text
+    : STRINGLITERAL
     ;
 
 entity_type_literal
@@ -830,6 +854,7 @@ reserved_word
        |FETCH
        |FLOOR
        |FUNCTION
+       |ID
        |IN
        |INDEX
        |INNER
@@ -877,7 +902,8 @@ reserved_word
        |TYPE
        |UPDATE
        |UPPER
-       |VALUE)
+       |VALUE
+       |VERSION)
        ;
 /*
     Lexer rules
@@ -961,6 +987,7 @@ FROM                        : F R O M;
 FUNCTION                    : F U N C T I O N;
 GROUP                       : G R O U P;
 HAVING                      : H A V I N G;
+ID                          : I D;
 IN                          : I N;
 INDEX                       : I N D E X;
 INNER                       : I N N E R;
@@ -1019,6 +1046,7 @@ UNION                       : U N I O N;
 UPDATE                      : U P D A T E;
 UPPER                       : U P P E R;
 VALUE                       : V A L U E;
+VERSION                     : V E R S I O N;
 WHEN                        : W H E N;
 WHERE                       : W H E R E;
 
@@ -1032,6 +1060,6 @@ JAVASTRINGLITERAL           : '"' ( ('\\' [btnfr"']) | ~('"'))* '"';
 FLOATLITERAL                : ('0' .. '9')* '.' ('0' .. '9')+ (E ('0' .. '9')+)* (F|D)?;
 INTLITERAL                  : ('0' .. '9')+ ;
 LONGLITERAL                 : ('0' .. '9')+ L;
-DATELITERAL                 : '{' D STRINGLITERAL '}';
-TIMELITERAL                 : '{' T STRINGLITERAL '}';
-TIMESTAMPLITERAL            : '{' T S STRINGLITERAL '}';
+TIMESTAMP_ESCAPE_START      : '{' T S;
+DATE_ESCAPE_START           : '{' D;
+TIME_ESCAPE_START           : '{' T;

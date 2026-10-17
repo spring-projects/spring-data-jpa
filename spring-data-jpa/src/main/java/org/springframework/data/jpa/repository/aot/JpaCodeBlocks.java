@@ -21,10 +21,8 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.LongSupplier;
 
 import org.jspecify.annotations.Nullable;
@@ -49,6 +47,7 @@ import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
 import org.springframework.data.jpa.repository.support.JpqlQueryTemplates;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.aot.generate.AotQueryMethodGenerationContext;
 import org.springframework.data.repository.aot.generate.MethodReturn;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -58,6 +57,7 @@ import org.springframework.javapoet.CodeBlock.Builder;
 import org.springframework.javapoet.TypeName;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -66,6 +66,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  * @since 4.0
  */
 class JpaCodeBlocks {
@@ -276,8 +277,8 @@ class JpaCodeBlocks {
 				builder.addStatement("$L = rewriteQuery($L, $L, $T.class)", queryString, context.localVariable("declaredQuery"),
 						sort, actualReturnType);
 			} else if (hasDynamicReturnType) {
-				builder.addStatement("$L = rewriteQuery($L, $T.unsorted(), $L)", context.localVariable("declaredQuery"),
-						queryString, Sort.class, dynamicReturnType);
+				builder.addStatement("$L = rewriteQuery($L, $T.unsorted(), $L)", queryString,
+						context.localVariable("declaredQuery"), Sort.class, dynamicReturnType);
 			}
 
 			if (hasSort) {
@@ -323,17 +324,7 @@ class JpaCodeBlocks {
 			}
 
 			if (queries.result().isLimited()) {
-
-				int max = queries.result().getLimit().max();
-
-				builder.beginControlFlow("if ($L.getMaxResults() != $T.MAX_VALUE)", queryVariableName, Integer.class);
-				builder.beginControlFlow("if ($1L.getMaxResults() > $2L && $1L.getFirstResult() > 0)", queryVariableName, max);
-				builder.addStatement("$1L.setFirstResult($1L.getFirstResult() - ($1L.getMaxResults() - $2L))",
-						queryVariableName, max);
-				builder.endControlFlow();
-				builder.endControlFlow();
-
-				builder.addStatement("$1L.setMaxResults($2L)", queryVariableName, max);
+				builder.addStatement("applyMaxResults($L, $L)", queryVariableName, queries.result().getLimit().max());
 			}
 
 			return builder.build();
@@ -424,12 +415,12 @@ class JpaCodeBlocks {
 				}
 
 				if (isArray && collectionExpected) {
-					return CodeBlock.builder().add("$T.asList($L)", Arrays.class, parameterName).build();
+					return CodeBlock.of("$T.arrayToList($L)", CollectionUtils.class, parameterName);
 				}
 			}
 
 			if (isArray && binding instanceof ParameterBinding.InParameterBinding) {
-				return CodeBlock.builder().add("$T.asList($L)", Arrays.class, parameterName).build();
+				return CodeBlock.of("$T.arrayToList($L)", CollectionUtils.class, parameterName);
 			}
 
 			return parameterName;
@@ -466,8 +457,8 @@ class JpaCodeBlocks {
 					return builder.build();
 				}
 
-				builder.addStatement("$T $L = this.$L.createNamedQuery($S)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), nq.getQueryName());
+				builder.addStatement("$T $L = $T.createNamedQuery(this.$L, $S)", Query.class, queryVariableName,
+						JpaAdapter.class, context.fieldNameOf(EntityManager.class), nq.getQueryName());
 
 				return builder.build();
 			}
@@ -490,8 +481,9 @@ class JpaCodeBlocks {
 
 			if (StringUtils.hasText(sqlResultSetMapping)) {
 
-				builder.addStatement("$T $L = this.$L.createNativeQuery($L, $S)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), queryStringNameToUse, sqlResultSetMapping);
+				builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $S)", Query.class, queryVariableName,
+						JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse,
+						sqlResultSetMapping);
 
 				return builder.build();
 			}
@@ -500,30 +492,23 @@ class JpaCodeBlocks {
 
 				if (queryReturnType != null) {
 
-					builder.addStatement("$T $L = this.$L.createNativeQuery($L, $T.class)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), queryStringNameToUse, queryReturnType);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class,
+							queryVariableName, JpaAdapter.class, context.fieldNameOf(EntityManager.class),
+							queryStringNameToUse, queryReturnType);
 				} else {
-					builder.addStatement("$T $L = this.$L.createNativeQuery($L)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), queryStringNameToUse);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L)", Query.class, queryVariableName,
+							JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
 				}
 
 				return builder.build();
 			}
 
-			if (sq.hasConstructorExpressionOrDefaultProjection() && !count && methodReturn.isInterfaceProjection()) {
-				builder.addStatement("$T $L = this.$L.createQuery($L)", Query.class, queryVariableName,
-						context.fieldNameOf(EntityManager.class), queryStringNameToUse);
+			if (!sq.hasConstructorExpressionOrDefaultProjection() && !count && methodReturn.isInterfaceProjection()) {
+				builder.addStatement("$T $L = this.$L.createQuery($L, $T.class)", Query.class, queryVariableName,
+						context.fieldNameOf(EntityManager.class), queryStringNameToUse, Tuple.class);
 			} else {
-
-				String createQueryMethod = query.isNative() ? "createNativeQuery" : "createQuery";
-
-				if (!sq.hasConstructorExpressionOrDefaultProjection() && !count && methodReturn.isInterfaceProjection()) {
-					builder.addStatement("$T $L = this.$L.$L($L, $T.class)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), createQueryMethod, queryStringNameToUse, Tuple.class);
-				} else {
-					builder.addStatement("$T $L = this.$L.$L($L)", Query.class, queryVariableName,
-							context.fieldNameOf(EntityManager.class), createQueryMethod, queryStringNameToUse);
-				}
+				builder.addStatement("$T $L = $T.createQuery(this.$L, $L)", Query.class, queryVariableName, JpaAdapter.class,
+						context.fieldNameOf(EntityManager.class), queryStringNameToUse);
 			}
 
 			return builder.build();
@@ -713,25 +698,11 @@ class JpaCodeBlocks {
 						context.fieldNameOf(EntityManager.class));
 
 				if (collectionQuery) {
-
-					if (isStreamable(methodReturn)) {
-						builder.addStatement("return ($1T) $1T.of($2L)", Streamable.class, context.localVariable("resultList"));
-					} else if (isStreamableWrapper(methodReturn) && canConvert(Streamable.class, methodReturn)) {
-
-						builder.addStatement(
-								"return ($1T) $2T.getSharedInstance().convert($3T.of($4L), $5T.valueOf($3T.class), $5T.valueOf($1T.class))",
-								methodReturn.toClass(), DefaultConversionService.class, Streamable.class,
-								context.localVariable("resultList"), TypeDescriptor.class);
-					} else if (isSet(methodReturn)) {
-						builder.addStatement("return ($T) convertOne($L, false, $T.class)", List.class,
-								context.localVariable("resultList"), methodReturn.toClass());
-					} else {
-						builder.addStatement("return ($T) $L", List.class, context.localVariable("resultList"));
-					}
+					builder.addStatement(returnCollection(methodReturn, CodeBlock.of("$L", context.localVariable("resultList"))));
 				} else if (returnCount) {
-					builder.addStatement("return $T.valueOf($L.size())",
-							ClassUtils.resolvePrimitiveIfNecessary(methodReturn.getActualReturnClass()),
-							context.localVariable("resultList"));
+					builder.addStatement("return ($T) convertOne($L.size(), false, $T.class)",
+							TypeNames.typeNameOrWrapper(methodReturn.getActualType()), context.localVariable("resultList"),
+							TypeNames.classNameOrWrapper(methodReturn.getActualType()));
 				} else {
 
 					builder.addStatement(LordOfTheStrings.returning(methodReturn.toClass())
@@ -760,18 +731,9 @@ class JpaCodeBlocks {
 					}
 
 					if (queryMethod.isCollectionQuery()) {
-
-						if (isStreamable(methodReturn)) {
-							builder.addStatement("return ($1T) $1T.of(($2T) convertMany($3L.getResultList(), $4L, $5L))",
-									Streamable.class, Iterable.class, queryVariableName, aotQuery.isNative(), convertTo);
-						} else if (isSet(methodReturn)) {
-							builder.addStatement("return ($T) convertOne(convertMany($L.getResultList(), $L, $L), false, $T.class)",
-									methodReturn.getTypeName(), queryVariableName, aotQuery.isNative(), convertTo,
-									methodReturn.toClass());
-						} else {
-							builder.addStatement("return ($T) convertMany($L.getResultList(), $L, $L)", methodReturn.getTypeName(),
-									queryVariableName, aotQuery.isNative(), convertTo);
-						}
+						builder.addStatement(
+								returnCollection(methodReturn, CodeBlock.of("($T) convertMany($L.getResultList(), $L, $L)",
+										Iterable.class, queryVariableName, aotQuery.isNative(), convertTo)));
 					} else if (queryMethod.isStreamQuery()) {
 						builder.addStatement("return ($T) convertMany($L.getResultStream(), $L, $L)", methodReturn.getTypeName(),
 								queryVariableName, aotQuery.isNative(), convertTo);
@@ -799,20 +761,7 @@ class JpaCodeBlocks {
 				} else {
 
 					if (queryMethod.isCollectionQuery()) {
-						if (isStreamable(methodReturn)) {
-							builder.addStatement("return ($T) $T.of($L.getResultList())", methodReturn.getTypeName(),
-									Streamable.class, queryVariableName);
-						} else if (isStreamableWrapper(methodReturn) && canConvert(Streamable.class, methodReturn)) {
-							builder.addStatement(
-									"return ($1T) $2T.getSharedInstance().convert($3T.of($4L.getResultList()), $5T.valueOf($3T.class), $5T.valueOf($1T.class))",
-									methodReturn.toClass(), DefaultConversionService.class, Streamable.class, queryVariableName,
-									TypeDescriptor.class);
-						} else if (isSet(methodReturn)) {
-							builder.addStatement("return ($T) convertOne($L.getResultList(), false, $T.class)",
-									methodReturn.getTypeName(), queryVariableName, methodReturn.toClass());
-						} else {
-							builder.addStatement("return ($T) $L.getResultList()", methodReturn.getTypeName(), queryVariableName);
-						}
+						builder.addStatement(returnCollection(methodReturn, CodeBlock.of("$L.getResultList()", queryVariableName)));
 					} else if (queryMethod.isStreamQuery()) {
 						builder.addStatement("return ($T) $L.getResultStream()", methodReturn.getTypeName(), queryVariableName);
 					} else if (queryMethod.isPageQuery()) {
@@ -840,12 +789,28 @@ class JpaCodeBlocks {
 			return builder.build();
 		}
 
-		private boolean canConvert(Class<?> from, MethodReturn methodReturn) {
-			return DefaultConversionService.getSharedInstance().canConvert(from, methodReturn.toClass());
+		private CodeBlock returnCollection(MethodReturn methodReturn, CodeBlock result) {
+
+			if (isStreamable(methodReturn)) {
+				return CodeBlock.of("return ($T) $T.of($L)", methodReturn.getTypeName(), Streamable.class, result);
+			}
+
+			if (isStreamableWrapper(methodReturn) && canConvert(Streamable.class, methodReturn)) {
+				return CodeBlock.of(
+						"return ($1T) $2T.getSharedInstance().convert($3T.of($4L), $5T.valueOf($3T.class), $5T.valueOf($1T.class))",
+						methodReturn.toClass(), DefaultConversionService.class, Streamable.class, result, TypeDescriptor.class);
+			}
+
+			if (methodReturn.toClass().isAssignableFrom(List.class)) {
+				return CodeBlock.of("return ($T) $L", methodReturn.getTypeName(), result);
+			}
+
+			return CodeBlock.of("return ($T) convertOne($L, false, $T.class)", methodReturn.getTypeName(), result,
+					methodReturn.toClass());
 		}
 
-		private static boolean isSet(MethodReturn methodReturn) {
-			return Set.class.isAssignableFrom(methodReturn.toClass());
+		private boolean canConvert(Class<?> from, MethodReturn methodReturn) {
+			return DefaultConversionService.getSharedInstance().canConvert(from, methodReturn.toClass());
 		}
 
 		private static boolean isStreamable(MethodReturn methodReturn) {

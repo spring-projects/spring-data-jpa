@@ -30,7 +30,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Mark Paluch
  * @author Alim Naizabek
  */
-class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class DefaultQueryEnhancerUnitTests extends AbstractQueryEnhancerTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
@@ -64,4 +64,5 @@ class DefaultQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		assertThat(sql).isEqualTo("SELECT e FROM Employee e order by e.foo asc nulls first, e.bar asc nulls last");
 	}
+
 }

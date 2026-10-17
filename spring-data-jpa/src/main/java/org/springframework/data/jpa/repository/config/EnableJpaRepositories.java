@@ -191,4 +191,12 @@ public @interface EnableJpaRepositories {
 	 */
 	Class<? extends QueryEnhancerSelector> queryEnhancerSelector() default QueryEnhancerSelector.DefaultQueryEnhancerSelector.class;
 
+	/**
+	 * Configures whether if {@link org.springframework.data.jpa.repository.Query queries}) are validated.
+	 *
+	 * @return {@literal true} by default.
+	 * @since 4.2
+	 */
+	boolean validateQueries() default true;
+
 }

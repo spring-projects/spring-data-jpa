@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.QueryHint;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,7 @@ import org.springframework.data.util.Streamable;
 /**
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  */
 interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -156,6 +158,10 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	Streamable<UserDtoProjection> findUserProjectionStreamableByLastnameStartingWith(String lastname);
 
+	UserDtoProjections findUserProjectionWrapperByLastnameStartingWith(String lastname);
+
+	UserDtoProjection[] findUserProjectionArrayByLastnameStartingWith(String lastname);
+
 	Page<UserDtoProjection> findUserProjectionByLastnameStartingWith(String lastname, Pageable page);
 
 	Names findDtoByEmailAddress(String emailAddress);
@@ -211,6 +217,8 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	int deleteAndReturnCountByEmailAddress(String username);
 
 	Streamable<User> deleteStreamableByEmailAddress(String username);
+
+	Set<User> deleteByLastname(String lastname);
 
 	// cannot generate delete and return a domain object
 	@Modifying
@@ -280,6 +288,14 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	}
 
 	record Names(String firstname, String lastname) {
+	}
+
+	record UserDtoProjections(Streamable<UserDtoProjection> projections) implements Streamable<UserDtoProjection> {
+
+		@Override
+		public Iterator<UserDtoProjection> iterator() {
+			return projections.iterator();
+		}
 	}
 
 	static class MyQueryRewriter implements QueryRewriter {

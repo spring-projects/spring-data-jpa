@@ -35,6 +35,7 @@ import org.springframework.util.CollectionUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jewoo Shin
  * @since 3.4
  */
 interface QueryTokenStream extends Streamable<QueryToken> {
