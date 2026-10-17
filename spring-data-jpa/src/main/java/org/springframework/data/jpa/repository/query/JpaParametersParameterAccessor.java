@@ -25,6 +25,7 @@ import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Score;
 import org.springframework.data.domain.ScoringFunction;
 import org.springframework.data.domain.Similarity;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.query.JpaParameters.JpaParameter;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -64,6 +65,15 @@ public class JpaParametersParameterAccessor extends ParametersParameterAccessor 
 	@Override
 	public Object[] getValues() {
 		return super.getValues();
+	}
+
+	public @Nullable EntityGraphHint<?> getEntityGraphHint() {
+
+		if (!parameters.hasEntityGraphHintParameter()) {
+			return null;
+		}
+
+		return (EntityGraphHint<?>) super.getValue(parameters.getEntityGraphHintIndex());
 	}
 
 	/**
