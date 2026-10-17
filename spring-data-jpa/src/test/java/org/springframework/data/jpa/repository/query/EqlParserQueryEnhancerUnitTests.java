@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * @author Greg Turnquist
  */
-class EqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
+class EqlParserQueryEnhancerUnitTests extends AbstractQueryEnhancerTests {
 
 	@Override
 	QueryEnhancer createQueryEnhancer(DeclaredQuery query) {
@@ -51,4 +51,5 @@ class EqlParserQueryEnhancerUnitTests extends QueryEnhancerTckTests {
 
 		super.shouldDeriveJpqlCountQuery(query, expected);
 	}
+
 }

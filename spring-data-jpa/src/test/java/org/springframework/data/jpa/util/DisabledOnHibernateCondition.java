@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 /**
  * {@link ExecutionCondition} for {@link DisabledOnHibernate @DisabledOnHibernate}.
  *
+ * @author Oscar Fanchin
  * @see DisabledOnHibernate
  */
 class DisabledOnHibernateCondition extends BooleanExecutionCondition<DisabledOnHibernate> {
@@ -43,10 +45,11 @@ class DisabledOnHibernateCondition extends BooleanExecutionCondition<DisabledOnH
 	@Override
 	boolean isEnabled(DisabledOnHibernate annotation) {
 
-		VersionMatcher disabled = VersionMatcher.parse(annotation.value());
 		VersionMatcher hibernate = VersionMatcher.parse(org.hibernate.Version.getVersionString());
 
-		return !disabled.matches(hibernate);
+		return Arrays.stream(annotation.value()) //
+				.map(VersionMatcher::parse) //
+				.noneMatch(disabled -> disabled.matches(hibernate));
 	}
 
 	static class VersionMatcher {

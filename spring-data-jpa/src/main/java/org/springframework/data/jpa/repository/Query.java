@@ -58,7 +58,6 @@ public @interface Query {
 	 * Defines the projection part of the count query that is generated for pagination. If neither {@link #countQuery()}
 	 * nor {@code countProjection()} is configured we will derive the count query from the original query.
 	 *
-	 * @return
 	 * @since 1.6
 	 */
 	String countProjection() default "";
@@ -71,22 +70,26 @@ public @interface Query {
 	/**
 	 * The named query to be used. If not defined, a {@link jakarta.persistence.NamedQuery} with name of
 	 * {@code ${domainClass}.${queryMethodName}} will be used.
+	 * <p>
+	 * If an explicitly defined query name cannot resolve a named query, Query creation fails with
+	 * {@link org.springframework.data.repository.query.QueryCreationException} upon repository creation.
 	 */
 	String name() default "";
 
 	/**
 	 * Returns the name of the {@link jakarta.persistence.NamedQuery} to be used to execute count queries when pagination
 	 * is used. Will default to the named query name configured suffixed by {@code .count}.
+	 * <p>
+	 * If an explicitly defined count query name cannot resolve a named query, Query creation fails with
+	 * {@link org.springframework.data.repository.query.QueryCreationException} upon repository creation.
 	 *
 	 * @see #name()
-	 * @return
 	 */
 	String countName() default "";
 
 	/**
 	 * Define a {@link QueryRewriter} that should be applied to the query string after the query is fully assembled.
 	 *
-	 * @return
 	 * @since 3.0
 	 */
 	Class<? extends QueryRewriter> queryRewriter() default QueryRewriter.IdentityQueryRewriter.class;

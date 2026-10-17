@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -171,7 +172,15 @@ public final class JpaQueryLookupStrategy {
 
 			RepositoryQuery query = NamedQuery.lookupFrom(method, em, configuration);
 
-			return query != null ? query : NO_QUERY;
+			if (query != null) {
+				return query;
+			}
+
+			if (method.hasAnnotatedQueryName()) {
+				throw QueryCreationException.create(method, String.format("Did not find named query '%s'", name));
+			}
+
+			return NO_QUERY;
 		}
 
 		private @Nullable DeclaredQuery getCountQuery(JpaQueryMethod method, NamedQueries namedQueries, EntityManager em) {
@@ -201,7 +210,11 @@ public final class JpaQueryLookupStrategy {
 			boolean namedQuery = NamedQuery.hasNamedQuery(em, queryName);
 
 			if (namedQuery) {
-				return method.getQueryExtractor().extractQueryString(em.createNamedQuery(queryName));
+				return method.getQueryExtractor().extractQueryString(JpaAdapter.createNamedQuery(em, queryName));
+			}
+
+			if (method.hasAnnotatedCountQueryName()) {
+				throw QueryCreationException.create(method, String.format("Did not find named count query '%s'", queryName));
 			}
 
 			return null;

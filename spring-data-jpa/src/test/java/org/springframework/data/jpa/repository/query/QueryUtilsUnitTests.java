@@ -53,6 +53,7 @@ import org.springframework.data.jpa.domain.JpaSort;
  * @author Eduard Dudar
  * @author Mark Paluch
  * @author Young-ho Kim
+ * @author Hyun Lee
  */
 class QueryUtilsUnitTests {
 
@@ -357,12 +358,55 @@ class QueryUtilsUnitTests {
 				"select count(o) from Foo o where cb.id in (select b from Bar b)");
 	}
 
-	@Test // DATAJPA-148
-	void doesNotPrefixSortsIfFunction() {
+	@ParameterizedTest // GH-52
+	@ValueSource(strings = { //
+		"sum(foo)",
+		"sum\uFF08id\uFF09",
+		"id'name",
+		"id/name",
+		"id\u00A0name",
+		"id\u2028name",
+		"id\u2029name",
+		"id\u200Bname",
+		"id\uFF1C100",
+		"id\uFF1D100",
+		"id\uFEFFname",
+		"id\u2060name",
+		"id\u2212name",
+		"first\u202C_name",
+		"first\u202E_name",
+		"员工\u00A0员工编号"
+	})
+	void doesNotPrefixSortsIfFunction(String source) {
 
-		Sort sort = Sort.by("sum(foo)");
+		Sort sort = Sort.by(source);
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> applySorting("select p from Person p", sort, "p"));
+	}
+
+	@ParameterizedTest // GH-52
+	@ValueSource(strings = {"员工编号", "员工.姓名", "Αναγνωριστικό_εργαζομένου", "Співробітники", "Çalışanlar", "José"})
+	void allowsUtf8ColumnNames(String source) {
+
+		Sort sort = Sort.by(source);
+		assertThat(applySorting("select e from 员工 e", sort, "e")).endsWith("order by e.%s asc".formatted(source));
+	}
+
+	@ParameterizedTest // GH-4364
+	@ValueSource(strings = { "निर्माणतिथि", "Jose\u0301", "วันที่" })
+	void allowsCombiningMarksInSortProperties(String source) {
+
+		Sort sort = Sort.by(source);
+		assertThat(applySorting("select e from Employee e", sort, "e")).endsWith("order by e.%s asc".formatted(source));
+	}
+
+	@ParameterizedTest // GH-4364
+	@ValueSource(strings = { "id\u0301'name", "id\u0301\u00A0name", "id=\u0338name", "id\u20DDname" })
+	void rejectsUnsafeSortExpressionsWithCombiningMarks(String source) {
+
+		Sort sort = Sort.by(source);
+		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
+				.isThrownBy(() -> applySorting("select e from Employee e", sort, "e"));
 	}
 
 	@Test // DATAJPA-377

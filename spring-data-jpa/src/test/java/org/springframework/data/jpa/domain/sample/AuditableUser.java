@@ -15,17 +15,18 @@
  */
 package org.springframework.data.jpa.domain.sample;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.NamedQuery;
-
 import java.util.HashSet;
 import java.util.Set;
 
-import org.springframework.data.jpa.domain.AbstractAuditable;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.NamedQuery;
 import org.jspecify.annotations.Nullable;
+
+import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Sample auditable user to demonstrate working with {@code AbstractAuditableEntity}. No declaration of an ID is
@@ -35,6 +36,7 @@ import org.jspecify.annotations.Nullable;
  * @author Thomas Darimont
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @NamedQuery(name = "AuditableUser.findByFirstname", query = "SELECT u FROM AuditableUser u WHERE u.firstname = ?1")
 public class AuditableUser extends AbstractAuditable<AuditableUser, Integer> {
 

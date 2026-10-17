@@ -132,12 +132,12 @@ public record KeysetScrollSpecification<T>(KeysetScrollPosition position, Sort s
 
 		@Override
 		public Predicate and(List<Predicate> intermediate) {
-			return cb.and(intermediate.toArray(new Predicate[0]));
+			return cb.and(intermediate);
 		}
 
 		@Override
 		public Predicate or(List<Predicate> intermediate) {
-			return cb.or(intermediate.toArray(new Predicate[0]));
+			return cb.or(intermediate);
 		}
 	}
 

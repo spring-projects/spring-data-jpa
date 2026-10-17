@@ -22,7 +22,9 @@ import jakarta.persistence.PersistenceContext;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.hibernate.LazyInitializationException;
@@ -31,9 +33,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.domain.KeysetScrollPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
@@ -42,6 +46,7 @@ import org.springframework.data.jpa.domain.sample.Address;
 import org.springframework.data.jpa.domain.sample.QUser;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.query.KeysetScrollDelegate;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.querydsl.QSort;
 import org.springframework.data.querydsl.SimpleEntityPathResolver;
@@ -53,6 +58,8 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.core.types.dsl.PathBuilderFactory;
+import com.querydsl.jpa.HQLTemplates;
+import com.querydsl.jpa.JPQLSerializer;
 
 /**
  * Integration test for {@link QuerydslJpaPredicateExecutor}.
@@ -65,6 +72,7 @@ import com.querydsl.core.types.dsl.PathBuilderFactory;
  * @author Malte Mauelshagen
  * @author Greg Turnquist
  * @author Krzysztof Krason
+ * @author Ilya Bakaev
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -560,6 +568,28 @@ class QuerydslJpaPredicateExecutorUnitTests {
 		em.flush();
 
 		assertThat(predicateExecutor.findAll(user.dateOfBirth.isNull())).isEmpty();
+	}
+
+	@Test // GH-4275
+	void keysetPredicateRendersIsNullCorrectly() {
+
+		Map<String, Object> keys = new LinkedHashMap<>();
+		keys.put("firstname", "Jane");
+		keys.put("lastname", null);
+		keys.put("emailAddress", "jane@doe2.com");
+
+		KeysetScrollPosition keyset = ScrollPosition.forward(keys);
+		Sort sort = Sort.by(Order.asc("firstname"), Order.asc("lastname"), Order.asc("emailAddress"));
+
+		var strategy = predicateExecutor.new QuerydslQueryStrategy();
+		BooleanExpression predicate = KeysetScrollDelegate.of(keyset.getDirection()).createPredicate(keyset, sort,
+				strategy);
+
+		JPQLSerializer serializer = new JPQLSerializer(HQLTemplates.DEFAULT);
+		serializer.handle(predicate);
+		String jpql = serializer.toString();
+
+		assertThat(jpql).contains("lastname is null").contains("lastname is not null").doesNotContain("= null");
 	}
 
 	private interface UserProjectionInterfaceBased {

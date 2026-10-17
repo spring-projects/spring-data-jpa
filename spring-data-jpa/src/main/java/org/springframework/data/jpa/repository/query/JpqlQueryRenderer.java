@@ -37,6 +37,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author TaeHyun Kang
  * @author Jewoo Shin
+ * @author Wantaek Choi
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode" })
@@ -139,61 +140,24 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	public QueryTokenStream visitJoin_association_path_expression(
 			JpqlParser.Join_association_path_expressionContext ctx) {
 
+		if (ctx.TREAT() == null) {
+			return visit(ctx.join_path_expression());
+		}
+
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		if (ctx.TREAT() == null) {
+		builder.appendExpression(visit(ctx.join_path_expression()));
+		builder.append(QueryTokens.expression(ctx.AS()));
+		builder.appendExpression(visit(ctx.subtype()));
 
-			if (ctx.join_collection_valued_path_expression() != null) {
-				builder.appendExpression(visit(ctx.join_collection_valued_path_expression()));
-			} else if (ctx.join_single_valued_path_expression() != null) {
-				builder.appendExpression(visit(ctx.join_single_valued_path_expression()));
-			}
-		} else {
-			QueryRendererBuilder nested = QueryRenderer.builder();
-
-			if (ctx.join_collection_valued_path_expression() != null) {
-
-				nested.appendExpression(visit(ctx.join_collection_valued_path_expression()));
-				nested.append(QueryTokens.expression(ctx.AS()));
-				nested.appendExpression(visit(ctx.subtype()));
-
-			} else if (ctx.join_single_valued_path_expression() != null) {
-
-				nested.appendExpression(visit(ctx.join_single_valued_path_expression()));
-				nested.append(QueryTokens.expression(ctx.AS()));
-				nested.appendExpression(visit(ctx.subtype()));
-			}
-
-			builder.append(QueryTokens.token(ctx.TREAT()));
-			builder.append(TOKEN_OPEN_PAREN);
-			builder.appendInline(nested);
-			builder.append(TOKEN_CLOSE_PAREN);
-		}
-
-		return builder;
+		return QueryTokenStream.ofFunction(ctx.TREAT(), builder);
 	}
 
 	@Override
-	public QueryTokenStream visitJoin_collection_valued_path_expression(
-			JpqlParser.Join_collection_valued_path_expressionContext ctx) {
+	public QueryTokenStream visitJoin_path_expression(JpqlParser.Join_path_expressionContext ctx) {
 
 		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
 
-		if (ctx.identification_variable() != null) {
-			items.add(ctx.identification_variable());
-		}
-
-		items.addAll(ctx.single_valued_embeddable_object_field());
-		items.add(ctx.collection_valued_field());
-
-		return QueryTokenStream.concat(items, this::visit, TOKEN_DOT);
-	}
-
-	@Override
-	public QueryTokenStream visitJoin_single_valued_path_expression(
-			JpqlParser.Join_single_valued_path_expressionContext ctx) {
-
-		List<ParseTree> items = new ArrayList<>(2 + ctx.single_valued_embeddable_object_field().size());
 		if (ctx.identification_variable() != null) {
 			items.add(ctx.identification_variable());
 		}
@@ -691,6 +655,32 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
+	public QueryTokenStream visitJdbc_date_literal(JpqlParser.Jdbc_date_literalContext ctx) {
+		return renderJdbcTemporalLiteral(ctx.DATE_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_time_literal(JpqlParser.Jdbc_time_literalContext ctx) {
+		return renderJdbcTemporalLiteral(ctx.TIME_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
+	}
+
+	@Override
+	public QueryTokenStream visitJdbc_timestamp_literal(JpqlParser.Jdbc_timestamp_literalContext ctx) {
+		return renderJdbcTemporalLiteral(ctx.TIMESTAMP_ESCAPE_START(), ctx.jdbc_temporal_literal_text());
+	}
+
+	private QueryTokenStream renderJdbcTemporalLiteral(TerminalNode temporalNode, ParserRuleContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.append(QueryTokens.expression(temporalNode));
+		builder.appendInline(visit(ctx));
+		builder.append(TOKEN_CLOSE_BRACE);
+
+		return builder;
+	}
+
+	@Override
 	public QueryTokenStream visitBoolean_expression(JpqlParser.Boolean_expressionContext ctx) {
 
 		if (ctx.subquery() != null) {
@@ -724,6 +714,16 @@ class JpqlQueryRenderer extends JpqlBaseVisitor<QueryTokenStream> {
 		}
 
 		return QueryTokenStream.ofFunction(ctx.TYPE(), builder);
+	}
+
+	@Override
+	public QueryTokenStream visitId_function(JpqlParser.Id_functionContext ctx) {
+		return QueryTokenStream.ofFunction(ctx.ID(), super.visit(ctx.getRuleContext(ParserRuleContext.class, 0)));
+	}
+
+	@Override
+	public QueryTokenStream visitVersion_function(JpqlParser.Version_functionContext ctx) {
+		return QueryTokenStream.ofFunction(ctx.VERSION(), super.visit(ctx.getRuleContext(ParserRuleContext.class, 0)));
 	}
 
 	@Override

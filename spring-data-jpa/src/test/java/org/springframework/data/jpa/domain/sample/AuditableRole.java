@@ -16,8 +16,10 @@
 package org.springframework.data.jpa.domain.sample;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 
 import org.springframework.data.jpa.domain.AbstractAuditable;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Sample auditable role entity.
@@ -25,6 +27,7 @@ import org.springframework.data.jpa.domain.AbstractAuditable;
  * @author Oliver Gierke
  */
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class AuditableRole extends AbstractAuditable<AuditableUser, Long> {
 
 	private String name;

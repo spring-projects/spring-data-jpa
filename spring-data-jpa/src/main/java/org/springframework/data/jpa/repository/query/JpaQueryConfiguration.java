@@ -29,14 +29,24 @@ public class JpaQueryConfiguration {
 	private final QueryEnhancerSelector selector;
 	private final EscapeCharacter escapeCharacter;
 	private final ValueExpressionDelegate valueExpressionDelegate;
+	private final boolean validateQueries;
 
 	public JpaQueryConfiguration(QueryRewriterProvider queryRewriter, QueryEnhancerSelector selector,
 			ValueExpressionDelegate valueExpressionDelegate, EscapeCharacter escapeCharacter) {
+		this(queryRewriter, selector, valueExpressionDelegate, escapeCharacter, true);
+	}
+
+	/**
+	 * @since 4.2
+	 */
+	public JpaQueryConfiguration(QueryRewriterProvider queryRewriter, QueryEnhancerSelector selector,
+			ValueExpressionDelegate valueExpressionDelegate, EscapeCharacter escapeCharacter, boolean validateQueries) {
 
 		this.queryRewriter = queryRewriter;
 		this.selector = selector;
 		this.escapeCharacter = escapeCharacter;
 		this.valueExpressionDelegate = valueExpressionDelegate;
+		this.validateQueries = validateQueries;
 	}
 
 	public QueryRewriter getQueryRewriter(JpaQueryMethod queryMethod) {
@@ -53,6 +63,14 @@ public class JpaQueryConfiguration {
 
 	public ValueExpressionDelegate getValueExpressionDelegate() {
 		return valueExpressionDelegate;
+	}
+
+	/**
+	 * @return {@literal true} if queries should be validated.
+	 * @since 4.2
+	 */
+	public boolean validateQueries() {
+		return validateQueries;
 	}
 
 }

@@ -325,6 +325,14 @@ public class JpaQueryMethod extends QueryMethod {
 	}
 
 	/**
+	 * @return {@code true} if this method is annotated with {@code @Query(countName=…)}.
+	 * @see 4.2
+	 */
+	boolean hasAnnotatedCountQueryName() {
+		return StringUtils.hasText(getAnnotationValue("countName", String.class));
+	}
+
+	/**
 	 * Returns the required query string declared in a {@link Query} annotation or throws {@link IllegalStateException} if
 	 * neither the annotation found nor the attribute was specified.
 	 *

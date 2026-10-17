@@ -17,6 +17,7 @@ package org.springframework.data.jpa.domain.sample;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -141,6 +142,8 @@ public class User {
 	@ElementCollection private Set<String> attributes;
 
 	@Temporal(TemporalType.DATE) private Date dateOfBirth;
+
+	@Column(name = "入职日期") private LocalDate hireDate;
 
 	public User() {
 		this(null, null, null);
@@ -315,6 +318,14 @@ public class User {
 
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public LocalDate getHireDate() {
+		return hireDate;
+	}
+
+	public void setHireDate(LocalDate hireDate) {
+		this.hireDate = hireDate;
 	}
 
 	@Override

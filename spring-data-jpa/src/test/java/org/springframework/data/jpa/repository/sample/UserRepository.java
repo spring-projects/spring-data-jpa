@@ -20,6 +20,7 @@ import jakarta.persistence.QueryHint;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -73,6 +74,7 @@ import com.querydsl.core.types.Predicate;
  * @author Diego Krupitza
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
+ * @author Oscar Fanchin
  */
 public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
 		UserRepositoryCustom, ListQuerydslPredicateExecutor<User> {
@@ -255,6 +257,12 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u.colleagues from User u where u = ?1")
 	List<User> findColleaguesFor(User user);
 
+	// Counterpart of findColleaguesFor(…) above: Hibernate 8 no longer flattens the collection-valued path into
+	// individual elements. Join the association explicitly to preserve the expected List<User> result shape.
+	// See Jakarta Persistence specification, section 4.9.
+	@Query("select colleague from User u join u.colleagues colleague where u = ?1")
+	List<User> findColleaguesForH8(User user);
+
 	// DATAJPA-188
 	List<User> findByCreatedAtBefore(Date date);
 
@@ -289,9 +297,16 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// DATAJPA-415
 	Collection<User> findByIdIn(@Param("ids") Integer... ids);
 
+	Collection<User> findUsersByIdIn(int[] ids);
+
 	// DATAJPA-461
 	@Query("select u from User u where u.id in ?1")
 	Collection<User> findByIdsCustomWithPositionalVarArgs(Integer... ids);
+
+	@Query("select u from User u where u.id in ?1")
+	Collection<User> findByIdsCustomWithPositionalPrimitiveArray(int[] ids);
+
+	User[] findArrayByLastname(String lastname);
 
 	// DATAJPA-461
 	@Query("select u from User u where u.id in :ids")
@@ -321,8 +336,14 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	int removeOneMoreByLastname(String lastname);
 
+	Number removeNumberByLastname(String lastname);
+
+	Short removeShortByLastname(String lastname);
+
 	// DATAJPA-460
 	List<User> deleteByLastname(String lastname);
+
+	User[] deleteArrayByLastname(String lastname);
 
 	@Modifying
 	User deleteModifyingByLastname(String lastname);
@@ -841,6 +862,24 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	@Query("select u, count(r) from User u left outer join u.roles r group by u")
 	@interface UserRoleCountProjectingQuery {
 	}
+
+	// --> Test for Unicode column names
+
+	List<User> findUserByHireDateLessThanEqual(LocalDate date);
+
+	@Query("select u from User u where u.hireDate <= :date")
+	List<User> findByHireDateJpql(@Param("date") LocalDate date);
+
+	@NativeQuery("SELECT * FROM SD_User WHERE 入职日期 <= ?1")
+	List<User> findByHireDateNativeQuery(LocalDate date);
+
+	List<User> findAllByOrderByHireDateAsc();
+
+	@Query("select u from User u")
+	List<User> findAndSortAllUsersJpql(Sort sort);
+
+	@NativeQuery("SELECT * FROM SD_User")
+	List<User> findAndSortAllUsersNativeQuery(Sort sort);
 
 	interface RolesAndFirstname {
 

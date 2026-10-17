@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -47,6 +48,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
  *
  * @author Oliver Gierke
  * @author Thomas Darimont
+ * @author Oscar Fanchin
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -58,7 +60,7 @@ class CrudMethodMetadataUnitTests {
 	@Mock CriteriaQuery<Role> criteriaQuery;
 	@Mock JpaEntityInformation<Role, Integer> information;
 	@Mock TypedQuery<Role> typedQuery;
-	@Mock jakarta.persistence.Query query;
+	jakarta.persistence.Query query;
 	@Mock Metamodel metamodel;
 
 	private RoleRepository repository;
@@ -66,12 +68,14 @@ class CrudMethodMetadataUnitTests {
 	@BeforeEach
 	void setUp() {
 
+		query = mockQuery();
+
 		when(information.getJavaType()).thenReturn(Role.class);
 
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getDelegate()).thenReturn(em);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
-		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.createEntityManager(Map.of())).thenReturn(em);
 
 		JpaRepositoryFactory factory = new JpaRepositoryFactory(em) {
 			@Override
@@ -89,7 +93,7 @@ class CrudMethodMetadataUnitTests {
 
 		when(em.getCriteriaBuilder()).thenReturn(builder);
 		when(builder.createQuery(Role.class)).thenReturn(criteriaQuery);
-		when(em.createQuery(criteriaQuery)).thenReturn(typedQuery);
+		whenCreateQuery(em, criteriaQuery).thenReturn(typedQuery);
 		when(typedQuery.setLockMode(any(LockModeType.class))).thenReturn(typedQuery);
 
 		repository.findAll();
@@ -113,7 +117,7 @@ class CrudMethodMetadataUnitTests {
 	void appliesLockModeAndQueryHintsToQuerydslQuery() {
 
 		when(em.getDelegate()).thenReturn(mock(EntityManager.class));
-		when(em.createQuery(anyString())).thenReturn(query);
+		whenCreateQuery(em, anyString()).thenReturn(query);
 
 		repository.findOne(QRole.role.name.eq("role"));
 

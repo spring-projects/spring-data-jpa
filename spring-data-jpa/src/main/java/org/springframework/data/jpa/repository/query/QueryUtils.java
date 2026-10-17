@@ -55,6 +55,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort.JpaOrder;
 import org.springframework.data.jpa.provider.PersistenceProvider;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -91,6 +92,7 @@ import org.springframework.util.StringUtils;
  * @author Alim Naizabek
  * @author Jakub Soltys
  * @author Young-ho Kim
+ * @author Hyun Lee
  */
 public abstract class QueryUtils {
 
@@ -139,7 +141,7 @@ public abstract class QueryUtils {
 	private static final int VARIABLE_NAME_GROUP_INDEX = 4;
 	private static final int COMPLEX_COUNT_FIRST_INDEX = 3;
 
-	private static final Pattern PUNCTATION_PATTERN = compile(".*((?![._])[\\p{Punct}|\\s])");
+	private static final Pattern PUNCTATION_PATTERN = compile("[^\\p{L}\\p{Mn}\\p{Mc}\\p{N}._]", UNICODE_CHARACTER_CLASS);
 	private static final Pattern FUNCTION_PATTERN;
 	private static final Pattern FIELD_ALIAS_PATTERN;
 
@@ -542,13 +544,14 @@ public abstract class QueryUtils {
 		Iterator<T> iterator = entities.iterator();
 
 		if (!iterator.hasNext()) {
-			return entityManager.createQuery(queryString);
+			return JpaAdapter.createQuery(entityManager, queryString);
 		}
 
 		if (persistenceProvider == PersistenceProvider.HIBERNATE) {
 
 			String alias = detectAlias(queryString);
-			Query query = entityManager.createQuery("%s where %s IN (?1)".formatted(queryString, alias));
+			Query query = JpaAdapter.createQuery(entityManager,
+					"%s where %s IN (?1)".formatted(queryString, alias));
 			query.setParameter(1, entities instanceof Collection<T> ? entities : Streamable.of(entities).toList());
 
 			return query;
@@ -577,7 +580,7 @@ public abstract class QueryUtils {
 			}
 		}
 
-		Query query = entityManager.createQuery(builder.toString());
+		Query query = JpaAdapter.createQuery(entityManager, builder.toString());
 
 		iterator = entities.iterator();
 		i = 0;
@@ -799,7 +802,8 @@ public abstract class QueryUtils {
 			return;
 		}
 
-		if (PUNCTATION_PATTERN.matcher(order.getProperty()).find()) {
+		String property = order.getProperty();
+		if (PUNCTATION_PATTERN.matcher(property).find()) {
 			throw new InvalidDataAccessApiUsageException(String.format(UNSAFE_PROPERTY_REFERENCE, order));
 		}
 	}

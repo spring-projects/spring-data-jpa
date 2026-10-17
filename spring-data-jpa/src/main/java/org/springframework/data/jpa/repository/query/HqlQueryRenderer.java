@@ -22,10 +22,12 @@ import java.util.List;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRendererBuilder;
 import org.springframework.util.CollectionUtils;
 
@@ -38,6 +40,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Paluch
  * @author TaeHyun Kang
  * @author Jewoo Shin
+ * @author Arai
  * @since 3.1
  */
 @SuppressWarnings({ "ConstantConditions", "DuplicatedCode", "UnreachableCode" })
@@ -499,39 +502,29 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitJdbcTimestampLiteral(HqlParser.JdbcTimestampLiteralContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("ts"));
-		builder.appendInline(visit(ctx.dateTime() != null ? ctx.dateTime() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
-
-		return builder;
+		return renderJdbcTemporalLiteral(ctx.TIMESTAMP_ESCAPE_START(),
+				ctx.dateTime() != null ? ctx.dateTime() : ctx.jdbcTemporalLiteralText());
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcDateLiteral(HqlParser.JdbcDateLiteralContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("d"));
-		builder.append(visit(ctx.date() != null ? ctx.date() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
-
-		return builder;
+		return renderJdbcTemporalLiteral(ctx.DATE_ESCAPE_START(),
+				ctx.date() != null ? ctx.date() : ctx.jdbcTemporalLiteralText());
 	}
 
 	@Override
 	public QueryTokenStream visitJdbcTimeLiteral(HqlParser.JdbcTimeLiteralContext ctx) {
+		return renderJdbcTemporalLiteral(ctx.TIME_ESCAPE_START(),
+				ctx.time() != null ? ctx.time() : ctx.jdbcTemporalLiteralText());
+	}
+
+	private QueryTokenStream renderJdbcTemporalLiteral(TerminalNode temporalNode, ParserRuleContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
-		builder.append(TOKEN_OPEN_BRACE);
-		builder.append(QueryTokens.token("t"));
-		builder.append(visit(ctx.time() != null ? ctx.time() : ctx.genericTemporalLiteralText()));
-		builder.append(QueryTokens.TOKEN_CLOSE_BRACE);
+		builder.append(QueryTokens.expression(temporalNode));
+		builder.appendInline(visit(ctx));
+		builder.append(TOKEN_CLOSE_BRACE);
 
 		return builder;
 	}
@@ -706,8 +699,31 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 		builder.appendInline(visit(ctx.syntacticDomainPath()));
 
+		if (ctx.pathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.pathAccessFragment()));
+		}
+
 		if (ctx.pathContinuation() != null) {
 			builder.appendInline(visit(ctx.pathContinuation()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitFunctionExpression(HqlParser.FunctionExpressionContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
+
+		builder.appendInline(visit(ctx.function()));
+
+		if (ctx.pathAccessFragment() != null) {
+			builder.appendInline(visit(ctx.pathAccessFragment()));
+		}
+
+		if (ctx.generalPathFragment() != null) {
+			builder.append(TOKEN_DOT);
+			builder.appendInline(visit(ctx.generalPathFragment()));
 		}
 
 		return builder;
@@ -794,66 +810,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 			return visit(ctx.mapKeyNavigablePath());
 		}
 
-		if (ctx.toOneFkReference() != null) {
-			return visit(ctx.toOneFkReference());
-		}
-
-		if (ctx.function() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.function()));
-
-			if (ctx.indexedPathAccessFragment() != null) {
-				builder.append(visit(ctx.indexedPathAccessFragment()));
-			}
-
-			if (ctx.slicedPathAccessFragment() != null) {
-				builder.append(visit(ctx.slicedPathAccessFragment()));
-			}
-
-			if (ctx.pathContinuation() != null) {
-				builder.append(visit(ctx.pathContinuation()));
-			}
-
-			return builder;
-		}
-
-		if (ctx.indexedPathAccessFragment() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.simplePath()));
-			builder.append(visit(ctx.indexedPathAccessFragment()));
-
-			return builder;
-		}
-
-		if (ctx.slicedPathAccessFragment() != null) {
-
-			QueryRendererBuilder builder = QueryRenderer.builder();
-
-			builder.append(visit(ctx.simplePath()));
-			builder.append(visit(ctx.slicedPathAccessFragment()));
-
-			return builder;
-		}
-
 		return QueryRenderer.empty();
-	}
-
-	@Override
-	public QueryTokenStream visitSlicedPathAccessFragment(HqlParser.SlicedPathAccessFragmentContext ctx) {
-
-		QueryRendererBuilder builder = QueryRenderer.builder();
-
-		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
-		builder.appendInline(visit(ctx.expression(0)));
-		builder.append(TOKEN_COLON);
-		builder.appendInline(visit(ctx.expression(1)));
-		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
-
-		return builder;
 	}
 
 	@Override
@@ -942,82 +899,42 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 
 	@Override
 	public QueryTokenStream visitCurrentDateFunction(HqlParser.CurrentDateFunctionContext ctx) {
-
-		if (ctx.CURRENT_DATE() != null) {
-			return QueryTokenStream.ofFunction(ctx.CURRENT_DATE(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.CURRENT_DATE(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitCurrentTimeFunction(HqlParser.CurrentTimeFunctionContext ctx) {
-
-		if (ctx.CURRENT_TIME() != null) {
-			return QueryTokenStream.ofFunction(ctx.CURRENT_TIME(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.CURRENT_TIME(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitCurrentTimestampFunction(HqlParser.CurrentTimestampFunctionContext ctx) {
-
-		if (ctx.CURRENT_TIMESTAMP() != null) {
-			return QueryTokenStream.ofFunction(ctx.CURRENT_TIMESTAMP(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.CURRENT_TIMESTAMP(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitInstantFunction(HqlParser.InstantFunctionContext ctx) {
-
-		if (ctx.CURRENT_INSTANT() != null) {
-			return QueryTokenStream.ofFunction(ctx.CURRENT_INSTANT(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.CURRENT_INSTANT(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitLocalDateTimeFunction(HqlParser.LocalDateTimeFunctionContext ctx) {
-
-		if (ctx.LOCAL_DATETIME() != null) {
-			return QueryTokenStream.ofFunction(ctx.LOCAL_DATETIME(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.LOCAL_DATETIME(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitOffsetDateTimeFunction(HqlParser.OffsetDateTimeFunctionContext ctx) {
-
-		if (ctx.OFFSET_DATETIME() != null) {
-			return QueryTokenStream.ofFunction(ctx.OFFSET_DATETIME(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.OFFSET_DATETIME(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitLocalDateFunction(HqlParser.LocalDateFunctionContext ctx) {
-
-		if (ctx.LOCAL_DATE() != null) {
-			return QueryTokenStream.ofFunction(ctx.LOCAL_DATE(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.LOCAL_DATE(), ctx.parens, ctx);
 	}
 
 	@Override
 	public QueryTokenStream visitLocalTimeFunction(HqlParser.LocalTimeFunctionContext ctx) {
-
-		if (ctx.LOCAL_TIME() != null) {
-			return QueryTokenStream.ofFunction(ctx.LOCAL_TIME(), QueryTokenStream.empty());
-		}
-
-		return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		return renderFunctionWithOurWithoutParentheses(ctx.LOCAL_TIME(), ctx.parens, ctx);
 	}
 
 	@Override
@@ -1644,18 +1561,28 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitIndexedPathAccessFragment(HqlParser.IndexedPathAccessFragmentContext ctx) {
+	public QueryTokenStream visitPathAccessFragment(HqlParser.PathAccessFragmentContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		builder.append(TOKEN_OPEN_SQUARE_BRACKET);
-		builder.appendInline(visit(ctx.expression()));
+		builder.appendInline(visit(ctx.expression(0)));
+
+		if (ctx.expression(1) != null) {
+			builder.append(TOKEN_COLON);
+			builder.appendInline(visit(ctx.expression(1)));
+		}
+
 		builder.append(TOKEN_CLOSE_SQUARE_BRACKET);
 
 		if (ctx.generalPathFragment() != null) {
 
 			builder.append(TOKEN_DOT);
 			builder.append(visit(ctx.generalPathFragment()));
+		}
+
+		if (ctx.pathContinuation() != null) {
+			builder.appendInline(visit(ctx.pathContinuation()));
 		}
 
 		return builder;
@@ -1703,6 +1630,18 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		if (ctx.pathContinuation() != null) {
 			builder.append(visit(ctx.pathContinuation()));
 		}
+
+		if (ctx.genericFunctionClauses() != null) {
+			builder.appendExpression(visit(ctx.genericFunctionClauses()));
+		}
+
+		return builder;
+	}
+
+	@Override
+	public QueryTokenStream visitGenericFunctionClauses(HqlParser.GenericFunctionClausesContext ctx) {
+
+		QueryRendererBuilder builder = QueryRenderer.builder();
 
 		if (ctx.nthSideClause() != null) {
 			builder.appendExpression(visit(ctx.nthSideClause()));
@@ -2045,7 +1984,7 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 	}
 
 	@Override
-	public QueryTokenStream visitExistsExpression(HqlParser.ExistsExpressionContext ctx) {
+	public QueryTokenStream visitExistsPredicate(HqlParser.ExistsPredicateContext ctx) {
 
 		QueryRendererBuilder builder = QueryRenderer.builder();
 
@@ -2117,6 +2056,20 @@ class HqlQueryRenderer extends HqlBaseVisitor<QueryTokenStream> {
 		}
 
 		return QueryTokenStream.concatExpressions(node, this::visit);
+	}
+
+	private QueryTokenStream renderFunctionWithOurWithoutParentheses(@Nullable TerminalNode node,
+			@Nullable Token parentheses, ParserRuleContext ctx) {
+
+		if (node == null) {
+			return QueryTokenStream.concatExpressions(ctx.children, this::visit);
+		}
+
+		if (parentheses == null) {
+			return QueryRenderer.builder().append(QueryTokens.token(node));
+		}
+
+		return QueryTokenStream.ofFunction(node, QueryTokenStream.empty());
 	}
 
 }

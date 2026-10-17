@@ -42,6 +42,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  * Support class for integration testing with Testcontainers
  *
  * @author Mark Paluch
+ * @author Oscar Fanchin
  */
 public class TestcontainerConfigSupport {
 
@@ -79,7 +80,7 @@ public class TestcontainerConfigSupport {
 		Properties properties = new Properties();
 		properties.setProperty("hibernate.hbm2ddl.auto", getSchemaAction());
 		properties.setProperty("hibernate.dialect", dialect.getCanonicalName());
-
+		properties.setProperty("hibernate.xml_mapping_enabled", Boolean.FALSE.toString());
 		factoryBean.setJpaProperties(properties);
 
 		return factoryBean;

@@ -15,54 +15,35 @@
  */
 package org.springframework.data.jpa.repository.query;
 
-import static org.assertj.core.api.Assertions.*;
-
-import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
-
-import org.springframework.data.jpa.repository.query.QueryRenderer.TokenRenderer;
 
 /**
- * Tests built around examples of JPQL found in the JPA spec
- * https://github.com/jakartaee/persistence/blob/master/spec/src/main/asciidoc/ch04-query-language.adoc<br/>
- * <br/>
- * IMPORTANT: Purely verifies the parser without any transformations.
+ * JPQL rendering tests. Shared cases live in {@link AbstractQueryRendererTests}, this class holds the queries that the
+ * strict JPQL grammar must reject.
  *
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jewoo Shin
  * @since 3.1
  */
-class JpqlQueryRendererTests extends JpqlQueryRendererTckTests {
+class JpqlQueryRendererTests extends AbstractQueryRendererTests {
 
-	private static final String SPEC_FAULT = "Disabled due to spec fault> ";
-
-	static Stream<Arguments> reservedWords() {
-		return Stream.of("abs", "exp", "any", "case", "else", "index", "time").map(Arguments::of);
-	}
-
-	/**
-	 * Parse the query using {@link JpqlParser} then run it through the query-preserving {@link JpqlQueryRenderer}.
-	 */
 	@Override
 	String parseWithoutChanges(String query) {
 
 		JpaQueryEnhancer.JpqlQueryParser parser = JpaQueryEnhancer.JpqlQueryParser.parseQuery(query);
 
-		return TokenRenderer.render(new JpqlQueryRenderer().visit(parser.getContext()));
+		return QueryRenderer.TokenRenderer.render(new JpqlQueryRenderer().visit(parser.getContext()));
 	}
 
 	/**
-	 * @see #fromClauseDowncastingExample3fixed()
+	 * The spec example uses double quotes where a string literal requires single quotes.
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "Use double-quotes when it should be using single-quotes for a string literal")
-	void fromClauseDowncastingExample3_SPEC_BUG() {
+	void rejectsStringLiteralInDoubleQuotes() {
 
-		assertQuery("""
+		assertBadGrammar("""
 				SELECT e FROM Employee e JOIN e.projects p
 				WHERE TREAT(p AS LargeProject).budget > 1000
 				    OR TREAT(p AS SmallProject).name LIKE 'Persist%'
@@ -70,53 +51,19 @@ class JpqlQueryRendererTests extends JpqlQueryRendererTckTests {
 				""");
 	}
 
+
 	/**
-	 * @see #functionInvocationExampleWithCorrection()
+	 * The spec dubs this query illegal. It may fail for a different reason than the one given there.
 	 */
 	@Test
-	@Disabled(SPEC_FAULT + "FUNCTION calls needs a comparator")
-	void functionInvocationExample_SPEC_BUG() {
+	void rejectsJoinAfterCollectionMemberDeclaration() {
 
-		assertQuery("""
-				SELECT c
-				FROM Customer c
-				WHERE FUNCTION('hasGoodCredit', c.balance, c.creditLimit)
+		assertBadGrammar("""
+				SELECT p.product_name
+				FROM Order o, IN(o.lineItems) l JOIN o.customer c
+				WHERE c.lastname = 'Smith' AND c.firstname = 'John'
+				ORDER BY o.quantity
 				""");
 	}
 
-	/**
-	 * NOTE: This query is specifically dubbed illegal in the spec. It may actually be failing for a different reason.
-	 */
-	@Test
-	void orderByClauseThatIsNotReflectedInTheSelectClauseButAlsoHasAnInClauseInTheFromClause() {
-
-		assertThatExceptionOfType(BadJpqlGrammarException.class).isThrownBy(() -> {
-			assertQuery("""
-					SELECT p.product_name
-					FROM Order o, IN(o.lineItems) l JOIN o.customer c
-					WHERE c.lastname = 'Smith' AND c.firstname = 'John'
-					ORDER BY o.quantity
-					""");
-		});
-	}
-
-	@Test
-	void currentTimeLiterals() {
-
-		assertQuery("SELECT e FROM Employee e WHERE CURRENT_DATE > CURRENT_TIME");
-		assertQuery("SELECT e FROM Employee e WHERE CURRENT_TIME > CURRENT_TIMESTAMP");
-		assertQuery("SELECT e.name, CURRENT_DATE FROM Employee e");
-		assertQuery("SELECT e.name, CURRENT_TIME FROM Employee e");
-		assertQuery("SELECT e.name, CURRENT_TIMESTAMP FROM Employee e");
-	}
-
-	@Test
-	void numericCasting() {
-		assertQuery("SELECT e FROM Employee e WHERE CAST(e.salary NUMERIC(10, 2)) > 0.0");
-	}
-
-	@Test
-	void betweenDates() {
-		assertQuery("SELECT e FROM Entity e WHERE e.embeddedId.date BETWEEN CURRENT_DATE AND CURRENT_TIME");
-	}
 }

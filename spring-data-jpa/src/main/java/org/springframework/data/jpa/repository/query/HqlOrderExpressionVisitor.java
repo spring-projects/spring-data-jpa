@@ -60,6 +60,8 @@ import org.springframework.util.StringUtils;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Arai
+ * @author OhKyu Chan
  * @since 4.0
  */
 @SuppressWarnings({ "unchecked", "rawtypes", "ConstantValue", "NullAway" })
@@ -142,7 +144,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitRelationalExpression(HqlParser.RelationalExpressionContext ctx) {
+	public Expression<?> visitBinaryExpressionPredicate(HqlParser.BinaryExpressionPredicateContext ctx) {
+
+		if (ctx.op == null) {
+			throw new UnsupportedOperationException(String.format(UNSUPPORTED_TEMPLATE, renderContext(ctx).trim()));
+		}
 
 		Expression<Comparable> left = visitRequired(ctx.expression(0));
 		Expression<Comparable> right = visitRequired(ctx.expression(1));
@@ -160,7 +166,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitBetweenExpression(HqlParser.BetweenExpressionContext ctx) {
+	public Expression<?> visitBetweenPredicate(HqlParser.BetweenPredicateContext ctx) {
 
 		Expression<Comparable> condition = visitRequired(ctx.expression(0));
 		Expression<Comparable> lower = visitRequired(ctx.expression(1));
@@ -215,7 +221,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitStringPatternMatching(HqlParser.StringPatternMatchingContext ctx) {
+	public Expression<?> visitLikePredicate(HqlParser.LikePredicateContext ctx) {
 
 		Expression<String> condition = visitRequired(ctx.expression(0));
 		Expression<String> match = visitRequired(ctx.expression(1));
@@ -290,7 +296,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
-	public Expression<?> visitInExpression(HqlParser.InExpressionContext ctx) {
+	public Expression<?> visitInPredicate(HqlParser.InPredicateContext ctx) {
 
 		if (ctx.inList().simplePath() != null) {
 			throw new UnsupportedOperationException(
@@ -613,7 +619,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		return cb
-				.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+				.literal(LocalTime.from(DATE_TIME_FORMATTER_TIME.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override
@@ -634,7 +640,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		}
 
 		return cb
-				.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+				.literal(LocalDate.from(DATE_TIME_FORMATTER_DATE.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override
@@ -644,7 +650,7 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 			return visitRequired(ctx.dateTime());
 		}
 
-		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.genericTemporalLiteralText()))));
+		return cb.literal(LocalDateTime.from(DATE_TIME.parse(unquoteTemporal(ctx.jdbcTemporalLiteralText()))));
 	}
 
 	@Override
@@ -714,11 +720,11 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 		Expression<Number> left = visitRequired(ctx.expression(0));
 		Expression<Number> right = visitRequired(ctx.expression(1));
 
-		if (ctx.op.getText().equals("*")) {
-			return cb.prod(left, right);
-		} else {
-			return cb.quot(left, right);
-		}
+		return switch (ctx.op.getText()) {
+			case "*" -> cb.prod(left, right);
+			case "%" -> cb.mod((Expression) left, (Expression) right);
+			default -> cb.quot(left, right);
+		};
 	}
 
 	@Override

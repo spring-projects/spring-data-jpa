@@ -26,6 +26,7 @@ import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.NativeQuery;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.util.ObjectUtils;
@@ -97,11 +98,11 @@ class NativeJpaQuery extends AbstractStringBasedJpaQuery {
 		String query = potentiallyRewriteQuery(declaredQuery.getQueryString(), sort, pageable);
 
 		if (!ObjectUtils.isEmpty(sqlResultSetMapping)) {
-			return em.createNativeQuery(query, sqlResultSetMapping);
+			return JpaAdapter.createNativeQuery(em, query, sqlResultSetMapping);
 		}
 
 		Class<?> type = getTypeToQueryFor(returnedType);
-		return type == null ? em.createNativeQuery(query) : em.createNativeQuery(query, type);
+		return type == null ? JpaAdapter.createNativeQuery(em, query) : JpaAdapter.createNativeQuery(em, query, type);
 	}
 
 	private @Nullable Class<?> getTypeToQueryFor(ReturnedType returnedType) {

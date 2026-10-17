@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.jspecify.annotations.Nullable;
 
@@ -23,12 +22,6 @@ import org.springframework.util.ObjectUtils;
  * @since 3.1
  */
 class JpaQueryTransformerSupport {
-
-	private static final Pattern PUNCTUATION_PATTERN = Pattern.compile(".*((?![._])[\\p{Punct}|\\s])");
-
-	private static final String UNSAFE_PROPERTY_REFERENCE = "Sort expression '%s' must only contain property references or "
-			+ "aliases used in the select clause; If you really want to use something other than that for sorting, please use "
-			+ "JpaSort.unsafe(…)";
 
 	private final Set<String> projectionAliases = new HashSet<>();
 

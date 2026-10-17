@@ -17,18 +17,37 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Unit tests for {@link JpaQueryEnhancer}.
  *
  * @author Mark Paluch
+ * @author Greg Taube
  */
 class JpaQueryEnhancerUnitTests {
+
+	@ParameterizedTest // GH-4326
+	@ValueSource(strings = { "SELECT some_function().foo FROM Employee e",
+			"SELECT e FROM Employee e WHERE FOO(x).bar RESPECT NULLS",
+			"SELECT e FROM Employee e WHERE FOO(x).bar IGNORE NULLS" })
+	void shouldParseFunctionPathsUsingSllPrediction(String query) {
+
+		AtomicInteger parserCreations = new AtomicInteger();
+
+		JpaQueryEnhancer.parse(query, HqlLexer::new, tokenStream -> {
+			parserCreations.incrementAndGet();
+			return new HqlParser(tokenStream);
+		}, HqlParser::start);
+
+		assertThat(parserCreations).hasValue(1);
+	}
 
 	@ParameterizedTest // GH-3997
 	@MethodSource("queryEnhancers")

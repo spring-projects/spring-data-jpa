@@ -35,13 +35,17 @@ import org.springframework.util.ObjectUtils;
  * @author Oscar Fanchin
  * @since 3.1
  */
-@SuppressWarnings("ConstantValue")
 class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 	private final JpaQueryTransformerSupport transformerSupport = new JpaQueryTransformerSupport();
 	private final Sort sort;
 	private final @Nullable String primaryFromAlias;
 	private final @Nullable DtoProjectionTransformerDelegate dtoDelegate;
+
+	/**
+	 * Whether the visitor is currently within a parenthesized (nested) query expression.
+	 */
+	private boolean nestedQueryExpression = false;
 
 	HqlSortedQueryTransformer(Sort sort, HibernateQueryInformation queryInformation,
 			@Nullable ReturnedType returnedType) {
@@ -70,10 +74,10 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 		for (int i = 0; i < orderedQueries.size(); i++) {
 
 			if (i != 0) {
-				builder.append(visit(ctx.setOperator(i - 1)));
+				builder.appendExpression(visit(ctx.setOperator(i - 1)));
 			}
 
-			if (i == orderedQueries.size() - 1) {
+			if (i == orderedQueries.size() - 1 && !nestedQueryExpression) {
 				builder.append(visitOrderedQuery(ctx.orderedQuery(i), this.sort));
 			} else {
 				builder.append(visitOrderedQuery(ctx.orderedQuery(i), Sort.unsorted()));
@@ -85,7 +89,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 	@Override
 	public QueryRendererBuilder visitOrderedQuery(HqlParser.OrderedQueryContext ctx) {
-		return visitOrderedQuery(ctx, this.sort);
+		return visitOrderedQuery(ctx, nestedQueryExpression ? Sort.unsorted() : this.sort);
 	}
 
 	@Override
@@ -168,9 +172,14 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 			builder.append(visit(ctx.query()));
 		} else if (ctx.queryExpression() != null) {
 
+			boolean nested = this.nestedQueryExpression;
+			this.nestedQueryExpression = true;
+
 			builder.append(TOKEN_OPEN_PAREN);
 			builder.appendInline(visit(ctx.queryExpression()));
 			builder.append(TOKEN_CLOSE_PAREN);
+
+			this.nestedQueryExpression = nested;
 		}
 
 		if (!isSubquery(ctx)) {

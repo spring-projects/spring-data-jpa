@@ -27,7 +27,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -48,6 +47,7 @@ import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.Procedure;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.jpa.repository.support.JpaEntityInformationSupport;
+import org.springframework.data.jpa.util.JpaDetector;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.repository.aot.generate.AotRepositoryClassBuilder;
 import org.springframework.data.repository.aot.generate.AotRepositoryConstructorBuilder;
@@ -60,6 +60,7 @@ import org.springframework.data.repository.core.support.RepositoryFactoryBeanSup
 import org.springframework.data.repository.query.ParametersSource;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.ReturnedType;
+import org.springframework.javapoet.AnnotationSpec;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.TypeName;
 import org.springframework.util.ClassUtils;
@@ -73,9 +74,17 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author JungKyun Ryu
  * @since 4.0
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
+
+	/**
+	 * Prevent warnings (that could potentially break the build, like for deprecations) from being emitted by the generated sources.
+	 */
+	private static final AnnotationSpec SUPPRESS_WARNINGS = AnnotationSpec.builder(SuppressWarnings.class)
+			.addMember("value", "{$S, $S, $S, $S}", "deprecation", "rawtypes", "removal", "unchecked").build();
+
 
 	private final AotRepositoryContext context;
 	private final EntityManagerFactory entityManagerFactory;
@@ -109,7 +118,15 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 	@Override
 	protected void customizeClass(AotRepositoryClassBuilder classBuilder) {
-		classBuilder.customize(builder -> builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class)));
+		classBuilder.customize(builder -> {
+			builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class));
+
+			// suppress compiler warnings for the many @Deprecated(since = "4.0", forRemoval = true) instances
+			if (JpaDetector.isJpa4Present()) {
+				builder.addAnnotation(SUPPRESS_WARNINGS);
+			}
+		});
+
 	}
 
 	@Override
@@ -119,8 +136,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		constructorBuilder.addParameter("entityManager", EntityManager.class, customizer -> {
 
-			customizer.bindToField().origin(
-					StringUtils.hasText(entityManagerFactoryRef)
+			customizer.bindToField()
+					.origin(StringUtils.hasText(entityManagerFactoryRef)
 							? new RuntimeBeanReference(entityManagerFactoryRef, EntityManager.class)
 							: new RuntimeBeanReference(EntityManager.class));
 		});
@@ -132,7 +149,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 		constructorBuilder.customize(builder -> {
 
 			if (queryEnhancerSelector.isPresent()) {
-				builder.addStatement("super(new T$(), context)", queryEnhancerSelector.get());
+				builder.addStatement("super(new $T(), context)", queryEnhancerSelector.get());
 			} else {
 				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
 			}

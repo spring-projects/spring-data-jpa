@@ -16,6 +16,7 @@
 package org.springframework.data.jpa.repository.query;
 
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -74,7 +75,7 @@ class AbstractStringBasedJpaQueryIntegrationTests {
 		jpaQuery.createJpaQuery(method.getRequiredDeclaredQuery(), Sort.unsorted(), null,
 				method.getResultProcessor().getReturnedType());
 
-		verify(mock, times(1)).createQuery(anyString());
+		verifyCreateQuery(verify(mock, times(1)), anyString());
 		verify(mock, times(0)).createQuery(anyString(), eq(Tuple.class));
 	}
 

@@ -29,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.jpa.repository.QueryRewriter;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.repository.query.QueryCreationException;
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
@@ -141,7 +142,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		Sort sort = accessor.getSort();
 		ResultProcessor processor = getQueryMethod().getResultProcessor().withDynamicProjection(accessor);
 		ReturnedType returnedType = getReturnedType(processor);
-		QueryProvider sortedQuery = getSortedQuery(sort, returnedType);
+		QueryProvider sortedQuery = getSortedQuery(sort, processor);
 		Query query = createJpaQuery(sortedQuery, sort, accessor.getPageable(), returnedType);
 
 		// it is ok to reuse the binding contained in the ParameterBinder, although we create a new query String because the
@@ -184,6 +185,12 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		return returnedType;
 	}
 
+	QueryProvider getSortedQuery(Sort sort, ResultProcessor processor) {
+
+		ReturnedType returnedType = getReturnedType(processor);
+		return getSortedQuery(sort, returnedType);
+	}
+
 	QueryProvider getSortedQuery(Sort sort, ReturnedType returnedType) {
 		return querySortRewriter.getSorted(query, sort, returnedType);
 	}
@@ -207,7 +214,7 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryStringToUse = potentiallyRewriteQuery(queryString, accessor.getSort(), accessor.getPageable());
 
 		Query query = getQueryMethod().isNativeQuery() //
-				? em.createNativeQuery(queryStringToUse) //
+				? JpaAdapter.createNativeQuery(em, queryStringToUse) //
 				: em.createQuery(queryStringToUse, Long.class);
 
 		countParameterBinder.get().bind(new QueryParameterSetter.BindableQuery(query), accessor,
@@ -241,13 +248,13 @@ abstract class AbstractStringBasedJpaQuery extends AbstractJpaQuery {
 		String queryToUse = potentiallyRewriteQuery(query.getQueryString(), sort, pageable);
 
 		if (this.query.hasConstructorExpression() || this.query.isDefaultProjection()) {
-			return em.createQuery(queryToUse);
+			return JpaAdapter.createQuery(em, queryToUse);
 		}
 
 		Class<?> typeToRead = getTypeToRead(returnedType);
 
 		return typeToRead == null //
-				? em.createQuery(queryToUse) //
+				? JpaAdapter.createQuery(em, queryToUse) //
 				: em.createQuery(queryToUse, typeToRead);
 	}
 

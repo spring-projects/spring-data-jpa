@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.query;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.data.jpa.support.EntityManagerTestUtils.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -24,6 +25,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +84,7 @@ class NamedQueryUnitTests {
 		when(em.getMetamodel()).thenReturn(metamodel);
 		when(em.getEntityManagerFactory()).thenReturn(emf);
 		when(em.getDelegate()).thenReturn(em);
-		when(emf.createEntityManager()).thenReturn(em);
+		when(emf.createEntityManager(Map.of())).thenReturn(em);
 	}
 
 	@Test
@@ -91,7 +93,8 @@ class NamedQueryUnitTests {
 		when(extractor.canExtractQuery()).thenReturn(false);
 		JpaQueryMethod queryMethod = new JpaQueryMethod(method, metadata, projectionFactory, extractor);
 
-		when(em.createNamedQuery(queryMethod.getNamedCountQueryName())).thenThrow(new IllegalArgumentException());
+		whenCreateNamedQuery(em, queryMethod.getNamedCountQueryName())
+				.thenThrow(new IllegalArgumentException());
 		assertThatExceptionOfType(QueryCreationException.class)
 				.isThrownBy(() -> NamedQuery.lookupFrom(queryMethod, em, CONFIG));
 	}

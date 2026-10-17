@@ -19,8 +19,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.StoredProcedureQuery;
 import jakarta.persistence.Tuple;
+import jakarta.persistence.TypedQuery;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -49,12 +48,9 @@ import org.springframework.data.repository.core.support.SurroundingTransactionDe
 import org.springframework.data.repository.query.ResultProcessor;
 import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.support.PageableExecutionUtils;
-import org.springframework.data.util.CloseableIterator;
-import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * Set of classes to contain query execution strategies. Depending (mostly) on the return type of a
@@ -69,6 +65,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Jens Schauder
  * @author Gabriel Basilio
  * @author Greg Turnquist
+ * @author Oscar Fanchin
  */
 public abstract class JpaQueryExecution {
 
@@ -493,9 +490,12 @@ public abstract class JpaQueryExecution {
 				return query.extractOutputValue(procedure);
 			} finally {
 
-				if (procedure instanceof AutoCloseable ac) {
+				// StoredProcedureQuery extends AutoCloseable in JPA 4, but not in JPA 3.2. Keep the plain instanceof
+				// check: with JPA 4 on the compile classpath AJC rejects a pattern whose type the expression already
+				// implements ("Expression type cannot be a subtype of the Pattern type").
+				if (procedure instanceof AutoCloseable) {
 					try {
-						ac.close();
+						((AutoCloseable) procedure).close();
 					} catch (Exception ignored) {}
 				}
 			}
@@ -512,9 +512,8 @@ public abstract class JpaQueryExecution {
 
 		private static final String NO_SURROUNDING_TRANSACTION = "You're trying to execute a streaming query method without a surrounding transaction that keeps the connection open so that the Stream can actually be consumed; Make sure the code consuming the stream uses @Transactional or any other way of declaring a (read-only) transaction";
 
-		private static final @Nullable Method streamMethod = ReflectionUtils.findMethod(Query.class, "getResultStream");
-
 		@Override
+		@SuppressWarnings("removal")
 		protected @Nullable Object doExecute(AbstractJpaQuery query, JpaParametersParameterAccessor accessor) {
 
 			if (!SurroundingTransactionDetectorMethodInterceptor.INSTANCE.isSurroundingTransactionActive()) {
@@ -523,17 +522,11 @@ public abstract class JpaQueryExecution {
 
 			Query jpaQuery = query.createQuery(accessor);
 
-			// JPA 2.2 on the classpath
-			if (streamMethod != null) {
-				return ReflectionUtils.invokeMethod(streamMethod, jpaQuery);
-			}
-
-			// Fall back to legacy stream execution
-			PersistenceProvider persistenceProvider = PersistenceProvider.fromEntityManager(query.getEntityManager());
-			CloseableIterator<Object> iter = persistenceProvider.executeQueryWithResultStream(jpaQuery);
-
-			return StreamUtils.createStreamFromIterator(iter);
+			// JPA 4 declares Query#getResultStream as deprecated, so we now prefer the non deprecated TypedQuery variant
+			// where possible
+			return jpaQuery instanceof TypedQuery<?> typedQuery ? typedQuery.getResultStream() : jpaQuery.getResultStream();
 		}
+
 	}
 
 }

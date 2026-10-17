@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -20,6 +19,7 @@
 
 	<properties>
 		<java-module-name>spring.data.jpa</java-module-name>
+		<project.root>${basedir}/..</project.root>
 	</properties>
 
 	<dependencies>
@@ -355,14 +355,14 @@
 							</includes>
 							<excludes>
 								<exclude>**/*UnitTests.java</exclude>
-								<exclude>**/EclipseLink*</exclude>
+								<exclude>**/Eclipse*ink*</exclude>
 								<exclude>**/MySql*</exclude>
 								<exclude>**/Postgres*</exclude>
 								<exclude>**/Oracle*</exclude>
 							</excludes>
 							<argLine>
 								-Xmx4G
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>
@@ -373,13 +373,14 @@
 						</goals>
 						<phase>test</phase>
 						<configuration>
+							<skip>${skip-eclipselink-tests}</skip>
 							<includes>
-								<include>**/EclipseLink*Tests.java</include>
+								<include>**/Eclipse*ink*Tests.java</include>
 							</includes>
 							<argLine>
 								-Xmx4G
 								-javaagent:${settings.localRepository}/org/eclipse/persistence/org.eclipse.persistence.jpa/${eclipselink}/org.eclipse.persistence.jpa-${eclipselink}.jar
-								-javaagent:${settings.localRepository}/org/springframework/spring-instrument/${spring}/spring-instrument-${spring}.jar
+								${spring-instrument-agent}
 							</argLine>
 						</configuration>
 					</execution>
@@ -478,6 +479,8 @@
 					<parameters>true</parameters>
 					<verbose>true</verbose>
 					<showWeaveInfo>true</showWeaveInfo>
+					<!-- Keep AJC's argument file out of target/classes so it is not packaged. -->
+					<argumentFileName>../builddef.lst</argumentFileName>
 					<aspectLibraries>
 						<aspectLibrary>
 							<groupId>org.springframework</groupId>

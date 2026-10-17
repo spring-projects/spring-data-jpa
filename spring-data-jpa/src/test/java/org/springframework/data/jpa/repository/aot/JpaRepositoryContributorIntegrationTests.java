@@ -41,6 +41,8 @@ import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
 import org.springframework.data.jpa.repository.EntityGraphHint;
+import org.springframework.data.jpa.util.DisabledOnHibernate;
+import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Oscar Fanchin
+ * @author JungKyun Ryu
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -70,8 +74,8 @@ class JpaRepositoryContributorIntegrationTests {
 	@BeforeEach
 	void beforeEach() {
 
-		em.createQuery("DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
-		em.createQuery("DELETE FROM %s".formatted(Role.class.getName())).executeUpdate();
+		JpaAdapter.createQuery(em, "DELETE FROM %s".formatted(User.class.getName())).executeUpdate();
+		JpaAdapter.createQuery(em, "DELETE FROM %s".formatted(Role.class.getName())).executeUpdate();
 
 		smuggler = em.merge(new Role("Smuggler"));
 		jedi = em.merge(new Role("Jedi"));
@@ -406,6 +410,22 @@ class JpaRepositoryContributorIntegrationTests {
 				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
 	}
 
+	@Test // GH-4387
+	void testDerivedQueryReturningStreamableWrapperOfProjections() {
+
+		UserRepository.UserDtoProjections users = fragment.findUserProjectionWrapperByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
+	@Test // GH-4387
+	void testDerivedQueryReturningArrayOfProjections() {
+
+		UserDtoProjection[] users = fragment.findUserProjectionArrayByLastnameStartingWith("S");
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress).containsExactlyInAnyOrder("han@smuggler.net",
+				"kylo@new-empire.com", "luke@jedi.org", "vader@empire.com");
+	}
+
 	@Test // GH-3830
 	void testDerivedQueryReturningPageOfProjections() {
 
@@ -431,12 +451,19 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(result.getOne()).isEqualTo(kylo.getEmailAddress());
 	}
 
-	@Test // GH-3830
+	@Test // GH-3830, GH-4197
 	void shouldApplyNamedDto() {
 
 		// named queries cannot be rewritten
-		assertThatExceptionOfType(QueryTypeMismatchException.class)
-				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress()));
+		assertThatExceptionOfType(RuntimeException.class)
+				.isThrownBy(() -> fragment.findNamedDtoEmailAddress(kylo.getEmailAddress())) //
+				.satisfies(exception -> {
+
+					// Hibernate 8.0.0.Beta1 throws QueryTypeMismatchException
+					// Hinbernate 8.0 SNAPSHOT throws IllegalArgumentException (JPA compliant)
+					Throwable yeahWhatever = exception instanceof QueryTypeMismatchException ? exception : exception.getCause();
+					assertThat(yeahWhatever).isInstanceOf(QueryTypeMismatchException.class);
+				});
 	}
 
 	@Test // GH-3830
@@ -553,8 +580,8 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(result).isNotNull().extracting(User::getEmailAddress).isEqualTo("yoda@jedi.org");
 
-		Object yodaShouldBeGone = em
-				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
+		Object yodaShouldBeGone = JpaAdapter
+				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
 	}
@@ -565,8 +592,8 @@ class JpaRepositoryContributorIntegrationTests {
 		User user = fragment.deleteByEmailAddressAndIdIsNotNull("yoda@jedi.org");
 		assertThat(user).isNotNull().extracting(User::getEmailAddress).isEqualTo("yoda@jedi.org");
 
-		Object yodaShouldBeGone = em
-				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
+		Object yodaShouldBeGone = JpaAdapter
+				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
 	}
@@ -578,8 +605,8 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(count).isEqualTo(1);
 
-		Object yodaShouldBeGone = em
-				.createQuery("SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
+		Object yodaShouldBeGone = JpaAdapter
+				.createQuery(em, "SELECT u FROM %s u WHERE u.emailAddress = 'yoda@jedi.org'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
 	}
@@ -592,13 +619,28 @@ class JpaRepositoryContributorIntegrationTests {
 		assertThat(users).hasSize(1);
 	}
 
+	@Test // GH-4387
+	void shouldReturnSetFromDerivedDelete() {
+
+		Set<User> users = fragment.deleteByLastname("n/a");
+
+		assertThat(users).extracting(User::getEmailAddress)
+				.containsExactlyInAnyOrder("chewie@smuggler.net", "yoda@jedi.org");
+
+		em.flush();
+		em.clear();
+
+		assertThat(em.find(User.class, chewbacca.getId())).isNull();
+		assertThat(em.find(User.class, yoda.getId())).isNull();
+		assertThat(em.find(User.class, leia.getId())).isNotNull();
+	}
+
 	@Test // GH-3830
 	void shouldOmitAnnotatedDeleteReturningDomainType() {
 
 		assertThatException().isThrownBy(() -> fragment.deleteAnnotatedQueryByEmailAddress("foo"))
 				.withRootCauseInstanceOf(NoSuchMethodException.class);
 	}
-
 
 	@Test // GH-3830
 	void shouldApplyModifying() {
@@ -607,8 +649,8 @@ class JpaRepositoryContributorIntegrationTests {
 
 		assertThat(affected).isEqualTo(7);
 
-		Object yodaShouldBeGone = em
-				.createQuery("SELECT u FROM %s u WHERE u.lastname = 'n/a'".formatted(User.class.getName()))
+		Object yodaShouldBeGone = JpaAdapter
+				.createQuery(em, "SELECT u FROM %s u WHERE u.lastname = 'n/a'".formatted(User.class.getName()))
 				.getSingleResultOrNull();
 		assertThat(yodaShouldBeGone).isNull();
 	}
@@ -658,9 +700,17 @@ class JpaRepositoryContributorIntegrationTests {
 	}
 
 	@Test // GH-3830
+	@DisabledOnHibernate(value = "8", disabledReason = "Hibernate 8 normalizes enum query hint values to uppercase")
 	void shouldApplyQueryHints() {
 		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
 				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.foo");
+	}
+
+	@Test // GH-3830, GH-4197
+	@DisabledOnHibernate(value = "7", disabledReason = "Hibernate 7 retains the original enum query hint value")
+	void shouldApplyQueryHintsOnHibernate8() {
+		assertThatIllegalArgumentException().isThrownBy(() -> fragment.findHintedByLastname("Skywalker"))
+				.withMessageContaining("No enum constant jakarta.persistence.CacheStoreMode.FOO");
 	}
 
 	@Test // GH-3830, GH-4097
