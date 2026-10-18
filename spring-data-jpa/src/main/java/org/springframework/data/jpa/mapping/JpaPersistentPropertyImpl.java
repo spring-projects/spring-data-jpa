@@ -60,7 +60,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 		Set<Class<? extends Annotation>> annotations;
 
-        ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class, OneToOne.class, ManyToMany.class, ManyToOne.class);
+		ASSOCIATION_ANNOTATIONS = Set.of(OneToMany.class, OneToOne.class, ManyToMany.class, ManyToOne.class);
 
 		annotations = new HashSet<>();
 		annotations.add(Id.class);

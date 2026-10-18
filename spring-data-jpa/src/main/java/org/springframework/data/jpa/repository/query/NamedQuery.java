@@ -159,7 +159,6 @@ final class NamedQuery extends AbstractJpaQuery {
 	 *
 	 * @param method must not be {@literal null}.
 	 * @param em must not be {@literal null}.
-	 * @param selector must not be {@literal null}.
 	 * @param queryConfiguration must not be {@literal null}.
 	 */
 	public static @Nullable RepositoryQuery lookupFrom(JpaQueryMethod method, EntityManager em,
