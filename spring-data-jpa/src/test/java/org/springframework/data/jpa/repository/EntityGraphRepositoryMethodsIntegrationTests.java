@@ -217,7 +217,7 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 
 		SoftAssertions softly = new SoftAssertions();
 		softly.assertThat(util.isLoaded(user, "colleagues")) //
-				.describedAs("colleagues on root should have been fetched by named 'User.colleagues' subgraph  declaration") //
+				.describedAs("colleagues on root should have been fetched by named 'User.colleagues' subgraph declaration") //
 				.isTrue();
 
 		for (User colleague : user.getColleagues()) {
