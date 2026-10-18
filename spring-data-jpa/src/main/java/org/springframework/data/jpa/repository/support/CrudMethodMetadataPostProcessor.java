@@ -64,7 +64,7 @@ class CrudMethodMetadataPostProcessor implements RepositoryProxyPostProcessor, B
 
 	@Override
 	public void setBeanClassLoader(@Nullable ClassLoader classLoader) {
-		this.classLoader =  classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader();
+		this.classLoader = classLoader != null ? classLoader : ClassUtils.getDefaultClassLoader();
 
 	}
 

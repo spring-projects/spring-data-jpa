@@ -196,7 +196,7 @@ class SimpleJpaRepositoryUnitTests {
 		verify(em).persist(user);
 	}
 
-    @Test // DATAJPA-1535
+	@Test // DATAJPA-1535
 	void doNothingWhenNewInstanceGetsDeleted() {
 
 		User newUser = new User();
