@@ -18,7 +18,7 @@ runs:
           MAVEN_LOGGING_OPTS+=(--no-transfer-progress)
         fi
 
-        echo "RELEASE_TRAIN_MVN=./mvnw --batch-mode ${MAVEN_LOGGING_OPTS[*]} --settings release-train-settings.xml clean deploy -DaltDeploymentRepository=release-train::file://$(pwd)/deployment-repository -DskipTests -Dgpg.skip" >> "${GITHUB_ENV}"
+        echo "RELEASE_TRAIN_MVN=./mvnw --batch-mode ${MAVEN_LOGGING_OPTS[*]} --settings release-train-settings.xml clean deploy -DaltDeploymentRepository=release-train::file://$(pwd)/deployment-repository -DskipTests -Dgpg.skip -Ddevelocity.cache.remote.enabled=false" >> "${GITHUB_ENV}"
     - name: Build Release
       shell: bash
       run: ${RELEASE_TRAIN_MVN} --activate-profiles releaseTrain,release,ci
