@@ -744,6 +744,96 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	void derivedQueryWithNullableParameter() {
+
+		flushTestUsers();
+		User saved = repository.save(new User("Foo", null, "email@address.com"));
+
+		assertThat(repository.findUserByLastname(null)).containsExactly(saved);
+	}
+
+	@Test
+	void pagedDerivedQueryWithNullableParameterAppliesNullComparisonToCountQuery() {
+
+		flushTestUsers();
+		repository.save(new User("Foo", null, "foo@address.com"));
+		repository.save(new User("Bar", null, "bar@address.com"));
+
+		// page size equals content size, so the count query must be executed
+		Page<User> page = repository.findPageByLastname(null, PageRequest.of(0, 1));
+
+		assertThat(page.getContent()).hasSize(1);
+		assertThat(page.getTotalElements()).isEqualTo(2);
+	}
+
+	@Test
+	void derivedIgnoreCaseQueryWithNullableParameter() {
+
+		flushTestUsers();
+		User nullLastname = repository.save(new User("Foo", null, "foo@address.com"));
+
+		assertThat(repository.findByLastnameIgnoreCase(null)).containsExactly(nullLastname);
+		assertThat(repository.findByLastnameIgnoreCase("gierke")).containsExactly(firstUser);
+	}
+
+	@Test
+	void derivedQueryWithMultipleNullableParameters() {
+
+		flushTestUsers();
+		User noFirstname = repository.save(new User(null, "Gierke", "a@address.com"));
+		User noLastname = repository.save(new User("Oliver", null, "b@address.com"));
+		User neither = repository.save(new User(null, null, "c@address.com"));
+
+		assertThat(repository.findByFirstnameAndLastname(null, null)).containsExactly(neither);
+		assertThat(repository.findByFirstnameAndLastname(null, "Gierke")).containsExactly(noFirstname);
+		assertThat(repository.findByFirstnameAndLastname("Oliver", null)).containsExactly(noLastname);
+		assertThat(repository.findByFirstnameAndLastname("Oliver", "Gierke")).containsExactly(firstUser);
+	}
+
+	@Test
+	void derivedQueryWithNullableParametersUsingParamAnnotation() {
+
+		flushTestUsers();
+		User noFirstname = repository.save(new User(null, "Gierke", "a@address.com"));
+		User noLastname = repository.save(new User("Oliver", null, "b@address.com"));
+
+		assertThat(repository.readByFirstnameAndLastname(null, "Gierke")).containsExactly(noFirstname);
+		assertThat(repository.readByFirstnameAndLastname("Oliver", null)).containsExactly(noLastname);
+		assertThat(repository.readByFirstnameAndLastname("Oliver", "Gierke")).containsExactly(firstUser);
+	}
+
+	@Test
+	void pagedDerivedQueryWithMultipleNullableParametersAppliesNullComparisonToCountQuery() {
+
+		flushTestUsers();
+		repository.save(new User(null, null, "a@address.com"));
+		repository.save(new User(null, null, "b@address.com"));
+		repository.save(new User(null, "Gierke", "c@address.com"));
+
+		Page<User> page = repository.findPageByFirstnameAndLastname(null, null, PageRequest.of(0, 1));
+
+		assertThat(page.getContent()).hasSize(1);
+		assertThat(page.getTotalElements()).isEqualTo(2);
+
+		page = repository.findPageByFirstnameAndLastname(null, "Gierke", PageRequest.of(0, 1));
+
+		assertThat(page.getContent()).hasSize(1);
+		assertThat(page.getTotalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void annotatedPagedQueryWithNullParameterDoesNotMatchNullValues() {
+
+		flushTestUsers();
+		repository.save(new User("Foo", null, "foo@address.com"));
+
+		Page<User> page = repository.findPageByLastnameQueryParameter(null, PageRequest.of(0, 1));
+
+		assertThat(page.getContent()).isEmpty();
+		assertThat(page.getTotalElements()).isZero();
+	}
+
+	@Test
 	void findsSortedByLastname() {
 
 		flushTestUsers();
@@ -3323,7 +3413,8 @@ class UserRepositoryTests {
 	}
 
 	@Test // GH-3476
-	void derivedFinderUsingUnpagedPageableWithSort() {
+	void
+	derivedFinderUsingUnpagedPageableWithSort() {
 
 		flushTestUsers();
 

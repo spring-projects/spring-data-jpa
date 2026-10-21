@@ -21,13 +21,15 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.LongSupplier;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.MethodParameter;
+import org.springframework.core.Nullness;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -221,7 +223,8 @@ class JpaCodeBlocks {
 			}
 
 			builder.add(createQuery(false, queryVariableName, queryStringVariableName, queryRewriterName, queries.result(),
-					this.sqlResultSetMapping, pageable, this.lockModeType, this.queryHints, this.entityGraph, this.queryReturnType));
+					this.sqlResultSetMapping, pageable, this.lockModeType, this.queryHints, this.entityGraph,
+					this.queryReturnType));
 
 			builder.add(applyLimits(queries.result().isExists(), pageable));
 
@@ -232,8 +235,8 @@ class JpaCodeBlocks {
 				boolean queryHints = this.queryHints.isPresent() && this.queryHints.getBoolean("forCounting");
 
 				builder.add(createQuery(true, countQueryVariableName, countQueryStringNameVariableName, queryRewriterName,
-						queries.count(), null, pageable, lockModeType, queryHints ? this.queryHints : MergedAnnotation.missing(), null,
-						Long.class));
+						queries.count(), null, pageable, lockModeType, queryHints ? this.queryHints : MergedAnnotation.missing(),
+						null, Long.class));
 				builder.addStatement("return getCount($L)", countQueryVariableName);
 
 				// end control flow does not work well with lambdas
@@ -247,7 +250,34 @@ class JpaCodeBlocks {
 		private CodeBlock buildQueryString(StringAotQuery sq, String queryStringVariableName) {
 
 			CodeBlock.Builder builder = CodeBlock.builder();
-			builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
+
+			List<Object> nullableArguments = new ArrayList<>();
+			if (sq.isDerived()) {
+				for (ParameterBinding binding : sq.getParameterBindings()) {
+
+					String nullableParameter = getNullableParameterName(binding);
+					if (nullableParameter != null) {
+						if (!binding.getIdentifier().hasName()) {
+							throw new IllegalStateException(
+								"Nullable parameter '%s' is bound by position. Null handling requires named bindings; ordinal parameters cannot be removed without renumbering."
+									.formatted(binding.getName()));
+						}
+						nullableArguments.add(getPlaceholder(binding.getIdentifier()));
+						nullableArguments.add(nullableParameter);
+					}
+				}
+			}
+
+			if (nullableArguments.isEmpty()) {
+				builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
+			} else {
+
+				String arguments = String.join(", ", Collections.nCopies(nullableArguments.size() / 2, "$S, $L"));
+				List<Object> args = new ArrayList<>(List.of(String.class, queryStringVariableName, sq.getQueryString()));
+				args.addAll(nullableArguments);
+				builder.addStatement("$T $L = conditionalNullComparison($S, " + arguments + ")", args.toArray());
+			}
+
 			return builder.build();
 		}
 
@@ -368,6 +398,13 @@ class JpaCodeBlocks {
 					}
 				}
 
+				String nullableParameter = queryStringNameVariableName != null && query instanceof StringAotQuery
+						&& query.isDerived() ? getNullableParameterName(binding) : null;
+				if (nullableParameter != null) {
+					builder.beginControlFlow("if ($1L != null || usesParameter($2L, $3S))", nullableParameter,
+							queryStringNameVariableName, getPlaceholder(binding.getIdentifier()));
+				}
+
 				if (prepare instanceof String prepared && !prepared.equals("s")) {
 
 					String format = prepared.replaceAll("%", "%%").replace("s", "%s");
@@ -376,6 +413,10 @@ class JpaCodeBlocks {
 				} else {
 					builder.addStatement("$L.setParameter(%s, $L)".formatted(valueFormat), queryVariableName, parameterIdentifier,
 							parameter);
+				}
+
+				if (nullableParameter != null) {
+					builder.endControlFlow();
 				}
 			}
 
@@ -482,8 +523,7 @@ class JpaCodeBlocks {
 			if (StringUtils.hasText(sqlResultSetMapping)) {
 
 				builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $S)", Query.class, queryVariableName,
-						JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse,
-						sqlResultSetMapping);
+						JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse, sqlResultSetMapping);
 
 				return builder.build();
 			}
@@ -492,9 +532,8 @@ class JpaCodeBlocks {
 
 				if (queryReturnType != null) {
 
-					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class,
-							queryVariableName, JpaAdapter.class, context.fieldNameOf(EntityManager.class),
-							queryStringNameToUse, queryReturnType);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class, queryVariableName,
+							JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse, queryReturnType);
 				} else {
 					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L)", Query.class, queryVariableName,
 							JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
@@ -512,6 +551,25 @@ class JpaCodeBlocks {
 			}
 
 			return builder.build();
+		}
+
+		private @Nullable String getNullableParameterName(ParameterBinding binding) {
+
+			ParameterBinding.ParameterOrigin origin = binding.getOrigin();
+			if (!origin.isMethodArgument() || !(getParameter(origin) instanceof String parameterName)) {
+				return null;
+			}
+
+			MethodParameter methodParameter = context.getMethodParameter(parameterName);
+			if (methodParameter == null || Nullness.forMethodParameter(methodParameter) != Nullness.NULLABLE) {
+				return null;
+			}
+
+			return parameterName;
+		}
+
+		private String getPlaceholder(ParameterBinding.BindingIdentifier identifier) {
+			return identifier.hasName() ? ":" + identifier.getName() : "?" + identifier.getPosition();
 		}
 
 		private Object getParameterName(ParameterBinding.BindingIdentifier identifier) {

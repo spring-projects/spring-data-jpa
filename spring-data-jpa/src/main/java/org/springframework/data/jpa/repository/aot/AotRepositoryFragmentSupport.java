@@ -25,10 +25,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -51,6 +51,8 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.ConcurrentLruCache;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Support class for JPA AOT repository fragments.
@@ -101,6 +103,39 @@ public class AotRepositoryFragmentSupport {
 		this.expressions = Lazy.of(() -> new ConcurrentLruCache<>(32, valueExpressions::parse));
 		this.contextProviders = Lazy.of(() -> new ConcurrentLruCache<>(32, it -> valueExpressions
 				.createValueContextProvider(new JpaParameters(ParametersSource.of(repositoryMetadata, it)))));
+	}
+
+	/**
+	 * Replace {@code <path> = <placeholder>} and {@code <path> <> <placeholder>} with {@code IS [NOT] NULL} for
+	 * {@literal null} value placeholder.
+	 *
+	 * @param query the query string.
+	 * @param placeholdersAndValues alternating parameter placeholder name and placeholder value.
+	 * @return the potentially rewritten query string.
+	 * @throws IllegalArgumentException if the number of placeholders and values is not even.
+	 */
+	protected String conditionalNullComparison(String query, @Nullable Object... placeholdersAndValues) {
+
+		if (placeholdersAndValues.length % 2 != 0) {
+			throw new IllegalArgumentException("Placeholders and values must be given in pairs");
+		}
+
+		String targetQuery = query;
+		for (int i = 0; i < placeholdersAndValues.length; i += 2) {
+
+			if (placeholdersAndValues[i + 1] != null) {
+				continue;
+			}
+			targetQuery = replacePlacolderWithNullClause(targetQuery, ObjectUtils.nullSafeToString(placeholdersAndValues[i]));
+		}
+		return targetQuery;
+	}
+
+	/**
+	 * @return {@code true} if the {@code placeholder} occurs in the query string.
+	 */
+	protected boolean usesParameter(String sql, String placeholder) {
+		return Pattern.compile(Pattern.quote(placeholder) + "(?!\\w)").matcher(sql).find();
 	}
 
 	/**
@@ -252,6 +287,16 @@ public class AotRepositoryFragmentSupport {
 		}
 
 		throw new UnsupportedOperationException("Cannot create projection for %s".formatted(result));
+	}
+
+	private static String replacePlacolderWithNullClause(String query, String placeholder) {
+
+		String quoted = Pattern.quote(placeholder);
+		String pattern = "(\\w+\\([\\w.]+\\)|[\\w.]+)\\s*(=|<>|!=)\\s*(?:\\w+\\(\\s*" + quoted + "\\s*\\)|" + quoted
+				+ "(?!\\w))";
+
+		return Pattern.compile(pattern).matcher(query)
+				.replaceAll(it -> "=".equals(it.group(2)) ? "$1 IS NULL" : "$1 IS NOT NULL");
 	}
 
 	private record DefaultQueryRewriteInformation(Sort sort,
