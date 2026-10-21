@@ -30,6 +30,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -61,6 +62,7 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Arnaud Lecointre
+ * @author Sharang Gupta
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -184,7 +186,9 @@ public class QueryByExamplePredicateBuilder {
 				Expression<String> expression = from.get(attribute);
 				if (exampleAccessor.isIgnoreCaseForPath(currentPath)) {
 					expression = cb.lower(expression);
-					attributeValue = attributeValue.toString().toLowerCase();
+					// Locale.ROOT: the value is compared with the database's LOWER(), which never applies the JVM's
+					// default locale (under tr-TR "Ismail" would otherwise become "ısmail" with a dotless i).
+					attributeValue = attributeValue.toString().toLowerCase(Locale.ROOT);
 				}
 
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {

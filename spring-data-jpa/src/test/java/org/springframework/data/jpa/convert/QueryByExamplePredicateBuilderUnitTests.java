@@ -37,6 +37,7 @@ import jakarta.persistence.metamodel.Type;
 import java.lang.reflect.Member;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +65,7 @@ import org.springframework.util.ObjectUtils;
  * @author Oliver Gierke
  * @author Jens Schauder
  * @author Arnaud Lecointre
+ * @author Sharang Gupta
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -276,6 +278,29 @@ class QueryByExamplePredicateBuilderUnitTests {
 		QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
 
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
+	}
+
+	@Test
+	void ignoreCaseLowercasesProbeValueRegardlessOfDefaultLocale() {
+
+		doReturn(expressionMock).when(cb).lower(any(Expression.class));
+
+		Person person = new Person();
+		person.firstname = "Ismail";
+
+		Example<Person> example = of(person, ExampleMatcher.matching().withIgnoreCase());
+
+		Locale defaultLocale = Locale.getDefault();
+		Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+
+		try {
+			QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
+		} finally {
+			Locale.setDefault(defaultLocale);
+		}
+
+		// the database's LOWER() yields "ismail"; the bound value must match it even under a Turkish default locale
+		verify(cb, times(1)).equal(eq(expressionMock), eq("ismail"));
 	}
 
 	@ParameterizedTest(name = "Matching {0} on association should join using JoinType.{1} ") // GH-3763
