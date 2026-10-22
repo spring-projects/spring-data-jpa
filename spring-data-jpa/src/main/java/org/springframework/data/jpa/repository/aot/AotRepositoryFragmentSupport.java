@@ -65,6 +65,8 @@ public class AotRepositoryFragmentSupport {
 
 	private static final ConversionService CONVERSION_SERVICE;
 
+	private static final String IDENTIFIER_PART = "\\p{javaJavaIdentifierPart}";
+
 	static {
 
 		ConfigurableConversionService conversionService = new DefaultConversionService();
@@ -136,7 +138,7 @@ public class AotRepositoryFragmentSupport {
 	 * @return {@code true} if the {@code placeholder} occurs in the query string.
 	 */
 	protected boolean usesParameter(String sql, String placeholder) {
-		return Pattern.compile(Pattern.quote(placeholder) + "(?!\\w)", Pattern.UNICODE_CHARACTER_CLASS).matcher(sql).find();
+		return Pattern.compile(Pattern.quote(placeholder) + "(?!" + IDENTIFIER_PART + ")").matcher(sql).find();
 	}
 
 	/**
@@ -295,10 +297,12 @@ public class AotRepositoryFragmentSupport {
 		String quoted = Pattern.quote(placeholder);
 
 		// TODO: chache the compiled pattern?
-		String pattern = "(?:\\w+\\(([\\w.]+)\\)|([\\w.]+))\\s*(=|<>|!=)\\s*(?:\\w+\\(\\s*" + quoted + "\\s*\\)|" + quoted
-				+ "(?!\\w))";
+		String pathPattern = "[" + IDENTIFIER_PART + ".]+";
+		String functionPattern = IDENTIFIER_PART + "+\\(";
+		String pattern = "(?:" + functionPattern + "(" + pathPattern + ")\\)|(" + pathPattern + "))\\s*(=|<>|!=)\\s*(?:"
+				+ functionPattern + "\\s*" + quoted + "\\s*\\)|" + quoted + "(?!" + IDENTIFIER_PART + "))";
 
-		return Pattern.compile(pattern, Pattern.UNICODE_CHARACTER_CLASS).matcher(query).replaceAll(it -> {
+		return Pattern.compile(pattern).matcher(query).replaceAll(it -> {
 			String path = Matcher.quoteReplacement(it.group(1) != null ? it.group(1) : it.group(2));
 			return "=".equals(it.group(3)) ? path + " IS NULL" : path + " IS NOT NULL";
 		});

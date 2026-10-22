@@ -78,7 +78,7 @@ class AotRepositoryFragmentSupportUnitTests {
 
 	@ParameterizedTest
 	@CsvSource({ "last, lastname", "stra, straße", "员工, 员工编号", "Співробітник, Співробітники", "Jose, Jose\u0301",
-			"निर्माण, निर्माणतिथि" })
+			"निर्माण, निर्माणतिथि", "amount, amount$", "price, price€", "na, na\u00ADme" })
 	void doesNotConfusePlaceholderWithLongerName(String shorter, String longer) {
 
 		String query = "SELECT e FROM Employee e WHERE e.%1$s = :%1$s AND e.%2$s = :%2$s".formatted(longer, shorter);
@@ -109,7 +109,7 @@ class AotRepositoryFragmentSupportUnitTests {
 
 	@ParameterizedTest
 	@ValueSource(strings = { "员工编号", "Αναγνωριστικό_εργαζομένου", "Співробітники", "Çalışanlar", "José",
-			"निर्माणतिथि", "Jose\u0301", "วันที่" })
+			"निर्माणतिथि", "Jose\u0301", "วันที่", "$amount", "amount$", "price€", "£", "¥en", "na\u00ADme" })
 	void rewritesUnicodeIdentifiers(String source) {
 
 		assertThat(repoSupport.conditionalNullComparison("SELECT e FROM Employee e WHERE e.%1$s = :%1$s".formatted(source),
