@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -135,7 +136,7 @@ public class AotRepositoryFragmentSupport {
 	 * @return {@code true} if the {@code placeholder} occurs in the query string.
 	 */
 	protected boolean usesParameter(String sql, String placeholder) {
-		return Pattern.compile(Pattern.quote(placeholder) + "(?!\\w)").matcher(sql).find();
+		return Pattern.compile(Pattern.quote(placeholder) + "(?!\\w)", Pattern.UNICODE_CHARACTER_CLASS).matcher(sql).find();
 	}
 
 	/**
@@ -292,11 +293,15 @@ public class AotRepositoryFragmentSupport {
 	private static String replacePlacolderWithNullClause(String query, String placeholder) {
 
 		String quoted = Pattern.quote(placeholder);
-		String pattern = "(\\w+\\([\\w.]+\\)|[\\w.]+)\\s*(=|<>|!=)\\s*(?:\\w+\\(\\s*" + quoted + "\\s*\\)|" + quoted
+
+		// TODO: chache the compiled pattern?
+		String pattern = "(?:\\w+\\(([\\w.]+)\\)|([\\w.]+))\\s*(=|<>|!=)\\s*(?:\\w+\\(\\s*" + quoted + "\\s*\\)|" + quoted
 				+ "(?!\\w))";
 
-		return Pattern.compile(pattern).matcher(query)
-				.replaceAll(it -> "=".equals(it.group(2)) ? "$1 IS NULL" : "$1 IS NOT NULL");
+		return Pattern.compile(pattern, Pattern.UNICODE_CHARACTER_CLASS).matcher(query).replaceAll(it -> {
+			String path = Matcher.quoteReplacement(it.group(1) != null ? it.group(1) : it.group(2));
+			return "=".equals(it.group(3)) ? path + " IS NULL" : path + " IS NOT NULL";
+		});
 	}
 
 	private record DefaultQueryRewriteInformation(Sort sort,

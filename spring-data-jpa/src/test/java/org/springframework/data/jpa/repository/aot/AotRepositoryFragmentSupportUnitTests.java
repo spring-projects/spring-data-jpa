@@ -20,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.RepositoryMetadata;
@@ -73,15 +76,19 @@ class AotRepositoryFragmentSupportUnitTests {
 				.isEqualTo("SELECT u FROM User u WHERE u.age = ?10 AND u.lastname IS NULL");
 	}
 
-	@Test
-	void doesNotConfuseNamedPlaceholderWithLongerName() {
+	@ParameterizedTest
+	@CsvSource({ "last, lastname", "stra, straße", "员工, 员工编号", "Співробітник, Співробітники", "Jose, Jose\u0301",
+			"निर्माण, निर्माणतिथि" })
+	void doesNotConfusePlaceholderWithLongerName(String shorter, String longer) {
 
-		String query = "SELECT u FROM User u WHERE u.lastname = :lastname AND u.last = :last";
+		String query = "SELECT e FROM Employee e WHERE e.%1$s = :%1$s AND e.%2$s = :%2$s".formatted(longer, shorter);
 
-		assertThat(repoSupport.conditionalNullComparison(query, ":last", null))
-				.isEqualTo("SELECT u FROM User u WHERE u.lastname = :lastname AND u.last IS NULL");
-		assertThat(repoSupport.conditionalNullComparison(query, ":lastname", null))
-				.isEqualTo("SELECT u FROM User u WHERE u.lastname IS NULL AND u.last = :last");
+		assertThat(repoSupport.conditionalNullComparison(query, ":" + shorter, null))
+				.isEqualTo("SELECT e FROM Employee e WHERE e.%1$s = :%1$s AND e.%2$s IS NULL".formatted(longer, shorter));
+		assertThat(repoSupport.conditionalNullComparison(query, ":" + longer, null))
+				.isEqualTo("SELECT e FROM Employee e WHERE e.%1$s IS NULL AND e.%2$s = :%2$s".formatted(longer, shorter));
+		assertThat(repoSupport.usesParameter("SELECT e FROM Employee e WHERE e.%1$s LIKE :%1$s".formatted(longer),
+				":" + shorter)).isFalse();
 	}
 
 	@Test
@@ -95,9 +102,21 @@ class AotRepositoryFragmentSupportUnitTests {
 	void rewritesFunctionWrappedComparison() {
 
 		assertThat(repoSupport.conditionalNullComparison("SELECT u FROM User u WHERE UPPER(u.lastname) = UPPER(:lastname)",
-				":lastname", null)).isEqualTo("SELECT u FROM User u WHERE UPPER(u.lastname) IS NULL");
+				":lastname", null)).isEqualTo("SELECT u FROM User u WHERE u.lastname IS NULL");
 		assertThat(repoSupport.conditionalNullComparison("SELECT u FROM User u WHERE LOWER(u.lastname) <> LOWER(:lastname)",
-				":lastname", null)).isEqualTo("SELECT u FROM User u WHERE LOWER(u.lastname) IS NOT NULL");
+				":lastname", null)).isEqualTo("SELECT u FROM User u WHERE u.lastname IS NOT NULL");
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = { "员工编号", "Αναγνωριστικό_εργαζομένου", "Співробітники", "Çalışanlar", "José",
+			"निर्माणतिथि", "Jose\u0301", "วันที่" })
+	void rewritesUnicodeIdentifiers(String source) {
+
+		assertThat(repoSupport.conditionalNullComparison("SELECT e FROM Employee e WHERE e.%1$s = :%1$s".formatted(source),
+				":" + source, null)).isEqualTo("SELECT e FROM Employee e WHERE e.%s IS NULL".formatted(source));
+		assertThat(repoSupport.conditionalNullComparison(
+				"SELECT e FROM Employee e WHERE UPPER(e.%1$s) != UPPER(:%1$s)".formatted(source), ":" + source, null))
+				.isEqualTo("SELECT e FROM Employee e WHERE e.%s IS NOT NULL".formatted(source));
 	}
 
 	@Test

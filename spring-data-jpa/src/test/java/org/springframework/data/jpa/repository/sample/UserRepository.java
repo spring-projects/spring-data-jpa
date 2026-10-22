@@ -217,6 +217,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findByLastnameNot(@Nullable String lastname);
 
+	List<User> findByLastnameNotIgnoreCase(@Nullable String lastname);
+
 	List<User> findByManagerLastname(String name);
 
 	List<User> findByColleaguesLastname(String lastname);
@@ -876,6 +878,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// --> Test for Unicode column names
 
 	List<User> findUserByHireDateLessThanEqual(LocalDate date);
+
+	List<User> findUserByHireDate(@Nullable LocalDate date);
 
 	@Query("select u from User u where u.hireDate <= :date")
 	List<User> findByHireDateJpql(@Param("date") LocalDate date);

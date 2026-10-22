@@ -777,6 +777,26 @@ class UserRepositoryTests {
 	}
 
 	@Test
+	void derivedNotQueryWithNullableParameter() {
+
+		flushTestUsers();
+		repository.save(new User("Foo", null, "foo@address.com"));
+
+		assertThat(repository.findByLastnameNot(null)).containsOnly(firstUser, secondUser, thirdUser, fourthUser);
+	}
+
+	@Test
+	void derivedNotIgnoreCaseQueryWithNullableParameter() {
+
+		flushTestUsers();
+		repository.save(new User("Foo", null, "foo@address.com"));
+
+		assertThat(repository.findByLastnameNotIgnoreCase(null)).containsOnly(firstUser, secondUser, thirdUser,
+				fourthUser);
+		assertThat(repository.findByLastnameNotIgnoreCase("gierke")).containsOnly(secondUser, thirdUser, fourthUser);
+	}
+
+	@Test
 	void derivedQueryWithMultipleNullableParameters() {
 
 		flushTestUsers();
@@ -4058,6 +4078,17 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(query.apply(repository, today)).containsOnly(firstUser);
+	}
+
+	@Test
+	void derivedQueryWithNullableParameterOnUnicodeColumn() {
+
+		firstUser.setHireDate(LocalDate.of(2020, 1, 1));
+		secondUser.setHireDate(LocalDate.of(2021, 1, 1));
+		flushTestUsers();
+
+		assertThat(repository.findUserByHireDate(null)).containsOnly(thirdUser, fourthUser);
+		assertThat(repository.findUserByHireDate(LocalDate.of(2020, 1, 1))).containsOnly(firstUser);
 	}
 
 	@ParameterizedTest(name = "''{0}'' query") // GH-52
