@@ -482,19 +482,10 @@ class JpaCodeBlocks {
 			if (binding instanceof ParameterBinding.PartTreeParameterBinding treeBinding) {
 
 				boolean collectionExpected = Collection.class.isAssignableFrom(treeBinding.getParameterType());
-				if (treeBinding.isIgnoreCase()) {
+				if (treeBinding.isIgnoreCase() && (isArray || collectionExpected)) {
 
 					String function = treeBinding.getTemplates() == JpqlQueryTemplates.LOWER ? "toLowerCase" : "toUpperCase";
-
-					if (isArray || collectionExpected) {
-						return CodeBlock.builder().add("mapIgnoreCase($L, $T::$L)", parameterName, String.class, function).build();
-					}
-
-					if (String.class.isAssignableFrom(parameterType)) {
-						return "%1$s != null ? %1$s.%2$s() : %1$s".formatted(parameterName, function);
-					}
-
-					return "%1$s != null ? %1$s.toString().%2$s() : %1$s".formatted(parameterName, function);
+					return CodeBlock.builder().add("mapIgnoreCase($L, $T::$L)", parameterName, String.class, function).build();
 				}
 
 				if (isArray && collectionExpected) {
