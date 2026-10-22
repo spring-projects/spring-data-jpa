@@ -25,8 +25,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
@@ -52,20 +50,17 @@ import org.springframework.data.repository.query.ReturnedType;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.util.Lazy;
 import org.springframework.util.ConcurrentLruCache;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Support class for JPA AOT repository fragments.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.0
  */
 public class AotRepositoryFragmentSupport {
 
 	private static final ConversionService CONVERSION_SERVICE;
-
-	private static final String IDENTIFIER_PART = "\\p{javaJavaIdentifierPart}";
 
 	static {
 
@@ -109,36 +104,37 @@ public class AotRepositoryFragmentSupport {
 	}
 
 	/**
-	 * Replace {@code <path> = <placeholder>} and {@code <path> <> <placeholder>} with {@code IS [NOT] NULL} for
-	 * {@literal null} value placeholder.
+	 * Apply {@link NullCompare null comparisons} to the given query. Each applicable comparison replaces its range of the
+	 * original query with {@link NullCompare#render()}.
 	 *
-	 * @param query the query string.
-	 * @param placeholdersAndValues alternating parameter placeholder name and placeholder value.
+	 * @param jpql the query string.
+	 * @param comparisons comparisons ordered by their position within the query.
 	 * @return the potentially rewritten query string.
-	 * @throws IllegalArgumentException if the number of placeholders and values is not even.
+	 * @throws IllegalArgumentException if applicable comparisons are not ordered, overlap or exceed the query.
 	 */
-	protected String conditionalNullComparison(String query, @Nullable Object... placeholdersAndValues) {
+	protected String conditionalNullComparison(String jpql, NullCompare... comparisons) {
 
-		if (placeholdersAndValues.length % 2 != 0) {
-			throw new IllegalArgumentException("Placeholders and values must be given in pairs");
-		}
+		StringBuilder builder = null;
+		int last = 0;
+		for (NullCompare comparison : comparisons) {
 
-		String targetQuery = query;
-		for (int i = 0; i < placeholdersAndValues.length; i += 2) {
-
-			if (placeholdersAndValues[i + 1] != null) {
+			if (!comparison.applies()) {
 				continue;
 			}
-			targetQuery = replacePlacolderWithNullClause(targetQuery, ObjectUtils.nullSafeToString(placeholdersAndValues[i]));
-		}
-		return targetQuery;
-	}
 
-	/**
-	 * @return {@code true} if the {@code placeholder} occurs in the query string.
-	 */
-	protected boolean usesParameter(String sql, String placeholder) {
-		return Pattern.compile(Pattern.quote(placeholder) + "(?!" + IDENTIFIER_PART + ")").matcher(sql).find();
+			if (comparison.start() < last || comparison.end() > jpql.length()) {
+				throw new IllegalArgumentException(
+						"Null comparisons must be ordered, must not overlap and must be within the query bounds");
+			}
+
+			if (builder == null) {
+				builder = new StringBuilder(jpql.length());
+			}
+			builder.append(jpql, last, comparison.start()).append(comparison.render());
+			last = comparison.end();
+		}
+
+		return builder != null ? builder.append(jpql, last, jpql.length()).toString() : jpql;
 	}
 
 	/**
@@ -292,22 +288,6 @@ public class AotRepositoryFragmentSupport {
 		throw new UnsupportedOperationException("Cannot create projection for %s".formatted(result));
 	}
 
-	private static String replacePlacolderWithNullClause(String query, String placeholder) {
-
-		String quoted = Pattern.quote(placeholder);
-
-		// TODO: chache the compiled pattern?
-		String pathPattern = "[" + IDENTIFIER_PART + ".]+";
-		String functionPattern = IDENTIFIER_PART + "+\\(";
-		String pattern = "(?:" + functionPattern + "(" + pathPattern + ")\\)|(" + pathPattern + "))\\s*(=|<>|!=)\\s*(?:"
-				+ functionPattern + "\\s*" + quoted + "\\s*\\)|" + quoted + "(?!" + IDENTIFIER_PART + "))";
-
-		return Pattern.compile(pattern).matcher(query).replaceAll(it -> {
-			String path = Matcher.quoteReplacement(it.group(1) != null ? it.group(1) : it.group(2));
-			return "=".equals(it.group(3)) ? path + " IS NULL" : path + " IS NOT NULL";
-		});
-	}
-
 	private record DefaultQueryRewriteInformation(Sort sort,
 			ReturnedType returnedType) implements QueryEnhancer.QueryRewriteInformation {
 
@@ -321,6 +301,102 @@ public class AotRepositoryFragmentSupport {
 			return returnedType();
 		}
 
+	}
+
+	/**
+	 * Conditional index based {@code IS [NOT] NULL} replacement of a comparison within a query
+	 *
+	 * @since 4.2
+	 * @author Christoph Strobl
+	 */
+	protected static final class NullCompare {
+
+		private final String path;
+		private final int start;
+		private final int end;
+		private final boolean negated;
+		private final boolean applies;
+
+		private NullCompare(String path, int start, int end, boolean negated, boolean applies) {
+
+			this.path = path;
+			this.start = start;
+			this.end = end;
+			this.negated = negated;
+			this.applies = applies;
+		}
+
+		/**
+		 * Create a new comparison for the given property {@code path}.
+		 *
+		 * @param path
+		 * @return never {@literal null}.
+		 */
+		public static WithRange of(String path) {
+
+			return (start, end) -> new WithCondition() {
+
+				@Override
+				public NullCompare isNullIf(boolean condition) {
+					return new NullCompare(path, start, end, false, condition);
+				}
+
+				@Override
+				public NullCompare isNotNullIf(boolean condition) {
+					return new NullCompare(path, start, end, true, condition);
+				}
+			};
+		}
+
+		int start() {
+			return start;
+		}
+
+		int end() {
+			return end;
+		}
+
+		boolean applies() {
+			return applies;
+		}
+
+		String render() {
+			return path + (negated ? " IS NOT NULL" : " IS NULL");
+		}
+
+		@Override
+		public String toString() {
+			return "[%d, %d) -> %s if %s".formatted(start, end, render(), applies);
+		}
+
+		/**
+		 * Step to define the query range to replace.
+		 */
+		public interface WithRange {
+
+			/**
+			 * @param start start offset (inclusive) within the original query.
+			 * @param end end offset (exclusive) within the original query.
+			 * @return the next step to define the condition.
+			 */
+			WithCondition inRange(int start, int end);
+		}
+
+		/**
+		 * Step to define the replacement and when to apply it.
+		 */
+		public interface WithCondition {
+
+			/**
+			 * Replace the range with {@code <path> IS NULL} if {@code condition} is {@literal true}.
+			 */
+			NullCompare isNullIf(boolean condition);
+
+			/**
+			 * Replace the range with {@code <path> IS NOT NULL} if {@code condition} is {@literal true}.
+			 */
+			NullCompare isNotNullIf(boolean condition);
+		}
 	}
 
 }

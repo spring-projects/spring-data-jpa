@@ -23,7 +23,7 @@ import jakarta.persistence.Tuple;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.LongSupplier;
 
@@ -251,34 +251,75 @@ class JpaCodeBlocks {
 
 			CodeBlock.Builder builder = CodeBlock.builder();
 
-			List<Object> nullableArguments = new ArrayList<>();
-			if (sq.isDerived()) {
-				for (ParameterBinding binding : sq.getParameterBindings()) {
-
-					String nullableParameter = getNullableParameterName(binding);
-					if (nullableParameter != null) {
-						if (!binding.getIdentifier().hasName()) {
-							throw new IllegalStateException(
-								"Nullable parameter '%s' is bound by position. Null handling requires named bindings; ordinal parameters cannot be removed without renumbering."
-									.formatted(binding.getName()));
-						}
-						nullableArguments.add(getPlaceholder(binding.getIdentifier()));
-						nullableArguments.add(nullableParameter);
-					}
+			List<NullComparisonReplacement> replacements = new ArrayList<>();
+			for (NullComparison comparison : getNullComparisons(sq)) {
+				for (NullComparisons.Replacement replacement : comparison.replacements()) {
+					replacements.add(new NullComparisonReplacement(comparison.parameterName(), replacement));
 				}
 			}
 
-			if (nullableArguments.isEmpty()) {
+			if (replacements.isEmpty()) {
 				builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
-			} else {
-
-				String arguments = String.join(", ", Collections.nCopies(nullableArguments.size() / 2, "$S, $L"));
-				List<Object> args = new ArrayList<>(List.of(String.class, queryStringVariableName, sq.getQueryString()));
-				args.addAll(nullableArguments);
-				builder.addStatement("$T $L = conditionalNullComparison($S, " + arguments + ")", args.toArray());
+				return builder.build();
 			}
 
+			replacements.sort(Comparator.comparingInt(it -> it.replacement().start()));
+
+			CodeBlock comparisons = replacements.stream().map(it -> {
+
+				NullComparisons.Replacement replacement = it.replacement();
+				return CodeBlock.of("$T.of($S).inRange($L, $L).$L($L == null)", AotRepositoryFragmentSupport.NullCompare.class,
+						replacement.path(), replacement.start(), replacement.end(),
+						replacement.negated() ? "isNotNullIf" : "isNullIf", it.parameterName());
+			}).collect(CodeBlock.joining(",\n"));
+
+			builder.addStatement("$T $L = conditionalNullComparison($S,$>\n$L$<)", String.class, queryStringVariableName,
+					sq.getQueryString(), comparisons);
+
 			return builder.build();
+		}
+
+		/**
+		 * Determine comparisons of nullable method arguments within derived queries that require a {@code IS [NOT] NULL}
+		 * rewrite.
+		 */
+		private List<NullComparison> getNullComparisons(AotQuery query) {
+
+			if (!(query instanceof StringAotQuery sq) || !sq.isDerived()) {
+				return List.of();
+			}
+
+			String queryString = sq.getQueryString();
+			List<NullComparison> comparisons = new ArrayList<>();
+			List<NullComparisons.Replacement> all = new ArrayList<>();
+
+			for (ParameterBinding binding : sq.getParameterBindings()) {
+
+				String parameterName = getNullableParameterName(binding);
+				if (parameterName == null) {
+					continue;
+				}
+
+				String placeholder = getPlaceholder(binding.getIdentifier());
+				List<NullComparisons.Replacement> replacements = NullComparisons.find(queryString, placeholder);
+				if (replacements.isEmpty()) {
+					continue;
+				}
+
+				if (!binding.getIdentifier().hasName()) {
+					throw new IllegalStateException(
+							"Nullable parameter '%s' is bound by position. Null handling requires named bindings; ordinal parameters cannot be removed without renumbering."
+									.formatted(binding.getName()));
+				}
+
+				boolean removesPlaceholder = !NullComparisons.usesPlaceholder(NullComparisons.apply(queryString, replacements),
+						placeholder);
+				comparisons.add(new NullComparison(parameterName, replacements, removesPlaceholder));
+				all.addAll(replacements);
+			}
+
+			NullComparisons.apply(queryString, all); // fails if things did not work out
+			return comparisons;
 		}
 
 		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, boolean isProjecting,
@@ -383,6 +424,7 @@ class JpaCodeBlocks {
 				builder.add("\n");
 			}
 
+			List<NullComparison> nullComparisons = getNullComparisons(query);
 			for (ParameterBinding binding : query.getParameterBindings()) {
 
 				Object prepare = binding.prepare("s");
@@ -398,11 +440,11 @@ class JpaCodeBlocks {
 					}
 				}
 
-				String nullableParameter = queryStringNameVariableName != null && query instanceof StringAotQuery
-						&& query.isDerived() ? getNullableParameterName(binding) : null;
-				if (nullableParameter != null) {
-					builder.beginControlFlow("if ($1L != null || usesParameter($2L, $3S))", nullableParameter,
-							queryStringNameVariableName, getPlaceholder(binding.getIdentifier()));
+				String nullableParameter = getNullableParameterName(binding);
+				boolean skipNull = nullableParameter != null && nullComparisons.stream()
+						.anyMatch(it -> it.removesPlaceholder() && it.parameterName().equals(nullableParameter));
+				if (skipNull) {
+					builder.beginControlFlow("if ($L != null)", nullableParameter);
 				}
 
 				if (prepare instanceof String prepared && !prepared.equals("s")) {
@@ -415,7 +457,7 @@ class JpaCodeBlocks {
 							parameter);
 				}
 
-				if (nullableParameter != null) {
+				if (skipNull) {
 					builder.endControlFlow();
 				}
 			}
@@ -885,6 +927,20 @@ class JpaCodeBlocks {
 					|| returnType == Long.class;
 		}
 
+	}
+
+	/**
+	 * Null comparisons of a nullable method parameter.
+	 *
+	 * @param parameterName the method parameter name.
+	 * @param replacements the replacements to apply for {@literal null} values.
+	 * @param removesPlaceholder whether applying the replacements removes the placeholder from the query.
+	 */
+	private record NullComparison(String parameterName, List<NullComparisons.Replacement> replacements,
+			boolean removesPlaceholder) {
+	}
+
+	private record NullComparisonReplacement(String parameterName, NullComparisons.Replacement replacement) {
 	}
 
 }
