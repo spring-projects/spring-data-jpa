@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Oscar Fanchin
  * @author JungKyun Ryu
+ * @author SangHoon Han
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -730,6 +731,24 @@ class JpaRepositoryContributorIntegrationTests {
 		User han = chewie.getManager();
 		assertThat(han.getRoles()).isNotInstanceOf(HibernateProxy.class);
 		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
+	}
+
+	@Test
+	void shouldApplyDeclaredEntityGraphToInterfaceProjection() {
+
+		List<UserRepository.EmailOnly> users = fragment.findEmailOnlyWithDeclaredEntityGraphByLastname("Solo");
+
+		assertThat(users).extracting(UserRepository.EmailOnly::getEmailAddress)
+				.containsExactlyInAnyOrder("han@smuggler.net", "kylo@new-empire.com");
+	}
+
+	@Test
+	void shouldApplyDeclaredEntityGraphToDtoProjection() {
+
+		List<UserDtoProjection> users = fragment.findDtoWithDeclaredEntityGraphByLastname("Solo");
+
+		assertThat(users).extracting(UserDtoProjection::getEmailAddress)
+				.containsExactlyInAnyOrder("han@smuggler.net", "kylo@new-empire.com");
 	}
 
 	@Test // GH-3830
