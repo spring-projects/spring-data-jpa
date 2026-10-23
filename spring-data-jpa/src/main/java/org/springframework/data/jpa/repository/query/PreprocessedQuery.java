@@ -187,10 +187,10 @@ public final class PreprocessedQuery implements DeclaredQuery {
 		private static final Pattern NAMED_STYLE_PARAM = Pattern.compile("(?!\\\\):\\w+"); // no \ and :[text]
 
 		private static final String MESSAGE = "Already found parameter binding with same index / parameter name but differing binding type; "
-											  + "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
+												+ "Already have: %s, found %s; If you bind a parameter multiple times make sure they use the same binding";
 		private static final int INDEXED_PARAMETER_GROUP = 4;
 		private static final int NAMED_PARAMETER_GROUP = 6;
-		private static final int COMPARISION_TYPE_GROUP = 1;
+		private static final int COMPARISON_TYPE_GROUP = 1;
 
 		static {
 
@@ -279,7 +279,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 					throw new IllegalArgumentException("Mixing of ? parameters and other forms like ?1 is not supported");
 				}
 
-				String typeSource = matcher.group(COMPARISION_TYPE_GROUP);
+				String typeSource = matcher.group(COMPARISON_TYPE_GROUP);
 				Assert.isTrue(parameterIndexString != null || parameterName != null,
 						() -> String.format("We need either a name or an index; Offending query string: %s", query));
 				ValueExpression expression = parsedQuery

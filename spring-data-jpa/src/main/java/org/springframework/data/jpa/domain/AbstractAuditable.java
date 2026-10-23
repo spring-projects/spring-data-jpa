@@ -43,9 +43,9 @@ public abstract class AbstractAuditable<U, PK extends Serializable> extends Abst
 		implements Auditable<U, PK, LocalDateTime> {
 
 	@ManyToOne //
-	private  U createdBy;
+	private U createdBy;
 
-	private  Instant createdDate;
+	private Instant createdDate;
 
 	@ManyToOne //
 	private U lastModifiedBy;
