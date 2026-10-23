@@ -42,7 +42,6 @@ import org.springframework.data.javapoet.TypeNames;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.query.DeclaredQuery;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
 import org.springframework.data.jpa.repository.query.ParameterBinding;
@@ -67,6 +66,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author JungKyun Ryu
+ * @author YeongJae Min
  * @since 4.0
  */
 class JpaCodeBlocks {
@@ -101,7 +101,7 @@ class JpaCodeBlocks {
 		private @Nullable AotEntityGraph entityGraph;
 		private @Nullable String sqlResultSetMapping;
 		private @Nullable Class<?> queryReturnType;
-		private @Nullable Class<?> queryRewriter = QueryRewriter.IdentityQueryRewriter.class;
+		private @Nullable String queryRewriterField;
 
 		private QueryBlockBuilder(AotQueryMethodGenerationContext context, JpaQueryMethod queryMethod) {
 
@@ -152,8 +152,8 @@ class JpaCodeBlocks {
 			return this;
 		}
 
-		public QueryBlockBuilder queryRewriter(@Nullable Class<?> queryRewriter) {
-			this.queryRewriter = queryRewriter == null ? QueryRewriter.IdentityQueryRewriter.class : queryRewriter;
+		public QueryBlockBuilder queryRewriterField(@Nullable String queryRewriterField) {
+			this.queryRewriterField = queryRewriterField;
 			return this;
 		}
 
@@ -177,13 +177,7 @@ class JpaCodeBlocks {
 			CodeBlock.Builder builder = CodeBlock.builder();
 
 			String queryStringVariableName = null;
-			String queryRewriterName = null;
-
-			if (queries.result() instanceof StringAotQuery && queryRewriter != QueryRewriter.IdentityQueryRewriter.class) {
-
-				queryRewriterName = context.localVariable("queryRewriter");
-				builder.addStatement("$T $L = new $T()", queryRewriter, queryRewriterName, queryRewriter);
-			}
+			String queryRewriterName = queryRewriterField == null ? null : "this." + queryRewriterField;
 
 			if (queries.result() instanceof StringAotQuery sq) {
 
