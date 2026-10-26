@@ -15,6 +15,8 @@
  */
 package org.springframework.data.jpa.mapping;
 
+import jakarta.persistence.IdClass;
+import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
@@ -23,6 +25,7 @@ import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.core.TypeInformation;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -63,6 +66,9 @@ public class JpaMetamodelMappingContext
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
 
 		Metamodel metamodel = models.getMetamodelFor(typeInformation.getType());
+		if (metamodel == null) {
+			metamodel = models.getIdentifierMetamodel(typeInformation.getType());
+		}
 		Assert.notNull(metamodel, () -> String.format("Required JpaMetamodel not found for %s", typeInformation));
 
 		return new JpaPersistentEntityImpl<>(typeInformation, PersistenceProvider.fromMetamodel(metamodel),
@@ -77,7 +83,8 @@ public class JpaMetamodelMappingContext
 
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return models.isMetamodelManagedType(type.getUserTypeInformation());
+		return models.isMetamodelManagedType(type.getUserTypeInformation())
+				|| models.getIdentifierMetamodel(type.getType()) != null;
 	}
 
 	/**
@@ -109,6 +116,32 @@ public class JpaMetamodelMappingContext
 
 		private Metamodels(Set<Metamodel> metamodels) {
 			this.metamodels = metamodels;
+		}
+
+		// Eclipselink 🙄
+		public @Nullable Metamodel getIdentifierMetamodel(Class<?> type) {
+			for (Metamodel model : metamodels) {
+				for (ManagedType<?> managedType : model.getManagedTypes()) {
+					if (!(managedType instanceof IdentifiableType<?> identifiable)) {
+						continue;
+					}
+					IdClass idClass = AnnotationUtils.findAnnotation(managedType.getJavaType(), IdClass.class);
+					if (idClass != null && idClass.value().equals(type)) {
+						return model;
+					}
+					if (!PersistenceProvider.fromMetamodel(model).getIdClassAttributes(identifiable).isEmpty()) {
+						try {
+							var idType = identifiable.getIdType();
+							if (idType != null && type.equals(idType.getJavaType())) {
+								return model;
+							}
+						} catch (IllegalStateException e) {
+							// Some providers cannot expose an identifier type for multiple identifier attributes.
+						}
+					}
+				}
+			}
+			return null;
 		}
 
 		/**
