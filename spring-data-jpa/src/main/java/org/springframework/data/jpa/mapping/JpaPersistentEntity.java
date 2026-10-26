@@ -21,8 +21,14 @@ import org.springframework.data.mapping.PersistentEntity;
  * Interface for a JPA-specific entity.
  *
  * @author Oliver Gierke
+ * @author Mark Paluch
  * @since 1.3
  */
 public interface JpaPersistentEntity<T> extends PersistentEntity<T, JpaPersistentProperty> {
+
+	/**
+	 * Return the JPA identifier metadata.
+	 */
+	PersistentEntityIdentifier<T> getIdentifier();
 
 }
