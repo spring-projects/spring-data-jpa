@@ -17,12 +17,16 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.metamodel.SingularAttribute;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.data.jpa.mapping.JpaPersistentProperty;
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.repository.core.EntityInformation;
 
 /**
@@ -68,7 +72,22 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * Returns the attribute names of the id attributes. If the entity has a composite id, then all id attribute names are
 	 * returned. If the entity has a single id attribute, then this single attribute name is returned.
 	 */
-	Collection<String> getIdAttributeNames();
+	@Deprecated
+	default Collection<String> getIdAttributeNames() {
+
+		List<String> names = new ArrayList<>();
+		for (String path : getIdAttributePaths()) {
+
+			int dot = path.indexOf('.');
+			if (dot == -1) {
+				names.add(path);
+			} else {
+				names.add(path.substring(0, dot));
+			}
+		}
+
+		return names;
+	}
 
 	/**
 	 * Returns the attribute paths of the id attributes. If the entity has a composite id, then all id attribute paths are
@@ -76,9 +95,7 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 *
 	 * @since 4.0.5
 	 */
-	default Collection<String> getIdAttributePaths() {
-		return getIdAttributeNames();
-	}
+	Collection<String> getIdAttributePaths();
 
 	/**
 	 * Extracts the value for the given id attribute from a composite id
@@ -90,6 +107,22 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	Object getCompositeIdAttributeValue(Object id, String idAttribute);
 
 	/**
+	 * Return properties of the composite identifier type, or an empty list if component metadata is unavailable.
+	 *
+	 * @since 4.1
+	 */
+	List<JpaPersistentProperty> getIdentifierProperties();
+
+	/**
+	 * Obtain access to a supplied identifier using {@link #getIdentifierProperties()}.
+	 *
+	 * @param id the identifier object, not the entity containing it.
+	 * @throws UnsupportedOperationException if component metadata is unavailable.
+	 * @since 4.1
+	 */
+	PersistentPropertyAccessor<?> getIdentifierPropertyAccessor(Object id);
+
+	/**
 	 * Extract a keyset for {@code propertyPaths} and the primary key (including composite key components if applicable).
 	 *
 	 * @param propertyPaths the property paths that make up the keyset in combination with the composite key components.
@@ -98,4 +131,5 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	 * @since 3.1
 	 */
 	Map<String, Object> getKeyset(Iterable<String> propertyPaths, T entity);
+
 }

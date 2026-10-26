@@ -15,18 +15,20 @@
  */
 package org.springframework.data.jpa.util;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type.PersistenceType;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.data.util.Lazy;
@@ -75,6 +77,32 @@ public class JpaMetamodel {
 
 	public static JpaMetamodel of(Metamodel metamodel) {
 		return CACHE.computeIfAbsent(metamodel, JpaMetamodel::new);
+	}
+
+	/**
+	 * Return the managed type, or {@literal null} if the type is not managed.
+	 *
+	 * @since 4.1
+	 */
+	public <T> @Nullable ManagedType<T> getManagedType(Class<T> type) {
+
+		try {
+			return metamodel.managedType(type);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Find a singular attribute, including inherited attributes and XML mappings.
+	 *
+	 * @since 4.1
+	 */
+	public Optional<? extends SingularAttribute<?, ?>> findSingularAttribute(Class<?> type, String name) {
+
+		ManagedType<?> managedType = getManagedType(type);
+		return managedType == null ? Optional.empty()
+				: managedType.getSingularAttributes().stream().filter(it -> it.getName().equals(name)).findFirst();
 	}
 
 	/**
