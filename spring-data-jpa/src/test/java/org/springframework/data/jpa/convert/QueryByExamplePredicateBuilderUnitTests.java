@@ -37,7 +37,6 @@ import jakarta.persistence.metamodel.Type;
 import java.lang.reflect.Member;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +75,7 @@ class QueryByExamplePredicateBuilderUnitTests {
 	@Mock Root root;
 	@Mock EntityType<Person> personEntityType;
 	@Mock EntityType<Skill> skillEntityType;
-	@Mock Expression expressionMock;
+	@Mock Expression expressionMock, literalMock;
 	@Mock Predicate truePredicate, dummyPredicate, andPredicate, orPredicate;
 	@Mock Path dummyPath;
 	@Mock Join from;
@@ -280,27 +279,39 @@ class QueryByExamplePredicateBuilderUnitTests {
 		verify(cb, times(1)).like(any(Expression.class), eq("%f\\\\o\\_o"), eq('\\'));
 	}
 
-	@Test
-	void ignoreCaseLowercasesProbeValueRegardlessOfDefaultLocale() {
+	@Test // GH-4398
+	void ignoreCaseFoldsBothSidesInTheDatabase() {
 
-		doReturn(expressionMock).when(cb).lower(any(Expression.class));
+		doReturn(expressionMock).when(cb).upper(dummyPath);
+		doReturn(literalMock).when(cb).literal("Ismail");
+		doReturn(literalMock).when(cb).upper(literalMock);
+		doReturn(dummyPredicate).when(cb).equal(any(Expression.class), any(Expression.class));
 
 		Person person = new Person();
 		person.firstname = "Ismail";
 
-		Example<Person> example = of(person, ExampleMatcher.matching().withIgnoreCase());
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(person, ExampleMatcher.matching().withIgnoreCase()),
+				EscapeCharacter.DEFAULT);
 
-		Locale defaultLocale = Locale.getDefault();
-		Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+		verify(cb).equal(expressionMock, literalMock);
+	}
 
-		try {
-			QueryByExamplePredicateBuilder.getPredicate(root, cb, example, EscapeCharacter.DEFAULT);
-		} finally {
-			Locale.setDefault(defaultLocale);
-		}
+	@Test // GH-4398
+	void ignoreCaseFoldsLikePatternInTheDatabase() {
 
-		// the database's LOWER() yields "ismail"; the bound value must match it even under a Turkish default locale
-		verify(cb, times(1)).equal(eq(expressionMock), eq("ismail"));
+		doReturn(expressionMock).when(cb).upper(dummyPath);
+		doReturn(literalMock).when(cb).literal("Ismail%");
+		doReturn(literalMock).when(cb).upper(literalMock);
+		doReturn(dummyPredicate).when(cb).like(any(Expression.class), any(Expression.class), anyChar());
+
+		Person person = new Person();
+		person.firstname = "Ismail";
+
+		ExampleMatcher matcher = ExampleMatcher.matching().withStringMatcher(ExampleMatcher.StringMatcher.STARTING)
+				.withIgnoreCase();
+		QueryByExamplePredicateBuilder.getPredicate(root, cb, of(person, matcher), EscapeCharacter.DEFAULT);
+
+		verify(cb).like(expressionMock, literalMock, EscapeCharacter.DEFAULT.getEscapeCharacter());
 	}
 
 	@ParameterizedTest(name = "Matching {0} on association should join using JoinType.{1} ") // GH-3763

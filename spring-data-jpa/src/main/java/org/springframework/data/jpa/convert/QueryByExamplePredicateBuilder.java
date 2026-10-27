@@ -30,7 +30,6 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -184,39 +183,31 @@ public class QueryByExamplePredicateBuilder {
 			if (attribute.getJavaType().equals(String.class)) {
 
 				Expression<String> expression = from.get(attribute);
-				if (exampleAccessor.isIgnoreCaseForPath(currentPath)) {
-					expression = cb.lower(expression);
-					// Locale.ROOT: the value is compared with the database's LOWER(), which never applies the JVM's
-					// default locale (under tr-TR "Ismail" would otherwise become "ısmail" with a dotless i).
-					attributeValue = attributeValue.toString().toLowerCase(Locale.ROOT);
+				boolean ignoreCase = exampleAccessor.isIgnoreCaseForPath(currentPath);
+				if (ignoreCase) {
+					// fold both sides in the database, as derived queries do
+					expression = cb.upper(expression);
 				}
 
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
 
 					case DEFAULT:
 					case EXACT:
-						predicates.add(cb.equal(expression, attributeValue));
+						predicates.add(ignoreCase //
+								? cb.equal(expression, cb.upper(cb.literal(attributeValue.toString()))) //
+								: cb.equal(expression, attributeValue));
 						break;
 					case CONTAINING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter() //
-						));
+						predicates.add(like(cb, expression, "%" + escapeCharacter.escape(attributeValue.toString()) + "%",
+								escapeCharacter, ignoreCase));
 						break;
 					case STARTING:
-						predicates.add(cb.like(//
-								expression, //
-								escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter()) //
-						);
+						predicates.add(like(cb, expression, escapeCharacter.escape(attributeValue.toString()) + "%",
+								escapeCharacter, ignoreCase));
 						break;
 					case ENDING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()), //
-								escapeCharacter.getEscapeCharacter()) //
-						);
+						predicates.add(like(cb, expression, "%" + escapeCharacter.escape(attributeValue.toString()),
+								escapeCharacter, ignoreCase));
 						break;
 					default:
 						throw new IllegalArgumentException(
@@ -228,6 +219,14 @@ public class QueryByExamplePredicateBuilder {
 		}
 
 		return predicates;
+	}
+
+	private static Predicate like(CriteriaBuilder cb, Expression<String> expression, String pattern,
+			EscapeCharacter escapeCharacter, boolean ignoreCase) {
+
+		return ignoreCase //
+				? cb.like(expression, cb.upper(cb.literal(pattern)), escapeCharacter.getEscapeCharacter())
+				: cb.like(expression, pattern, escapeCharacter.getEscapeCharacter());
 	}
 
 	private static boolean isAssociation(Attribute<?, ?> attribute) {
