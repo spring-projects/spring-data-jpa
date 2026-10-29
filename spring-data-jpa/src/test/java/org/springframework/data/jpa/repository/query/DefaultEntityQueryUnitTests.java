@@ -42,6 +42,7 @@ import org.springframework.data.repository.query.parser.Part.Type;
  * @author Mark Paluch
  * @author Aleksei Elin
  * @author Gunha Hwang
+ * @author Jae Eok Lim
  */
 class DefaultEntityQueryUnitTests {
 
@@ -129,6 +130,25 @@ class DefaultEntityQueryUnitTests {
 		assertThat(binding).isNotNull();
 		assertThat(binding.getRequiredName()).isEqualTo("firstname");
 		assertThat(binding.getType()).isEqualTo(Type.ENDING_WITH);
+	}
+
+	@Test // GH-4403
+	void detectsLikeAndInBindingsFollowedByLineBreak() {
+
+		DefaultEntityQuery query = new TestEntityQuery("""
+				select u from User u
+				where u.firstname like
+					%:firstname%
+				and u.id in
+					:ids
+				""", true);
+
+		List<ParameterBinding> bindings = query.getParameterBindings();
+		assertThat(bindings).hasSize(2);
+
+		assertNamedBinding(LikeParameterBinding.class, "firstname", bindings.get(0));
+		assertThat(((LikeParameterBinding) bindings.get(0)).getType()).isEqualTo(Type.CONTAINING);
+		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(1));
 	}
 
 	@Test // GH-3041
