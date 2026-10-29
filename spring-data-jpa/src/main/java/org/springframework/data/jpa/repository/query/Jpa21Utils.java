@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.repository.support.MutableQueryHints;
 
 import org.jspecify.annotations.Nullable;
@@ -60,6 +61,17 @@ public class Jpa21Utils {
 		return result;
 	}
 
+	public static QueryHints getFetchGraphHint(EntityManager em, EntityGraphHint<?> entityGraphHint,
+			Class<?> entityType) {
+
+		MutableQueryHints result = new MutableQueryHints();
+
+		EntityGraph<?> graph = tryGetFetchGraph(em, entityGraphHint, entityType);
+
+		result.add(entityGraphHint.getType().getKey(), graph);
+		return result;
+	}
+
 	/**
 	 * Adds a JPA 2.1 fetch-graph or load-graph hint to the given {@link Query} if running under JPA 2.1.
 	 *
@@ -85,6 +97,29 @@ public class Jpa21Utils {
 		}
 
 		return createDynamicEntityGraph(em, jpaEntityGraph, entityType);
+	}
+
+	private static EntityGraph<?> tryGetFetchGraph(EntityManager em, EntityGraphHint<?> entityGraphHint,
+			Class<?> entityType) {
+
+		Assert.notNull(em, "EntityManager must not be null");
+		Assert.notNull(entityGraphHint, "EntityGraphHint must not be null");
+		Assert.notNull(entityType, "EntityType must not be null");
+
+		EntityGraph<?> entityGraph = entityGraphHint.getEntityGraph();
+
+		if (entityGraph != null) {
+			return entityGraph;
+		}
+
+		if (StringUtils.hasText(entityGraphHint.getName())) {
+			return em.getEntityGraph(entityGraphHint.getName());
+		}
+
+		return createDynamicEntityGraph(em,
+				new JpaEntityGraph(EntityGraphHint.class.getName(), entityGraphHint.getType(),
+						entityGraphHint.getAttributePaths().toArray(new String[0])),
+				entityType);
 	}
 
 	/**
