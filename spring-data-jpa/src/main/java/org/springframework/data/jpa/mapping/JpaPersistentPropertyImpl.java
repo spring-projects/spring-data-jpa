@@ -80,6 +80,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 	private final boolean updateable;
 
 	private final Lazy<Boolean> isIdProperty;
+	private final Lazy<Boolean> isVersionProperty;
 	private final Lazy<Boolean> isAssociation;
 	private final Lazy<Boolean> isEntity;
 
@@ -104,8 +105,13 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 		this.associationTargetType = detectAssociationTargetType();
 		this.updateable = detectUpdatability();
 
-		this.isIdProperty = Lazy.of(() -> ID_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent) //
-				|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType()));
+		this.isIdProperty = Lazy.of(() -> metamodel.findSingularAttribute(getOwner().getType(), getName())
+				.map(jakarta.persistence.metamodel.SingularAttribute::isId)
+				.orElseGet(() -> ID_ANNOTATIONS.stream().anyMatch(this::isAnnotationPresent)
+						|| metamodel.isSingleIdAttribute(getOwner().getType(), getName(), getType())));
+		this.isVersionProperty = Lazy.of(() -> metamodel.findSingularAttribute(getOwner().getType(), getName())
+				.map(jakarta.persistence.metamodel.SingularAttribute::isVersion)
+				.orElseGet(() -> isAnnotationPresent(Version.class)));
 		this.isEntity = Lazy.of(() -> metamodel.isMappedType(getActualType()));
 	}
 
@@ -157,7 +163,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 
 	@Override
 	public boolean isVersionProperty() {
-		return isAnnotationPresent(Version.class);
+		return isVersionProperty.get();
 	}
 
 	@Override
@@ -271,7 +277,7 @@ class JpaPersistentPropertyImpl extends AnnotationBasedPersistentProperty<JpaPer
 				continue;
 			}
 
-			final Object updatable = AnnotationUtils.getValue(annotation, "updatable");
+			Object updatable = AnnotationUtils.getValue(annotation, "updatable");
 			return (boolean) (updatable == null ? true : updatable);
 		}
 
