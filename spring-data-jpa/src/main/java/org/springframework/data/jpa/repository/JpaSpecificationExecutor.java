@@ -24,6 +24,8 @@ import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.core.PropertyPath;
+import org.springframework.data.core.TypedPropertyPath;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -265,6 +267,11 @@ public interface JpaSpecificationExecutor<T> {
 		}
 
 		@Override
+		default SpecificationFluentQuery<T> project(TypedPropertyPath<T, ?>... properties) {
+			return project(Arrays.stream(properties).map(PropertyPath::toDotPath).toList());
+		}
+
+		@Override
 		SpecificationFluentQuery<T> project(Collection<String> properties);
 
 		/**
@@ -293,6 +300,7 @@ public interface JpaSpecificationExecutor<T> {
 		 * @return
 		 */
 		Page<T> page(Pageable pageable, Specification<?> countSpec);
+
 	}
 
 }
