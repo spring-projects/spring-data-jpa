@@ -58,6 +58,7 @@ import org.springframework.util.StringUtils;
  *
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author Jae Eok Lim
  * @since 4.0
  */
 public final class PreprocessedQuery implements DeclaredQuery {
@@ -417,7 +418,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 
 			// Trailing whitespace is intentional to reflect that the keywords must be used with at least one whitespace
 			// character, while = does not.
-			LIKE("like "), IN("in "), AS_IS(null);
+			LIKE("like\\s+"), IN("in\\s+"), AS_IS(null);
 
 			private final @Nullable String keyword;
 
