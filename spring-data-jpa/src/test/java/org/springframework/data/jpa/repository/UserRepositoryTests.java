@@ -3119,7 +3119,7 @@ class UserRepositoryTests {
 		// make sure we don't get preinitialized entities back:
 		em.clear();
 
-		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.project("firstname").all());
+		List<User> users = repository.findBy(userHasFirstnameLike("v"), q -> q.project(User::getFirstname).all());
 
 		// remove the entities, so lazy loading throws an exception
 		em.clear();
