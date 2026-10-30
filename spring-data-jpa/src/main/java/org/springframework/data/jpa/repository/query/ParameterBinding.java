@@ -794,6 +794,12 @@ public class ParameterBinding {
 		 * @return {@code true} if the origin is synthetic (contributed by e.g. KeysetPagination)
 		 */
 		boolean isSynthetic();
+
+		/**
+		 * @return {@code true} if the origin is known to accept {@literal null} values. Method argument nullability is
+		 *         resolved from the declaring method parameter, not from the origin itself.
+		 */
+		boolean isNullable();
 	}
 
 	/**
@@ -818,6 +824,11 @@ public class ParameterBinding {
 		@Override
 		public boolean isSynthetic() {
 			return true;
+		}
+
+		@Override
+		public boolean isNullable() {
+			return false;
 		}
 	}
 
@@ -844,6 +855,11 @@ public class ParameterBinding {
 		public boolean isSynthetic() {
 			return true;
 		}
+
+		@Override
+		public boolean isNullable() {
+			return false;
+		}
 	}
 
 	/**
@@ -867,6 +883,11 @@ public class ParameterBinding {
 
 		@Override
 		public boolean isSynthetic() {
+			return false;
+		}
+
+		@Override
+		public boolean isNullable() {
 			return false;
 		}
 	}
