@@ -120,11 +120,9 @@ class JpaRepositoryFactoryUnitTests {
 	@Test
 	void capturesMissingCustomImplementationAndProvidesInterfacename() {
 
-		try {
-			factory.getRepository(SampleRepository.class);
-		} catch (IllegalArgumentException e) {
-			assertThat(e.getMessage()).contains(SampleRepository.class.getName());
-		}
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> factory.getRepository(SampleRepository.class))
+				.withMessageContaining(SampleRepository.class.getName());
 	}
 
 	@Test

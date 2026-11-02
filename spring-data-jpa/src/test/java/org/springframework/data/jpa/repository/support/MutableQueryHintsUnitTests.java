@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.data.util.Pair;
@@ -35,7 +34,7 @@ class MutableQueryHintsUnitTests {
 
 	@Test // DATAJPA-872
 	void emptyQueryHint() {
-		new MutableQueryHints().forEach((k, v) -> Assertions.fail("Empty SimpleQueryHints shouldn't contain a value"));
+		new MutableQueryHints().forEach((k, v) -> fail("Empty MutableQueryHints shouldn't contain a value"));
 	}
 
 	@Test // DATAJPA-872
