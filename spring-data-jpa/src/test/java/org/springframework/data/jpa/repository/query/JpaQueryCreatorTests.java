@@ -42,6 +42,7 @@ import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.FieldSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -74,6 +75,7 @@ import org.springframework.data.util.Lazy;
  * @author Mark Paluch
  * @author Oualid Bouh
  * @author masiljangajji
+ * @author WooSeung Kim
  */
 class JpaQueryCreatorTests {
 
@@ -339,6 +341,46 @@ class JpaQueryCreatorTests {
 				.withParameterTypes(Date.class, Date.class) //
 				.as(QueryCreatorTester::create) //
 				.expectJpql("SELECT o FROM %s o WHERE o.date BETWEEN ?1 AND ?2",
+						DefaultJpaEntityMetadata.unqualify(Order.class)) //
+				.validateQuery();
+	}
+
+	@ParameterizedTest // GH-4407
+	@FieldSource("ignoreCaseTemplates")
+	void betweenIgnoreCase(JpqlQueryTemplates ignoreCaseTemplate) {
+
+		queryCreator(ORDER) //
+				.forTree(Order.class, "findOrderByCountryBetweenIgnoreCase") //
+				.ignoreCaseAs(ignoreCaseTemplate) //
+				.withParameters("b", "c") //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT o FROM %1$s o WHERE %2$s(o.country) BETWEEN %2$s(?1) AND %2$s(?2)",
+						DefaultJpaEntityMetadata.unqualify(Order.class), ignoreCaseTemplate.getIgnoreCaseOperator()) //
+				.validateQuery();
+	}
+
+	@ParameterizedTest // GH-4407
+	@CsvSource({ "GreaterThan, >", "GreaterThanEqual, >=", "After, >", //
+			"LessThan, <", "LessThanEqual, <=", "Before, <" })
+	void comparisonIgnoreCase(String keyword, String operator) {
+
+		queryCreator(ORDER) //
+				.forTree(Order.class, "findOrderByCountry" + keyword + "IgnoreCase") //
+				.withParameters("b") //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT o FROM %s o WHERE UPPER(o.country) %s UPPER(?1)",
+						DefaultJpaEntityMetadata.unqualify(Order.class), operator) //
+				.validateQuery();
+	}
+
+	@Test // GH-4407
+	void comparisonAllIgnoreCaseSkipsNonStringProperties() {
+
+		queryCreator(ORDER) //
+				.forTree(Order.class, "findOrderByCountryGreaterThanAndDateBeforeAllIgnoreCase") //
+				.withParameters("b", new Date()) //
+				.as(QueryCreatorTester::create) //
+				.expectJpql("SELECT o FROM %s o WHERE UPPER(o.country) > UPPER(?1) AND o.date < ?2",
 						DefaultJpaEntityMetadata.unqualify(Order.class)) //
 				.validateQuery();
 	}
