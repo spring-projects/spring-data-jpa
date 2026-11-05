@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author WooSeung Kim
  */
 class HqlQueryTransformerTests extends AbstractQueryTransformerTests {
 
@@ -393,6 +394,22 @@ class HqlQueryTransformerTests extends AbstractQueryTransformerTests {
 		assertThat(createCountQueryFor(
 				"select distinct new com.example.Dto(x.id, x.value) from some_function(:date, :integerValue) x"))
 				.isEqualTo("select count(distinct x.id, x.value) from some_function(:date, :integerValue) x");
+	}
+
+	@Test // GH-4395
+	void createsDistinctCountQueryForAliasedConstructorArguments() {
+
+		assertThat(createCountQueryFor(
+				"select distinct new com.example.Dto(u.firstname, case when u.age > 18 then 'adult' else 'minor' end as category) from User u"))
+				.isEqualTo(
+						"select count(distinct u.firstname, case when u.age > 18 then 'adult' else 'minor' end) from User u");
+		assertThat(createCountQueryFor("select distinct new com.example.Dto(firstname as name, lastname) from User"))
+				.isEqualTo("select count(distinct firstname, lastname) from User");
+		assertThat(createCountQueryFor("Select DISTINCT new " + //
+				"com.api.dto.FilterDTO(c.id, p.id, CASE WHEN item.dateDue IS NOT NULL THEN item.dateDue ELSE p.dateDue END AS newDateDue) "
+				+ "FROM Customer c join c.productOrder p JOIN p.items item"))
+				.isEqualTo("Select count(DISTINCT c.id, p.id, CASE WHEN item.dateDue IS NOT NULL THEN item.dateDue ELSE p.dateDue END) "
+						+ "FROM Customer c join c.productOrder p JOIN p.items item");
 	}
 
 	@Test // GH-3902

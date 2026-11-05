@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.query.QueryRenderer.QueryRenderer
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author Oscar Fanchin
+ * @author WooSeung Kim
  * @since 3.1
  */
 class HqlCountQueryTransformer extends HqlQueryRenderer
@@ -166,6 +167,17 @@ class HqlCountQueryTransformer extends HqlQueryRenderer
 		}
 
 		return countSelection.renderConstructor(ctx);
+	}
+
+	@Override
+	public QueryTokenStream visitInstantiationArgument(HqlParser.InstantiationArgumentContext ctx) {
+
+		if (isSubquery(ctx)) {
+			return super.visitInstantiationArgument(ctx);
+		}
+
+		// skip AS field aliasing
+		return ctx.expressionOrPredicate() != null ? visit(ctx.expressionOrPredicate()) : visit(ctx.instantiation());
 	}
 
 	@Override
