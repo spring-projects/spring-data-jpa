@@ -33,6 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
@@ -42,6 +43,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PgVectorIntegrationTests.Config.class)
+@Testcontainers(disabledWithoutDocker = true)
 class PgVectorIntegrationTests extends AbstractVectorIntegrationTests {
 
 	@EnableJpaRepositories(considerNestedRepositories = true,
