@@ -72,7 +72,7 @@ class RepositoryWithCompositeKeyTests {
 
 	/**
 	 * @see <a href=
-	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#examples-of-derived-identities">Jakarta
 	 *      Persistence Specification: Derived Identities, Example 2</a>
 	 */
 	@Test // DATAJPA-269
@@ -99,7 +99,7 @@ class RepositoryWithCompositeKeyTests {
 
 	/**
 	 * @see <a href=
-	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 *      "https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#examples-of-derived-identities">Jakarta
 	 *      Persistence Specification: Derived Identities, Example 3</a>
 	 */
 	@Test // DATAJPA-269

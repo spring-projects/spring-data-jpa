@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * @author Mark Paluch
  * @author Aleksei Elin
- * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a5438">Jakarta
+ * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#a5438">Jakarta
  *      Persistence Specification: Derived Identities, Example 2</a>
  */
 public interface ItemSiteRepository extends JpaRepository<ItemSite, ItemSiteId> {}
