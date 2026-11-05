@@ -15,7 +15,7 @@ jobs:
     name: Build project
     runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
       - name: Setup Java and Maven
         uses: spring-projects/spring-data-build/actions/setup-maven@4.0.x
         with:
