@@ -79,7 +79,7 @@ public @interface EntityGraph {
 		 * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are
 		 * treated according to their specified or default FetchType.
 		 *
-		 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#load-graph-semantics">Jakarta
+		 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#load-graph-semantics">Jakarta
 		 *      Persistence Specification: Load Graph Semantics</a>
 		 */
 		LOAD("jakarta.persistence.loadgraph"),
@@ -89,7 +89,7 @@ public @interface EntityGraph {
 		 * by attribute nodes of the entity graph are treated as FetchType.EAGER and attributes that are not specified are
 		 * treated as FetchType.LAZY
 		 *
-		 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#fetch-graph-semantics">Jakarta
+		 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#fetch-graph-semantics">Jakarta
 		 *      Persistence Specification: Fetch Graph Semantics</a>
 		 */
 		FETCH("jakarta.persistence.fetchgraph");

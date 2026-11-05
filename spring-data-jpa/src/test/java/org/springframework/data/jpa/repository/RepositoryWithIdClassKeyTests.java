@@ -65,7 +65,7 @@ class RepositoryWithIdClassKeyTests {
 	@Autowired private ItemSiteRepository itemSiteRepository;
 
 	/**
-	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#examples-of-derived-identities">Jakarta
 	 *      Persistence Specification: 2.4.1.3 Derived Identities Example 2</a>
 	 */
 	@Test // DATAJPA-413

@@ -23,7 +23,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 /**
  * @author Mark Paluch
  * @author Aleksei Elin
- * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+ * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#examples-of-derived-identities">Jakarta
  *      Persistence Specification: Derived Identities, Example 2</a>
  */
 public interface ItemRepository extends JpaRepository<Item, ItemId>, JpaSpecificationExecutor<Item> {}

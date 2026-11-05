@@ -716,7 +716,7 @@ class DefaultEntityQueryUnitTests {
 	}
 
 	/**
-	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#a5438">Jakarta
+	 * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#a5438">Jakarta
 	 *      Persistence Specification: SELECT clause</a>
 	 */
 	@Test // DATAJPA-886
