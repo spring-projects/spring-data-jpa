@@ -21,13 +21,15 @@ import jakarta.persistence.Query;
 import jakarta.persistence.QueryHint;
 import jakarta.persistence.Tuple;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.LongSupplier;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.MethodParameter;
+import org.springframework.core.Nullness;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.support.DefaultConversionService;
@@ -221,7 +223,8 @@ class JpaCodeBlocks {
 			}
 
 			builder.add(createQuery(false, queryVariableName, queryStringVariableName, queryRewriterName, queries.result(),
-					this.sqlResultSetMapping, pageable, this.lockModeType, this.queryHints, this.entityGraph, this.queryReturnType));
+					this.sqlResultSetMapping, pageable, this.lockModeType, this.queryHints, this.entityGraph,
+					this.queryReturnType));
 
 			builder.add(applyLimits(queries.result().isExists(), pageable));
 
@@ -232,8 +235,8 @@ class JpaCodeBlocks {
 				boolean queryHints = this.queryHints.isPresent() && this.queryHints.getBoolean("forCounting");
 
 				builder.add(createQuery(true, countQueryVariableName, countQueryStringNameVariableName, queryRewriterName,
-						queries.count(), null, pageable, lockModeType, queryHints ? this.queryHints : MergedAnnotation.missing(), null,
-						Long.class));
+						queries.count(), null, pageable, lockModeType, queryHints ? this.queryHints : MergedAnnotation.missing(),
+						null, Long.class));
 				builder.addStatement("return getCount($L)", countQueryVariableName);
 
 				// end control flow does not work well with lambdas
@@ -247,8 +250,76 @@ class JpaCodeBlocks {
 		private CodeBlock buildQueryString(StringAotQuery sq, String queryStringVariableName) {
 
 			CodeBlock.Builder builder = CodeBlock.builder();
-			builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
+
+			List<NullComparisonReplacement> replacements = new ArrayList<>();
+			for (NullComparison comparison : getNullComparisons(sq)) {
+				for (NullComparisons.Replacement replacement : comparison.replacements()) {
+					replacements.add(new NullComparisonReplacement(comparison.parameterName(), replacement));
+				}
+			}
+
+			if (replacements.isEmpty()) {
+				builder.addStatement("$T $L = $S", String.class, queryStringVariableName, sq.getQueryString());
+				return builder.build();
+			}
+
+			replacements.sort(Comparator.comparingInt(it -> it.replacement().start()));
+
+			CodeBlock comparisons = replacements.stream().map(it -> {
+
+				NullComparisons.Replacement replacement = it.replacement();
+				return CodeBlock.of("$T.of($S).inRange($L, $L).$L($L == null)", AotRepositoryFragmentSupport.NullCompare.class,
+						replacement.path(), replacement.start(), replacement.end(),
+						replacement.negated() ? "isNotNullIf" : "isNullIf", it.parameterName());
+			}).collect(CodeBlock.joining(",\n"));
+
+			builder.addStatement("$T $L = conditionalNullComparison($S,$>\n$L$<)", String.class, queryStringVariableName,
+					sq.getQueryString(), comparisons);
+
 			return builder.build();
+		}
+
+		/**
+		 * Determine comparisons of nullable method arguments within derived queries that require a {@code IS [NOT] NULL}
+		 * rewrite.
+		 */
+		private List<NullComparison> getNullComparisons(AotQuery query) {
+
+			if (!(query instanceof StringAotQuery sq) || !sq.isDerived()) {
+				return List.of();
+			}
+
+			String queryString = sq.getQueryString();
+			List<NullComparison> comparisons = new ArrayList<>();
+			List<NullComparisons.Replacement> all = new ArrayList<>();
+
+			for (ParameterBinding binding : sq.getParameterBindings()) {
+
+				String parameterName = getNullableParameterName(binding);
+				if (parameterName == null) {
+					continue;
+				}
+
+				String placeholder = getPlaceholder(binding.getIdentifier());
+				List<NullComparisons.Replacement> replacements = NullComparisons.find(queryString, placeholder);
+				if (replacements.isEmpty()) {
+					continue;
+				}
+
+				if (!binding.getIdentifier().hasName()) {
+					throw new IllegalStateException(
+							"Nullable parameter '%s' is bound by position. Null handling requires named bindings; ordinal parameters cannot be removed without renumbering."
+									.formatted(binding.getName()));
+				}
+
+				boolean removesPlaceholder = !NullComparisons.usesPlaceholder(NullComparisons.apply(queryString, replacements),
+						placeholder);
+				comparisons.add(new NullComparison(parameterName, replacements, removesPlaceholder));
+				all.addAll(replacements);
+			}
+
+			NullComparisons.apply(queryString, all); // fails if things did not work out
+			return comparisons;
 		}
 
 		private CodeBlock applyRewrite(@Nullable String sort, @Nullable String dynamicReturnType, boolean isProjecting,
@@ -353,6 +424,7 @@ class JpaCodeBlocks {
 				builder.add("\n");
 			}
 
+			List<NullComparison> nullComparisons = getNullComparisons(query);
 			for (ParameterBinding binding : query.getParameterBindings()) {
 
 				Object prepare = binding.prepare("s");
@@ -368,6 +440,13 @@ class JpaCodeBlocks {
 					}
 				}
 
+				String nullableParameter = getNullableParameterName(binding);
+				boolean skipNull = nullableParameter != null && nullComparisons.stream()
+						.anyMatch(it -> it.removesPlaceholder() && it.parameterName().equals(nullableParameter));
+				if (skipNull) {
+					builder.beginControlFlow("if ($L != null)", nullableParameter);
+				}
+
 				if (prepare instanceof String prepared && !prepared.equals("s")) {
 
 					String format = prepared.replaceAll("%", "%%").replace("s", "%s");
@@ -376,6 +455,10 @@ class JpaCodeBlocks {
 				} else {
 					builder.addStatement("$L.setParameter(%s, $L)".formatted(valueFormat), queryVariableName, parameterIdentifier,
 							parameter);
+				}
+
+				if (skipNull) {
+					builder.endControlFlow();
 				}
 			}
 
@@ -399,19 +482,10 @@ class JpaCodeBlocks {
 			if (binding instanceof ParameterBinding.PartTreeParameterBinding treeBinding) {
 
 				boolean collectionExpected = Collection.class.isAssignableFrom(treeBinding.getParameterType());
-				if (treeBinding.isIgnoreCase()) {
+				if (treeBinding.isIgnoreCase() && (isArray || collectionExpected)) {
 
 					String function = treeBinding.getTemplates() == JpqlQueryTemplates.LOWER ? "toLowerCase" : "toUpperCase";
-
-					if (isArray || collectionExpected) {
-						return CodeBlock.builder().add("mapIgnoreCase($L, $T::$L)", parameterName, String.class, function).build();
-					}
-
-					if (String.class.isAssignableFrom(parameterType)) {
-						return "%1$s != null ? %1$s.%2$s() : %1$s".formatted(parameterName, function);
-					}
-
-					return "%1$s != null ? %1$s.toString().%2$s() : %1$s".formatted(parameterName, function);
+					return CodeBlock.builder().add("mapIgnoreCase($L, $T::$L)", parameterName, String.class, function).build();
 				}
 
 				if (isArray && collectionExpected) {
@@ -482,8 +556,7 @@ class JpaCodeBlocks {
 			if (StringUtils.hasText(sqlResultSetMapping)) {
 
 				builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $S)", Query.class, queryVariableName,
-						JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse,
-						sqlResultSetMapping);
+						JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse, sqlResultSetMapping);
 
 				return builder.build();
 			}
@@ -492,9 +565,8 @@ class JpaCodeBlocks {
 
 				if (queryReturnType != null) {
 
-					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class,
-							queryVariableName, JpaAdapter.class, context.fieldNameOf(EntityManager.class),
-							queryStringNameToUse, queryReturnType);
+					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L, $T.class)", Query.class, queryVariableName,
+							JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse, queryReturnType);
 				} else {
 					builder.addStatement("$T $L = $T.createNativeQuery(this.$L, $L)", Query.class, queryVariableName,
 							JpaAdapter.class, context.fieldNameOf(EntityManager.class), queryStringNameToUse);
@@ -512,6 +584,25 @@ class JpaCodeBlocks {
 			}
 
 			return builder.build();
+		}
+
+		private @Nullable String getNullableParameterName(ParameterBinding binding) {
+
+			ParameterBinding.ParameterOrigin origin = binding.getOrigin();
+			if (!origin.isMethodArgument() || !(getParameter(origin) instanceof String parameterName)) {
+				return null;
+			}
+
+			MethodParameter methodParameter = context.getMethodParameter(parameterName);
+			if (methodParameter == null || Nullness.forMethodParameter(methodParameter) != Nullness.NULLABLE) {
+				return null;
+			}
+
+			return parameterName;
+		}
+
+		private String getPlaceholder(ParameterBinding.BindingIdentifier identifier) {
+			return identifier.hasName() ? ":" + identifier.getName() : "?" + identifier.getPosition();
 		}
 
 		private Object getParameterName(ParameterBinding.BindingIdentifier identifier) {
@@ -827,6 +918,20 @@ class JpaCodeBlocks {
 					|| returnType == Long.class;
 		}
 
+	}
+
+	/**
+	 * Null comparisons of a nullable method parameter.
+	 *
+	 * @param parameterName the method parameter name.
+	 * @param replacements the replacements to apply for {@literal null} values.
+	 * @param removesPlaceholder whether applying the replacements removes the placeholder from the query.
+	 */
+	private record NullComparison(String parameterName, List<NullComparisons.Replacement> replacements,
+			boolean removesPlaceholder) {
+	}
+
+	private record NullComparisonReplacement(String parameterName, NullComparisons.Replacement replacement) {
 	}
 
 }
