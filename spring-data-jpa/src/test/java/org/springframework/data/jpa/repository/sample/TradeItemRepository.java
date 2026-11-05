@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 /**
  * @author James Bodkin
- * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1#examples-of-derived-identities">Jakarta
+ * @see <a href="https://jakarta.ee/specifications/persistence/3.1/jakarta-persistence-spec-3.1.html#examples-of-derived-identities">Jakarta
  *      Persistence Specification: Derived Identities, Example 2</a>
  */
 public interface TradeItemRepository extends JpaRepository<TradeItem, TradeItemId>, JpaSpecificationExecutor<TradeItem> {
