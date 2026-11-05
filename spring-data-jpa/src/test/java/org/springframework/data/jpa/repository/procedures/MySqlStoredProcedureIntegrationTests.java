@@ -47,6 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
 
 /**
@@ -59,6 +60,7 @@ import org.testcontainers.mysql.MySQLContainer;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = MySqlStoredProcedureIntegrationTests.Config.class)
+@Testcontainers(disabledWithoutDocker = true)
 class MySqlStoredProcedureIntegrationTests {
 
 	@Autowired EmployeeRepositoryWithNoCursor repository;
