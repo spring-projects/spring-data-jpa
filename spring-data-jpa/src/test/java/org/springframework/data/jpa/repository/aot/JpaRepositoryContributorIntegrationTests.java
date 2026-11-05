@@ -40,6 +40,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.sample.Role;
 import org.springframework.data.jpa.domain.sample.SpecialUser;
 import org.springframework.data.jpa.domain.sample.User;
+import org.springframework.data.jpa.repository.EntityGraphHint;
 import org.springframework.data.jpa.util.DisabledOnHibernate;
 import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.data.util.Streamable;
@@ -730,6 +731,35 @@ class JpaRepositoryContributorIntegrationTests {
 		User han = chewie.getManager();
 		assertThat(han.getRoles()).isNotInstanceOf(HibernateProxy.class);
 		assertThat(han.getManager()).isInstanceOf(HibernateProxy.class);
+	}
+
+	@Test // GH-4175
+	void shouldApplyEntityGraphHintParameter() {
+
+		User chewie = fragment.findByFirstname("Chewbacca", EntityGraphHint.fetch(User::getRoles));
+
+		em.clear();
+
+		assertThat(chewie.getRoles()).hasSize(1);
+	}
+
+	@Test // GH-4175
+	void shouldApplyDeclaredEntityGraphIfEntityGraphHintParameterIsNull() {
+
+		User chewie = fragment.findWithEntityGraphHintByFirstname("Chewbacca", null);
+
+		assertThat(chewie.getManager()).isNotInstanceOf(HibernateProxy.class);
+	}
+
+	@Test // GH-4175
+	void shouldPreferEntityGraphHintParameterOverDeclaredEntityGraph() {
+
+		User chewie = fragment.findWithAdHocEntityGraphHintByFirstname("Chewbacca", EntityGraphHint.fetch(User::getRoles));
+
+		em.clear();
+
+		assertThat(chewie.getRoles()).hasSize(1);
+		assertThat(chewie.getManager()).isInstanceOf(HibernateProxy.class);
 	}
 
 	@Test // GH-3830

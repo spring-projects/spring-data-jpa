@@ -167,6 +167,25 @@ class EntityGraphRepositoryMethodsIntegrationTests {
 		softly.assertAll();
 	}
 
+	@Test // GH-4175
+	void shouldPreferEntityGraphHintParameterOverDeclaredEntityGraph() {
+
+		assumeThat(currentEntityManagerIsAJpa21EntityManager(em)).isTrue();
+
+		em.flush();
+		em.clear();
+
+		User user = repository.getOneWithEntityGraphHintById(tom.getId(), EntityGraphHint.fetch(User::getRoles));
+
+		assertThat(user).isNotNull();
+		assertThat(util.isLoaded(user, "roles")) //
+				.describedAs("roles should be fetched with the EntityGraphHint parameter") //
+				.isTrue();
+		assertThat(util.isLoaded(user, "colleagues")) //
+				.describedAs("colleagues should not be fetched from the declared entity graph") //
+				.isFalse();
+	}
+
 	@Test // DATAJPA-790, DATAJPA-1087
 	void shouldRespectConfiguredJpaEntityGraphWithPaginationAndQueryDslPredicates() {
 
