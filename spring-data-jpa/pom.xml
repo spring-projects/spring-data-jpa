@@ -120,7 +120,7 @@
 		<dependency>
 			<groupId>net.javacrumbs.json-unit</groupId>
 			<artifactId>json-unit-assertj</artifactId>
-			<version>4.1.0</version>
+			<version>6.4.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -225,7 +225,7 @@
 		<dependency>
 			<groupId>org.jboss.logging</groupId>
 			<artifactId>jboss-logging</artifactId>
-			<version>3.6.1.Final</version>
+			<version>3.6.3.Final</version>
 			<scope>provided</scope>
 		</dependency>
 
