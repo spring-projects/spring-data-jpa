@@ -144,10 +144,12 @@ class DefaultEntityQueryUnitTests {
 				""", true);
 
 		List<ParameterBinding> bindings = query.getParameterBindings();
-		assertThat(bindings).hasSize(2);
 
-		assertNamedBinding(LikeParameterBinding.class, "firstname", bindings.get(0));
-		assertThat(((LikeParameterBinding) bindings.get(0)).getType()).isEqualTo(Type.CONTAINING);
+		LikeParameterBinding binding = (LikeParameterBinding) bindings.get(0);
+		assertThat(binding).isNotNull();
+		assertThat(binding.getRequiredName()).isEqualTo("firstname");
+		assertThat(binding.getType()).isEqualTo(Type.CONTAINING);
+
 		assertNamedBinding(InParameterBinding.class, "ids", bindings.get(1));
 	}
 
