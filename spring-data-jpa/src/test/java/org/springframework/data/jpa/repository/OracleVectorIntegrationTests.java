@@ -33,6 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.oracle.OracleContainer;
 import org.testcontainers.utility.MountableFile;
 
@@ -43,6 +44,7 @@ import org.testcontainers.utility.MountableFile;
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = OracleVectorIntegrationTests.Config.class)
+@Testcontainers(disabledWithoutDocker = true)
 class OracleVectorIntegrationTests extends AbstractVectorIntegrationTests {
 
 	@EnableJpaRepositories(considerNestedRepositories = true,

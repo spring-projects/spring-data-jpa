@@ -52,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
@@ -66,6 +67,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Transactional
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = PostgresStoredProcedureIntegrationTests.Config.class)
+@Testcontainers(disabledWithoutDocker = true)
 class PostgresStoredProcedureIntegrationTests {
 
 	@Autowired EmployeeRepositoryWithRefCursor repository;
