@@ -28,6 +28,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+
+import org.springframework.data.jpa.mapping.JpaPersistentProperty;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 
 /**
  * Unit tests for {@link AbstractJpaEntityInformation}.
@@ -99,11 +103,6 @@ class JpaEntityInformationSupportUnitTests {
 		}
 
 		@Override
-		public Collection<String> getIdAttributeNames() {
-			return Collections.emptySet();
-		}
-
-		@Override
 		public Collection<String> getIdAttributePaths() {
 			return Collections.emptySet();
 		}
@@ -115,6 +114,16 @@ class JpaEntityInformationSupportUnitTests {
 
 		@Override
 		public Object getCompositeIdAttributeValue(Object id, String idAttribute) {
+			return null;
+		}
+
+		@Override
+		public List<JpaPersistentProperty> getIdentifierProperties() {
+			return List.of();
+		}
+
+		@Override
+		public PersistentPropertyAccessor<?> getIdentifierPropertyAccessor(Object id) {
 			return null;
 		}
 
