@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
  * Delegate for keyset scrolling.
  *
  * @author Mark Paluch
+ * @author YeongJae Min
  * @since 3.1
  */
 public class KeysetScrollDelegate {
@@ -123,7 +124,26 @@ public class KeysetScrollDelegate {
 			return null;
 		}
 
-		return strategy.or(or);
+		P predicate = strategy.or(or);
+
+		if (predicate == null || or.size() == 1) {
+			return predicate;
+		}
+
+		Order firstOrder = sort.iterator().next();
+		Object firstValue = keysetValues.get(firstOrder.getProperty());
+
+		if (firstValue == null) {
+			return predicate;
+		}
+
+		P inclusiveBound = strategy.compareInclusive(firstOrder, strategy.createExpression(firstOrder.getProperty()),
+				firstValue);
+		if (inclusiveBound == null) {
+			return predicate;
+		}
+
+		return strategy.and(List.of(inclusiveBound, strategy.nest(predicate)));
 	}
 
 	protected Sort getSortOrders(Sort sort) {
@@ -234,6 +254,35 @@ public class KeysetScrollDelegate {
 		 * @return an object representing the comparison predicate.
 		 */
 		P compare(String property, E propertyExpression, @Nullable Object value);
+
+		/**
+		 * Create an inclusive comparison object according to the {@link Order}.
+		 * <p>
+		 * Query strategies should override this method with a native inclusive comparison if available so that keyset
+		 * predicates can promote the leading sort property into an indexable range condition.
+		 *
+		 * @param order must not be {@literal null}.
+		 * @param propertyExpression must not be {@literal null}.
+		 * @param value the value to compare with. Can be {@literal null}.
+		 * @return an object representing the inclusive comparison predicate.
+		 * @since 4.2
+		 */
+		default P compareInclusive(Order order, E propertyExpression, @Nullable Object value) {
+			P predicate = or(List.of(compare(order, propertyExpression, value),
+					compare(order.getProperty(), propertyExpression, value)));
+			return predicate == null ? predicate : nest(predicate);
+		}
+
+		/**
+		 * Nest the {@code predicate} if the underlying representation requires explicit grouping.
+		 *
+		 * @param predicate must not be {@literal null}.
+		 * @return the nested predicate.
+		 * @since 4.2
+		 */
+		default P nest(P predicate) {
+			return predicate;
+		}
 
 		/**
 		 * AND-combine the {@code intermediate} predicates.
