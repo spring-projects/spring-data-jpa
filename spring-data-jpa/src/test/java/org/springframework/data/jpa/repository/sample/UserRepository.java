@@ -74,6 +74,7 @@ import com.querydsl.core.types.Predicate;
  * @author Geoffrey Deremetz
  * @author Yanming Zhou
  * @author Oscar Fanchin
+ * @author WooSeung Kim
  */
 public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecificationExecutor<User>,
 		UserRepositoryCustom, ListQuerydslPredicateExecutor<User> {
@@ -233,6 +234,13 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findByLastnameIgnoringCaseLike(String lastname);
 
 	List<User> findByLastnameAndFirstnameAllIgnoringCase(String lastname, String firstname);
+
+	// GH-4407
+	List<User> findByFirstnameBetweenIgnoringCase(String from, String to);
+
+	List<User> findByFirstnameGreaterThanIgnoringCase(String firstname);
+
+	List<User> findByFirstnameLessThanEqualIgnoringCase(String firstname);
 
 	List<User> findByAgeGreaterThanEqual(int age);
 
