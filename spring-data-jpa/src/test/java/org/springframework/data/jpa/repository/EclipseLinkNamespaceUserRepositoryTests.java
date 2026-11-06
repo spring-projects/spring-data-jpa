@@ -35,9 +35,20 @@ import org.springframework.test.context.ContextConfiguration;
  * @author Andrey Kovalev
  * @author Krzysztof Krason
  * @author Mark Paluch
+ * @author Jae Eok Lim
  */
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
+
+	@Disabled("EclipseLink cannot parse the 'false' literal that Querydsl renders for an unsatisfiable keyset condition")
+	@Override
+	@Test
+	void scrollByPredicateKeysetBackwardWithAscNullsFirst() {}
+
+	@Disabled("EclipseLink cannot parse the 'false' literal that Querydsl renders for an unsatisfiable keyset condition")
+	@Override
+	@Test
+	void scrollByPredicateKeysetBackwardWithDescNullsFirst() {}
 
 	@Disabled("EclipseLink does not support records, additionally, it does not support constructor creation using nested (join) properties")
 	@Override
