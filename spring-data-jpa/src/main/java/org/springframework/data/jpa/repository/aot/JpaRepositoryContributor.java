@@ -21,13 +21,18 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.annotation.MergedAnnotation;
@@ -41,6 +46,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.jpa.repository.QueryRewriter;
 import org.springframework.data.jpa.repository.query.JpaEntityMetadata;
 import org.springframework.data.jpa.repository.query.JpaParameters;
 import org.springframework.data.jpa.repository.query.JpaQueryMethod;
@@ -75,6 +81,7 @@ import org.springframework.util.StringUtils;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author JungKyun Ryu
+ * @author YeongJae Min
  * @since 4.0
  */
 public class JpaRepositoryContributor extends RepositoryContributor {
@@ -93,6 +100,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	private final PersistenceProvider persistenceProvider;
 	private final QueriesFactory queriesFactory;
 	private final EntityGraphLookup entityGraphLookup;
+	private final Map<Class<? extends QueryRewriter>, String> queryRewriterFields = new LinkedHashMap<>();
 
 	public JpaRepositoryContributor(AotRepositoryContext repositoryContext) {
 		this(repositoryContext, AotEntityManagerFactoryCreator.from(repositoryContext).getEntityManagerFactory());
@@ -120,6 +128,8 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 	protected void customizeClass(AotRepositoryClassBuilder classBuilder) {
 		classBuilder.customize(builder -> {
 			builder.superclass(TypeName.get(AotRepositoryFragmentSupport.class));
+			queryRewriterFields.values().forEach(name -> builder.addField(QueryRewriter.class, name,
+					javax.lang.model.element.Modifier.PRIVATE, javax.lang.model.element.Modifier.FINAL));
 
 			// suppress compiler warnings for the many @Deprecated(since = "4.0", forRemoval = true) instances
 			if (JpaDetector.isJpa4Present()) {
@@ -144,6 +154,11 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 
 		constructorBuilder.addParameter("context", RepositoryFactoryBeanSupport.FragmentCreationContext.class);
 
+		if (getRepositoryInformation().getQueryMethods().stream().anyMatch(this::hasQueryRewriter)) {
+			constructorBuilder.addParameter("beanFactory", BeanFactory.class,
+					customizer -> customizer.origin(context -> context.getBeanFactory()));
+		}
+
 		Optional<Class<QueryEnhancerSelector>> queryEnhancerSelector = getQueryEnhancerSelectorClass();
 
 		constructorBuilder.customize(builder -> {
@@ -153,7 +168,49 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			} else {
 				builder.addStatement("super($T.DEFAULT_SELECTOR, context)", QueryEnhancerSelector.class);
 			}
+
+			queryRewriterFields.forEach((type, field) -> {
+				if (hasAccessibleNoArgsConstructor(type)) {
+					builder.addStatement("this.$L = beanFactory.getBeanProvider($T.class).getIfAvailable(() -> new $T())",
+							field, type, type);
+				} else {
+					builder.addStatement("this.$L = beanFactory.getBean($T.class)", field, type);
+				}
+			});
 		});
+	}
+
+	private boolean hasQueryRewriter(Method method) {
+
+		MergedAnnotation<Query> query = MergedAnnotations.from(method).get(Query.class);
+		return query.isPresent() && query.getClass("queryRewriter") != QueryRewriter.IdentityQueryRewriter.class;
+	}
+
+	private boolean hasAccessibleNoArgsConstructor(Class<?> type) {
+
+		try {
+			Constructor<?> constructor = type.getDeclaredConstructor();
+			boolean samePackage = type.getPackageName()
+					.equals(getRepositoryInformation().getRepositoryInterface().getPackageName());
+
+			return !Modifier.isAbstract(type.getModifiers()) && isAccessible(type, samePackage)
+					&& (Modifier.isPublic(constructor.getModifiers())
+							|| (!Modifier.isPrivate(constructor.getModifiers()) && samePackage))
+					&& Arrays.stream(constructor.getExceptionTypes())
+							.allMatch(it -> RuntimeException.class.isAssignableFrom(it) || Error.class.isAssignableFrom(it));
+		} catch (NoSuchMethodException e) {
+			return false;
+		}
+	}
+
+	private static boolean isAccessible(Class<?> type, boolean samePackage) {
+
+		if (Modifier.isPrivate(type.getModifiers()) || (!Modifier.isPublic(type.getModifiers()) && !samePackage)) {
+			return false;
+		}
+
+		Class<?> enclosingClass = type.getEnclosingClass();
+		return enclosingClass == null || isAccessible(enclosingClass, samePackage);
 	}
 
 	private @Nullable String getEntityManagerFactoryRef() {
@@ -239,6 +296,15 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 			}
 		}
 
+		String queryRewriterField = null;
+		if (aotQueries.result() instanceof StringAotQuery && hasQueryRewriter(method)) {
+			Class<? extends QueryRewriter> type = query.getClass("queryRewriter").asSubclass(QueryRewriter.class);
+			queryRewriterField = queryRewriterFields.computeIfAbsent(type,
+					it -> "queryRewriter" + queryRewriterFields.size());
+		}
+
+		String rewriterField = queryRewriterField;
+
 		return MethodContributor.forQueryMethod(queryMethod).withMetadata(aotQueries.toMetadata(queryMethod.isPageQuery()))
 				.contribute(context -> {
 
@@ -257,7 +323,7 @@ public class JpaRepositoryContributor extends RepositoryContributor {
 							.queryReturnType(QueriesFactory.getQueryReturnType(aotQueries.result(), returnedType, context))
 							.nativeQuery(nativeQuery).queryHints(queryHints).entityGraph(aotEntityGraph)
 							.lockMode(lock.isPresent() ? lock.getEnum("value", LockModeType.class) : null)
-							.queryRewriter(query.isPresent() ? query.getClass("queryRewriter") : null).build());
+							.queryRewriterField(rewriterField).build());
 
 					body.add(JpaCodeBlocks.executionBuilder(context, queryMethod).modifying(modifying).query(aotQueries.result())
 							.build());

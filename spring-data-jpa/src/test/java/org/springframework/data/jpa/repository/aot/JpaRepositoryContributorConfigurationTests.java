@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.UrlResource;
@@ -38,6 +39,7 @@ import org.springframework.data.jpa.repository.query.QueryEnhancerSelector;
  *
  * @author Mark Paluch
  * @author JungKyun Ryu
+ * @author YeongJae Min
  */
 class JpaRepositoryContributorConfigurationTests {
 
@@ -77,6 +79,16 @@ class JpaRepositoryContributorConfigurationTests {
 
 		CustomQueryEnhancerSelectorConfiguration() {
 			super(UserRepository.class, MyConfiguration.class);
+		}
+
+		@Bean
+		UserRepository.BeanBackedQueryRewriter beanBackedQueryRewriter() {
+			return new UserRepository.BeanBackedQueryRewriter("User");
+		}
+
+		@Bean
+		UserRepository.CheckedConstructorQueryRewriter checkedConstructorQueryRewriter() throws IOException {
+			return new UserRepository.CheckedConstructorQueryRewriter();
 		}
 
 		@EnableJpaRepositories(queryEnhancerSelector = CustomQueryEnhancerSelector.class,

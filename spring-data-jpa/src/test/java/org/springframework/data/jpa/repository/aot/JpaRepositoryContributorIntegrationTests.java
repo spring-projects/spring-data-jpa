@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import jakarta.persistence.EntityManager;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
@@ -53,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Paluch
  * @author Oscar Fanchin
  * @author JungKyun Ryu
+ * @author YeongJae Min
  */
 @SpringJUnitConfig(classes = JpaRepositoryContributorIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -65,8 +68,19 @@ class JpaRepositoryContributorIntegrationTests {
 
 	@Configuration
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
+
 		public JpaRepositoryContributorConfiguration() {
 			super(UserRepository.class);
+		}
+
+		@Bean
+		UserRepository.BeanBackedQueryRewriter beanBackedQueryRewriter() {
+			return new UserRepository.BeanBackedQueryRewriter("User");
+		}
+
+		@Bean
+		UserRepository.CheckedConstructorQueryRewriter checkedConstructorQueryRewriter() throws IOException {
+			return new UserRepository.CheckedConstructorQueryRewriter();
 		}
 	}
 
@@ -757,6 +771,22 @@ class JpaRepositoryContributorIntegrationTests {
 		Page<User> page = fragment.findAndApplyQueryRewriter(kylo.getEmailAddress(), Pageable.unpaged());
 
 		assertThat(page).isNotEmpty();
+	}
+
+	@Test // GH-3984
+	void shouldApplyBeanBackedQueryRewriter() {
+
+		User result = fragment.findAndApplyBeanBackedQueryRewriter(kylo.getEmailAddress());
+
+		assertThat(result).isNotNull();
+	}
+
+	@Test // GH-3984
+	void shouldApplyBeanBackedQueryRewriterWithCheckedConstructor() {
+
+		User result = fragment.findAndApplyQueryRewriterWithCheckedConstructor(kylo.getEmailAddress());
+
+		assertThat(result).isEqualTo(kylo);
 	}
 
 	void todo() {
