@@ -110,6 +110,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Krzysztof Krason
  * @author Yanming Zhou
  * @author Ilya Bakaev
+ * @author Jae Eok Lim
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -1681,6 +1682,61 @@ class UserRepositoryTests {
 
 		assertThat(nextWindow).containsExactly(jane2, jane3, john1);
 		assertThat(nextWindow.hasNext()).isTrue();
+	}
+
+	@Test
+	void scrollByPredicateKeysetBackwardWithAscNullsFirst() {
+		assertBackwardScrollingMatchesForwardScrolling(Order.asc("lastname").nullsFirst());
+	}
+
+	@Test
+	void scrollByPredicateKeysetBackwardWithDescNullsFirst() {
+		assertBackwardScrollingMatchesForwardScrolling(Order.desc("lastname").nullsFirst());
+	}
+
+	@Test
+	void scrollByPredicateKeysetBackwardWithAscNullsLast() {
+		assertBackwardScrollingMatchesForwardScrolling(Order.asc("lastname").nullsLast());
+	}
+
+	@Test
+	void scrollByPredicateKeysetBackwardWithDescNullsLast() {
+		assertBackwardScrollingMatchesForwardScrolling(Order.desc("lastname").nullsLast());
+	}
+
+	private void assertBackwardScrollingMatchesForwardScrolling(Order lastnameOrder) {
+
+		User jane1 = new User("Jane", "Doe", "jane@doe1.com");
+		User jane2 = new User("Jane", null, "jane@doe2.com");
+		User jane3 = new User("Jane", null, "jane@doe3.com");
+		User john1 = new User("John", "Doe", "john@doe1.com");
+		User john2 = new User("John", null, "john@doe2.com");
+		User john3 = new User("John", null, "john@doe3.com");
+
+		repository.saveAllAndFlush(Arrays.asList(john1, john2, john3, jane1, jane2, jane3));
+
+		Sort sort = Sort.by(Order.asc("firstname"), lastnameOrder, Order.asc("emailAddress"));
+		Specification<User> spec = (root, query, cb) -> cb.like(root.get("firstname"), "J%");
+
+		Window<User> all = repository.findBy(QUser.user.firstname.startsWith("J"),
+				q -> q.limit(6).sortBy(sort).scroll(ScrollPosition.keyset()));
+
+		assertThat(all).hasSize(6);
+
+		for (int i = 1; i < all.size(); i++) {
+
+			KeysetScrollPosition position = (KeysetScrollPosition) all.positionAt(i);
+			List<User> expected = all.getContent().subList(Math.max(0, i - 2), i);
+
+			Window<User> previousByPredicate = repository.findBy(QUser.user.firstname.startsWith("J"),
+					q -> q.limit(2).sortBy(sort).scroll(position.backward()));
+			Window<User> previousBySpecification = repository.findBy(spec,
+					q -> q.limit(2).sortBy(sort).scroll(position.backward()));
+
+			assertThat(previousByPredicate).as("Querydsl, before position %d", i).containsExactlyElementsOf(expected);
+			assertThat(previousBySpecification).as("Specification, before position %d", i)
+					.containsExactlyElementsOf(expected);
+		}
 	}
 
 	@Test // GH-3015, GH-3407
