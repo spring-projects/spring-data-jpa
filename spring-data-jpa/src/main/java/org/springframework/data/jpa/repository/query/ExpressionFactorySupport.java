@@ -60,6 +60,41 @@ class ExpressionFactorySupport {
 	}
 
 	/**
+	 * Whether an explicit join is rendered when a derived query predicate navigates an owning-side to-one association to
+	 * reach a plain leaf property (e.g. {@code find…ByAbonentCode} mapping to {@code Contract.abonent.code}).
+	 * <p>
+	 * When {@code false}, the implicit dotted path is rendered instead of an explicit {@code JOIN}. The persistence
+	 * provider may then collapse the predicate onto the foreign-key column (e.g. {@code WHERE contracts.abonent = ?}),
+	 * which matches the behaviour before Spring Data JPA 4.0 and avoids a redundant join.
+	 * <p>
+	 * Defaults to {@code true} to preserve the behaviour introduced with
+	 * <a href="https://github.com/spring-projects/spring-data-jpa/issues/3349">#3349</a> and
+	 * <a href="https://github.com/spring-projects/spring-data-jpa/issues/3588">#3588</a>.
+	 */
+	private static boolean joinOnToOneAssociation = true;
+
+	/**
+	 * Check whether an explicit join is rendered for derived query predicates that traverse an owning-side to-one
+	 * association to reach a plain leaf property.
+	 *
+	 * @return {@literal true} to keep explicit joins (default), {@literal false} to render the implicit dotted path.
+	 */
+	public static boolean isJoinOnToOneAssociation() {
+		return joinOnToOneAssociation;
+	}
+
+	/**
+	 * Configure whether an explicit join is rendered for derived query predicates that traverse an owning-side to-one
+	 * association to reach a plain leaf property.
+	 *
+	 * @param enabled {@literal true} to keep explicit joins (default), {@literal false} to render the implicit dotted
+	 *          path and let the persistence provider collapse the predicate onto the foreign-key column.
+	 */
+	public static void setJoinOnToOneAssociation(boolean enabled) {
+		joinOnToOneAssociation = enabled;
+	}
+
+	/**
 	 * Checks if this attribute requires an outer join. This is the case e.g. if it hadn't already been fetched with an
 	 * inner join and if it's an optional association, and if previous paths has already required outer joins. It also
 	 * ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
@@ -118,6 +153,38 @@ class ExpressionFactorySupport {
 
 		Bindable<?> bindable = resolver.resolveNext(property);
 		return bindable instanceof SingularAttribute<?, ?> sa && sa.isId();
+	}
+
+	/**
+	 * Checks if the given property path refers to an owning-side to-one association
+	 * ({@code @ManyToOne} or an owning {@code @OneToOne}).
+	 * <p>
+	 * The inverse side of a {@code @OneToOne} association is excluded as it requires an explicit join to be rendered
+	 * correctly (see HHH-12712). Collections are excluded as well.
+	 *
+	 * @param resolver the {@link ModelPathResolver resolver}.
+	 * @param property the property path.
+	 * @return {@literal true} if the property resolves to an owning-side to-one association.
+	 */
+	public boolean isToOneAssociation(ModelPathResolver resolver, PropertyPath property) {
+
+		Bindable<?> bindable = resolver.resolve(property);
+
+		if (!(bindable instanceof Attribute<?, ?> attribute)) {
+			return false;
+		}
+
+		if (attribute.isCollection()) {
+			return false;
+		}
+
+		Attribute.PersistentAttributeType type = attribute.getPersistentAttributeType();
+
+		if (type != MANY_TO_ONE && type != ONE_TO_ONE) {
+			return false;
+		}
+
+		return !(ONE_TO_ONE == type && StringUtils.hasText(getAnnotationProperty(attribute, "mappedBy", "")));
 	}
 
 	@SuppressWarnings("unchecked")
