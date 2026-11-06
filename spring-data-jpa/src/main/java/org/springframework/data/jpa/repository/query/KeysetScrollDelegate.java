@@ -34,6 +34,7 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation;
  * Delegate for keyset scrolling.
  *
  * @author Mark Paluch
+ * @author Jae Eok Lim
  * @since 3.1
  */
 public class KeysetScrollDelegate {
@@ -174,10 +175,19 @@ public class KeysetScrollDelegate {
 			List<Order> orders = new ArrayList<>();
 			for (Order order : sort) {
 				Sort.Direction direction = order.isAscending() ? Sort.Direction.DESC : Sort.Direction.ASC;
-				orders.add(order.with(direction));
+				orders.add(order.with(direction).with(reverse(order.getNullHandling())));
 			}
 
 			return Sort.by(orders);
+		}
+
+		private static Sort.NullHandling reverse(Sort.NullHandling nullHandling) {
+
+			return switch (nullHandling) {
+				case NULLS_FIRST -> Sort.NullHandling.NULLS_LAST;
+				case NULLS_LAST -> Sort.NullHandling.NULLS_FIRST;
+				default -> nullHandling;
+			};
 		}
 
 		@Override
