@@ -40,6 +40,7 @@ import org.springframework.util.StringUtils;
  * Factory for {@link AotEntityGraph}.
  *
  * @author Mark Paluch
+ * @author SangHoon Han
  * @since 4.0
  */
 record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
@@ -60,6 +61,10 @@ record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
 
 		for (Class<?> candidate : candidates) {
 
+			if (!isEntity(candidate)) {
+				continue;
+			}
+
 			Map<String, jakarta.persistence.EntityGraph<?>> namedEntityGraphs = entityManagerFactory
 					.getNamedEntityGraphs(Class.class.cast(candidate));
 
@@ -79,6 +84,11 @@ record EntityGraphLookup(EntityManagerFactory entityManagerFactory) {
 		}
 
 		return null;
+	}
+
+	private boolean isEntity(@Nullable Class<?> type) {
+		return type != null && entityManagerFactory.getMetamodel().getEntities().stream()
+				.anyMatch(entityType -> type.equals(entityType.getJavaType()));
 	}
 
 	private Set<String> getEntityGraphNames(MergedAnnotation<EntityGraph> entityGraph, RepositoryInformation information,
