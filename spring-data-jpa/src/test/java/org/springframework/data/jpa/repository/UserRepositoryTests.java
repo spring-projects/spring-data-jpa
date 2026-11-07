@@ -24,6 +24,7 @@ import static org.springframework.data.jpa.domain.sample.UserSpecifications.*;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Query;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -2960,6 +2961,75 @@ class UserRepositoryTests {
 				q -> q.sortBy(Sort.by("firstname")).exists());
 
 		assertThat(exists).isTrue();
+	}
+
+	@Test // GH-4083
+	void findByFluentSpecificationWithNamedEntityGraph() {
+
+		prepareUserWithDetailGraph();
+
+		List<User> users = repository.findBy(userHasFirstname("Oliver"),
+			query -> query.entityGraph("User.detail").all());
+
+		assertThat(users).hasSize(1);
+		assertUserDetailGraphIsLoaded(users.get(0));
+	}
+
+	@Test // GH-4083
+	void findByFluentSpecificationWithNamedEntityGraphAndLoadType() {
+
+		prepareUserWithDetailGraph();
+
+		List<User> users = repository.findBy(userHasFirstname("Oliver"),
+			query -> query.entityGraph("User.detail", EntityGraph.EntityGraphType.LOAD).all());
+
+		assertThat(users).hasSize(1);
+		assertUserDetailGraphIsLoaded(users.get(0));
+	}
+
+	@Test // GH-4083
+	void findByFluentSpecificationPreservesNamedEntityGraphWhenSortingAndLimiting() {
+
+		prepareUserWithDetailGraph();
+
+		List<User> users = repository.findBy(userHasFirstname("Oliver"), query -> query.entityGraph("User.detail")
+			.sortBy(Sort.by("firstname")).limit(1).as(User.class).all());
+
+		assertThat(users).hasSize(1);
+		assertUserDetailGraphIsLoaded(users.get(0));
+	}
+
+	@Test // GH-4083
+	void findByFluentSpecificationWithNamedEntityGraphAndPage() {
+
+		prepareUserWithDetailGraph();
+
+		Page<User> page = repository.findBy(userHasFirstname("Oliver"),
+			query -> query.entityGraph("User.detail").page(PageRequest.of(0, 1)));
+
+		assertThat(page).hasSize(1);
+		assertUserDetailGraphIsLoaded(page.getContent().get(0));
+	}
+
+	private void prepareUserWithDetailGraph() {
+
+		firstUser.addRole(adminRole);
+		firstUser.addColleague(thirdUser);
+		flushTestUsers();
+
+		firstUser.setManager(em.getReference(User.class, secondUser.getId()));
+		repository.save(firstUser);
+		repository.flush();
+		em.clear();
+	}
+
+	private void assertUserDetailGraphIsLoaded(User user) {
+
+		PersistenceUnitUtil persistenceUnitUtil = em.getEntityManagerFactory().getPersistenceUnitUtil();
+
+		assertThat(persistenceUnitUtil.isLoaded(user, "roles")).isTrue();
+		assertThat(persistenceUnitUtil.isLoaded(user, "manager")).isTrue();
+		assertThat(persistenceUnitUtil.isLoaded(user, "colleagues")).isTrue();
 	}
 
 	@Test // GH-2274
