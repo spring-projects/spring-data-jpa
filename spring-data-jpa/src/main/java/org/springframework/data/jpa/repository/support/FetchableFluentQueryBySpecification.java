@@ -76,7 +76,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
 			EntityManager entityManager, ProjectionFactory projectionFactory) {
 		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), null, finder, scrollDelegate,
-			  countOperation, existsOperation, entityManager, projectionFactory);
+			    countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
