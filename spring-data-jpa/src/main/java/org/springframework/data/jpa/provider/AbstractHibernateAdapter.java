@@ -52,8 +52,8 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 	 * @param namedSqmQuery candidate names of the named SQM query memento.
 	 * @param namedNativeQuery candidate names of the named native query memento.
 	 */
-	AbstractHibernateAdapter(ClassLoader classLoader, CandiateClassNames sqmQuery, CandiateClassNames namedSqmQuery,
-			CandiateClassNames namedNativeQuery) {
+	AbstractHibernateAdapter(ClassLoader classLoader, CandidateClassNames sqmQuery, CandidateClassNames namedSqmQuery,
+			CandidateClassNames namedNativeQuery) {
 
 		this.sqmQuery = sqmQuery.getClass(classLoader);
 		this.namedSqmQuery = namedSqmQuery.getClass(classLoader);
@@ -146,22 +146,22 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 	/**
 	 * Collection of class name candidates.
 	 */
-	static class CandiateClassNames implements Streamable<String> {
+	static class CandidateClassNames implements Streamable<String> {
 
 		private final List<String> classNames;
 
-		private CandiateClassNames(List<String> classNames) {
+		private CandidateClassNames(List<String> classNames) {
 			this.classNames = classNames;
 		}
 
 		/**
-		 * Create a new {@link CandiateClassNames} from the given class names. Resolution attempts are made in the order.
+		 * Create a new {@link CandidateClassNames} from the given class names. Resolution attempts are made in the order.
 		 *
 		 * @param classNames must not be {@literal null}.
-		 * @return new instance of {@link CandiateClassNames}.
+		 * @return new instance of {@link CandidateClassNames}.
 		 */
-		public static CandiateClassNames of(String... classNames) {
-			return new CandiateClassNames(Arrays.asList(classNames));
+		public static CandidateClassNames of(String... classNames) {
+			return new CandidateClassNames(Arrays.asList(classNames));
 		}
 
 		/**

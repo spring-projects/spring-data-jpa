@@ -62,7 +62,7 @@ class AotMetamodel implements Metamodel {
 	private static final Logger log = LoggerFactory.getLogger(AotMetamodel.class);
 
 	/**
-	 * Collection of know properties causing problems during AOT if set differntly
+	 * Collection of know properties causing problems during AOT if set differently
 	 */
 	private static final Map<String, Object> FAILSAFE_AOT_PROPERTIES = Map.of( //
 			CacheSettings.USE_QUERY_CACHE, false, //
@@ -134,8 +134,8 @@ class AotMetamodel implements Metamodel {
 		for (Map.Entry<String, Object> entry : FAILSAFE_AOT_PROPERTIES.entrySet()) {
 
 			if (log.isDebugEnabled() && properties.containsKey(entry.getKey())) {
-				log.debug("Overriding property [%s] with value [%s] for AOT Repository processing.".formatted(entry.getKey(),
-						entry.getValue()));
+				log.debug("Overriding property [{}] with value [{}] for AOT Repository processing.", entry.getKey(),
+						entry.getValue());
 			}
 
 			properties.put(entry.getKey(), entry.getValue());

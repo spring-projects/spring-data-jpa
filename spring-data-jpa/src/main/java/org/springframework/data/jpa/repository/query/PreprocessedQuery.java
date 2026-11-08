@@ -136,7 +136,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 	 * declared to the derived query as JPQL query derivation only sees JPA parameter markers and not the original
 	 * expressions anymore.
 	 *
-	 * @return
+	 * @return the rewritten {@link PreprocessedQuery}.
 	 */
 	@Override
 	public PreprocessedQuery rewrite(String newQueryString) {
@@ -561,7 +561,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 
 		public IndexedParameterLabels(Set<Integer> usedLabels) {
 
-			this.usedLabels = usedLabels instanceof TreeSet<Integer> ts ? ts : new TreeSet<Integer>(usedLabels);
+			this.usedLabels = usedLabels instanceof TreeSet<Integer> ts ? ts : new TreeSet<>(usedLabels);
 			this.sequential = isSequential(usedLabels);
 		}
 
