@@ -28,9 +28,9 @@ package org.springframework.data.jpa.provider;
 class Hibernate7Adapter extends AbstractHibernateAdapter {
 
 	Hibernate7Adapter(ClassLoader classLoader) {
-		super(classLoader, CandiateClassNames.of("org.hibernate.query.spi.SqmQuery"),
-				CandiateClassNames.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento"),
-				CandiateClassNames.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento"));
+		super(classLoader, CandidateClassNames.of("org.hibernate.query.spi.SqmQuery"),
+				CandidateClassNames.of("org.hibernate.query.sqm.spi.NamedSqmQueryMemento"),
+				CandidateClassNames.of("org.hibernate.query.sql.spi.NamedNativeQueryMemento"));
 	}
 
 }

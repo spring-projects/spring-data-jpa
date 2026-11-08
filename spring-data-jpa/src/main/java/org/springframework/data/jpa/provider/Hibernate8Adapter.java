@@ -41,13 +41,13 @@ class Hibernate8Adapter extends AbstractHibernateAdapter {
 	Hibernate8Adapter(ClassLoader classLoader) {
 
 		// the mementos moved from org.hibernate.query.named to org.hibernate.query.named.spi after 8.0.0.Beta1
-		super(classLoader, CandiateClassNames.of(HIBERNATE_8_SQM_STATEMENT_ACCESS),
-				CandiateClassNames.of("org.hibernate.query.named.spi.NamedSqmQueryMemento",
+		super(classLoader, CandidateClassNames.of(HIBERNATE_8_SQM_STATEMENT_ACCESS),
+				CandidateClassNames.of("org.hibernate.query.named.spi.NamedSqmQueryMemento",
 						"org.hibernate.query.named.NamedSqmQueryMemento"),
-				CandiateClassNames.of("org.hibernate.query.named.spi.NamedNativeQueryMemento",
+				CandidateClassNames.of("org.hibernate.query.named.spi.NamedNativeQueryMemento",
 						"org.hibernate.query.named.NamedNativeQueryMemento"));
 
-		this.mutationOrSelectionQuery = CandiateClassNames.of("org.hibernate.query.MutationOrSelectionQuery")
+		this.mutationOrSelectionQuery = CandidateClassNames.of("org.hibernate.query.MutationOrSelectionQuery")
 				.getClass(classLoader);
 		this.isSelectionQuery = getMethod(mutationOrSelectionQuery, "isSelectionQuery");
 		this.asSelectionQuery = getMethod(mutationOrSelectionQuery, "asSelectionQuery");
