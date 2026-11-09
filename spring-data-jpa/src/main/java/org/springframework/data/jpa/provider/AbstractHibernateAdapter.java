@@ -155,10 +155,10 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 		}
 
 		/**
-		 * Create a new {@link CandidateClassNames} from the given class names. Resolution attempts are made in the order.
+		 * Create a new {@code CandidateClassNames} from the given class names. Resolution attempts are made in the order.
 		 *
 		 * @param classNames must not be {@literal null}.
-		 * @return new instance of {@link CandidateClassNames}.
+		 * @return new instance of {@code CandidateClassNames}.
 		 */
 		public static CandidateClassNames of(String... classNames) {
 			return new CandidateClassNames(Arrays.asList(classNames));
@@ -193,4 +193,5 @@ abstract class AbstractHibernateAdapter implements HibernateAdapter, ReflectiveM
 		}
 
 	}
+
 }

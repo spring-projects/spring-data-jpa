@@ -93,7 +93,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 	 * parameters. Query parsing applies special treatment to {@code IN} and {@code LIKE} parameter bindings.
 	 *
 	 * @param declaredQuery the source query to parse.
-	 * @return a parsed {@link PreprocessedQuery}.
+	 * @return a parsed {@code PreprocessedQuery}.
 	 */
 	public static PreprocessedQuery parse(DeclaredQuery declaredQuery) {
 		return ParameterBindingParser.INSTANCE.parse(declaredQuery.getQueryString(), declaredQuery::rewrite,
@@ -136,7 +136,7 @@ public final class PreprocessedQuery implements DeclaredQuery {
 	 * declared to the derived query as JPQL query derivation only sees JPA parameter markers and not the original
 	 * expressions anymore.
 	 *
-	 * @return the rewritten {@link PreprocessedQuery}.
+	 * @return the rewritten {@code PreprocessedQuery}.
 	 */
 	@Override
 	public PreprocessedQuery rewrite(String newQueryString) {
