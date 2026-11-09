@@ -55,6 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1700,24 +1701,16 @@ class UserRepositoryTests {
 		assertThat(nextWindow.hasNext()).isTrue();
 	}
 
-	@Test
-	void scrollByPredicateKeysetBackwardWithAscNullsFirst() {
-		assertBackwardScrollingMatchesForwardScrolling(Order.asc("lastname").nullsFirst());
+	@ParameterizedTest // GH-4417
+	@EnumSource(Direction.class)
+	void scrollByPredicateKeysetBackwardWithNullsFirst(Direction direction) {
+		assertBackwardScrollingMatchesForwardScrolling(new Order(direction, "lastname").nullsFirst());
 	}
 
-	@Test
-	void scrollByPredicateKeysetBackwardWithDescNullsFirst() {
-		assertBackwardScrollingMatchesForwardScrolling(Order.desc("lastname").nullsFirst());
-	}
-
-	@Test
-	void scrollByPredicateKeysetBackwardWithAscNullsLast() {
-		assertBackwardScrollingMatchesForwardScrolling(Order.asc("lastname").nullsLast());
-	}
-
-	@Test
-	void scrollByPredicateKeysetBackwardWithDescNullsLast() {
-		assertBackwardScrollingMatchesForwardScrolling(Order.desc("lastname").nullsLast());
+	@ParameterizedTest // GH-4417
+	@EnumSource(Direction.class)
+	void scrollByPredicateKeysetBackwardWithNullsLast(Direction direction) {
+		assertBackwardScrollingMatchesForwardScrolling(new Order(direction, "lastname").nullsLast());
 	}
 
 	private void assertBackwardScrollingMatchesForwardScrolling(Order lastnameOrder) {

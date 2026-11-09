@@ -21,7 +21,10 @@ import jakarta.persistence.Query;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.sample.UserRepository;
 import org.springframework.data.jpa.util.JpaAdapter;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,20 +44,10 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(value = "classpath:eclipselink.xml")
 class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTests {
 
-	@Disabled("EclipseLink cannot parse the 'false' literal that Querydsl renders for an unsatisfiable keyset condition")
+	@Disabled
 	@Override
 	@Test
-	void scrollByPredicateKeysetBackwardWithAscNullsFirst() {}
-
-	@Disabled("EclipseLink cannot parse the 'false' literal that Querydsl renders for an unsatisfiable keyset condition")
-	@Override
-	@Test
-	void scrollByPredicateKeysetBackwardWithDescNullsFirst() {}
-
-	@Disabled("EclipseLink does not support records, additionally, it does not support constructor creation using nested (join) properties")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithDtoProjectionJoins() {}
+	public void allowsExecutingPageableMethodWithUnpagedArgument() {}
 
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=422450 is resolved.
@@ -67,6 +60,77 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	 */
 	@Override
 	void sortByAssociationPropertyInPageableShouldUseLeftOuterJoin() {}
+
+	@Disabled("EclipseLink treats id as keyword")
+	@Override
+	@Test
+	public void scrollByPredicateKeysetWithInterfaceProjection() {}
+
+	@Disabled("EclipseLink cannot parse the 'false' literal that Querydsl renders for an unsatisfiable keyset condition")
+	@Override
+	@ParameterizedTest // GH-4417
+	@EnumSource(Direction.class)
+	void scrollByPredicateKeysetBackwardWithNullsFirst(Direction direction) {}
+
+	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
+	@Override
+	@Test
+	void bindsSpELParameterOnlyUsedInCountQuery() {}
+
+	@Disabled
+	@Override
+	@Test
+	public void findByFluentExampleWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentExampleWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentExampleWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithInterfaceBasedProjection() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithDtoProjection() {}
+
+	@Disabled("EclipseLink does not support records, additionally, it does not support constructor creation using nested (join) properties")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithDtoProjectionJoins() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentPredicateWithProjectionAndPageRequest() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentPredicateWithProjectionAndAll() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
+
+	@Disabled("Not spec-compliant")
+	@Override
+	@Test
+	public void findByFluentSpecificationWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
 
 	/**
 	 * This test will fail once https://bugs.eclipse.org/bugs/show_bug.cgi?id=521915 is fixed.
@@ -90,6 +154,11 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Test // DATAJPA-980
 	void supportsInterfaceProjectionsWithNativeQueries() {}
 
+	@Disabled("EclipseLink does not support records")
+	@Override
+	@Test
+	public void supportsRecordsWithNativeQueries() {}
+
 	/**
 	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
 	 */
@@ -98,13 +167,10 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Test // DATAJPA-1248
 	void supportsProjectionsWithNativeQueriesAndCamelCaseProperty() {}
 
-	/**
-	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
-	 */
-	@Disabled
+	@Disabled("No Tuples support in EclipseLink")
 	@Override
-	@Test // DATAJPA-1301
-	void returnsNullValueInMap() {}
+	@Test
+	public void supportsProjectionsWithNativeQueriesAndUnderscoresColumnNameToCamelCaseProperty() {}
 
 	/**
 	 * TODO: Remove, once https://bugs.eclipse.org/bugs/show_bug.cgi?id=289141 is fixed.
@@ -113,6 +179,14 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Override
 	@Test
 	void bindsNativeQueryResultsToProjectionByName() {}
+
+	/**
+	 * Ignored until https://bugs.eclipse.org/bugs/show_bug.cgi?id=525319 is fixed.
+	 */
+	@Disabled
+	@Override
+	@Test // DATAJPA-1301
+	void returnsNullValueInMap() {}
 
 	/**
 	 * Ignores the test for EclipseLink.
@@ -157,96 +231,21 @@ class EclipseLinkNamespaceUserRepositoryTests extends NamespaceUserRepositoryTes
 	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
 	@Override
 	@Test
-	void insertStatementModifyingQueryWithParamsWorks() {}
+	public void modifyingUpdateNativeQueryWorksWithJSQLParser() {}
 
-	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
+	@Disabled("Not spec-compliant")
 	@Override
 	@Test
-	void bindsSpELParameterOnlyUsedInCountQuery() {}
+	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {}
 
 	@Disabled
 	@Override
 	@Test
 	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsNamedParameters() {}
 
-	@Disabled
-	@Override
-	@Test
-	public void allowsExecutingPageableMethodWithUnpagedArgument() {}
-
-	@Disabled("No Tuples support in EclipseLink")
-	@Override
-	@Test
-	public void supportsProjectionsWithNativeQueriesAndUnderscoresColumnNameToCamelCaseProperty() {}
-
-	@Disabled
-	@Override
-	@Test
-	public void findByFluentExampleWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithInterfaceBasedProjection() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithDtoProjection() {}
-
 	@Disabled("Named parameters in native SQL queries are not supported in EclipseLink")
 	@Override
 	@Test
-	public void modifyingUpdateNativeQueryWorksWithJSQLParser() {}
-
-	@Disabled("EclipseLink treats id as keyword")
-	@Override
-	@Test
-	public void scrollByPredicateKeysetWithInterfaceProjection() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentExampleWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentExampleWithCollectionPropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithSimplePropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentSpecificationWithComplexPropertyPathsDoesntLoadUnrequestedPaths() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentPredicateWithProjectionAndPageRequest() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void findByFluentPredicateWithProjectionAndAll() {}
-
-	@Disabled("EclipseLink does not support records")
-	@Override
-	@Test
-	public void supportsRecordsWithNativeQueries() {}
-
-	@Disabled("Not spec-compliant")
-	@Override
-	@Test
-	public void correctlyBuildSortClauseWhenSortingByFunctionAliasAndFunctionContainsPositionalParameters() {}
+	void insertStatementModifyingQueryWithParamsWorks() {}
 
 }
