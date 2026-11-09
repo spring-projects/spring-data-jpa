@@ -70,6 +70,7 @@ import org.springframework.util.Assert;
  * @author Christoph Strobl
  * @author Jinmyeong Kim
  * @author Oualid Bouh
+ * @author WooSeung Kim
  */
 public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuilder.Predicate>
 		implements JpqlQueryCreator {
@@ -459,17 +460,23 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 				case BETWEEN:
 					PartTreeParameterBinding first = provider.next(part);
 					ParameterBinding second = provider.next(part);
-					return where.between(placeholder(first), placeholder(second));
+					return whereIgnoreCase.between(
+							potentiallyIgnoreCase(property.getLeafProperty(), placeholder(first)),
+							potentiallyIgnoreCase(property.getLeafProperty(), placeholder(second)));
 				case AFTER:
 				case GREATER_THAN:
-					return where.gt(placeholder(provider.next(part)));
+					return whereIgnoreCase
+							.gt(potentiallyIgnoreCase(property.getLeafProperty(), placeholder(provider.next(part))));
 				case GREATER_THAN_EQUAL:
-					return where.gte(placeholder(provider.next(part)));
+					return whereIgnoreCase
+							.gte(potentiallyIgnoreCase(property.getLeafProperty(), placeholder(provider.next(part))));
 				case BEFORE:
 				case LESS_THAN:
-					return where.lt(placeholder(provider.next(part)));
+					return whereIgnoreCase
+							.lt(potentiallyIgnoreCase(property.getLeafProperty(), placeholder(provider.next(part))));
 				case LESS_THAN_EQUAL:
-					return where.lte(placeholder(provider.next(part)));
+					return whereIgnoreCase
+							.lte(potentiallyIgnoreCase(property.getLeafProperty(), placeholder(provider.next(part))));
 				case IS_NULL:
 					return where.isNull();
 				case IS_NOT_NULL:

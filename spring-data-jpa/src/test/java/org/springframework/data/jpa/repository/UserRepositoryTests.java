@@ -112,6 +112,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Yanming Zhou
  * @author Ilya Bakaev
  * @author Oscar Fanchin
+ * @author WooSeung Kim
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -788,6 +789,17 @@ class UserRepositoryTests {
 		flushTestUsers();
 
 		assertThat(repository.findByAgeGreaterThanEqual(35)).containsOnly(secondUser, thirdUser);
+	}
+
+	@Test // GH-4407
+	void executesComparisonQueriesIgnoringCase() {
+
+		flushTestUsers();
+
+		assertThat(repository.findByFirstnameBetweenIgnoringCase("d", "l")) //
+				.containsOnly(secondUser, thirdUser, fourthUser);
+		assertThat(repository.findByFirstnameGreaterThanIgnoringCase("k")).containsOnly(firstUser, fourthUser);
+		assertThat(repository.findByFirstnameLessThanEqualIgnoringCase("joachim")).containsOnly(secondUser, thirdUser);
 	}
 
 	@Test // DATAJPA-117
