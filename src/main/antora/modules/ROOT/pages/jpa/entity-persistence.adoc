@@ -50,7 +50,7 @@ public abstract class AbstractEntity<ID> implements Persistable<ID> {
   // More code…
 }
 ----
-<1> Declare a flag to hold the new state. Transient so that it's not persisted to the database.
+<1> Declare a flag to hold the new state. Use the JPA `@Transient` annotation (`jakarta.persistence.Transient`) so that the flag is not persisted to the database.
 <2> Return the flag in the implementation of `Persistable.isNew()` so that Spring Data repositories know whether to call `EntityManager.persist()` or `….merge()`.
 <3> Declare a method using JPA entity callbacks so that the flag is switched to indicate an existing entity after a repository call to `save(…)` or an instance creation by the persistence provider.
 ====
