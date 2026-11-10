@@ -28,6 +28,9 @@ A common pattern in that scenario is to use a common base class with a transient
 
 .A base class for entities with manually assigned identifiers
 ====
+The `@Transient` annotation used in this example is
+`jakarta.persistence.Transient`.
+
 [source, java]
 ----
 @MappedSuperclass
