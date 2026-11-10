@@ -84,7 +84,6 @@
 				<hibernate>8.0.0.Beta4</hibernate>
 				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent/>
 				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
@@ -95,7 +94,6 @@
 				<hibernate>8.0.0-SNAPSHOT</hibernate>
 				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent/>
 				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
@@ -116,7 +114,6 @@
 				<hibernate>8.1.0-SNAPSHOT</hibernate>
 				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
-				<spring-instrument-agent/>
 				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
