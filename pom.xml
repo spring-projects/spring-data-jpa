@@ -85,7 +85,7 @@
 				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent/>
-				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
 		</profile>
@@ -96,7 +96,7 @@
 				<jakarta-persistence-api>4.0.0-M7</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent/>
-				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
 			<repositories>
@@ -117,7 +117,7 @@
 				<jakarta-persistence-api>4.0.0-SNAPSHOT</jakarta-persistence-api>
 				<jakarta-annotation-api>3.0.0</jakarta-annotation-api>
 				<spring-instrument-agent/>
-				<!-- No EclipseLink for JPA 4.0 -> skip it -->
+				<!-- EclipseLink for JPA 4.0 requires Java 21 -> skip it, use eclipselink-6 profile to enable -->
 				<skip-eclipselink-tests>true</skip-eclipselink-tests>
 			</properties>
 			<repositories>
@@ -130,6 +130,15 @@
 					</releases>
 				</repository>
 			</repositories>
+		</profile>
+		<profile>
+			<!-- requires hibernate-8 profiles -->
+			<id>eclipselink-6</id>
+			<properties>
+				<source.level>21</source.level>
+				<eclipselink>6.0.0-M1</eclipselink>
+				<skip-eclipselink-tests>false</skip-eclipselink-tests>
+			</properties>
 		</profile>
 		<profile>
 			<id>all-dbs</id>
