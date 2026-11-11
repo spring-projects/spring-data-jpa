@@ -259,6 +259,19 @@ class HqlOrderExpressionVisitorUnitTests {
 				.containsIgnoringCase("var_1.firstname in ('Oliver', 'Dave')");
 	}
 
+	@Test
+	void logicalPredicates() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 and firstname <> 'Dave' then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.age > 30 and var_1.firstname <> 'Dave' then 1 else 0 end");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 or firstname = 'Dave' then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.age > 30 or var_1.firstname = 'Dave' then 1 else 0 end");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when not (firstname is null) then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.firstname is not null then 1 else 0 end");
+	}
+
 	@Test // GH-4255
 	void unsupported() {
 

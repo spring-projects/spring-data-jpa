@@ -315,6 +315,26 @@ class HqlOrderExpressionVisitor extends HqlBaseVisitor<Expression<?>> {
 	}
 
 	@Override
+	public Expression<?> visitGroupedPredicate(HqlParser.GroupedPredicateContext ctx) {
+		return visitRequired(ctx.predicate());
+	}
+
+	@Override
+	public Expression<?> visitNotPredicate(HqlParser.NotPredicateContext ctx) {
+		return cb.not(visitRequired(ctx.predicate()));
+	}
+
+	@Override
+	public Expression<?> visitAndPredicate(HqlParser.AndPredicateContext ctx) {
+		return cb.and(visitRequired(ctx.predicate(0)), visitRequired(ctx.predicate(1)));
+	}
+
+	@Override
+	public Expression<?> visitOrPredicate(HqlParser.OrPredicateContext ctx) {
+		return cb.or(visitRequired(ctx.predicate(0)), visitRequired(ctx.predicate(1)));
+	}
+
+	@Override
 	public Expression<?> visitGenericFunction(HqlParser.GenericFunctionContext ctx) {
 
 		String functionName = ctx.genericFunctionName().getText();
