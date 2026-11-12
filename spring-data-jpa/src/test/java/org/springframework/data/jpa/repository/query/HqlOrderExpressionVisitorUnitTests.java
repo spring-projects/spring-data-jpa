@@ -43,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Greg Turnquist
  * @author Mark Paluch
+ * @author Konstantin Adzer
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:application-context.xml")
@@ -250,19 +251,6 @@ class HqlOrderExpressionVisitorUnitTests {
 				.containsIgnoringCase("var_1.firstname in ('Oliver', 'Dave')");
 	}
 
-	@Test
-	void logicalPredicates() {
-
-		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 and firstname <> 'Dave' then 1 else 0 end"), "var_1"))
-				.startsWithIgnoringCase("order by case when var_1.age > 30 and var_1.firstname <> 'Dave' then 1 else 0 end");
-
-		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 or firstname = 'Dave' then 1 else 0 end"), "var_1"))
-				.startsWithIgnoringCase("order by case when var_1.age > 30 or var_1.firstname = 'Dave' then 1 else 0 end");
-
-		assertThat(renderOrderBy(JpaSort.unsafe("case when not (firstname is null) then 1 else 0 end"), "var_1"))
-				.startsWithIgnoringCase("order by case when var_1.firstname is not null then 1 else 0 end");
-	}
-
 	@Test // GH-4255
 	void unsupported() {
 
@@ -324,6 +312,19 @@ class HqlOrderExpressionVisitorUnitTests {
 						"var_1"))
 				.startsWithIgnoringCase(
 						"order by case when var_1.firstname not in ('Oliver', 'Dave') then 'A' else var_1.firstname end");
+	}
+
+	@Test // GH-4425
+	void logicalPredicates() {
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 and firstname <> 'Dave' then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.age > 30 and var_1.firstname <> 'Dave' then 1 else 0 end");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when age > 30 or firstname = 'Dave' then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.age > 30 or var_1.firstname = 'Dave' then 1 else 0 end");
+
+		assertThat(renderOrderBy(JpaSort.unsafe("case when not (firstname is null) then 1 else 0 end"), "var_1"))
+				.startsWithIgnoringCase("order by case when var_1.firstname is not null then 1 else 0 end");
 	}
 
 	private String renderOrderBy(JpaSort sort, String alias) {
