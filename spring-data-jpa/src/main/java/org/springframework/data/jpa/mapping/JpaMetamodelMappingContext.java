@@ -20,6 +20,9 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -34,6 +37,7 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 
 /**
@@ -113,27 +117,36 @@ public class JpaMetamodelMappingContext
 	private static class Metamodels {
 
 		private final Set<Metamodel> metamodels;
+		private final Lazy<Map<Class<?>, Metamodel>> identifierMetamodels;
 
 		private Metamodels(Set<Metamodel> metamodels) {
 			this.metamodels = metamodels;
+			this.identifierMetamodels = Lazy.of(this::findIdentifierMetamodels);
 		}
 
 		// Eclipselink 🙄
 		public @Nullable Metamodel getIdentifierMetamodel(Class<?> type) {
+			return identifierMetamodels.get().get(type);
+		}
+
+		private Map<Class<?>, Metamodel> findIdentifierMetamodels() {
+
+			Map<Class<?>, Metamodel> result = new HashMap<>();
+
 			for (Metamodel model : metamodels) {
 				for (ManagedType<?> managedType : model.getManagedTypes()) {
 					if (!(managedType instanceof IdentifiableType<?> identifiable)) {
 						continue;
 					}
 					IdClass idClass = AnnotationUtils.findAnnotation(managedType.getJavaType(), IdClass.class);
-					if (idClass != null && idClass.value().equals(type)) {
-						return model;
+					if (idClass != null) {
+						result.putIfAbsent(idClass.value(), model);
 					}
 					if (!PersistenceProvider.fromMetamodel(model).getIdClassAttributes(identifiable).isEmpty()) {
 						try {
 							var idType = identifiable.getIdType();
-							if (idType != null && type.equals(idType.getJavaType())) {
-								return model;
+							if (idType != null && idType.getJavaType() != null) {
+								result.putIfAbsent(idType.getJavaType(), model);
 							}
 						} catch (IllegalStateException e) {
 							// Some providers cannot expose an identifier type for multiple identifier attributes.
@@ -141,7 +154,8 @@ public class JpaMetamodelMappingContext
 					}
 				}
 			}
-			return null;
+
+			return Collections.unmodifiableMap(result);
 		}
 
 		/**
@@ -173,21 +187,8 @@ public class JpaMetamodelMappingContext
 		private @Nullable Metamodel getMetamodelFor(Class<?> type) {
 
 			for (Metamodel model : metamodels) {
-
-				try {
-					if (model.managedType(type) != null) {
-						return model;
-					}
-				} catch (IllegalArgumentException o_O) {
-
-					// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
-					// returns for entities, embeddables and managed superclasses.
-
-					for (ManagedType<?> managedType : model.getManagedTypes()) {
-						if (type.equals(managedType.getJavaType())) {
-							return model;
-						}
-					}
+				if (JpaMetamodel.of(model).isJpaManaged(type)) {
+					return model;
 				}
 			}
 

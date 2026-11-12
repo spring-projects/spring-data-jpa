@@ -22,8 +22,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.Type;
+
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +68,8 @@ class JpaPersistableEntityInformationUnitTests {
 		when(entityManagerFactory.getPersistenceUnitUtil()).thenReturn(persistenceUnitUtil);
 		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(Foo.class)).thenReturn(type);
+		when(metamodel.getManagedTypes()).thenReturn(Set.<ManagedType<?>> of(type));
+		when(type.getJavaType()).thenReturn(Foo.class);
 		when(type.getIdType()).thenReturn(idType);
 	}
 

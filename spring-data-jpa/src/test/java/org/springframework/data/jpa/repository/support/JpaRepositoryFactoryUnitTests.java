@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,10 +145,13 @@ class JpaRepositoryFactoryUnitTests {
 	}
 
 	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void createsProxyWithCustomBaseClass() {
 
-		when(metamodel.managedType(any()))
-				.thenReturn(mock(ManagedType.class, withSettings().extraInterfaces(IdentifiableType.class)));
+		ManagedType type = mock(ManagedType.class, withSettings().extraInterfaces(IdentifiableType.class));
+		when(type.getJavaType()).thenReturn(User.class);
+		when(metamodel.managedType(any())).thenReturn(type);
+		when(metamodel.getManagedTypes()).thenReturn(Set.<ManagedType<?>> of(type));
 
 		JpaRepositoryFactory factory = new CustomGenericJpaRepositoryFactory(entityManager);
 		factory.setQueryLookupStrategyKey(Key.CREATE_IF_NOT_FOUND);
