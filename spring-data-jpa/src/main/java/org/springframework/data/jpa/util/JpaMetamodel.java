@@ -159,9 +159,11 @@ public class JpaMetamodel {
 	}
 
 	/**
-	 * Wipes the static cache of {@link Metamodel} to {@link JpaMetamodel}.
+	 * Wipes the static cache of {@link Metamodel} to {@link JpaMetamodel}. Intended to be called on container shutdown.
+	 *
+	 * @since 4.1
 	 */
-	static void clear() {
+	public static void clear() {
 		CACHE.clear();
 	}
 

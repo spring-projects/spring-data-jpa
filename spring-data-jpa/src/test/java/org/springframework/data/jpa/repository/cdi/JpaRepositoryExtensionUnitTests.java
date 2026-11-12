@@ -20,8 +20,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.ProcessBean;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Metamodel;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -31,6 +33,10 @@ import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
+import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -105,5 +111,21 @@ class JpaRepositoryExtensionUnitTests {
 		extension.processBean(createEntityManagerBeanMock(em));
 
 		assertEntityManagerRegistered(extension, alternativeEm);
+	}
+
+	@Test // GH-4037
+	@SuppressWarnings("unchecked")
+	void clearsMetamodelCachesOnShutdown() {
+
+		Metamodel metamodel = mock(Metamodel.class);
+		JpaMetamodel jpaMetamodel = JpaMetamodel.of(metamodel);
+		Map<Metamodel, JpaMetamodelMappingContext> contexts = (Map<Metamodel, JpaMetamodelMappingContext>) ReflectionTestUtils
+				.getField(JpaMetamodelEntityInformation.class, "CONTEXTS");
+		contexts.put(metamodel, new JpaMetamodelMappingContext(Set.of(metamodel)));
+
+		new JpaRepositoryExtension().beforeShutdown(mock(BeforeShutdown.class));
+
+		assertThat(JpaMetamodel.of(metamodel)).isNotSameAs(jpaMetamodel);
+		assertThat(contexts).doesNotContainKey(metamodel);
 	}
 }

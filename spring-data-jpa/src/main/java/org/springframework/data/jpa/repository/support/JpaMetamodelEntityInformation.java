@@ -118,9 +118,11 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	}
 
 	/**
-	 * Clear the cached {@link JpaMetamodelMappingContext} instances.
+	 * Clear the cached {@link JpaMetamodelMappingContext} instances. Intended to be called on container shutdown.
+	 *
+	 * @since 4.1
 	 */
-	static void clear() {
+	public static void clear() {
 		CONTEXTS.clear();
 	}
 
