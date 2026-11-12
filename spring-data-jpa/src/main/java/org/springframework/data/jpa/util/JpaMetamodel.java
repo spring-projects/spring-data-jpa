@@ -82,7 +82,7 @@ public class JpaMetamodel {
 	/**
 	 * Return the managed type, or {@literal null} if the type is not managed.
 	 *
-	 * @since 4.1
+	 * @since 4.3
 	 */
 	public <T> @Nullable ManagedType<T> getManagedType(Class<T> type) {
 
@@ -96,7 +96,7 @@ public class JpaMetamodel {
 	/**
 	 * Find a singular attribute, including inherited attributes and XML mappings.
 	 *
-	 * @since 4.1
+	 * @since 4.3
 	 */
 	public Optional<? extends SingularAttribute<?, ?>> findSingularAttribute(Class<?> type, String name) {
 
@@ -160,8 +160,9 @@ public class JpaMetamodel {
 
 	/**
 	 * Wipes the static cache of {@link Metamodel} to {@link JpaMetamodel}.
+	 * Intended to be called on container shutdown.
 	 */
-	static void clear() {
+	public static void clear() {
 		CACHE.clear();
 	}
 

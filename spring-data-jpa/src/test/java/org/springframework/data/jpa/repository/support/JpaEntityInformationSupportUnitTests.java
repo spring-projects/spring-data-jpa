@@ -77,6 +77,19 @@ class JpaEntityInformationSupportUnitTests {
 				.isThrownBy(() -> JpaEntityInformationSupport.getEntityInformation(User.class, em));
 	}
 
+	@Test // GH-4037
+	void derivesDistinctIdAttributeNamesFromPaths() {
+
+		JpaEntityInformation<User, ?> information = new DummyJpaEntityInformation<User, Serializable>(User.class) {
+			@Override
+			public Collection<String> getIdAttributePaths() {
+				return List.of("item.id", "item.manufacturerId", "site.id", "name");
+			}
+		};
+
+		assertThat(information.getIdAttributeNames()).containsExactly("item", "site", "name");
+	}
+
 	static class User {
 
 	}

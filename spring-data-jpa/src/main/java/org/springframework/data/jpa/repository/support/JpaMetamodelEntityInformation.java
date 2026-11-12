@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Tuple;
+import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
@@ -29,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
@@ -54,6 +56,8 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
+
+	private static final Map<Metamodel, JpaMetamodelMappingContext> CONTEXTS = new ConcurrentHashMap<>(4);
 
 	private final JpaPersistentEntity<T> persistentEntity;
 	private final PersistenceProvider persistenceProvider;
@@ -89,7 +93,8 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
 
-		this.context = new JpaMetamodelMappingContext(Collections.singleton(metamodel));
+		this.context = CONTEXTS.computeIfAbsent(metamodel,
+				it -> new JpaMetamodelMappingContext(Collections.singleton(it)));
 		this.persistentEntity = (JpaPersistentEntity<T>) context.getRequiredPersistentEntity(domainClass);
 		this.identifier = persistentEntity.getIdentifier();
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
@@ -112,11 +117,25 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		this(entityType.getJavaType(), metamodel, persistenceUnitUtil);
 	}
 
+	/**
+	 * Clear the cached {@link JpaMetamodelMappingContext} instances. Intended to be called on container shutdown.
+	 *
+	 * @since 4.3
+	 */
+	public static void clear() {
+		CONTEXTS.clear();
+	}
+
 	@Override
 	public String getEntityName() {
 		return entityName != null ? entityName : super.getEntityName();
 	}
 
+	/**
+	 * Return the {@link JpaPersistentEntity} backing this entity information.
+	 *
+	 * @since 4.3
+	 */
 	protected JpaPersistentEntity<T> getPersistentEntity() {
 		return persistentEntity;
 	}
@@ -128,10 +147,6 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 		if (persistenceProvider.shouldUseAccessorFor(entity) || entity instanceof Tuple
 				|| !getJavaType().isInstance(entity)) {
 			return (ID) persistentEntity.getIdentifierAccessor(entity).getIdentifier();
-		}
-
-		if (!identifier.isComposite()) {
-			return (ID) persistenceUnitUtil.getIdentifier(entity);
 		}
 
 		return (ID) persistenceUnitUtil.getIdentifier(entity);
@@ -151,6 +166,12 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public boolean hasCompositeId() {
 		return identifier.isComposite();
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public Collection<String> getIdAttributeNames() {
+		return identifier.getAttributes().stream().map(Attribute::getName).toList();
 	}
 
 	@Override

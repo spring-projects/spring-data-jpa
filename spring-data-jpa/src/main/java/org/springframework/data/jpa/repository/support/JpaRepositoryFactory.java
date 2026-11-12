@@ -20,7 +20,9 @@ import jakarta.persistence.Tuple;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
@@ -73,6 +75,7 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	private final EntityManager entityManager;
 	private final CrudMethodMetadataPostProcessor crudMethodMetadataPostProcessor;
 	private final CrudMethodMetadata crudMethodMetadata;
+	private final Map<Class<?>, JpaEntityInformation<?, ?>> entityInformation = new ConcurrentHashMap<>();
 
 	private EntityPathResolver entityPathResolver;
 	private EscapeCharacter escapeCharacter = EscapeCharacter.DEFAULT;
@@ -278,12 +281,13 @@ public class JpaRepositoryFactory extends RepositoryFactorySupport {
 	@Override
 	@SuppressWarnings("unchecked")
 	public <T, ID> JpaEntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-		return (JpaEntityInformation<T, ID>) JpaEntityInformationSupport.getEntityInformation(domainClass, entityManager);
+		return (JpaEntityInformation<T, ID>) entityInformation.computeIfAbsent(domainClass,
+				it -> JpaEntityInformationSupport.getEntityInformation(it, entityManager));
 	}
 
 	@Override
 	public EntityInformation<?, ?> getEntityInformation(RepositoryMetadata metadata) {
-		return JpaEntityInformationSupport.getEntityInformation(metadata.getDomainType(), entityManager);
+		return getEntityInformation(metadata.getDomainType());
 	}
 
 	@Override

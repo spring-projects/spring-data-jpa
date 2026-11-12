@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
  * JPA identifier metadata.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
+ * @since 4.3
  */
 public interface PersistentEntityIdentifier<E> {
 
@@ -33,30 +35,28 @@ public interface PersistentEntityIdentifier<E> {
 	 * <p>
 	 * An identifier type can be either a simple type (in case of a single attribute identifier), or the type that owns
 	 * composite identifier columns (the entity type itself or an {@link jakarta.persistence.IdClass}).
-	 *
-	 * @since 4.1
 	 */
 	Class<?> getType();
 
 	/**
 	 * Return an identifier attribute, or {@literal null} for a type without an identifier.
-	 *
-	 * @since 4.1
 	 */
 	@Nullable
-	SingularAttribute<? super E, ?> getAttribute();
+	SingularAttribute<? super E, ?> getAttribute(); // TODO: should we keep this or favor getAttributes right away?
+
+	/**
+	 * Return all identifier attributes declared by the entity, or an empty collection for a type without an identifier.
+	 * Associations are not expanded into their identifier attributes.
+	 */
+	Collection<SingularAttribute<? super E, ?>> getAttributes();
 
 	/**
 	 * Return identifier property paths, expanding associations into their identifier paths.
-	 *
-	 * @since 4.1
 	 */
 	Collection<String> getPropertyPaths();
 
 	/**
 	 * Return whether the identifier is represented by separate properties. An embedded identifier is one property.
-	 *
-	 * @since 4.1
 	 */
 	boolean isComposite();
 

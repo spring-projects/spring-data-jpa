@@ -28,6 +28,8 @@ public interface JpaPersistentEntity<T> extends PersistentEntity<T, JpaPersisten
 
 	/**
 	 * Return the JPA identifier metadata.
+	 *
+	 * @since 4.3
 	 */
 	PersistentEntityIdentifier<T> getIdentifier();
 

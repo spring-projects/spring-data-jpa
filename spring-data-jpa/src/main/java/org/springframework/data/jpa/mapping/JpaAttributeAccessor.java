@@ -32,6 +32,7 @@ import org.springframework.util.ReflectionUtils;
  * Domain service to allow accessing {@link Attribute}s of a JPA entity.
  *
  * @author Mark Paluch
+ * @since 4.3
  */
 class JpaAttributeAccessor {
 

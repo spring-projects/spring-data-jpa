@@ -39,6 +39,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
  * Integration tests for identifier extraction and newness through the JPA mapping model.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration("classpath:hibernate-infrastructure.xml")
@@ -53,7 +54,7 @@ class JpaIdMappingIntegrationTests {
 		context = new JpaMetamodelMappingContext(Collections.singleton(em.getMetamodel()));
 	}
 
-	@Test
+	@Test // GH-4037
 	void extractsAllIdClassComponents() {
 
 		Item item = new Item(2, 1);
@@ -65,7 +66,20 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(item).getIdentifier()).isEqualTo(expected);
 	}
 
-	@Test
+	@Test // GH-4037
+	void exposesImmutableIdentifierMetadata() {
+
+		PersistentEntityIdentifier<?> identifier = context.getRequiredPersistentEntity(ItemSite.class).getIdentifier();
+		JpaEntityInformation<ItemSite, ?> information = JpaEntityInformationSupport.getEntityInformation(ItemSite.class,
+				em);
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(identifier.getAttributes()::clear);
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(identifier.getPropertyPaths()::clear);
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(information.getIdAttributePaths()::clear);
+	}
+
+	@Test // GH-4037
 	void considersEntityWithAssignedIdAndZeroPrimitiveVersionNotNew() {
 
 		PrimitiveVersionProperty entity = new PrimitiveVersionProperty();
@@ -80,7 +94,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.isNew(entity)).as("Persistent entity newness").isFalse();
 	}
 
-	@Test
+	@Test // GH-4037
 	void returnsIdClassForSingleIdentifierAttribute() {
 
 		PersistableWithSingleIdClass entity = new PersistableWithSingleIdClass(2L);
@@ -94,7 +108,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(entity).getIdentifier()).isEqualTo(expectedId);
 	}
 
-	@Test
+	@Test // GH-4037
 	void extractsScalarIdentifier() {
 
 		Site entity = new Site(3);
@@ -105,7 +119,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(entity).getIdentifier()).isEqualTo(3);
 	}
 
-	@Test
+	@Test // GH-4037
 	void extractsEmbeddedIdentifier() {
 
 		EmbeddedIdExampleEmployee entity = new EmbeddedIdExampleEmployee();
@@ -122,7 +136,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(entity).getIdentifier()).isEqualTo(id);
 	}
 
-	@Test
+	@Test // GH-4037
 	void extractsDerivedIdentifier() {
 
 		ItemSite entity = new ItemSite(new Item(2, 1), new Site(3));
@@ -135,7 +149,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(entity).getIdentifier()).isEqualTo(expected);
 	}
 
-	@Test
+	@Test // GH-4037
 	void preservesPresentAssociationWithUnassignedIdentifier() {
 
 		ItemSite entity = new ItemSite(new Item(), null);
@@ -146,7 +160,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.isNew(entity)).isFalse();
 	}
 
-	@Test
+	@Test // GH-4037
 	void usesWrapperVersionForNewnessWithAssignedIdentifier() {
 
 		VersionedUser entity = new VersionedUser();
@@ -164,7 +178,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.isNew(entity)).isFalse();
 	}
 
-	@Test
+	@Test // GH-4037
 	void ignoresPrimitiveVersionForNewnessWithAbsentIdentifier() {
 
 		PrimitiveVersionProperty entity = new PrimitiveVersionProperty();
@@ -177,7 +191,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.isNew(entity)).isTrue();
 	}
 
-	@Test
+	@Test // GH-4037
 	void delegatesIdentifierAndNewnessToPersistable() {
 
 		PersistableWithIdClass entity = new PersistableWithIdClass(null, null);
@@ -197,7 +211,7 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.isNew(entity)).isFalse();
 	}
 
-	@Test
+	@Test // GH-4037
 	void honorsPersistableIdentifierForProxies() {
 
 		PersistableWithIdClass entity = mock(PersistableWithIdClass.class,

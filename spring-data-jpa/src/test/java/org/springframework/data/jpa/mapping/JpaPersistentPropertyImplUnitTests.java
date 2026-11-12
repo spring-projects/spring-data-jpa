@@ -28,8 +28,12 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Transient;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
+import jakarta.persistence.metamodel.Type.PersistenceType;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.jmolecules.ddd.types.AggregateRoot;
 import org.jmolecules.ddd.types.Association;
@@ -54,10 +58,10 @@ import org.springframework.data.core.TypeInformation;
  * @author Greg Turnquist
  * @author Jens Schauder
  * @author Erik Pellizzon
+ * @author Christoph Strobl
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-@Disabled
 class JpaPersistentPropertyImplUnitTests {
 
 	@Mock Metamodel model;
@@ -67,6 +71,20 @@ class JpaPersistentPropertyImplUnitTests {
 
 	@BeforeEach
 	void setUp() {
+
+		Set<ManagedType<?>> managedTypes = new LinkedHashSet<>();
+		for (Class<?> type : List.of(Sample.class, SampleEmbeddable.class, TypeLevelPropertyAccess.class,
+				PropertyLevelPropertyAccess.class, PropertyLevelDefinitionTrumpsTypeLevelOne.class,
+				PropertyLevelDefinitionTrumpsTypeLevelOne2.class, CompetingTypeLevelAnnotations.class,
+				CompetingPropertyLevelAnnotations.class, JpaVersioned.class, SpecializedAssociation.class, WithReadOnly.class,
+				JMoleculesSample.class)) {
+
+			ManagedType<?> managedType = mock(ManagedType.class);
+			doReturn(type).when(managedType).getJavaType();
+			doReturn(managedType).when(model).managedType(type);
+			managedTypes.add(managedType);
+		}
+		doReturn(managedTypes).when(model).getManagedTypes();
 
 		context = new JpaMetamodelMappingContext(Collections.singleton(model));
 		entity = context.getRequiredPersistentEntity(Sample.class);
@@ -161,10 +179,19 @@ class JpaPersistentPropertyImplUnitTests {
 	@Test // DATAJPA-904
 	void isEntityWorksEvenWithManagedTypeWithNullJavaType() {
 
-		ManagedType<?> managedType = mock(ManagedType.class);
-		doReturn(Collections.singleton(managedType)).when(model).getManagedTypes();
+		Metamodel metamodel = mock(Metamodel.class);
+		ManagedType<?> sample = mock(ManagedType.class);
+		doReturn(Sample.class).when(sample).getJavaType();
+		doReturn(PersistenceType.ENTITY).when(sample).getPersistenceType();
+		doReturn(sample).when(metamodel).managedType(Sample.class);
+		doReturn(Set.of(sample, mock(ManagedType.class))).when(metamodel).getManagedTypes();
 
-		assertThat(getProperty(Sample.class, "other").isEntity()).isFalse();
+		JpaMetamodelMappingContext context = new JpaMetamodelMappingContext(Collections.singleton(metamodel));
+
+		JpaPersistentEntity<?> entity = context.getRequiredPersistentEntity(Sample.class);
+
+		assertThat(entity.getRequiredPersistentProperty("other").isEntity()).isTrue();
+		assertThat(entity.getRequiredPersistentProperty("embedded").isEntity()).isFalse();
 	}
 
 	@Test // DATAJPA-1064
