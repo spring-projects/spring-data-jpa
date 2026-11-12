@@ -17,10 +17,11 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.metamodel.SingularAttribute;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
@@ -75,15 +76,11 @@ public interface JpaEntityInformation<T, ID> extends EntityInformation<T, ID>, J
 	@Deprecated
 	default Collection<String> getIdAttributeNames() {
 
-		List<String> names = new ArrayList<>();
+		Set<String> names = new LinkedHashSet<>();
 		for (String path : getIdAttributePaths()) {
 
 			int dot = path.indexOf('.');
-			if (dot == -1) {
-				names.add(path);
-			} else {
-				names.add(path.substring(0, dot));
-			}
+			names.add(dot == -1 ? path : path.substring(0, dot));
 		}
 
 		return names;

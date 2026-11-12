@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.support;
 
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.Tuple;
+import jakarta.persistence.metamodel.Attribute;
 import jakarta.persistence.metamodel.EntityType;
 import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
@@ -151,6 +152,12 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 	@Override
 	public boolean hasCompositeId() {
 		return identifier.isComposite();
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public Collection<String> getIdAttributeNames() {
+		return identifier.getAttributes().stream().map(Attribute::getName).toList();
 	}
 
 	@Override

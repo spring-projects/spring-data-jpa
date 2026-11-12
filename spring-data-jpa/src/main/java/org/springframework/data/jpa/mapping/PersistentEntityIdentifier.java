@@ -44,7 +44,15 @@ public interface PersistentEntityIdentifier<E> {
 	 * @since 4.1
 	 */
 	@Nullable
-	SingularAttribute<? super E, ?> getAttribute();
+	SingularAttribute<? super E, ?> getAttribute(); // TODO: should we keep this or favor getAttributes right away?
+
+	/**
+	 * Return all identifier attributes declared by the entity, or an empty collection for a type without an identifier.
+	 * Associations are not expanded into their identifier attributes.
+	 *
+	 * @since 4.1
+	 */
+	Collection<SingularAttribute<? super E, ?>> getAttributes();
 
 	/**
 	 * Return identifier property paths, expanding associations into their identifier paths.

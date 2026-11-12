@@ -132,6 +132,14 @@ public abstract class JpaMetamodelEntityInformationIntegrationTests {
 		assertThat(id).isEqualTo(new ItemSiteId(new ItemId(1, null), 3));
 	}
 
+	@Test // GH-4037
+	void returnsDistinctIdAttributeNamesForDerivedIdClass() {
+
+		JpaEntityInformation<ItemSite, ?> information = getEntityInformation(ItemSite.class, em);
+
+		assertThat(information.getIdAttributeNames()).containsExactlyInAnyOrder("item", "site");
+	}
+
 	@Test // DATAJPA-119
 	void favoursVersionAnnotationIfPresent() {
 

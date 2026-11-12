@@ -229,6 +229,12 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		}
 
 		@Override
+		public Collection<SingularAttribute<? super T, ?>> getAttributes() {
+			IdMetadata<T> metadata = idMetadata.getNullable();
+			return metadata == null ? Collections.emptyList() : Collections.unmodifiableSet(metadata.attributes);
+		}
+
+		@Override
 		public Collection<String> getPropertyPaths() {
 			IdMetadata<T> metadata = idMetadata.getNullable();
 			return metadata == null ? Collections.emptyList() : metadata.attributePaths;
