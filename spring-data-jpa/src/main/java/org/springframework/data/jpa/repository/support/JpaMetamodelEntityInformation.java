@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import org.jspecify.annotations.Nullable;
@@ -55,6 +56,8 @@ import org.springframework.util.Assert;
  * @author Greg Turnquist
  */
 public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSupport<T, ID> {
+
+	private static final Map<Metamodel, JpaMetamodelMappingContext> CONTEXTS = new ConcurrentHashMap<>(4);
 
 	private final JpaPersistentEntity<T> persistentEntity;
 	private final PersistenceProvider persistenceProvider;
@@ -90,7 +93,8 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			throw new IllegalArgumentException("The given domain class does not contain an id attribute");
 		}
 
-		this.context = new JpaMetamodelMappingContext(Collections.singleton(metamodel));
+		this.context = CONTEXTS.computeIfAbsent(metamodel,
+				it -> new JpaMetamodelMappingContext(Collections.singleton(it)));
 		this.persistentEntity = (JpaPersistentEntity<T>) context.getRequiredPersistentEntity(domainClass);
 		this.identifier = persistentEntity.getIdentifier();
 		this.persistenceProvider = PersistenceProvider.fromMetamodel(metamodel);
@@ -111,6 +115,13 @@ public class JpaMetamodelEntityInformation<T, ID> extends JpaEntityInformationSu
 			PersistenceUnitUtil persistenceUnitUtil) {
 
 		this(entityType.getJavaType(), metamodel, persistenceUnitUtil);
+	}
+
+	/**
+	 * Clear the cached {@link JpaMetamodelMappingContext} instances.
+	 */
+	static void clear() {
+		CONTEXTS.clear();
 	}
 
 	@Override

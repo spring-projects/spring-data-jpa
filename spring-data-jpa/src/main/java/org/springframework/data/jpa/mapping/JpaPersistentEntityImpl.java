@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -231,7 +232,7 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 		@Override
 		public Collection<SingularAttribute<? super T, ?>> getAttributes() {
 			IdMetadata<T> metadata = idMetadata.getNullable();
-			return metadata == null ? Collections.emptyList() : Collections.unmodifiableSet(metadata.attributes);
+			return metadata == null ? Collections.emptyList() : metadata.attributes;
 		}
 
 		@Override
@@ -267,9 +268,9 @@ class JpaPersistentEntityImpl<T> extends BasicPersistentEntity<T, JpaPersistentP
 			PersistenceProvider provider = proxyIdAccessor instanceof PersistenceProvider persistenceProvider
 					? persistenceProvider
 					: PersistenceProvider.GENERIC_JPA;
-			this.idClassAttributes = provider.getIdClassAttributes(type);
-			this.attributes = findAttributes(type);
-			this.attributePaths = findAttributePaths(null, type);
+			this.idClassAttributes = Collections.unmodifiableSet(new LinkedHashSet<>(provider.getIdClassAttributes(type)));
+			this.attributes = Collections.unmodifiableSet(new LinkedHashSet<>(findAttributes(type)));
+			this.attributePaths = List.copyOf(findAttributePaths(null, type));
 		}
 
 		private static <X> Set<SingularAttribute<? super X, ?>> findAttributes(IdentifiableType<X> source) {

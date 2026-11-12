@@ -106,6 +106,7 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 	private static final String DEFAULT_TRANSACTION_MANAGER_BEAN_NAME = "transactionManager";
 	private static final String ENABLE_DEFAULT_TRANSACTIONS_ATTRIBUTE = "enableDefaultTransactions";
 	private static final String JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.util.JpaMetamodelCacheCleanup";
+	private static final String JPA_ENTITY_INFORMATION_CACHE_CLEANUP_CLASSNAME = "org.springframework.data.jpa.repository.support.JpaEntityInformationCacheCleanup";
 	private static final String ESCAPE_CHARACTER_PROPERTY = "escapeCharacter";
 	private static final Logger log = LoggerFactory.getLogger(JpaRepositoryConfigExtension.class);
 
@@ -225,6 +226,9 @@ public class JpaRepositoryConfigExtension extends RepositoryConfigurationExtensi
 
 		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME), registry,
 				JPA_METAMODEL_CACHE_CLEANUP_CLASSNAME, source);
+
+		registerIfNotAlreadyRegistered(() -> new RootBeanDefinition(JPA_ENTITY_INFORMATION_CACHE_CLEANUP_CLASSNAME),
+				registry, JPA_ENTITY_INFORMATION_CACHE_CLEANUP_CLASSNAME, source);
 
 		// EvaluationContextExtension for JPA specific SpEL functions
 

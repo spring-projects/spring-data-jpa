@@ -65,6 +65,19 @@ class JpaIdMappingIntegrationTests {
 		assertThat(persistentEntity.getIdentifierAccessor(item).getIdentifier()).isEqualTo(expected);
 	}
 
+	@Test // GH-4037
+	void exposesImmutableIdentifierMetadata() {
+
+		PersistentEntityIdentifier<?> identifier = context.getRequiredPersistentEntity(ItemSite.class).getIdentifier();
+		JpaEntityInformation<ItemSite, ?> information = JpaEntityInformationSupport.getEntityInformation(ItemSite.class,
+				em);
+
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(identifier.getAttributes()::clear);
+		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(identifier.getPropertyPaths()::clear);
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(information.getIdAttributePaths()::clear);
+	}
+
 	@Test
 	void considersEntityWithAssignedIdAndZeroPrimitiveVersionNotNew() {
 
