@@ -28,7 +28,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
-
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -56,6 +55,7 @@ import org.springframework.util.ConcurrentLruCache;
  * Support class for JPA AOT repository fragments.
  *
  * @author Mark Paluch
+ * @author Christoph Strobl
  * @since 4.0
  */
 public class AotRepositoryFragmentSupport {
@@ -101,6 +101,40 @@ public class AotRepositoryFragmentSupport {
 		this.expressions = Lazy.of(() -> new ConcurrentLruCache<>(32, valueExpressions::parse));
 		this.contextProviders = Lazy.of(() -> new ConcurrentLruCache<>(32, it -> valueExpressions
 				.createValueContextProvider(new JpaParameters(ParametersSource.of(repositoryMetadata, it)))));
+	}
+
+	/**
+	 * Apply {@link NullCompare null comparisons} to the given query. Each applicable comparison replaces its range of the
+	 * original query with {@link NullCompare#render()}.
+	 *
+	 * @param jpql the query string.
+	 * @param comparisons comparisons ordered by their position within the query.
+	 * @return the potentially rewritten query string.
+	 * @throws IllegalArgumentException if applicable comparisons are not ordered, overlap or exceed the query.
+	 */
+	protected String conditionalNullComparison(String jpql, NullCompare... comparisons) {
+
+		StringBuilder builder = null;
+		int last = 0;
+		for (NullCompare comparison : comparisons) {
+
+			if (!comparison.applies()) {
+				continue;
+			}
+
+			if (comparison.start() < last || comparison.end() > jpql.length()) {
+				throw new IllegalArgumentException(
+						"Null comparisons must be ordered, must not overlap and must be within the query bounds");
+			}
+
+			if (builder == null) {
+				builder = new StringBuilder(jpql.length());
+			}
+			builder.append(jpql, last, comparison.start()).append(comparison.render());
+			last = comparison.end();
+		}
+
+		return builder != null ? builder.append(jpql, last, jpql.length()).toString() : jpql;
 	}
 
 	/**
@@ -267,6 +301,102 @@ public class AotRepositoryFragmentSupport {
 			return returnedType();
 		}
 
+	}
+
+	/**
+	 * Conditional index based {@code IS [NOT] NULL} replacement of a comparison within a query
+	 *
+	 * @since 4.2
+	 * @author Christoph Strobl
+	 */
+	protected static final class NullCompare {
+
+		private final String path;
+		private final int start;
+		private final int end;
+		private final boolean negated;
+		private final boolean applies;
+
+		private NullCompare(String path, int start, int end, boolean negated, boolean applies) {
+
+			this.path = path;
+			this.start = start;
+			this.end = end;
+			this.negated = negated;
+			this.applies = applies;
+		}
+
+		/**
+		 * Create a new comparison for the given property {@code path}.
+		 *
+		 * @param path
+		 * @return never {@literal null}.
+		 */
+		public static WithRange of(String path) {
+
+			return (start, end) -> new WithCondition() {
+
+				@Override
+				public NullCompare isNullIf(boolean condition) {
+					return new NullCompare(path, start, end, false, condition);
+				}
+
+				@Override
+				public NullCompare isNotNullIf(boolean condition) {
+					return new NullCompare(path, start, end, true, condition);
+				}
+			};
+		}
+
+		int start() {
+			return start;
+		}
+
+		int end() {
+			return end;
+		}
+
+		boolean applies() {
+			return applies;
+		}
+
+		String render() {
+			return path + (negated ? " IS NOT NULL" : " IS NULL");
+		}
+
+		@Override
+		public String toString() {
+			return "[%d, %d) -> %s if %s".formatted(start, end, render(), applies);
+		}
+
+		/**
+		 * Step to define the query range to replace.
+		 */
+		public interface WithRange {
+
+			/**
+			 * @param start start offset (inclusive) within the original query.
+			 * @param end end offset (exclusive) within the original query.
+			 * @return the next step to define the condition.
+			 */
+			WithCondition inRange(int start, int end);
+		}
+
+		/**
+		 * Step to define the replacement and when to apply it.
+		 */
+		public interface WithCondition {
+
+			/**
+			 * Replace the range with {@code <path> IS NULL} if {@code condition} is {@literal true}.
+			 */
+			NullCompare isNullIf(boolean condition);
+
+			/**
+			 * Replace the range with {@code <path> IS NOT NULL} if {@code condition} is {@literal true}.
+			 */
+			NullCompare isNotNullIf(boolean condition);
+		}
 	}
 
 }

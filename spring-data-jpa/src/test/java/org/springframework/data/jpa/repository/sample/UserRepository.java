@@ -87,6 +87,19 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 
 	List<User> findUserByLastname(@Nullable String lastname);
 
+	Page<User> findPageByLastname(@Nullable String lastname, Pageable pageable);
+
+	List<User> findByLastnameIgnoreCase(@Nullable String lastname);
+
+	List<User> findByFirstnameAndLastname(@Nullable String firstname, @Nullable String lastname);
+
+	List<User> readByFirstnameAndLastname(@Nullable @Param("fn") String first, @Nullable @Param("ln") String last);
+
+	Page<User> findPageByFirstnameAndLastname(@Nullable String firstname, @Nullable String lastname, Pageable pageable);
+
+	@Query("select u from User u where u.lastname = :lastname")
+	Page<User> findPageByLastnameQueryParameter(@Nullable @Param("lastname") String lastname, Pageable pageable);
+
 	/**
 	 * Redeclaration of {@link CrudRepository#findById(java.lang.Object)} to change transaction configuration.
 	 */
@@ -203,6 +216,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	List<User> findByLastnameNotLike(String lastname);
 
 	List<User> findByLastnameNot(@Nullable String lastname);
+
+	List<User> findByLastnameNotIgnoreCase(@Nullable String lastname);
 
 	List<User> findByManagerLastname(String name);
 
@@ -863,6 +878,8 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
 	// --> Test for Unicode column names
 
 	List<User> findUserByHireDateLessThanEqual(LocalDate date);
+
+	List<User> findUserByHireDate(@Nullable LocalDate date);
 
 	@Query("select u from User u where u.hireDate <= :date")
 	List<User> findByHireDateJpql(@Param("date") LocalDate date);
