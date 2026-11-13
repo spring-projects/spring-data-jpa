@@ -23,6 +23,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceUnitUtil;
 import jakarta.persistence.metamodel.IdentifiableType;
+import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 import jakarta.persistence.metamodel.Type;
@@ -78,6 +79,8 @@ class JpaMetamodelEntityInformationUnitTests {
 
 		when(metamodel.managedType(Object.class)).thenThrow(IllegalArgumentException.class);
 		when(metamodel.managedType(PersistableWithIdClass.class)).thenReturn(type);
+		when(metamodel.getManagedTypes()).thenReturn(Set.<ManagedType<?>> of(type));
+		when(type.getJavaType()).thenReturn(PersistableWithIdClass.class);
 
 		when(type.getIdType()).thenReturn(idType);
 		when(idType.getJavaType()).thenReturn(PersistableWithIdClassPK.class);

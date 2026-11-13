@@ -59,13 +59,9 @@ public class JpaPersistableEntityInformation<T extends Persistable<ID>, ID>
 	}
 
 	@Override
-	public boolean isNew(T entity) {
-		return entity.isNew();
-	}
-
-	@Override
+	@SuppressWarnings("unchecked")
 	public @Nullable ID getId(T entity) {
-		return entity.getId();
+		return (ID) getPersistentEntity().getIdentifierAccessor(entity).getIdentifier();
 	}
 
 }

@@ -20,6 +20,7 @@ import jakarta.enterprise.inject.UnsatisfiedResolutionException;
 import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
 import jakarta.enterprise.inject.spi.Bean;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeforeShutdown;
 import jakarta.enterprise.inject.spi.ProcessBean;
 import jakarta.persistence.EntityManager;
 
@@ -34,6 +35,8 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.data.jpa.repository.support.JpaMetamodelEntityInformation;
+import org.springframework.data.jpa.util.JpaMetamodel;
 import org.springframework.data.repository.cdi.CdiRepositoryBean;
 import org.springframework.data.repository.cdi.CdiRepositoryExtensionSupport;
 
@@ -101,6 +104,16 @@ public class JpaRepositoryExtension extends CdiRepositoryExtensionSupport {
 			registerBean(repositoryBean);
 			afterBeanDiscovery.addBean(repositoryBean);
 		}
+	}
+
+	/**
+	 * Clears static metamodel caches to avoid retaining {@link jakarta.persistence.metamodel.Metamodel} instances after
+	 * container shutdown.
+	 */
+	void beforeShutdown(@Observes BeforeShutdown beforeShutdown) {
+
+		JpaMetamodelEntityInformation.clear();
+		JpaMetamodel.clear();
 	}
 
 	/**

@@ -29,6 +29,9 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Selection;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +61,7 @@ import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.DeleteSpecification;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.UpdateSpecification;
+import org.springframework.data.jpa.mapping.JpaPersistentProperty;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.query.EscapeCharacter;
@@ -69,6 +73,7 @@ import org.springframework.data.jpa.repository.support.FluentQuerySupport.Scroll
 import org.springframework.data.jpa.repository.support.QueryHints.NoHints;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.jpa.util.JpaAdapter;
+import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.query.FluentQuery;
@@ -371,38 +376,39 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		Assert.notNull(id, ID_MUST_NOT_BE_NULL);
 
-		if (entityInformation.getIdAttribute() == null) {
+		EntityType<T> entityType = entityManager.getMetamodel().entity(getDomainClass());
+		Collection<String> idAttributeNames = entityInformation.getIdAttributePaths();
+
+		for (Attribute<? super T, ?> attribute : entityType.getAttributes()) {
+			if (attribute instanceof SingularAttribute sa && sa.isId() && sa.isAssociation()) {
+				return findById(id).isPresent();
+			}
+		}
+
+		if (idAttributeNames.isEmpty()) {
 			return findById(id).isPresent();
 		}
 
 		String placeholder = provider.getCountQueryPlaceholder();
 		String entityName = entityInformation.getEntityName();
-		Iterable<String> idAttributeNames = entityInformation.getIdAttributeNames();
 		String existsQuery = QueryUtils.getExistsQueryString(entityName, placeholder, idAttributeNames);
 
 		TypedQuery<Long> query = entityManager.createQuery(existsQuery, Long.class);
-
 		applyQueryHints(query);
 
-		if (!entityInformation.hasCompositeId()) {
-			query.setParameter(idAttributeNames.iterator().next(), id);
-			return ExistsUtil.exists(query.getSingleResult());
-		}
+		if (entityInformation.hasCompositeId()) {
 
-		for (String idAttributeName : idAttributeNames) {
+			List<JpaPersistentProperty> identifiers = entityInformation.getIdentifierProperties();
+			PersistentPropertyAccessor<?> accessor = entityInformation.getIdentifierPropertyAccessor(id);
+			for (JpaPersistentProperty identifier : identifiers) {
 
-			Object idAttributeValue = entityInformation.getCompositeIdAttributeValue(id, idAttributeName);
-
-			boolean complexIdParameterValueDiscovered = idAttributeValue != null
-					&& !query.getParameter(idAttributeName).getParameterType().isAssignableFrom(idAttributeValue.getClass());
-
-			if (complexIdParameterValueDiscovered) {
-
-				// fall-back to findById(id) which does the proper mapping for the parameter.
-				return findById(id).isPresent();
+				String idAttributeName = identifier.getName();
+				Object idAttributeValue = accessor.getProperty(identifier);
+				query.setParameter(idAttributeName, idAttributeValue);
 			}
-
-			query.setParameter(idAttributeName, idAttributeValue);
+		}
+		else {
+			query.setParameter(idAttributeNames.iterator().next(), id);
 		}
 
 		return ExistsUtil.exists(query.getSingleResult());
@@ -437,7 +443,7 @@ public class SimpleJpaRepository<T, ID> implements JpaRepositoryImplementation<T
 
 		TypedQuery<T> query = getQuery((root, q, criteriaBuilder) -> {
 
-			Path<?> path = root.get(entityInformation.getIdAttribute());
+			Path<?> path = root.get(entityInformation.getRequiredIdAttribute());
 			return path.in(idCollection);
 
 		}, Sort.unsorted());

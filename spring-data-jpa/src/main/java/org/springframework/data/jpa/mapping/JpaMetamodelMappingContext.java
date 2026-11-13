@@ -15,14 +15,20 @@
  */
 package org.springframework.data.jpa.mapping;
 
+import jakarta.persistence.IdClass;
+import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.ManagedType;
 import jakarta.persistence.metamodel.Metamodel;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import org.jspecify.annotations.Nullable;
 
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.core.TypeInformation;
 import org.springframework.data.jpa.provider.PersistenceProvider;
 import org.springframework.data.jpa.util.JpaMetamodel;
@@ -31,6 +37,7 @@ import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+import org.springframework.data.util.Lazy;
 import org.springframework.util.Assert;
 
 /**
@@ -46,7 +53,6 @@ public class JpaMetamodelMappingContext
 		extends AbstractMappingContext<JpaPersistentEntityImpl<?>, JpaPersistentProperty> {
 
 	private final Metamodels models;
-	private final PersistenceProvider persistenceProvider;
 
 	/**
 	 * Creates a new JPA {@link Metamodel} based {@link MappingContext}.
@@ -58,13 +64,19 @@ public class JpaMetamodelMappingContext
 		Assert.notEmpty(models, "JPA metamodel must not be empty");
 
 		this.models = new Metamodels(models);
-		this.persistenceProvider = PersistenceProvider.fromMetamodel(models.iterator().next());
 	}
 
 	@Override
 	protected <T> JpaPersistentEntityImpl<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		return new JpaPersistentEntityImpl<>(typeInformation, persistenceProvider,
-				models.getRequiredMetamodel(typeInformation));
+
+		Metamodel metamodel = models.getMetamodelFor(typeInformation.getType());
+		if (metamodel == null) {
+			metamodel = models.getIdentifierMetamodel(typeInformation.getType());
+		}
+		Assert.notNull(metamodel, () -> String.format("Required JpaMetamodel not found for %s", typeInformation));
+
+		return new JpaPersistentEntityImpl<>(typeInformation, PersistenceProvider.fromMetamodel(metamodel),
+				JpaMetamodel.of(metamodel));
 	}
 
 	@Override
@@ -75,7 +87,8 @@ public class JpaMetamodelMappingContext
 
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return models.isMetamodelManagedType(type.getUserTypeInformation());
+		return models.isMetamodelManagedType(type.getUserTypeInformation())
+				|| models.getIdentifierMetamodel(type.getType()) != null;
 	}
 
 	/**
@@ -104,40 +117,45 @@ public class JpaMetamodelMappingContext
 	private static class Metamodels {
 
 		private final Set<Metamodel> metamodels;
+		private final Lazy<Map<Class<?>, Metamodel>> identifierMetamodels;
 
 		private Metamodels(Set<Metamodel> metamodels) {
 			this.metamodels = metamodels;
+			this.identifierMetamodels = Lazy.of(this::findIdentifierMetamodels);
 		}
 
-		/**
-		 * Returns the {@link JpaMetamodel} for the given type.
-		 *
-		 * @param type must not be {@literal null}.
-		 * @return
-		 */
-		public @Nullable JpaMetamodel getMetamodel(TypeInformation<?> type) {
-
-			Metamodel metamodel = getMetamodelFor(type.getType());
-
-			return metamodel == null ? null : JpaMetamodel.of(metamodel);
+		// Eclipselink 🙄
+		public @Nullable Metamodel getIdentifierMetamodel(Class<?> type) {
+			return identifierMetamodels.get().get(type);
 		}
 
-		/**
-		 * Returns the required {@link JpaMetamodel} for the given type or throw {@link IllegalArgumentException} if the
-		 * {@code type} is not JPA-managed.
-		 *
-		 * @param type must not be {@literal null}.
-		 * @return
-		 * @throws IllegalArgumentException if {@code type} is not JPA-managed.
-		 * @since 2.6.1
-		 */
-		public JpaMetamodel getRequiredMetamodel(TypeInformation<?> type) {
+		private Map<Class<?>, Metamodel> findIdentifierMetamodels() {
 
-			JpaMetamodel metamodel = getMetamodel(type);
+			Map<Class<?>, Metamodel> result = new HashMap<>();
 
-			Assert.notNull(metamodel, () -> String.format("Required JpaMetamodel not found for %s", type));
+			for (Metamodel model : metamodels) {
+				for (ManagedType<?> managedType : model.getManagedTypes()) {
+					if (!(managedType instanceof IdentifiableType<?> identifiable)) {
+						continue;
+					}
+					IdClass idClass = AnnotationUtils.findAnnotation(managedType.getJavaType(), IdClass.class);
+					if (idClass != null) {
+						result.putIfAbsent(idClass.value(), model);
+					}
+					if (!PersistenceProvider.fromMetamodel(model).getIdClassAttributes(identifiable).isEmpty()) {
+						try {
+							var idType = identifiable.getIdType();
+							if (idType != null && idType.getJavaType() != null) {
+								result.putIfAbsent(idType.getJavaType(), model);
+							}
+						} catch (IllegalStateException e) {
+							// Some providers cannot expose an identifier type for multiple identifier attributes.
+						}
+					}
+				}
+			}
 
-			return metamodel;
+			return Collections.unmodifiableMap(result);
 		}
 
 		/**
@@ -169,20 +187,8 @@ public class JpaMetamodelMappingContext
 		private @Nullable Metamodel getMetamodelFor(Class<?> type) {
 
 			for (Metamodel model : metamodels) {
-
-				try {
-					model.managedType(type);
+				if (JpaMetamodel.of(model).isJpaManaged(type)) {
 					return model;
-				} catch (IllegalArgumentException o_O) {
-
-					// Fall back to inspect *all* managed types manually as Metamodel.managedType(…) only
-					// returns for entities, embeddables and managed superclasses.
-
-					for (ManagedType<?> managedType : model.getManagedTypes()) {
-						if (type.equals(managedType.getJavaType())) {
-							return model;
-						}
-					}
 				}
 			}
 
