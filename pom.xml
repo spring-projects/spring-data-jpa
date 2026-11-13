@@ -30,7 +30,7 @@
 		<eclipselink>5.0.2</eclipselink>
 		<eclipselink-6>6.0.0-M1</eclipselink-6>
 		<eclipselink-next>5.0.0-SNAPSHOT</eclipselink-next>
-		<hibernate>7.4.14.Final</hibernate>
+		<hibernate>7.4.15.Final</hibernate>
 		<hibernate-74-snapshots>7.4.1-SNAPSHOT</hibernate-74-snapshots>
 		<hibernate-8>8.0.0.CR1</hibernate-8>
 		<hsqldb>2.7.4</hsqldb>
