@@ -631,20 +631,9 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		 * requires ignoring case.
 		 *
 		 * @param path must not be {@literal null}.
-		 * @return
+		 * @return an expression that ignores case
 		 */
-		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.Origin source, PropertyPath path) {
-			return potentiallyIgnoreCase(path.getLeafProperty(), JpqlQueryBuilder.expression(source, path));
-		}
-
-		/**
-		 * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
-		 * requires ignoring case.
-		 *
-		 * @param path must not be {@literal null}.
-		 * @return
-		 */
-		private <T> JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.PathExpression path) {
+		private JpqlQueryBuilder.Expression potentiallyIgnoreCase(JpqlQueryBuilder.PathExpression path) {
 			return potentiallyIgnoreCase(path.getPropertyPath().getLeafProperty(), path);
 		}
 
@@ -652,7 +641,8 @@ public class JpaQueryCreator extends AbstractQueryCreator<String, JpqlQueryBuild
 		 * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
 		 * requires ignoring case.
 		 *
-		 * @return
+		 * @param path must not be {@literal null}.
+		 * @return an expression that ignores case
 		 */
 		private JpqlQueryBuilder.Expression potentiallyIgnoreCase(PropertyPath path,
 				JpqlQueryBuilder.Expression expressionValue) {
