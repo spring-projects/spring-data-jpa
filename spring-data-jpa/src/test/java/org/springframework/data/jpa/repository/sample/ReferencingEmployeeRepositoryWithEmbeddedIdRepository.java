@@ -17,7 +17,6 @@ package org.springframework.data.jpa.repository.sample;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.sample.ReferencingEmbeddedIdExampleEmployee;
-import org.springframework.data.jpa.domain.sample.ReferencingIdClassExampleEmployee;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

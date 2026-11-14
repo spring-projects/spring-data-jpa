@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 
 import org.mockito.Mockito;
 import org.mockito.stubbing.OngoingStubbing;
-import org.mockito.verification.VerificationMode;
 
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;

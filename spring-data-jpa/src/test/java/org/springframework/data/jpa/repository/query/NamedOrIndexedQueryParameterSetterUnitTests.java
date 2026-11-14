@@ -18,7 +18,6 @@ package org.springframework.data.jpa.repository.query;
 import static jakarta.persistence.TemporalType.*;
 import static java.util.Arrays.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.data.jpa.repository.query.QueryParameterSetter.*;
 import static org.springframework.data.jpa.repository.query.QueryParameterSetter.ErrorHandling.*;
 
 import jakarta.persistence.Parameter;

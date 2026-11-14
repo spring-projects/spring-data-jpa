@@ -25,7 +25,6 @@ import jakarta.persistence.metamodel.IdentifiableType;
 import jakarta.persistence.metamodel.Metamodel;
 import jakarta.persistence.metamodel.SingularAttribute;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,7 +53,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -429,10 +427,10 @@ public enum PersistenceProvider implements QueryExtractor, ProxyIdAccessor, Quer
 
 	/**
 	 * Because Hibernate's {@literal TypedParameterValue} is only used to wrap a {@literal null}, swap it out with
-	 * {@code null} for query creation.
+	 * {@literal null} for query creation.
 	 *
-	 * @param value
-	 * @return the original value or null.
+	 * @param value the value to unwrap
+	 * @return the original value or {@literal null}.
 	 * @since 3.0
 	 */
 	public static @Nullable Object unwrapTypedParameterValue(@Nullable Object value) {
