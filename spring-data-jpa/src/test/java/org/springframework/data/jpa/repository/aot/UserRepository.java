@@ -44,6 +44,7 @@ import org.springframework.data.util.Streamable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author JungKyun Ryu
+ * @author SangHoon Han
  */
 interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -264,6 +265,12 @@ interface UserRepository extends CrudRepository<User, Integer> {
 
 	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles", "manager.roles" })
 	User findWithDeclaredEntityGraphByFirstname(String firstname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles" })
+	List<EmailOnly> findEmailOnlyWithDeclaredEntityGraphByLastname(String lastname);
+
+	@EntityGraph(type = EntityGraph.EntityGraphType.FETCH, attributePaths = { "roles" })
+	List<UserDtoProjection> findDtoWithDeclaredEntityGraphByLastname(String lastname);
 
 	@Query("select u from User u where u.emailAddress = ?1 AND TYPE(u) = ?2")
 	<T extends User> T findByEmailAddress(String emailAddress, Class<T> type);
