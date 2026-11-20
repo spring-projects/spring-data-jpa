@@ -842,6 +842,10 @@ public class GroupInfo {
   @ManyToMany
   List<GroupMember> members = new ArrayList<GroupMember>();
 
+  public List<GroupMember> getMembers() {
+    return members;
+  }
+
   …
 }
 ----
@@ -874,6 +878,23 @@ public interface GroupRepository extends CrudRepository<GroupInfo, String> {
   GroupInfo getByGroupName(String name);
 
 }
+----
+====
+
+You can also select the entity graph per invocation by declaring an `EntityGraphHint` query method parameter. The hint can refer to type-safe property paths, a named entity graph, or a JPA `EntityGraph` instance.
+
+.Using an entity graph query method parameter
+====
+[source, java]
+----
+public interface GroupRepository extends CrudRepository<GroupInfo, String> {
+
+  GroupInfo getByGroupName(String name, EntityGraphHint<GroupInfo> entityGraph);
+
+}
+
+repository.getByGroupName("team", EntityGraphHint.fetch(GroupInfo::getMembers));
+repository.getByGroupName("team", EntityGraphHint.load("GroupInfo.detail"));
 ----
 ====
 
