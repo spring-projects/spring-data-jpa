@@ -275,6 +275,23 @@ public interface JpaSpecificationExecutor<T> {
 		SpecificationFluentQuery<T> project(Collection<String> properties);
 
 		/**
+		 * Configures the named entity graph to use for query execution.
+		 *
+		 * @param name the name of the entity graph to use.
+		 * @return a new fluent query with the specified entity graph.
+		 */
+		SpecificationFluentQuery<T> entityGraph(String name);
+
+		/**
+		 * Configures the named entity graph and its type to use for query execution.
+		 *
+		 * @param name the name of the entity graph to use.
+		 * @param type the type of entity graph to use.
+		 * @return a new fluent query with the specified entity graph.
+		 */
+		SpecificationFluentQuery<T> entityGraph(String name, EntityGraph.EntityGraphType type);
+
+		/**
 		 * Get a page of matching elements for {@link Pageable} and provide a custom {@link Specification count
 		 * specification}.
 		 *

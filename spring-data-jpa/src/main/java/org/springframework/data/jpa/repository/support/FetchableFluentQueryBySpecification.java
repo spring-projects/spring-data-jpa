@@ -38,7 +38,10 @@ import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Window;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import org.springframework.data.jpa.repository.query.Jpa21Utils;
+import org.springframework.data.jpa.repository.query.JpaEntityGraph;
 import org.springframework.data.jpa.repository.query.ScrollDelegate;
 import org.springframework.data.jpa.support.PageableUtils;
 import org.springframework.data.projection.ProjectionFactory;
@@ -65,17 +68,19 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 	private final Function<Specification<S>, Long> countOperation;
 	private final Function<Specification<S>, Boolean> existsOperation;
 	private final EntityManager entityManager;
+	private final @Nullable JpaEntityGraph entityGraph;
 
+	@SuppressWarnings("unchecked")
 	FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType,
 			Function<FluentQuerySupport<?, ?>, TypedQuery<S>> finder, SpecificationScrollDelegate<S> scrollDelegate,
 			Function<Specification<S>, Long> countOperation, Function<Specification<S>, Boolean> existsOperation,
 			EntityManager entityManager, ProjectionFactory projectionFactory) {
-		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), finder, scrollDelegate,
-				countOperation, existsOperation, entityManager, projectionFactory);
+		this(spec, entityType, (Class<R>) entityType, Sort.unsorted(), 0, Collections.emptySet(), null, finder, scrollDelegate,
+			    countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	private FetchableFluentQueryBySpecification(Specification<S> spec, Class<S> entityType, Class<R> resultType,
-			Sort sort, int limit, Collection<String> properties, Function<FluentQuerySupport<?, ?>, TypedQuery<S>> finder,
+			Sort sort, int limit, Collection<String> properties, @Nullable JpaEntityGraph entityGraph, Function<FluentQuerySupport<?, ?>, TypedQuery<S>> finder,
 			SpecificationScrollDelegate<S> scrollDelegate, Function<Specification<S>, Long> countOperation,
 			Function<Specification<S>, Boolean> existsOperation, EntityManager entityManager,
 			ProjectionFactory projectionFactory) {
@@ -87,6 +92,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		this.countOperation = countOperation;
 		this.existsOperation = existsOperation;
 		this.entityManager = entityManager;
+		this.entityGraph = entityGraph;
 	}
 
 	@Override
@@ -103,7 +109,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 			return this;
 		}
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, entityGraph, finder,
 				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
@@ -112,7 +118,7 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		Assert.isTrue(limit >= 0, "Limit must not be negative");
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, entityGraph, finder,
 				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
@@ -121,15 +127,35 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		Assert.notNull(resultType, "Projection target type must not be null");
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
+		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, entityGraph, finder,
 				scroll, countOperation, existsOperation, entityManager, projectionFactory);
 	}
 
 	@Override
 	public SpecificationFluentQuery<R> project(Collection<String> properties) {
 
-		return new FetchableFluentQueryBySpecification<>(spec, entityType, resultType, sort, limit, properties, finder,
-				scroll, countOperation, existsOperation, entityManager, projectionFactory);
+		return new FetchableFluentQueryBySpecification<>(
+			spec, entityType, resultType, sort, limit,
+			properties, null, finder, scroll,
+			countOperation, existsOperation,
+			entityManager, projectionFactory);
+	}
+
+	@Override
+	public SpecificationFluentQuery<R> entityGraph(String name) {
+		return entityGraph(name, EntityGraph.EntityGraphType.FETCH);
+	}
+
+	@Override
+	public SpecificationFluentQuery<R> entityGraph(
+		String name, EntityGraph.EntityGraphType type) {
+
+		return new FetchableFluentQueryBySpecification<>(
+			spec, entityType, resultType, sort, limit,
+			Collections.emptySet(),
+			new JpaEntityGraph(name, type, null),
+			finder, scroll, countOperation, existsOperation,
+			entityManager, projectionFactory);
 	}
 
 	@Override
@@ -212,8 +238,16 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 
 		TypedQuery<S> query = finder.apply(getSorted(sort));
 
-		if (!properties.isEmpty()) {
-			query.setHint(EntityGraphFactory.HINT, EntityGraphFactory.create(entityManager, entityType, properties));
+		if (entityGraph != null) {
+			Jpa21Utils.getFetchGraphHint(
+				entityManager, entityGraph, entityType
+			).forEach(query::setHint);
+
+		} else if (!properties.isEmpty()) {
+			query.setHint(
+				EntityGraphFactory.HINT,
+				EntityGraphFactory.create(entityManager, entityType, properties)
+			);
 		}
 
 		if (limit != 0) {
