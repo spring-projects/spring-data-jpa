@@ -3,7 +3,7 @@ name: CI Build
 on:
   workflow_dispatch:
   push:
-    branches: [ main, 'issue/**' ]
+    branches: [ 4.2.x, 'issue/4.2.x/**', 'release/**' ]
 
 permissions: read-all
 
@@ -23,12 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Setup Java and Maven
-        uses: spring-projects/spring-data-build/actions/setup-maven@main
+        uses: spring-projects/spring-data-build/actions/setup-maven@4.2.x
         with:
           java-version: ${{ matrix.java-version }}
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Build
-        uses: spring-projects/spring-data-build/actions/maven-build@main
+        uses: spring-projects/spring-data-build/actions/maven-build@4.2.x
         env:
           OSS_ARTIFACTORY_USR: '${{ secrets.ARTIFACTORY_USERNAME }}'
           OSS_ARTIFACTORY_PSW: '${{ secrets.ARTIFACTORY_PASSWORD }}'

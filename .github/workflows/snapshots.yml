@@ -3,7 +3,7 @@ name: Snapshots
 on:
   workflow_dispatch:
   push:
-    branches: [ main, 'issue/**', 'release/**' ]
+    branches: [ 4.2.x, 'issue/4.2.x/**', 'release/**' ]
 
 permissions: read-all
 
@@ -15,11 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - name: Setup Java and Maven
-        uses: spring-projects/spring-data-build/actions/setup-maven@main
+        uses: spring-projects/spring-data-build/actions/setup-maven@4.2.x
         with:
           develocity-access-key: '${{ secrets.DEVELOCITY_ACCESS_KEY }}'
       - name: Deploy to Artifactory
-        uses: spring-projects/spring-data-build/actions/maven-artifactory-deploy@main
+        uses: spring-projects/spring-data-build/actions/maven-artifactory-deploy@4.2.x
         env:
           OSS_ARTIFACTORY_USR: '${{ secrets.ARTIFACTORY_USERNAME }}'
           OSS_ARTIFACTORY_PSW: '${{ secrets.ARTIFACTORY_PASSWORD }}'
