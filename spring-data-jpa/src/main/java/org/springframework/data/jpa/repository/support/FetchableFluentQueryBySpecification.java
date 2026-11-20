@@ -243,26 +243,6 @@ class FetchableFluentQueryBySpecification<S, R> extends FluentQuerySupport<S, R>
 		return new SliceImpl<>(slice, pageable, hasNext);
 	}
 
-	private Slice<R> readSlice(Pageable pageable, @Nullable Specification<S> countSpec) {
-
-		TypedQuery<S> pagedQuery = createSortedAndProjectedQuery(pageable.getSort());
-
-		if (pageable.isPaged()) {
-			pagedQuery.setFirstResult(PageableUtils.getOffsetAsInteger(pageable));
-			pagedQuery.setMaxResults(pageable.getPageSize() + 1);
-		}
-
-		List<S> resultList = pagedQuery.getResultList();
-		boolean hasNext = resultList.size() > pageable.getPageSize();
-		if (hasNext) {
-			resultList = resultList.subList(0, pageable.getPageSize());
-		}
-
-		List<R> slice = convert(resultList);
-
-		return new SliceImpl<>(slice, pageable, hasNext);
-	}
-
 	private Page<R> readPage(Pageable pageable, @Nullable Specification<S> countSpec) {
 
 		Sort sort = pageable.getSortOr(this.sort);
