@@ -33,7 +33,7 @@ import org.springframework.data.jpa.repository.query.DefaultJpaEntityMetadata;
  * @author Christoph Strobl
  * @author Jens Schauder
  */
-class DefaultJpaEntityMetadataUnitTest {
+class DefaultJpaEntityMetadataUnitTests {
 
 	@Test
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -49,10 +49,10 @@ class DefaultJpaEntityMetadataUnitTest {
 	}
 
 	@Test
-	void returnsSimpleClassNameAsEntityNameByDefault() {
+	void returnsUnqualifiedClassNameAsEntityNameByDefault() {
 
 		DefaultJpaEntityMetadata<Foo> metadata = new DefaultJpaEntityMetadata<>(Foo.class);
-		assertThat(metadata.getEntityName()).isEqualTo(Foo.class.getSimpleName());
+		assertThat(metadata.getEntityName()).isEqualTo("DefaultJpaEntityMetadataUnitTests$Foo");
 	}
 
 	@Test

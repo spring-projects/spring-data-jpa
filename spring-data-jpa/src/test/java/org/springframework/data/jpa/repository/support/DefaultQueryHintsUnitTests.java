@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jens Schauder
  */
-class DefaultQueryHintsTest {
+class DefaultQueryHintsUnitTests {
 
 	private JpaEntityInformation<?, ?> information = mock(JpaEntityInformation.class);
 	private CrudMethodMetadata metadata = mock(CrudMethodMetadata.class);
