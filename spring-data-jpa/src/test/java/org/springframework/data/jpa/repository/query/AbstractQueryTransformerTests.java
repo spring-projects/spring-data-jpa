@@ -38,6 +38,7 @@ import org.springframework.data.repository.query.ReturnedType;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author João Guilherme Andrade Santos Jacinto
  */
 abstract class AbstractQueryTransformerTests {
 
@@ -163,6 +164,18 @@ abstract class AbstractQueryTransformerTests {
 						SELECT m.price, lower(m.title) AS title, a.name as authorName FROM Magazine m INNER JOIN m.author a | price      | order by m.price asc
 						""")
 		void sortsBySelectAlias(String query, String properties, String orderBy) {
+			assertThat(createQueryFor(query, Sort.by(properties.split(",\\s*")))).endsWith(orderBy);
+		}
+
+		@ParameterizedTest(name = "sort by {1}") // GH-4435
+		@CsvSource(delimiter = '|', quoteCharacter = '"',
+				textBlock = """
+						SELECT AVG(m.price) avgPrice FROM Magazine m                                 | avgPrice            | order by avgPrice asc
+						SELECT m.name, AVG(m.price) avgPrice FROM Magazine m                         | name, avgPrice      | order by m.name asc, avgPrice asc
+						SELECT CONCAT(m.name, 'foo') extendedName FROM Magazine m                    | extendedName        | order by extendedName asc
+						SELECT m.price, a.name authorName FROM Magazine m INNER JOIN m.author a      | authorName          | order by authorName asc
+						""")
+		void sortsBySelectAliasWithoutAs(String query, String properties, String orderBy) {
 			assertThat(createQueryFor(query, Sort.by(properties.split(",\\s*")))).endsWith(orderBy);
 		}
 
