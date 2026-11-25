@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Mark Paluch
+ * @author João Guilherme Andrade Santos Jacinto
  */
 class HqlQueryTransformerTests extends AbstractQueryTransformerTests {
 
@@ -271,6 +272,16 @@ class HqlQueryTransformerTests extends AbstractQueryTransformerTests {
 		assertThat(createQueryFor("SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id",
 				Sort.by(Order.desc("t3.testDuplicateColumnName")))).isEqualToIgnoringWhitespace(
 						"SELECT t3 FROM Test3 t3 JOIN t3.test2 x WHERE x.id = :test2Id order by t3.testDuplicateColumnName desc");
+	}
+
+	@Test // GH-4435
+	void doesNotPrefixRootAliasesDeclaredWithoutAs() {
+
+		assertThat(createQueryFor("select u from User u, Role r where r.user = u", Sort.by("r.name")))
+				.isEqualTo("select u from User u, Role r where r.user = u order by r.name asc");
+
+		assertThat(createQueryFor("select u from User u, Role as r where r.user = u", Sort.by("r.name")))
+				.isEqualTo("select u from User u, Role as r where r.user = u order by r.name asc");
 	}
 
 	@Test // GH-3427, GH-4342

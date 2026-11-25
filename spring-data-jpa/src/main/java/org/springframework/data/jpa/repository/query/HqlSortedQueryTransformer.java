@@ -33,6 +33,7 @@ import org.springframework.util.ObjectUtils;
  * @author Greg Turnquist
  * @author Christoph Strobl
  * @author Oscar Fanchin
+ * @author João Guilherme Andrade Santos Jacinto
  * @since 3.1
  */
 class HqlSortedQueryTransformer extends HqlQueryRenderer {
@@ -157,7 +158,7 @@ class HqlSortedQueryTransformer extends HqlQueryRenderer {
 
 		QueryTokenStream tokens = super.visitVariable(ctx);
 
-		if (ctx.identifier() != null && !tokens.isEmpty() && !isSubquery(ctx)) {
+		if (!tokens.isEmpty() && !isSubquery(ctx)) {
 			transformerSupport.registerAlias(tokens.getRequiredLast());
 		}
 
