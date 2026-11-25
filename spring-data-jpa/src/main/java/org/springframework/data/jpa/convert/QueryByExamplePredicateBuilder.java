@@ -61,6 +61,7 @@ import org.springframework.util.StringUtils;
  * @author Jens Schauder
  * @author Greg Turnquist
  * @author Arnaud Lecointre
+ * @author Sharang Gupta
  * @since 1.10
  */
 public class QueryByExamplePredicateBuilder {
@@ -182,37 +183,31 @@ public class QueryByExamplePredicateBuilder {
 			if (attribute.getJavaType().equals(String.class)) {
 
 				Expression<String> expression = from.get(attribute);
-				if (exampleAccessor.isIgnoreCaseForPath(currentPath)) {
-					expression = cb.lower(expression);
-					attributeValue = attributeValue.toString().toLowerCase();
+				boolean ignoreCase = exampleAccessor.isIgnoreCaseForPath(currentPath);
+				if (ignoreCase) {
+					// fold both sides in the database, as derived queries do
+					expression = cb.upper(expression);
 				}
 
 				switch (exampleAccessor.getStringMatcherForPath(currentPath)) {
 
 					case DEFAULT:
 					case EXACT:
-						predicates.add(cb.equal(expression, attributeValue));
+						predicates.add(ignoreCase //
+								? cb.equal(expression, cb.upper(cb.literal(attributeValue.toString()))) //
+								: cb.equal(expression, attributeValue));
 						break;
 					case CONTAINING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter() //
-						));
+						predicates.add(like(cb, expression, "%" + escapeCharacter.escape(attributeValue.toString()) + "%",
+								escapeCharacter, ignoreCase));
 						break;
 					case STARTING:
-						predicates.add(cb.like(//
-								expression, //
-								escapeCharacter.escape(attributeValue.toString()) + "%", //
-								escapeCharacter.getEscapeCharacter()) //
-						);
+						predicates.add(like(cb, expression, escapeCharacter.escape(attributeValue.toString()) + "%",
+								escapeCharacter, ignoreCase));
 						break;
 					case ENDING:
-						predicates.add(cb.like( //
-								expression, //
-								"%" + escapeCharacter.escape(attributeValue.toString()), //
-								escapeCharacter.getEscapeCharacter()) //
-						);
+						predicates.add(like(cb, expression, "%" + escapeCharacter.escape(attributeValue.toString()),
+								escapeCharacter, ignoreCase));
 						break;
 					default:
 						throw new IllegalArgumentException(
@@ -224,6 +219,14 @@ public class QueryByExamplePredicateBuilder {
 		}
 
 		return predicates;
+	}
+
+	private static Predicate like(CriteriaBuilder cb, Expression<String> expression, String pattern,
+			EscapeCharacter escapeCharacter, boolean ignoreCase) {
+
+		return ignoreCase //
+				? cb.like(expression, cb.upper(cb.literal(pattern)), escapeCharacter.getEscapeCharacter())
+				: cb.like(expression, pattern, escapeCharacter.getEscapeCharacter());
 	}
 
 	private static boolean isAssociation(Attribute<?, ?> attribute) {
