@@ -13,12 +13,14 @@ workflow:
         ready:
           watch: false
         build:
+          runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
           env:
             COMMERCIAL_REPO_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
             COMMERCIAL_REPO_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
             COMMERCIAL_RELEASE_REPO_URL: vars.COMMERCIAL_RELEASE_REPO_URL
             RELEASE_TRAIN_SETTINGS_XML: vars.RELEASE_TRAIN_SETTINGS_XML
         test:
+          runs-on: ${{ vars.ACTION_RUNNER || 'ubuntu-latest' }}
           env:
             COMMERCIAL_REPO_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
             COMMERCIAL_REPO_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
