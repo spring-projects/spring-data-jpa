@@ -47,6 +47,7 @@ import org.springframework.javapoet.CodeBlock;
  * Unit tests for {@link JpaCodeBlocks}.
  *
  * @author Christoph Strobl
+ * @author YeongJae Min
  */
 class JpaCodeBlocksUnitTests {
 
@@ -58,6 +59,17 @@ class JpaCodeBlocksUnitTests {
 				.lockMode(LockModeType.PESSIMISTIC_READ).build();
 
 		assertThat(codeBlock.toString()).containsSubsequence(".setLockMode(", "LockModeType.PESSIMISTIC_READ)");
+	}
+
+	@Test // GH-3984
+	void usesQueryRewriterField() throws NoSuchMethodException {
+
+		CodeBlock codeBlock = initQueryBuilder()
+				.filter(new AotQueries(jpqlQuery("SELECT d FROM DummyEntity d", List.of(), Limit.unlimited(), false, false))) //
+				.queryRewriterField("queryRewriter0").build();
+
+		assertThat(codeBlock.toString()).contains("this.queryRewriter0.rewrite(");
+		assertThat(codeBlock.toString()).doesNotContain("getQueryRewriter(");
 	}
 
 	QueryBlockBuilder initQueryBuilder() throws NoSuchMethodException {

@@ -64,6 +64,7 @@ import org.springframework.util.ReflectionUtils;
  * invocations to the backing AOT fragment. Note that {@code repositoryInterface} is not a repository proxy.
  *
  * @author Mark Paluch
+ * @author YeongJae Min
  */
 @ImportResource("classpath:hibernate-infrastructure.xml")
 public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProcessor {
@@ -109,6 +110,7 @@ public class AotFragmentTestConfigurationSupport implements BeanFactoryPostProce
 				.addConstructorArgValue(
 						getCreationContext(repositoryContext, beanFactory.getBean(Environment.class), beanFactory))
 				.getBeanDefinition();
+		aotGeneratedRepository.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_CONSTRUCTOR);
 
 		generationContext.writeGeneratedContent();
 

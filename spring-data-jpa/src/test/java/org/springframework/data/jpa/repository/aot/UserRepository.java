@@ -17,6 +17,7 @@ package org.springframework.data.jpa.repository.aot;
 
 import jakarta.persistence.QueryHint;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import org.springframework.data.util.Streamable;
  * @author Christoph Strobl
  * @author Mark Paluch
  * @author JungKyun Ryu
+ * @author YeongJae Min
  */
 interface UserRepository extends CrudRepository<User, Integer> {
 
@@ -274,6 +276,13 @@ interface UserRepository extends CrudRepository<User, Integer> {
 	@Query(value = "select u from OTHER u where u.emailAddress = ?1", queryRewriter = MyQueryRewriter.class)
 	Page<User> findAndApplyQueryRewriter(String emailAddress, Pageable pageable);
 
+	@Query(value = "select u from BEAN_BACKED u where u.emailAddress = ?1", queryRewriter = BeanBackedQueryRewriter.class)
+	User findAndApplyBeanBackedQueryRewriter(String emailAddress);
+
+	@Query(value = "select u from CHECKED_CONSTRUCTOR u where u.emailAddress = ?1",
+			queryRewriter = CheckedConstructorQueryRewriter.class)
+	User findAndApplyQueryRewriterWithCheckedConstructor(String emailAddress);
+
 	// -------------------------------------------------------------------------
 	// Unsupported: Procedures
 	// -------------------------------------------------------------------------
@@ -308,6 +317,30 @@ interface UserRepository extends CrudRepository<User, Integer> {
 		@Override
 		public String rewrite(String query, Pageable pageRequest) {
 			return query.replaceAll("OTHER", "User");
+		}
+	}
+
+	static class BeanBackedQueryRewriter implements QueryRewriter {
+
+		private final String entityName;
+
+		BeanBackedQueryRewriter(String entityName) {
+			this.entityName = entityName;
+		}
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query.replaceAll("BEAN_BACKED", entityName);
+		}
+	}
+
+	static class CheckedConstructorQueryRewriter implements QueryRewriter {
+
+		public CheckedConstructorQueryRewriter() throws IOException {}
+
+		@Override
+		public String rewrite(String query, Sort sort) {
+			return query.replace("CHECKED_CONSTRUCTOR", "User");
 		}
 	}
 }

@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.io.Resource;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the {@link UserRepository} JSON metadata via {@link JpaRepositoryContributor}.
  *
  * @author Mark Paluch
+ * @author YeongJae Min
  */
 @SpringJUnitConfig(classes = JpaRepositoryMetadataIntegrationTests.JpaRepositoryContributorConfiguration.class)
 @Transactional
@@ -46,6 +48,16 @@ class JpaRepositoryMetadataIntegrationTests {
 	static class JpaRepositoryContributorConfiguration extends AotFragmentTestConfigurationSupport {
 		public JpaRepositoryContributorConfiguration() {
 			super(UserRepository.class);
+		}
+
+		@Bean
+		UserRepository.BeanBackedQueryRewriter beanBackedQueryRewriter() {
+			return new UserRepository.BeanBackedQueryRewriter("User");
+		}
+
+		@Bean
+		UserRepository.CheckedConstructorQueryRewriter checkedConstructorQueryRewriter() throws IOException {
+			return new UserRepository.CheckedConstructorQueryRewriter();
 		}
 	}
 
