@@ -132,9 +132,6 @@ public abstract class QueryUtils {
 	private static final Pattern ORDER_BY_IN_WINDOW_OR_SUBSELECT = compile("\\([\\s\\S]*order\\s+by\\s[\\s\\S]*\\)",
 			CASE_INSENSITIVE);
 
-	private static final Pattern NAMED_PARAMETER = compile(COLON_NO_DOUBLE_COLON + IDENTIFIER + "|#" + IDENTIFIER,
-			CASE_INSENSITIVE);
-
 	private static final Pattern CONSTRUCTOR_EXPRESSION;
 
 	private static final int QUERY_JOIN_ALIAS_GROUP_INDEX = 3;
@@ -537,7 +534,7 @@ public abstract class QueryUtils {
 	static <T> Query applyAndBind(String queryString, Iterable<T> entities, EntityManager entityManager,
 			PersistenceProvider persistenceProvider) {
 
-		Assert.notNull(queryString, "Querystring must not be null");
+		Assert.notNull(queryString, "Query string must not be null");
 		Assert.notNull(entities, "Iterable of entities must not be null");
 		Assert.notNull(entityManager, "EntityManager must not be null");
 
@@ -879,7 +876,7 @@ public abstract class QueryUtils {
 		 * inner join and if it's an optional association, and if previous paths has already required outer joins. It also
 		 * ensures outer joins are used even when Hibernate defaults to inner joins (HHH-12712 and HHH-12999).
 		 *
-		 * @param from the {@link From} to check for fetches.
+		 * @param resolver the {@link From} to check for fetches.
 		 * @param property the property path
 		 * @param isForSelection is the property navigated for the selection or ordering part of the query? if true, we need
 		 *          to generate an explicit outer join in order to prevent Hibernate to use an inner join instead. see
