@@ -28,8 +28,16 @@ A common pattern in that scenario is to use a common base class with a transient
 
 .A base class for entities with manually assigned identifiers
 ====
+
 [source, java]
 ----
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PostPersist;
+import jakarta.persistence.Transient;
+
+import org.springframework.data.domain.Persistable;
+
 @MappedSuperclass
 public abstract class AbstractEntity<ID> implements Persistable<ID> {
 
